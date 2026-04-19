@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagicWedding | AI 웨딩스냅 배경 변환 서비스</title>
+    <meta name="description" content="단조로운 웨딩스냅을 상상 속의 아름다운 세계로. AI 기반 웨딩 사진 배경 변환 서비스 MagicWedding입니다.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">MagicWedding</div>
+        <nav>
+            <ul>
+                <li><a href="#showcase">갤러리</a></li>
+                <li><a href="#how-it-works">이용방법</a></li>
+                <li><a href="#pricing">요금제</a></li>
+            </ul>
+            <a href="#upload" class="btn btn-primary btn-sm">무료로 시작하기</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 1. Hero Section -->
+        <section id="hero" class="hero-section">
+            <div class="hero-bg">
+                <img src="assets/hero_bg.png" alt="MagicWedding Hero Background">
+                <div class="overlay"></div>
+            </div>
+            <div class="hero-content fade-in-up">
+                <h1>단 한 장의 웨딩사진,<br>완전히 다른 세계로</h1>
+                <p>스튜디오에서 찍은 사진을 원하는 곳 어디든 데려가 드립니다.</p>
+                <a href="#upload" class="btn btn-primary btn-lg">지금 변환하기</a>
+            </div>
+        </section>
+
+        <!-- 2. Problem Section -->
+        <section id="problem" class="problem-section container fade-in-up">
+            <div class="section-header">
+                <h2>이런 웨딩사진, 아쉽지 않으셨나요?</h2>
+                <p>배경이 너무 밋밋하거나, 원하던 컨셉과 달라 실망하셨다면</p>
+            </div>
+            <div class="problem-cards">
+                <div class="card">
+                    <span class="icon">🤔</span>
+                    <h3>밋밋한 배경</h3>
+                    <p>비싼 돈 주고 찍었는데 결국 남는 건 흰 배경뿐이신가요?</p>
+                </div>
+                <div class="card">
+                    <span class="icon">✈️</span>
+                    <h3>해외 스냅의 로망</h3>
+                    <p>시간과 비용 때문에 포기했던 파리, 피렌체에서의 스냅촬영</p>
+                </div>
+                <div class="card">
+                    <span class="icon">📸</span>
+                    <h3>재촬영의 부담</h3>
+                    <p>다시 드레스를 입고, 메이크업을 하고, 하루를 통째로 비워야 합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Solution Section -->
+        <section id="solution" class="solution-section container fade-in-up">
+            <div class="solution-content">
+                <h2>이제 배경만 바꾸면 됩니다</h2>
+                <p>MagicWedding의 최첨단 AI 기술은 당신의 얼굴, 표정, 그리고 드레스의 디테일을 완벽하게 유지한 채 오직 '배경'과 '조명'만을 새롭게 재구성합니다. 재촬영 없이, 클릭 몇 번으로 완벽한 화보를 만들어보세요.</p>
+                <ul class="check-list">
+                    <li>✔️ 얼굴 및 체형 변형 없음</li>
+                    <li>✔️ 배경에 맞는 자연스러운 조명 보정</li>
+                    <li>✔️ 수십 가지의 프리미엄 스타일 제공</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 4. Transformation Showcase -->
+        <section id="showcase" class="showcase-section container fade-in-up">
+            <div class="section-header">
+                <h2>Before & After</h2>
+                <p>드래그하여 놀라운 변화를 직접 확인해보세요</p>
+            </div>
+            <div class="slider-container">
+                <div class="image-slider">
+                    <div class="image-after">
+                        <img src="assets/studio_after.png" alt="변환 후 사진">
+                        <span class="label after-label">After (로맨틱 유럽)</span>
+                    </div>
+                    <div class="image-before">
+                        <img src="assets/studio_before.png" alt="원본 사진">
+                        <span class="label before-label">Before (스튜디오)</span>
+                    </div>
+                    <div class="slider-handle">
+                        <span class="slider-line"></span>
+                        <div class="slider-button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l-4 3 4 3M16 15l4-3-4-3"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. How It Works -->
+        <section id="how-it-works" class="how-it-works-section container fade-in-up">
+            <div class="section-header">
+                <h2>이용 방법</h2>
+                <p>단 5단계로 완성되는 마법</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>사진 업로드</h3>
+                    <p>변경하고 싶은 웨딩 사진을 업로드합니다.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>AI 분석</h3>
+                    <p>인물과 배경을 분리하고 조명을 분석합니다.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>스타일 선택</h3>
+                    <p>원하는 테마와 스타일을 선택합니다.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>이미지 변환</h3>
+                    <p>AI가 완벽하고 자연스럽게 배경을 변환합니다.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h3>다운로드</h3>
+                    <p>고화질 화보를 다운로드하고 공유하세요.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Technology Section -->
+        <section id="technology" class="technology-section fade-in-up">
+            <div class="container">
+                <h2>얼굴은 그대로, 분위기만 완벽하게 변화</h2>
+                <p>최신 생성형 AI 모델(ChatGPT API 프롬프트 엔지니어링 및 SuperGrok 비전 기술)을 활용하여, 인물의 고유한 특성을 100% 보존합니다. 드레스의 주름 하나까지 놓치지 않고 새로운 공간에 자연스럽게 융화시킵니다.</p>
+            </div>
+        </section>
+
+        <!-- 7. Upload Section -->
+        <section id="upload" class="upload-section container fade-in-up">
+            <div class="upload-container">
+                <h2>지금 바로 시작해보세요</h2>
+                <p>무료 가입 시 1장의 사진을 무료로 변환해 드립니다.</p>
+                
+                <div class="upload-area" id="upload-area">
+                    <span class="upload-icon">📤</span>
+                    <h3>여기로 사진을 드래그 앤 드롭 하세요</h3>
+                    <p>또는 클릭하여 파일 선택 (JPG, PNG)</p>
+                    <input type="file" id="file-input" accept="image/*" hidden>
+                    <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">컴퓨터에서 찾기</button>
+                    <div id="file-name" class="file-name"></div>
+                </div>
+                
+                <div class="style-selector">
+                    <h3>스타일 선택</h3>
+                    <div class="style-options">
+                        <div class="style-btn active">파리 에펠탑</div>
+                        <div class="style-btn">이탈리아 피렌체</div>
+                        <div class="style-btn">디즈니 동화</div>
+                        <div class="style-btn">한국 전통 한옥</div>
+                        <div class="style-btn">판타지 숲속</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-full" id="start-btn">변환 시작하기 (업로드 필요)</button>
+            </div>
+        </section>
+
+        <!-- 8. Pricing Section -->
+        <section id="pricing" class="pricing-section container fade-in-up">
+            <div class="section-header">
+                <h2>요금제 안내</h2>
+                <p>합리적인 가격으로 스튜디오를 통째로 옮기세요</p>
+            </div>
+            <div class="pricing-cards">
+                <div class="price-card">
+                    <h3>체험하기</h3>
+                    <div class="price">무료</div>
+                    <ul>
+                        <li>1장 변환</li>
+                        <li>워터마크 포함</li>
+                        <li>일반 화질 다운로드</li>
+                    </ul>
+                    <a href="#upload" class="btn btn-outline">시작하기</a>
+                </div>
+                <div class="price-card popular">
+                    <div class="badge">BEST</div>
+                    <h3>프리미엄 패키지</h3>
+                    <div class="price">₩29,000</div>
+                    <ul>
+                        <li>10장 고화질 변환</li>
+                        <li>워터마크 없음</li>
+                        <li>우선 처리 속도</li>
+                        <li>전체 스타일 무제한 선택</li>
+                    </ul>
+                    <a href="#upload" class="btn btn-primary">선택하기</a>
+                </div>
+                <div class="price-card">
+                    <h3>웨딩 앨범 패키지</h3>
+                    <div class="price">₩89,000</div>
+                    <ul>
+                        <li>50장 고화질 변환</li>
+                        <li>워터마크 없음</li>
+                        <li>전문가의 1:1 리터칭 검수</li>
+                        <li>고급 실물 액자 1개 증정</li>
+                    </ul>
+                    <a href="#upload" class="btn btn-outline">선택하기</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Review Section -->
+        <section id="review" class="review-section container fade-in-up">
+            <div class="section-header">
+                <h2>고객 후기</h2>
+                <p>이미 많은 신부님들이 놀라운 경험을 하셨습니다</p>
+            </div>
+            <div class="review-grid">
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p>"스튜디오 배경이 너무 단조로워서 실망했었는데, 파리 스냅 느낌으로 변환하고 나서 모바일 청첩장에 메인으로 썼어요! 다들 어디서 찍었냐고 물어보네요."</p>
+                    <div class="author">- 이서연 신부님</div>
+                </div>
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p>"진짜 제 얼굴은 그대로인데 배경만 마법처럼 바뀌어요. 조명까지 맞춰져서 전혀 합성티가 안 납니다. 돈 굳은 기분이에요!"</p>
+                    <div class="author">- 김지은 신부님</div>
+                </div>
+                <div class="review-card">
+                    <div class="stars">★★★★★</div>
+                    <p>"재촬영 하려고 알아보다가 반신반의하며 프리미엄 결제했는데 대만족입니다. 디즈니 컨셉으로 바꾼 사진은 액자로 만들었어요."</p>
+                    <div class="author">- 박수진 신부님</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Final CTA -->
+        <section class="cta-section fade-in-up">
+            <div class="container">
+                <h2>당신의 웨딩사진에 마법을 걸어보세요</h2>
+                <p>재촬영 없이 단 몇 초 만에 완벽한 화보가 완성됩니다.</p>
+                <a href="#upload" class="btn btn-primary btn-lg">지금 무료로 시작하기</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">MagicWedding</div>
+                <div class="footer-links">
+                    <a href="#">이용약관</a>
+                    <a href="#">개인정보처리방침</a>
+                    <a href="#">고객센터</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 MagicWedding. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,2742 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Magic Ai Studio - Wedding Photos</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-container": "#f2dadd",
+              "on-primary": "#ffffff",
+              "tertiary-fixed-dim": "#aad0ac",
+              "secondary-fixed": "#f5dde0",
+              "inverse-on-surface": "#f9eeef",
+              "on-tertiary-fixed": "#01210b",
+              "surface-container-highest": "#eae0e1",
+              "secondary-fixed-dim": "#d8c1c4",
+              "on-primary-container": "#4f2630",
+              "on-surface": "#1f1a1b",
+              "tertiary-fixed": "#c6ecc7",
+              "surface-variant": "#eae0e1",
+              error: "#ba1a1a",
+              background: "#fff8f7",
+              "on-error": "#ffffff",
+              "on-secondary-fixed-variant": "#534345",
+              "outline-variant": "#d5c2c4",
+              "on-tertiary-container": "#183920",
+              "primary-fixed-dim": "#f4b6c3",
+              "on-tertiary": "#ffffff",
+              "on-background": "#1f1a1b",
+              "tertiary-container": "#7fa382",
+              "on-primary-fixed": "#330f1a",
+              "inverse-primary": "#f4b6c3",
+              "surface-container-low": "#fcf1f2",
+              "error-container": "#ffdad6",
+              "surface-tint": "#81505c",
+              secondary: "#6c5a5d",
+              primary: "#81505c",
+              "surface-container-lowest": "#ffffff",
+              surface: "#fff8f7",
+              "surface-bright": "#fff8f7",
+              "surface-container-high": "#f0e6e6",
+              outline: "#837376",
+              "on-secondary-container": "#705e61",
+              "on-primary-fixed-variant": "#663944",
+              "on-secondary-fixed": "#25181a",
+              tertiary: "#446649",
+              "surface-dim": "#e2d8d8",
+              "inverse-surface": "#352f30",
+              "on-surface-variant": "#514346",
+              "primary-fixed": "#ffd9e0",
+              "on-tertiary-fixed-variant": "#2d4e33",
+              "on-secondary": "#ffffff",
+              "surface-container": "#f6ebec",
+              "primary-container": "#c48b97",
+              "on-error-container": "#93000a",
+            },
+            borderRadius: {
+              DEFAULT: "1rem",
+              lg: "2rem",
+              xl: "3rem",
+              full: "9999px",
+            },
+            spacing: {
+              "container-padding": "1.5rem",
+              "stack-gap-lg": "1.5rem",
+              "section-margin": "2.5rem",
+              "stack-gap-sm": "0.5rem",
+            },
+            fontFamily: {
+              "body-large": ["Outfit"],
+              "label-caps": ["Outfit"],
+              display: ["Cormorant Garamond"],
+              button: ["Outfit"],
+            },
+            fontSize: {
+              "body-large": [
+                "16px",
+                { lineHeight: "1.5", fontWeight: "400" },
+              ],
+              "label-caps": [
+                "13px",
+                { lineHeight: "1.0", letterSpacing: "0.05em", fontWeight: "500" },
+              ],
+              display: [
+                "40px",
+                { lineHeight: "1.2", letterSpacing: "0", fontWeight: "500" },
+              ],
+              button: ["16px", { lineHeight: "1.0", fontWeight: "600" }],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --rose: #c48b97;
+        --rose-deep: #81505c;
+        --cream: #fff8f7;
+        --ink: #1f1a1b;
+        --sage: #446649;
+        --glass: rgba(255, 255, 255, 0.52);
+        --glass-strong: rgba(255, 255, 255, 0.72);
+        --hairline: rgba(255, 255, 255, 0.68);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 100%;
+        min-height: max(884px, 100dvh);
+        background:
+          radial-gradient(120% 72% at 50% -18%, rgba(244, 182, 195, 0.34), transparent 58%),
+          linear-gradient(152deg, #fff8f7 0%, #fcf1f2 43%, #f6ebec 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.45), transparent 28%, rgba(127, 163, 130, 0.1) 72%, rgba(255, 255, 255, 0.38)),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px 78px);
+        opacity: 0.55;
+        mix-blend-mode: soft-light;
+      }
+
+      .glass-panel {
+        background: var(--glass);
+        backdrop-filter: blur(24px) saturate(1.2);
+        -webkit-backdrop-filter: blur(24px) saturate(1.2);
+        border: 1px solid var(--hairline);
+      }
+
+      .glow-shadow {
+        box-shadow: 0 22px 70px rgba(129, 80, 92, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      }
+
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .comparison-slider {
+        touch-action: none;
+      }
+
+      .comparison-slider img {
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .app-shell {
+        width: 100%;
+        min-width: 0;
+        min-height: 100dvh;
+      }
+
+      .brand-mark {
+        width: 52px;
+        height: 52px;
+        border-radius: 9999px;
+        display: grid;
+        place-items: center;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.74);
+        box-shadow: 0 14px 42px rgba(196, 139, 151, 0.18);
+      }
+
+      .upload-drop {
+        display: grid;
+        gap: 14px;
+        place-items: center;
+        min-height: 188px;
+        border-radius: 32px;
+        border: 1px dashed rgba(129, 80, 92, 0.34);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(242, 218, 221, 0.42));
+        text-align: center;
+        cursor: pointer;
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .upload-drop:hover {
+        transform: translateY(-1px);
+        border-color: rgba(129, 80, 92, 0.62);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(245, 221, 224, 0.52));
+      }
+
+      .icon-bubble {
+        width: 48px;
+        height: 48px;
+        border-radius: 9999px;
+        display: grid;
+        place-items: center;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.56);
+        border: 1px solid rgba(255, 255, 255, 0.76);
+      }
+
+      .mode-card {
+        position: relative;
+        min-width: 0;
+        min-height: 118px;
+        border-radius: 28px;
+        padding: 16px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.42);
+        border: 1px solid rgba(255, 255, 255, 0.62);
+        transition: transform 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .mode-card:hover {
+        transform: translateY(-1px);
+      }
+
+      .mode-card span {
+        overflow-wrap: break-word;
+      }
+
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mode-card:has(input:checked) {
+        background: rgba(255, 255, 255, 0.72);
+        border-color: rgba(129, 80, 92, 0.38);
+        box-shadow: 0 16px 44px rgba(196, 139, 151, 0.18);
+      }
+
+      .mode-card:has(input:checked) .mode-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .mode-check {
+        opacity: 0;
+        transform: scale(0.82);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .primary-action {
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 54px rgba(129, 80, 92, 0.22);
+        transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+      }
+
+      .primary-action:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 24px 64px rgba(129, 80, 92, 0.26);
+      }
+
+      .primary-action .material-symbols-outlined {
+        transition: transform 180ms ease;
+      }
+
+      .primary-action:hover:not(:disabled) .material-symbols-outlined {
+        transform: translateX(3px);
+      }
+
+      .result-card {
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.54);
+        border: 1px solid rgba(255, 255, 255, 0.68);
+        box-shadow: 0 18px 52px rgba(129, 80, 92, 0.12);
+      }
+
+      .soft-chip {
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      .modal-glass {
+        background:
+          linear-gradient(180deg, rgba(31, 26, 27, 0.72), rgba(31, 26, 27, 0.9)),
+          rgba(31, 26, 27, 0.8);
+      }
+
+      .screen-panel {
+        animation: screenFade 260ms ease both;
+      }
+
+      .landing-page {
+        width: 100%;
+      }
+
+      .landing-section {
+        width: min(1120px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 80px 0;
+      }
+
+      .landing-hero {
+        min-height: 100dvh;
+        display: grid;
+        gap: 42px;
+        align-items: center;
+      }
+
+      .cover-example {
+        position: relative;
+        overflow: hidden;
+        border-radius: 34px;
+        aspect-ratio: 4 / 5;
+      }
+
+      .cover-example::before,
+      .cover-example::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+      }
+
+      .cover-example::before {
+        background:
+          linear-gradient(135deg, rgba(53, 47, 48, 0.2), rgba(196, 139, 151, 0.18)),
+          url("mock-images/before/before_studio_couple_01.jpg") center / cover;
+        clip-path: inset(0 50% 0 0);
+      }
+
+      .cover-example::after {
+        background:
+          linear-gradient(135deg, rgba(255, 248, 247, 0.08), rgba(196, 139, 151, 0.16)),
+          url("mock-images/after/after_paris_couple_01.png") center / cover;
+        clip-path: inset(0 0 0 50%);
+      }
+
+      .cover-divider {
+        position: absolute;
+        z-index: 2;
+        inset-block: 0;
+        left: 50%;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 0 24px rgba(31, 26, 27, 0.25);
+      }
+
+      .landing-card {
+        border-radius: 32px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        box-shadow: 0 20px 70px rgba(129, 80, 92, 0.12);
+      }
+
+      .landing-grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .app-stage {
+        min-height: 100dvh;
+        width: 100%;
+        padding: 28px 16px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-frame {
+        width: min(390px, 100%);
+        height: min(844px, calc(100dvh - 32px));
+        min-height: 720px;
+        overflow: hidden;
+        border-radius: 34px;
+        background: #fffafa;
+        border: 1px solid rgba(213, 194, 196, 0.8);
+        box-shadow: 0 28px 90px rgba(53, 47, 48, 0.18);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
+
+      .app-screen {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 14px 14px 112px;
+        background: linear-gradient(180deg, #fff8f7 0%, #fffafa 52%, #fcf1f2 100%);
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        overflow: visible;
+        padding-bottom: 96px;
+      }
+
+      .result-grid > .result-card {
+        min-width: 0 !important;
+        max-width: none !important;
+      }
+
+      .app-topbar {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--rose-deep);
+      }
+
+      .app-bottom-nav {
+        position: absolute;
+        inset-inline: 12px;
+        bottom: 12px;
+        height: 58px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+        box-shadow: 0 16px 42px rgba(129, 80, 92, 0.12);
+        z-index: 10;
+      }
+
+      .app-bottom-nav button {
+        height: 46px;
+        border-radius: 18px;
+        color: #9c727b;
+        font-size: 11px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+      }
+
+      .feed-card {
+        min-height: 184px;
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        color: white;
+        box-shadow: 0 18px 42px rgba(53, 47, 48, 0.16);
+      }
+
+      .feed-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(31, 26, 27, 0.08), rgba(31, 26, 27, 0.72));
+      }
+
+      .app-chip-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .app-chip {
+        border-radius: 999px;
+        min-height: 38px;
+        padding: 0 12px;
+        background: rgba(255, 255, 255, 0.74);
+        border: 1px solid rgba(213, 194, 196, 0.78);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--rose-deep);
+      }
+
+      .app-chip:has(input:checked) {
+        background: rgba(196, 139, 151, 0.18);
+        border-color: rgba(129, 80, 92, 0.42);
+        color: var(--rose-deep);
+        font-weight: 600;
+      }
+
+      .loading-orbit {
+        width: 92px;
+        height: 92px;
+        border-radius: 9999px;
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+
+      .loading-orbit::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: inherit;
+        border: 2px solid transparent;
+        border-top-color: var(--rose-deep);
+        animation: orbitSpin 1.2s linear infinite;
+      }
+
+      @keyframes orbitSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes screenFade {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (min-width: 860px) {
+        .mode-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .landing-hero,
+        .landing-split {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
+          gap: 48px;
+          align-items: start;
+        }
+
+        .landing-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 420px) {
+        .landing-section {
+          width: min(100% - 32px, 1120px);
+          padding: 54px 0;
+        }
+
+        .app-stage {
+          padding: 0;
+        }
+
+        .mobile-frame {
+          width: 100%;
+          height: 100dvh;
+          min-height: 100dvh;
+          border-radius: 0;
+          border: 0;
+        }
+
+        .mode-card {
+          min-height: 106px;
+          padding: 14px;
+        }
+      }
+    </style>
+    <script>
+      window.__APP_ENV__ = window.__APP_ENV__ || {
+        USE_REAL_AI: false,
+        XAI_API_KEY: "",
+        XAI_IMAGE_MODEL: "grok-imagine-image",
+      };
+    </script>
+  </head>
+  <body
+    class="bg-background text-on-background font-body-large antialiased min-h-screen flex flex-col items-center relative overflow-x-hidden"
+  >
+    <main class="app-shell relative z-10">
+      <section class="screen-panel landing-page" id="landingScreen">
+        <section class="landing-section landing-hero">
+          <div>
+            <div class="flex items-center gap-3">
+              <div class="brand-mark">
+                <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+              </div>
+              <div>
+                <p class="font-label-caps text-label-caps uppercase text-primary">Magic Ai Studio</p>
+                <p class="text-sm text-on-surface-variant">AI wedding photo atelier</p>
+              </div>
+            </div>
+            <p class="mt-12 font-label-caps text-label-caps uppercase text-primary">Wedding AI retouch</p>
+            <h1 class="mt-4 font-display text-[48px] sm:text-[76px] leading-[0.98] text-on-surface">
+              내 얼굴은 그대로,<br />웨딩사진은 더 영화처럼.
+            </h1>
+            <p class="mt-6 max-w-[620px] text-[18px] leading-8 text-on-surface-variant">
+              AI가 얼굴과 포즈는 유지하고, 배경과 분위기만 자연스럽게 바꿔드립니다.
+            </p>
+            <button
+              class="primary-action mt-8 h-14 rounded-full bg-primary px-8 text-on-primary font-button text-button flex items-center justify-center gap-2"
+              data-screen-target="home"
+              type="button"
+            >
+              <span>사진 편집 시작하기</span>
+              <span class="material-symbols-outlined text-[21px]">arrow_forward</span>
+            </button>
+          </div>
+          <div class="glass-panel glow-shadow rounded-[38px] p-4">
+            <div class="cover-example">
+              <div class="cover-divider"></div>
+              <span class="absolute left-4 bottom-4 z-10 soft-chip px-3 py-1 text-xs text-on-surface">Before</span>
+              <span class="absolute right-4 bottom-4 z-10 soft-chip px-3 py-1 text-xs text-on-surface">After</span>
+              <span class="absolute left-4 top-4 z-10 soft-chip px-4 py-2 font-label-caps text-label-caps uppercase text-primary">대표 예시</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section landing-split">
+          <div>
+            <p class="font-label-caps text-label-caps uppercase text-primary">Before / After</p>
+            <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">원본의 인상은 지키고, 장면만 새롭게.</h2>
+            <p class="mt-4 text-base leading-7 text-on-surface-variant">얼굴, 포즈, 구도 보존을 우선으로 두고 웨딩 화보에 어울리는 배경과 조명을 더합니다.</p>
+          </div>
+          <div class="landing-card p-4">
+            <div class="cover-example">
+              <div class="cover-divider"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <p class="font-label-caps text-label-caps uppercase text-primary">Modes</p>
+          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">두 가지 편집 모드</h2>
+          <div class="landing-grid mt-8 sm:grid-cols-2">
+            <article class="landing-card p-6">
+              <span class="icon-bubble"><span class="material-symbols-outlined">travel_explore</span></span>
+              <h3 class="mt-5 font-display text-[30px] leading-none text-on-surface">유럽 명소 스냅</h3>
+              <p class="mt-3 text-sm leading-6 text-on-surface-variant">파리, 베니스, 아말피 감성의 자연스러운 여행 웨딩컷</p>
+            </article>
+            <article class="landing-card p-6">
+              <span class="icon-bubble"><span class="material-symbols-outlined">castle</span></span>
+              <h3 class="mt-5 font-display text-[30px] leading-none text-on-surface">디즈니 실사</h3>
+              <p class="mt-3 text-sm leading-6 text-on-surface-variant">실사 영화처럼 로맨틱한 판타지 웨딩 스타일</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <p class="font-label-caps text-label-caps uppercase text-primary">Europe Snap</p>
+          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">유럽 명소 스냅 소개</h2>
+          <div class="landing-grid mt-8 sm:grid-cols-4">
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">파리 에펠탑</p><p class="mt-2 text-sm text-on-surface-variant">클래식한 파리 웨딩 스냅</p></article>
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">파리 루브르 야경</p><p class="mt-2 text-sm text-on-surface-variant">은은한 야경과 로맨틱 조명</p></article>
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">베니스 대운하</p><p class="mt-2 text-sm text-on-surface-variant">물빛과 건축이 어우러진 장면</p></article>
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">포지타노 아말피 해안</p><p class="mt-2 text-sm text-on-surface-variant">햇살 가득한 해안 화보 무드</p></article>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <p class="font-label-caps text-label-caps uppercase text-primary">Disney Live Action</p>
+          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">디즈니 실사 소개</h2>
+          <div class="landing-grid mt-8 sm:grid-cols-4">
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Cinderella Royal</p><p class="mt-2 text-sm text-on-surface-variant">블루, 실버, 크리스탈 궁전 무드</p></article>
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Belle Romantic</p><p class="mt-2 text-sm text-on-surface-variant">골드 톤의 따뜻한 로맨스</p></article>
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Aurora Enchanted</p><p class="mt-2 text-sm text-on-surface-variant">핑크 플로럴과 몽환적인 빛</p></article>
+            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Mulan Oriental Hanbok</p><p class="mt-2 text-sm text-on-surface-variant">고급 한복과 동양적 정원 분위기</p></article>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <p class="font-label-caps text-label-caps uppercase text-primary">Download Options</p>
+          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">무료/광고/유료 안내</h2>
+          <div class="landing-grid mt-8">
+            <article class="landing-card p-6"><p class="font-semibold text-on-surface">무료 다운로드</p><p class="mt-2 text-sm text-on-surface-variant">Magic Ai Studio 워터마크 포함</p></article>
+            <article class="landing-card p-6"><p class="font-semibold text-on-surface">광고보기 다운로드</p><p class="mt-2 text-sm text-on-surface-variant">워터마크 포함</p></article>
+            <article class="landing-card p-6"><p class="font-semibold text-on-surface">유료 다운로드</p><p class="mt-2 text-sm text-on-surface-variant">워터마크 제거 가능</p></article>
+          </div>
+        </section>
+
+        <section class="landing-section text-center">
+          <h2 class="font-display text-[46px] leading-tight text-on-surface">지금, 웨딩사진을 새 장면으로.</h2>
+          <button
+            class="primary-action mx-auto mt-7 h-14 rounded-full bg-primary px-8 text-on-primary font-button text-button flex items-center justify-center gap-2"
+            data-screen-target="home"
+            type="button"
+          >
+            <span>지금 사진 편집 시작하기</span>
+            <span class="material-symbols-outlined text-[21px]">arrow_forward</span>
+          </button>
+        </section>
+      </section>
+
+      <section class="app-stage hidden" id="appStage">
+        <div class="mobile-frame">
+          <section class="screen-panel app-screen hidden" id="homeScreen">
+            <div class="app-topbar">
+              <div>
+                <p class="font-label-caps text-label-caps uppercase text-primary">Magic Ai Studio</p>
+                <p class="font-display text-[19px] leading-none text-on-surface">Home Feed</p>
+              </div>
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" type="button">
+                <span class="material-symbols-outlined text-[20px]">menu</span>
+              </button>
+            </div>
+            <div class="mt-8">
+              <p class="font-display text-[34px] leading-[0.95] text-on-surface">Capture your<br /><span class="italic text-primary">Perfect Moment</span></p>
+              <p class="mt-3 text-xs leading-5 text-on-surface-variant">Turn your everyday photo into cinematic wedding memories.</p>
+            </div>
+            <div class="mt-6 flex flex-col gap-4">
+              <article class="feed-card" style="background-image:url('mock-images/home/home_paris_couple_01.png')">
+                <div class="absolute inset-x-5 bottom-5 z-10">
+                  <p class="font-display text-[22px] leading-none">Paris Wedding Style</p>
+                  <button class="mt-4 h-10 w-full rounded-full bg-primary-container/90 text-on-primary-container text-sm font-semibold" data-screen-target="editor" type="button">이 스타일로 만들기</button>
+                </div>
+              </article>
+              <article class="feed-card" style="background-image:url('mock-images/home/home_disney_bride_01.png')">
+                <div class="absolute inset-x-5 bottom-5 z-10">
+                  <p class="font-display text-[22px] leading-none">Fairytale Live Action</p>
+                  <button class="mt-4 h-10 w-full rounded-full bg-primary-container/90 text-on-primary-container text-sm font-semibold" data-screen-target="editor" type="button">이 스타일로 만들기</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="screen-panel app-screen hidden" id="editorScreen">
+            <div class="app-topbar">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <p class="font-display text-[19px] text-primary">Magic Ai Studio</p>
+              <span class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-[19px]">auto_awesome</span>
+              </span>
+            </div>
+            <label class="upload-drop mt-4" for="photoInput">
+              <span class="icon-bubble">
+                <span class="material-symbols-outlined text-[26px]">cloud_upload</span>
+              </span>
+              <span class="flex flex-col gap-2">
+                <span class="font-display text-[26px] leading-none text-on-surface">사진 업로드</span>
+                <span class="px-5 text-xs leading-5 text-on-surface-variant">PNG, JPG, WEBP 이미지를 선택해 주세요.</span>
+              </span>
+            </label>
+            <input accept="image/png,image/jpeg,image/webp" class="sr-only" id="photoInput" type="file" />
+
+            <section class="mt-4 hidden" id="sourceSection">
+              <button class="relative w-full aspect-[4/5] overflow-hidden rounded-[24px] group bg-surface-container" id="sourceZoomButton" type="button">
+                <img alt="Uploaded preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" id="sourcePreview" />
+                <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-2 text-center text-xs">크게 보기</span>
+              </button>
+            </section>
+
+            <fieldset class="mt-5 flex flex-col gap-3">
+              <legend class="font-label-caps text-label-caps uppercase text-on-surface-variant">내가 원하는 편집 스타일</legend>
+              <div class="app-chip-grid">
+                <label class="app-chip">
+                  <input class="sr-only" name="generationMode" type="radio" value="parisSnap" checked />
+                  <span class="material-symbols-outlined text-[17px]">travel_explore</span>
+                  <span>유럽 명소 스냅</span>
+                </label>
+                <label class="app-chip">
+                  <input class="sr-only" name="generationMode" type="radio" value="disneyLive" />
+                  <span class="material-symbols-outlined text-[17px]">castle</span>
+                  <span>디즈니 실사</span>
+                </label>
+              </div>
+            </fieldset>
+            <p class="hidden mt-3 rounded-[20px] bg-secondary-container/70 px-4 py-3 text-xs leading-5 text-primary" id="disneyModeHint">
+              신데렐라, 벨, 오로라, 한복 뮬란 실사풍으로 자연스럽게 연출해요.
+            </p>
+            <section class="mt-6">
+              <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">추천 서비스 모드 선택</p>
+              <div class="mt-3 grid grid-cols-3 gap-3">
+                <div class="rounded-[22px] bg-white/60 p-4 text-center text-xs text-on-surface-variant"><span class="material-symbols-outlined text-primary">image</span><p class="mt-2">고해상도</p></div>
+                <div class="rounded-[22px] bg-white/60 p-4 text-center text-xs text-on-surface-variant"><span class="material-symbols-outlined text-primary">museum</span><p class="mt-2">명소 배경</p></div>
+                <div class="rounded-[22px] bg-white/60 p-4 text-center text-xs text-on-surface-variant"><span class="material-symbols-outlined text-primary">auto_fix_high</span><p class="mt-2">시네마틱</p></div>
+              </div>
+            </section>
+            <div class="mt-5 rounded-[24px] bg-white/60 px-4 py-3">
+              <p class="text-xs leading-5 text-on-surface-variant" id="statusText">이미지를 선택해 주세요.</p>
+              <p class="hidden pt-1 text-xs leading-5 text-error" id="errorText"></p>
+            </div>
+            <button
+              class="primary-action mt-4 w-full h-12 rounded-full bg-primary text-on-primary font-button text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled
+              id="generateButton"
+              type="button"
+            >
+              <span>AI 웨딩사진 만들기</span>
+              <span class="material-symbols-outlined text-[19px]">auto_awesome</span>
+            </button>
+          </section>
+
+          <section class="screen-panel app-screen hidden place-items-center" id="generatingScreen">
+            <div class="min-h-full grid place-items-center text-center">
+              <div class="flex flex-col items-center gap-6">
+                <div class="loading-orbit">
+                  <span class="material-symbols-outlined text-[34px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                </div>
+                <div>
+                  <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
+                  <h2 class="mt-2 font-display text-[34px] leading-tight text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
+                  <p class="mt-3 text-xs leading-5 text-on-surface-variant" id="generatingStatusText">AI 편집 요청을 준비하는 중...</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen-panel app-screen hidden" id="resultScreen">
+            <div class="app-topbar">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <p class="font-display text-[19px] text-primary">Magic Ai Studio</p>
+              <span class="w-9"></span>
+            </div>
+            <section class="flex flex-col gap-4 hidden mt-3" id="resultSection">
+              <div class="flex items-end justify-between gap-4">
+                <div>
+                  <p class="font-label-caps text-label-caps uppercase text-primary">AI Recommendation</p>
+                  <h2 class="font-display text-[28px] leading-tight text-on-surface">추천 결과</h2>
+                </div>
+                <p class="text-right text-xs leading-5 text-on-surface-variant" id="recommendationText">원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.</p>
+              </div>
+              <div
+                aria-label="원본과 AI 추천 결과 비교"
+                aria-valuemax="100"
+                aria-valuemin="0"
+                aria-valuenow="50"
+                class="comparison-slider relative w-full aspect-[4/5] rounded-[26px] overflow-hidden glass-panel glow-shadow cursor-ew-resize"
+                id="recommendedComparisonSlider"
+                role="slider"
+                tabindex="0"
+              >
+                <img alt="AI 추천 결과" class="absolute inset-0 w-full h-full object-cover" draggable="false" id="comparisonAfterImage" />
+                <div class="absolute inset-0 overflow-hidden" id="comparisonBeforeClip" style="clip-path: inset(0 50% 0 0);">
+                  <img alt="업로드 원본 이미지" class="absolute inset-0 w-full h-full object-cover max-w-none" draggable="false" id="comparisonBeforeImage" />
+                </div>
+                <div class="pointer-events-none absolute inset-y-0 z-20 flex items-center justify-center -translate-x-1/2" id="comparisonHandle" style="left: 50%;">
+                  <span class="absolute inset-y-0 w-[2px] bg-white/90 shadow-[0_0_18px_rgba(0,0,0,0.35)]"></span>
+                  <span class="relative w-10 h-10 rounded-full bg-white/90 text-primary shadow-lg flex items-center justify-center border border-white">
+                    <span class="material-symbols-outlined text-[21px]">drag_indicator</span>
+                  </span>
+                </div>
+                <span class="pointer-events-none absolute bottom-3 left-3 soft-chip px-3 py-1 text-xs text-on-surface">원본</span>
+                <span class="pointer-events-none absolute bottom-3 right-3 soft-chip px-3 py-1 text-xs text-on-surface">AI 결과</span>
+                <div class="absolute top-3 left-3 soft-chip px-3 py-1 text-label-caps font-label-caps uppercase text-on-surface" id="mainBadge">
+                  AI 추천
+                </div>
+              </div>
+              <button
+                class="h-10 rounded-full glass-panel px-5 text-primary font-button text-sm hover:bg-white/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled
+                id="recommendedZoomButton"
+                type="button"
+              >
+                <span class="material-symbols-outlined text-[18px]">open_in_full</span>
+                <span>크게 보기</span>
+              </button>
+              <p class="text-sm font-semibold text-primary hidden" id="mainVariantLabel"></p>
+              <div class="result-grid" id="thumbnailList"></div>
+            </section>
+          </section>
+
+          <nav class="app-bottom-nav">
+            <button data-screen-target="home" type="button"><span class="material-symbols-outlined text-[18px]">home</span><span>홈</span></button>
+            <button data-screen-target="editor" type="button"><span class="material-symbols-outlined text-[18px]">add_photo_alternate</span><span>편집</span></button>
+            <button data-screen-target="home" type="button"><span class="material-symbols-outlined text-[18px]">shopping_bag</span><span>서비스</span></button>
+          </nav>
+        </div>
+      </section>
+    </main>
+
+    <div class="fixed inset-0 z-[90] hidden modal-glass backdrop-blur-md items-center justify-center px-3 py-5 sm:p-8" id="imageModal">
+      <div class="relative w-full h-full max-w-6xl flex flex-col gap-4" id="imageModalShell">
+        <div class="glass-panel rounded-full px-3 py-2 flex items-center justify-between gap-3 text-white">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="font-label-caps text-label-caps uppercase tracking-widest truncate" id="imageModalLabel">이미지 확대</span>
+            <span class="hidden shrink-0 rounded-full bg-primary text-on-primary px-3 py-1 font-label-caps text-label-caps uppercase shadow-md" id="imageModalBadge">AI 추천</span>
+          </div>
+          <button class="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors" id="imageModalClose" type="button" aria-label="닫기">
+            <span class="material-symbols-outlined text-[22px]">close</span>
+          </button>
+        </div>
+        <div class="relative flex-1 min-h-0 flex items-center justify-center">
+          <button class="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 text-white items-center justify-center transition-colors" id="imageModalPrev" type="button" aria-label="이전 이미지">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
+          <button class="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 text-white items-center justify-center transition-colors" id="imageModalNext" type="button" aria-label="다음 이미지">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+        <div class="flex items-center justify-center gap-3 text-white/80 text-sm">
+          <button class="sm:hidden w-12 h-12 rounded-full bg-white/15 text-white flex items-center justify-center" id="imageModalPrevMobile" type="button" aria-label="이전 이미지">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <span id="imageModalCount">1/1</span>
+          <button class="sm:hidden w-12 h-12 rounded-full bg-white/15 text-white flex items-center justify-center" id="imageModalNextMobile" type="button" aria-label="다음 이미지">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <button class="hidden h-14 min-w-52 items-center justify-center gap-2 rounded-full bg-white/90 px-8 text-center text-[17px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalDownload" type="button">
+            <span class="material-symbols-outlined text-[21px]">download</span>
+            <span>이미지 다운로드</span>
+          </button>
+          <p class="min-h-5 text-sm text-white/80" id="imageModalDownloadStatus"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:3000";
+      const FEATURED_BADGE_TEXT = "AI 추천";
+      const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
+      const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
+      const WATERMARK_TEXT = "Magic Ai Studio";
+      const WATERMARK_OUTPUT_LONG_EDGE = 720;
+      let userPlan = "free"; // free | ad | paid
+      const DEBUG_MODE = new URLSearchParams(window.location.search).get("debug") === "true";
+      const GENERATION_MODES = {
+        PARIS_SNAP: "parisSnap",
+        DISNEY_LIVE: "disneyLive",
+      };
+      const GENERATION_MODE_ALIASES = {
+        parissnap: GENERATION_MODES.PARIS_SNAP,
+        paris: GENERATION_MODES.PARIS_SNAP,
+        pariseiffel: GENERATION_MODES.PARIS_SNAP,
+        eiffel: GENERATION_MODES.PARIS_SNAP,
+        europe: GENERATION_MODES.PARIS_SNAP,
+        european: GENERATION_MODES.PARIS_SNAP,
+        europesnap: GENERATION_MODES.PARIS_SNAP,
+        "유럽명소스냅": GENERATION_MODES.PARIS_SNAP,
+        "파리에펠탑": GENERATION_MODES.PARIS_SNAP,
+        disneylive: GENERATION_MODES.DISNEY_LIVE,
+        disney: GENERATION_MODES.DISNEY_LIVE,
+        liveactiondisney: GENERATION_MODES.DISNEY_LIVE,
+        disneyliveaction: GENERATION_MODES.DISNEY_LIVE,
+        fairytaleroyalwedding: GENERATION_MODES.DISNEY_LIVE,
+        "디즈니실사": GENERATION_MODES.DISNEY_LIVE,
+      };
+      const MODE_CONFIG = {
+        [GENERATION_MODES.PARIS_SNAP]: {
+          presetKey: "paris_eiffel",
+          fallbackLabels: [
+            "Eiffel Tower riverside",
+            "Eiffel Tower garden-side",
+            "Eiffel Tower promenade",
+            "Eiffel Tower terrace",
+          ],
+          basePrompt: `Edit this photo into a natural Paris Eiffel Tower snap.
+
+Keep the original people exactly the same.
+
+Priority:
+1. Preserve the original faces and identities exactly.
+2. Preserve eye shape, facial expression, hairstyle, hair color, skin tone, and overall facial impression.
+3. Preserve the original pose, hand position, body position, camera angle, framing, and composition.
+4. Preserve visible clothing and all visible props exactly.
+5. Preserve occlusions. Do not invent hidden hands, hidden fingers, hidden eyes, hidden shoes, or hidden facial parts.
+
+Background rule:
+- Replace only the background with a realistic Eiffel Tower setting.
+- Keep the background change natural and moderate.
+- Allow only slight variation in Eiffel Tower distance, terrace angle, surrounding scenery, and lighting.
+- Do not restyle the people.
+- Do not regenerate the people.
+- Do not beautify them into different-looking people.
+
+Blending:
+- Match lighting, shadows, perspective, and color tone naturally.
+- Keep the result realistic and photo-natural.
+
+Important:
+- Face preservation is more important than background accuracy.
+- If there is any conflict, reduce the background transformation strength.
+- Keep the final result subtle, natural, and realistic.`,
+        },
+        [GENERATION_MODES.DISNEY_LIVE]: {
+          presetKey: "fairytale_royal_wedding",
+          fallbackLabels: [
+            "Cinderella Royal — Cinderella",
+            "Belle Romantic — Beauty and the Beast",
+            "Aurora Enchanted — Sleeping Beauty",
+            "Mulan Oriental Hanbok — Mulan",
+          ],
+          basePrompt: `Edit the uploaded photo into a subtle Disney-inspired live-action wedding styling while keeping the original subject(s), face, pose, expression, and composition intact.
+
+Shared common base rules for all four Disney slots:
+- Apply exactly the same generation quality standard to Cinderella, Belle, Aurora, and Mulan.
+- Use the same face identity preservation strength for all four slots.
+- Use the same pose, hand position, body angle, camera viewpoint, framing, and composition preservation strength for all four slots.
+- Use the same photorealistic quality, sharpness, face-detail, and detail-preservation standard for all four slots.
+- Preserve original face identity, face proportions, eyes, nose, mouth, smile, skin tone, hairline, and facial texture detail.
+- Preserve skin texture and facial detail; avoid blurred faces, smeared features, low-resolution face detail, waxy skin, and detail loss.
+- Do not redesign the face.
+- Keep the original face exactly unchanged.
+- Do not beautify the face.
+- Do not make the person look younger, prettier, slimmer, or more doll-like.
+- Do not alter facial identity.
+- Do not change face shape, eye size, nose shape, mouth shape, jawline, cheekbones, or smile.
+- Preserve the original facial expression exactly.
+- Preserve the original skin tone naturally.
+- Keep the original face identity exactly.
+- Preserve eyes, nose, mouth, facial proportions, and expression.
+- Keep the original hairstyle and hair color unless explicitly required otherwise.
+- Do not invent new facial structure.
+- Do not make the face more cartoonish.
+- Keep the original scene's basic spatial feeling, realistic lighting, and wedding-photo realism.
+- Concept differences should come from wardrobe, color palette, background mood, props, decor, accessories, and atmosphere only.
+- Keep the original face even closer to the source photo than the current styling strength.
+- Apply the Disney-inspired concept mainly to wardrobe, background, props, accessories, lighting, color mood, and set dressing.
+- Minimize changes to facial identity, face shape, eyes, nose, mouth, smile, and expression.
+- Do not beautify, refine, slim, soften, or standardize the face beyond the original photo.
+- If the styling starts to change the person's identity, reduce Disney styling strength and preserve the face.
+
+Highest priority:
+- First priority: preserve the original face as much as possible.
+- Second priority: keep pose, hand position, body angle, framing, camera angle, composition, and body placement unchanged.
+- Third priority: preserve hair, body impression, age impression, skin tone, hairline, and the natural real-person mood.
+- Fourth priority: apply gentle character-specific Disney live-action styling through wardrobe details, color palette, background mood, props, accessories, lighting, and atmosphere.
+- Fifth priority: communicate the character concept subtly.
+- Preserve the original identity extremely strongly for every visible person.
+- For a couple photo, preserve the male face and female face separately; each person must look like their own original self.
+- Keep the subject(s) clearly recognizable as the same real people.
+- Maintain each person's original facial structure, face shape, eye shape, nose shape, mouth shape, smile, expression impression, gender-specific impression, natural age impression, hairstyle, hair color, and overall likeness.
+- Preserve occluded parts naturally. Do not invent hidden fingers, hidden facial parts, or hidden body parts.
+
+Allowed flattering refinement:
+- Allow only extremely weak skin cleanup and extremely weak natural editorial polish.
+- Do not over-beautify, glamorize, or change the subject(s) into someone else.
+- Avoid excessive eye enlargement, jaw slimming, face reshaping, exaggerated beauty filters, cartoon-like facial rendering, character-face transformation, or AI-doll face.
+- Do not reinterpret the nose, mouth, jaw, cheeks, eye size, or face proportions.
+
+Transformation strength:
+- Use subtle-to-moderate concept expression for wardrobe, background mood, color, accessories, and lighting while keeping face, expression, pose, and composition stable.
+- Make the Disney transformation happen only through wardrobe color/detail changes, character-specific background mood, props, accessories, hair ornaments, lighting, and cinematic atmosphere.
+- Do not use face alteration as the main way to communicate the concept.
+- Keep the face natural and extremely close to the source photo.
+- Keep facial styling strength slightly more conservative than the wardrobe, background, props, and lighting styling strength.
+- If identity preservation and Disney mood compete, weaken face-facing styling first while keeping wardrobe/background concept cues visible.
+- If there is a tradeoff, reduce Disney transformation rather than changing the face.
+- The final image should still clearly be the original wedding photo with gentle Disney-inspired styling.
+- Avoid full scene replacement or a newly generated photo look.
+- If the result looks like a different person, different pose, or different location structure, it is a failed result.
+
+Transformation priority:
+1. Face, pose, and composition preservation
+2. Original expression, eyes, nose, mouth, facial proportions, hairstyle, and hair color preservation
+3. Gentle character-specific concept differentiation
+4. Subtle-to-moderate costume adaptation
+5. Lighting, color, and mood
+6. Background mood, small props, hair ornaments, and character accents
+
+Styling:
+- Apply subtle-to-moderate costume adaptation.
+- Keep the original wedding dress, tuxedo, suit, or outfit silhouette and overall impression as much as possible.
+- Add character-inspired color, fabric detail, embroidery, soft sparkle, or accessory accents without turning it into a full cosplay costume.
+- Keep the body pose, hand position, and outfit fit consistent with the source photo.
+
+Background rule:
+- Keep the original background structure while adding a gentle Disney-inspired background mood for the locked character concept.
+- Avoid full scene replacement.
+- Preserve the basic space type and layout: sofa stays sofa, window stays window, indoor stays indoor, outdoor stays outdoor.
+- Add character-specific atmosphere through practical-set style decor, color grading, lighting, flowers, fabric, books, chandeliers, garden details, architectural hints, or traditional accents as appropriate for the slot.
+- The background should remain a believable photorealistic wedding photo setting, not a cartoon, not an illustration, not a painted animation background.
+- Use practical-set realism, natural depth of field, real architecture, real plants, real texture, and movie still lighting only where it fits the original scene.
+- Avoid over-saturated colors, flat illustrated scenery, toy-like props, CGI-cartoon backgrounds, and animation-style castles.
+- Do not rebuild the scene so strongly that it feels like a newly generated fantasy image.
+- Do not make all four backgrounds or moods look the same.
+
+Accessories and hair styling:
+- Add subtle but visible princess-like accessories.
+- Examples: floral hair accents, elegant earrings, delicate necklace details, soft royal styling elements.
+- Accessories should support the concept, not overpower the face.
+
+Lighting and mood:
+- Use cinematic soft lighting with fairy-tale atmosphere.
+- Add warm glow, gentle bloom, graceful highlights, romantic softness, and a premium live-action fantasy mood.
+- Keep the result photorealistic, elegant, and not cartoonish.
+- Keep every result live-action, cinematic, photo-real, and grounded in a natural environment.
+
+Important balance:
+- The desired result is the original wedding photo with clearly differentiated Disney-inspired wardrobe, accessories, color, light, and background mood naturally applied.
+- The goal is the original subject(s) wearing Disney-inspired styling, not different people generated in a Disney concept.
+- Face identity is more important than concept strength.
+- If there is any conflict, prioritize face preservation over costume/background styling.
+- Express the Disney-inspired concept through wardrobe, set design, props, lighting, and color mood.
+- Original pose, hand position, composition, camera angle, and background structure are more important than concept strength.
+- Costume and background mood changes should be visible, character-specific, photorealistic, and natural.
+- If any visible face looks like a different person, it is also a failed result.
+- If preserving the face conflicts with a character concept, preserve the face and weaken the character concept.
+- Generate four clearly different Disney-inspired concepts, but keep all four recognizable as edits of the original wedding photo.`,
+        },
+      };
+      const FIXED_GENERATION_POLICY = `4-result generation policy:
+- Generate 4 results in the same direction with only weak differences.
+- Prioritize stability over diversity.
+- Keep faces, pose, composition, and framing as identical as possible.
+- Only vary background distance, tone, lighting mood, detail strength, or accessory amount very subtly.`;
+      const DISNEY_GENERATION_POLICY = `4-result generation policy for disneyLive:
+- Generate exactly four fixed concept slots, one image per slot, with no duplicate concepts.
+- Slot 1 is Cinderella Royal — Cinderella: pastel blue/silver/white wardrobe and mood accents; subtle crystal sparkle; clean live-action royal interior mood; Cinderella-inspired blue dress styling adapted to the original outfit silhouette.
+- Slot 2 is Belle Romantic — Beauty and the Beast: gold/warm yellow/amber/bronze wardrobe and mood accents; warm romantic glow; classic live-action interior hints such as books, chandelier, candlelight, or golden room mood. Avoid Cinderella blue/silver.
+- Slot 3 is Aurora Enchanted — Sleeping Beauty: pink/rose/lavender/soft gold wardrobe and mood accents; dreamy sunlight; flowers, blossoms, garden, or gentle natural-light mood. Keep original hair color; avoid Cinderella blue/silver and Belle gold-library mood.
+- Slot 4 is Mulan Oriental Hanbok — Mulan: deep red/jade green/rose pink/traditional gold wardrobe and mood accents; East Asian garden, tiled roof, wooden architecture, pond, blossoms, traditional decor, or oriental courtyard mood; the woman's outfit must be clearly luxury Korean hanbok-based, not Chinese clothing. Avoid all European princess visual language.
+- The four results must be visually distinct in wardrobe color, background mood, props/decor, lighting, and character atmosphere.
+- Color palettes must not bleed across slots: Cinderella is blue/silver, Belle is gold/amber, Aurora is pink/lavender/floral, Mulan is red/green/East Asian hanbok.
+- Do not generate four near-identical images.
+- Do not omit Mulan.
+- All four slots must follow the same face-preservation, pose-preservation, sharpness, facial-detail, photorealism, and quality standard.
+- Do not let one slot become high quality but face-drifted while another slot is identity-preserved but blurry.
+- Reject outcomes with blurry eyes, smeared nose or mouth detail, waxy skin, low-resolution facial detail, or detail loss.
+- Face change strength must be near zero.
+- Preserve the original face as much as possible.
+- Preserve each visible face extremely strongly so every subject looks like the original person first.
+- For couple photos, preserve both faces separately; the man and woman must each remain individually recognizable.
+- Do not redesign the face.
+- Keep the original face exactly unchanged.
+- Do not beautify the face.
+- Do not make the person look younger, prettier, slimmer, or more doll-like.
+- Do not alter facial identity.
+- Do not change face shape, eye size, nose shape, mouth shape, jawline, cheekbones, or smile.
+- Preserve the original facial expression exactly.
+- Preserve the original skin tone naturally.
+- Keep the original face identity exactly.
+- Preserve eyes, nose, mouth, facial proportions, and expression.
+- Keep the original hairstyle and hair color unless explicitly required otherwise.
+- Do not invent new facial structure.
+- Do not make the face more cartoonish.
+- Keep the original face even closer to the source photo, with Disney styling directed mainly to wardrobe, background, props, accessories, lighting, and color mood.
+- Minimize changes to facial identity, face shape, eyes, nose, mouth, smile, and expression.
+- Do not beautify or refine the face beyond the original. If the concept starts changing identity, reduce the styling strength.
+- Allow only extremely weak skin cleanup and natural editorial polish.
+- Do not enlarge eyes, slim the jaw, reshape the face, reinterpret nose or mouth, over-smooth skin, or standardize the person into an AI handsome/beautiful face.
+- Keep pose, hand position, body angle, and composition unchanged.
+- Keep the original background structure and add gentle character-specific background mood through set design, props, lighting, and color mood.
+- Apply subtle-to-moderate costume adaptation while keeping the original body silhouette and wedding-photo realism.
+- Communicate character concept through wardrobe details first, color and background mood second, props/accessories third, lighting fourth, and face never.
+- For the Mulan concept, communicate Mulan through hanbok styling, calm oriental mood, blossoms/garden/traditional accents, and subtle accessories; do not use qipao, hanfu, Chinese armor, or Chinese imperial costume.
+- Backgrounds must remain photorealistic wedding photo spaces with natural texture and depth; avoid cartoon, illustration, painted animation, fantasy game art, plastic CGI, or overly saturated scenery.
+- Avoid full scene replacement. Add only enough background mood to support the concept while preserving the original space.
+- Photorealistic wedding photo style.
+- Balanced Disney mood overlay: concept variation must not change identity, expression, pose, camera angle, or composition.
+- If there is any conflict, prioritize face preservation over costume/background styling.
+- Express the Disney-inspired concept through wardrobe, set design, props, lighting, and color mood.
+- If the concept pushes the face away from the source likeness, reduce the concept strength and preserve the face.
+- Do not move the subject, change the camera angle, or replace the original location structure.
+- If the face looks like a different person, the result is a failure.`;
+      const appStage = document.getElementById("appStage");
+      const landingScreen = document.getElementById("landingScreen");
+      const homeScreen = document.getElementById("homeScreen");
+      const editorScreen = document.getElementById("editorScreen");
+      const generatingScreen = document.getElementById("generatingScreen");
+      const resultScreen = document.getElementById("resultScreen");
+      const screenStartButtons = Array.from(document.querySelectorAll("[data-screen-target]"));
+      const generatingStatusText = document.getElementById("generatingStatusText");
+      const photoInput = document.getElementById("photoInput");
+      const generationModeInputs = Array.from(document.querySelectorAll("input[name='generationMode']"));
+      const disneyModeHint = document.getElementById("disneyModeHint");
+      const generateButton = document.getElementById("generateButton");
+      const statusText = document.getElementById("statusText");
+      const errorText = document.getElementById("errorText");
+      const sourceSection = document.getElementById("sourceSection");
+      const sourcePreview = document.getElementById("sourcePreview");
+      const sourceZoomButton = document.getElementById("sourceZoomButton");
+      const resultSection = document.getElementById("resultSection");
+      const recommendedComparisonSlider = document.getElementById("recommendedComparisonSlider");
+      const comparisonBeforeImage = document.getElementById("comparisonBeforeImage");
+      const comparisonAfterImage = document.getElementById("comparisonAfterImage");
+      const comparisonBeforeClip = document.getElementById("comparisonBeforeClip");
+      const comparisonHandle = document.getElementById("comparisonHandle");
+      const recommendedZoomButton = document.getElementById("recommendedZoomButton");
+      const mainBadge = document.getElementById("mainBadge");
+      const mainVariantLabel = document.getElementById("mainVariantLabel");
+      const recommendationText = document.getElementById("recommendationText");
+      const thumbnailList = document.getElementById("thumbnailList");
+      const imageModal = document.getElementById("imageModal");
+      const imageModalShell = document.getElementById("imageModalShell");
+      const imageModalImg = document.getElementById("imageModalImg");
+      const imageModalLabel = document.getElementById("imageModalLabel");
+      const imageModalBadge = document.getElementById("imageModalBadge");
+      const imageModalDownload = document.getElementById("imageModalDownload");
+      const imageModalDownloadStatus = document.getElementById("imageModalDownloadStatus");
+      const imageModalClose = document.getElementById("imageModalClose");
+      const imageModalPrev = document.getElementById("imageModalPrev");
+      const imageModalNext = document.getElementById("imageModalNext");
+      const imageModalPrevMobile = document.getElementById("imageModalPrevMobile");
+      const imageModalNextMobile = document.getElementById("imageModalNextMobile");
+      const imageModalCount = document.getElementById("imageModalCount");
+
+      let selectedFile = null;
+      let selectedImageDataUrl = "";
+      let originalImageUrl = "";
+      let imageUrls = [];
+      let imageScores = [];
+      let variantLabels = [];
+      let failedImages = [];
+      let generationMeta = null;
+      let imageMetadata = [];
+      let recommendedIndex = null;
+      let resultDisplayOrder = [];
+      let recommendationReason = RECOMMENDATION_DESCRIPTION;
+      let activeGenerationMode = GENERATION_MODES.PARIS_SNAP;
+      let selectedIndex = 0;
+      let activeImageModalIndex = 0;
+      let isGenerating = false;
+      let comparisonSliderPosition = 50;
+      let isComparisonDragging = false;
+      let modalItemsOverride = null;
+      let appScreen = "landing";
+
+      function setAppScreen(screen) {
+        appScreen = screen;
+        const isLanding = screen === "landing";
+        landingScreen.classList.toggle("hidden", !isLanding);
+        appStage.classList.toggle("hidden", isLanding);
+        appStage.classList.toggle("flex", !isLanding);
+
+        const screens = [
+          { name: "home", element: homeScreen, activeClass: "" },
+          { name: "editor", element: editorScreen, activeClass: "" },
+          { name: "generating", element: generatingScreen, activeClass: "" },
+          { name: "result", element: resultScreen, activeClass: "" },
+        ];
+
+        screens.forEach(({ name, element, activeClass }) => {
+          if (!element) return;
+          const isActive = name === screen;
+          element.classList.toggle("hidden", !isActive);
+          if (activeClass) {
+            element.classList.toggle(activeClass, isActive);
+          }
+        });
+
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
+
+      function normalizeModeToken(value) {
+        return String(value || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
+      }
+
+      function resolveGenerationMode(value) {
+        if (MODE_CONFIG[value]) {
+          return value;
+        }
+
+        return GENERATION_MODE_ALIASES[normalizeModeToken(value)] || null;
+      }
+
+      function normalizeGenerationMode(value) {
+        return resolveGenerationMode(value) || GENERATION_MODES.PARIS_SNAP;
+      }
+
+      function getGenerationPlaceValue() {
+        const checkedPlace = document.querySelector("input[name='generationPlace']:checked, input[name='locationMode']:checked, input[name='place']:checked, input[name='location']:checked");
+        const selectedPlace = document.querySelector("select[name='generationPlace'], select[name='locationMode'], select[name='place'], select[name='location']");
+
+        return checkedPlace?.value || selectedPlace?.value || "";
+      }
+
+      function getGenerationMode() {
+        const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
+        const rawPlace = getGenerationPlaceValue();
+        const mode = resolveGenerationMode(rawMode) || resolveGenerationMode(rawPlace) || GENERATION_MODES.PARIS_SNAP;
+
+        return MODE_CONFIG[mode] ? mode : GENERATION_MODES.PARIS_SNAP;
+      }
+
+      function isDisneyMode(mode = activeGenerationMode) {
+        return mode === GENERATION_MODES.DISNEY_LIVE;
+      }
+
+      function syncGenerationModeUi() {
+        const mode = getGenerationMode();
+        disneyModeHint.classList.toggle("hidden", mode !== GENERATION_MODES.DISNEY_LIVE);
+      }
+
+      function getFeaturedLabel() {
+        return FEATURED_BADGE_TEXT;
+      }
+
+      function toDisplayUrl(url) {
+        if (url.startsWith("data:image/")) {
+          return url;
+        }
+
+        const absoluteUrl = url.startsWith("/") ? `${API_BASE}${url}` : url;
+        return `${absoluteUrl}${absoluteUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      }
+
+      function setStatus(message) {
+        statusText.textContent = message;
+        if (generatingStatusText && appScreen === "generating") {
+          generatingStatusText.textContent = message;
+        }
+      }
+
+      function hideError() {
+        errorText.textContent = "";
+        errorText.style.display = "none";
+      }
+
+      function clearResults() {
+        imageUrls = [];
+        originalImageUrl = "";
+        imageScores = [];
+        variantLabels = [];
+        failedImages = [];
+        generationMeta = null;
+        imageMetadata = [];
+        recommendedIndex = null;
+        resultDisplayOrder = [];
+        recommendationReason = RECOMMENDATION_DESCRIPTION;
+        selectedIndex = 0;
+        comparisonBeforeImage.removeAttribute("src");
+        comparisonAfterImage.removeAttribute("src");
+        setComparisonSliderPosition(50);
+        recommendedZoomButton.disabled = true;
+        recommendedZoomButton.classList.add("hidden");
+        mainBadge.textContent = FEATURED_BADGE_TEXT;
+        mainBadge.title = RECOMMENDATION_DESCRIPTION;
+        mainVariantLabel.textContent = "";
+        mainVariantLabel.classList.add("hidden");
+        recommendationText.textContent = USER_RECOMMENDATION_TEXT;
+        thumbnailList.innerHTML = "";
+        resultSection.classList.add("hidden");
+      }
+
+      function showError(message) {
+        errorText.textContent = message;
+        errorText.style.whiteSpace = "pre-wrap";
+        errorText.style.display = "block";
+      }
+
+      function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(new Error("파일을 읽지 못했습니다."));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function getModeConfig(mode) {
+        return MODE_CONFIG[mode] || MODE_CONFIG[GENERATION_MODES.PARIS_SNAP];
+      }
+
+      function getFallbackLabels(mode = activeGenerationMode) {
+        return getModeConfig(mode).fallbackLabels;
+      }
+
+      function logDebug(...args) {
+        if (DEBUG_MODE) {
+          console.log(...args);
+        }
+      }
+
+      function setComparisonSliderPosition(position) {
+        const numericPosition = Number(position);
+        comparisonSliderPosition = Math.min(96, Math.max(4, Number.isFinite(numericPosition) ? numericPosition : 50));
+        comparisonBeforeClip.style.clipPath = `inset(0 ${100 - comparisonSliderPosition}% 0 0)`;
+        comparisonHandle.style.left = `${comparisonSliderPosition}%`;
+        recommendedComparisonSlider.setAttribute("aria-valuenow", String(Math.round(comparisonSliderPosition)));
+      }
+
+      function updateComparisonFromClientX(clientX) {
+        const rect = recommendedComparisonSlider.getBoundingClientRect();
+        if (!rect.width) return;
+
+        setComparisonSliderPosition(((clientX - rect.left) / rect.width) * 100);
+      }
+
+      function RecommendedComparisonSlider({
+        originalImage,
+        editedImage,
+        altBefore = "업로드 원본 이미지",
+        altAfter = "AI 추천 결과",
+      }) {
+        comparisonBeforeImage.src = originalImage || "";
+        comparisonAfterImage.src = editedImage || originalImage || "";
+        comparisonBeforeImage.alt = altBefore;
+        comparisonAfterImage.alt = altAfter;
+        setComparisonSliderPosition(comparisonSliderPosition);
+      }
+
+      function buildGenerationPrompt(mode) {
+        const config = getModeConfig(mode);
+
+        return [
+          config.basePrompt,
+          isDisneyMode(mode) ? DISNEY_GENERATION_POLICY : FIXED_GENERATION_POLICY,
+        ].filter(Boolean).join("\n\n");
+      }
+
+      function buildSelectionPrompt(mode, imageCount = 4) {
+        const candidateCount = Number.isInteger(imageCount) && imageCount > 0 ? imageCount : 4;
+        const modeExample = isDisneyMode(mode)
+          ? `{
+  "recommendedIndex": 0,
+  "reason": "Best face and eye preservation with natural live-action styling.",
+  "rankedIndices": [0, 3, 1, 2],
+  "labels": [
+    "Cinderella Royal — Cinderella",
+    "Belle Romantic — Beauty and the Beast",
+    "Aurora Enchanted — Sleeping Beauty",
+    "Mulan Oriental Hanbok — Mulan"
+  ]
+}`
+          : `{
+  "recommendedIndex": 0,
+  "reason": "Best preservation of the original face, eyes, expression, pose, and natural realism.",
+  "rankedIndices": [0, 2, 1, 3],
+  "labels": [
+    "Eiffel Tower riverside",
+    "Eiffel Tower garden-side",
+    "Eiffel Tower promenade",
+    "Eiffel Tower terrace"
+  ]
+}`;
+
+        if (isDisneyMode(mode)) {
+          return `You are selecting the single best result among ${candidateCount} generated images.
+
+Compare the original image with the ${candidateCount} candidate results.
+Choose the one result that best preserves the original person and original photo while still remaining natural.
+Face and eye preservation must dominate every other criterion. Do not choose the prettiest, most dramatic, most fantasy-like, or strongest-concept image if it changes the original face, eyes, expression, pose, or background too much.
+The best recommendation is the image that looks most like the original person, not the image that is most beautiful or most Disney-like.
+
+Disney live-action priority:
+1. Original facial identity preservation
+2. Eyes, nose, and mouth shape preservation
+3. Original expression preservation
+4. Minimal face shape, jawline, cheeks, and smile change
+5. Pose, framing, hand position, body angle, and composition preservation
+6. Wardrobe/background completion only as a secondary tie-breaker
+
+Important:
+- Select the result with the face closest to the original photo, even when another result has better wardrobe, background, or Disney atmosphere.
+- Do not choose the most beautiful, polished, dramatic, expensive-looking, or strongest-concept image if its face is less similar to the source.
+- Treat beautification, face slimming, eye enlargement, changed nose/mouth, changed smile, changed jawline, or different-person impression as severe failures.
+- Exclude or heavily penalize any image that beautifies the face, makes the person look younger/prettier/slimmer/more doll-like, or changes face shape, jawline, cheekbones, eye size, nose shape, mouth shape, smile, skin tone, or expression.
+- Exclude or heavily penalize any image where eyes are warped, mismatched, asymmetrical, cross-eyed, melted, blurry, over-enlarged, or visibly unnatural.
+- Penalize images where any visible subject looks like a different person very heavily, even if the concept is beautiful.
+- Penalize images where the face is similar but facial detail is blurred, smeared, waxy, low-resolution, or collapsed.
+- Penalize changed facial proportions, changed smile/expression, unnatural face shape, and any doll-like or over-beautified face.
+- Exclude or heavily penalize images where hair color/style changes significantly.
+- Exclude or heavily penalize images where expression, pose, hands, body direction, camera angle, or composition changes significantly.
+- Exclude or heavily penalize images where the original background structure is almost gone or the image looks newly generated as a fantasy scene.
+- Do not recommend a result with strong Disney mood if the face, hair, pose, or background preservation is weak.
+- When choosing between two results, choose the one with better original preservation even if its Disney styling is weaker.
+- Penalize cartoonish, illustrated, painted animation, plastic CGI, overly fantasy-like, or over-beautified results.
+- A tiny face refinement is acceptable only if the original likeness remains very strong.
+- Reward the result that best matches the status text: the most natural image.
+- If all four are imperfect, choose the least transformed image with the best face similarity, pose preservation, hair preservation, and background naturalness.
+- Belle Romantic should rank lower if it has stronger transformation than Cinderella or Mulan.
+- Prefer Cinderella or Mulan over Belle when Cinderella or Mulan better preserves the original face, pose, hair, background structure, and realistic wedding-photo feel.
+
+Scoring guideline:
+- faceIdentityPreservationScore: 40%
+- eyesNoseMouthPreservationScore: 25%
+- expressionPreservationScore: 15%
+- faceShapeSmilePreservationScore: 10%
+- poseCompositionPreservationScore: 7%
+- wardrobeBackgroundCompletionScore: 3%
+- Apply major penalties for distorted eyes, face drift, expression drift, hair drift, pose drift, background over-replacement, fantasy/cartoon feel, and different-person impression.
+- Return rankedIndices sorted from best to worst by these same criteria. The recommendedIndex must be the first item in rankedIndices.
+
+Current mode: ${mode}
+
+Return JSON only in the following format:
+${modeExample}`;
+        }
+
+        return `You are selecting the single best result among ${candidateCount} generated images.
+
+Compare the original image with the ${candidateCount} candidate results.
+Choose the one result that best preserves the original people while also achieving the requested mode style.
+Face and eye preservation must dominate background beauty, landmark clarity, and overall drama.
+
+Priority:
+1. Eye shape preservation, both eyes natural, and left-right eye balance
+2. Face identity and original facial proportion preservation
+3. Original expression preservation
+4. Pose / framing / composition preservation
+5. Hairstyle and hair color preservation
+6. Face-wide natural realism
+7. No invented hidden parts
+8. Mode fit
+
+Mode fit rules:
+- parisSnap: natural Eiffel Tower background, realistic travel-snap feeling
+- disneyLive: four distinct live-action Disney-inspired results including Cinderella, Beauty and the Beast, Sleeping Beauty, and Mulan in hanbok; realistic and not cartoonish
+
+Important:
+- Exclude or heavily penalize any image where the eyes are warped, mismatched, asymmetrical, cross-eyed, melted, blurry, over-enlarged, or visibly unnatural.
+- Penalize face drift very heavily.
+- Penalize changed facial proportions, changed smile/expression, over-smoothing, blur, beautification into a different person, pose changes, and invented hidden details.
+- Background/style quality is secondary to face preservation.
+- Return rankedIndices sorted from best to worst by face/eye preservation first, then pose/composition, then natural realism, then background completion. The recommendedIndex must be the first item in rankedIndices.
+
+Current mode: ${mode}
+
+Return JSON only in the following format:
+${modeExample}`;
+      }
+
+      function normalizeSelection(selection, imageCount, mode = activeGenerationMode) {
+        const fallbackLabels = isDisneyMode(mode) && variantLabels.length
+          ? variantLabels
+          : getFallbackLabels(mode);
+        const parsedIndex = Number.parseInt(selection?.recommendedIndex, 10);
+        const rankedIndices = normalizeRankedIndices(selection?.rankedIndices, imageCount);
+        const safeIndex = Number.isInteger(parsedIndex) && parsedIndex >= 0 && parsedIndex < imageCount
+          ? parsedIndex
+          : rankedIndices[0] ?? 0;
+        const labels = !isDisneyMode(mode) && Array.isArray(selection?.labels)
+          ? selection.labels.map((label) => String(label || "").trim()).filter(Boolean)
+          : [];
+
+        return {
+          recommendedIndex: safeIndex,
+          rankedIndices: rankedIndices.length ? rankedIndices : buildDefaultResultOrder(imageCount, safeIndex),
+          hasRankedIndices: rankedIndices.length > 0,
+          reason: typeof selection?.reason === "string" && selection.reason.trim()
+            ? selection.reason.trim()
+            : RECOMMENDATION_DESCRIPTION,
+          labels: Array.from({ length: imageCount }, (_, index) => labels[index] || fallbackLabels[index] || `결과 ${index + 1}`),
+        };
+      }
+
+      function normalizeRankedIndices(indices, imageCount) {
+        const seen = new Set();
+        const normalized = [];
+
+        (Array.isArray(indices) ? indices : []).forEach((value) => {
+          const index = Number.parseInt(value, 10);
+          if (Number.isInteger(index) && index >= 0 && index < imageCount && !seen.has(index)) {
+            seen.add(index);
+            normalized.push(index);
+          }
+        });
+
+        return normalized;
+      }
+
+      function buildDefaultResultOrder(imageCount, preferredIndex = null) {
+        const indices = Array.from({ length: imageCount }, (_, index) => index);
+        const preferred = Number.isInteger(preferredIndex) && preferredIndex >= 0 && preferredIndex < imageCount
+          ? preferredIndex
+          : null;
+
+        if (preferred === null) {
+          return indices;
+        }
+
+        return [preferred, ...indices.filter((index) => index !== preferred)];
+      }
+
+      function getScoreSortedResultOrder(preferredIndex = null) {
+        const indices = Array.from({ length: imageUrls.length }, (_, index) => index);
+        const sorted = indices.sort((a, b) => {
+          const scoreA = Number(imageScores[a]);
+          const scoreB = Number(imageScores[b]);
+          const safeA = Number.isFinite(scoreA) ? scoreA : Number.NEGATIVE_INFINITY;
+          const safeB = Number.isFinite(scoreB) ? scoreB : Number.NEGATIVE_INFINITY;
+
+          if (safeB !== safeA) {
+            return safeB - safeA;
+          }
+
+          return a - b;
+        });
+        const preferred = Number.isInteger(preferredIndex) && preferredIndex >= 0 && preferredIndex < imageUrls.length
+          ? preferredIndex
+          : sorted[0];
+
+        return buildDefaultResultOrder(imageUrls.length, preferred)
+          .sort((a, b) => {
+            if (a === preferred) return -1;
+            if (b === preferred) return 1;
+            return sorted.indexOf(a) - sorted.indexOf(b);
+          });
+      }
+
+      function getResultDisplayOrder() {
+        const normalized = normalizeRankedIndices(resultDisplayOrder, imageUrls.length);
+        const missing = Array.from({ length: imageUrls.length }, (_, index) => index)
+          .filter((index) => !normalized.includes(index));
+
+        return [...normalized, ...missing];
+      }
+
+      async function generateGrokResults({ mode, imageFile }) {
+        const generationMode = normalizeGenerationMode(mode);
+        const config = getModeConfig(generationMode);
+        const prompt = buildGenerationPrompt(generationMode);
+        const formData = new FormData();
+        formData.append("image", imageFile);
+        formData.append("prompt", prompt);
+        formData.append("count", "4");
+        formData.append("presetKey", config.presetKey);
+        formData.append("mode", generationMode);
+        formData.append("generationMode", generationMode);
+        console.log("[client][generate][request]", {
+          requestedMode: mode,
+          generationMode,
+          presetKey: config.presetKey,
+          promptLength: prompt.length,
+          hasPrompt: Boolean(prompt),
+          hasImage: Boolean(imageFile),
+          fileName: imageFile?.name,
+          fileType: imageFile?.type,
+          fileSize: imageFile?.size,
+        });
+        console.log(`[client][generate][prompt][${generationMode}]\n${prompt}`);
+
+        const response = await fetch(`${API_BASE}/api/generate`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await response.json().catch((error) => {
+          console.error("[client][generate][invalid-json-response]", error);
+          return {
+            success: false,
+            error: "INVALID_JSON_RESPONSE",
+            message: "서버 응답을 읽지 못했습니다.",
+          };
+        });
+
+        if (!response.ok || !data.success) {
+          console.error("[client][generate][failed]", {
+            status: response.status,
+            requestedMode: mode,
+            generationMode,
+            presetKey: config.presetKey,
+            hasImage: Boolean(imageFile),
+            hasPrompt: Boolean(prompt),
+            promptLength: prompt.length,
+            error: data.error,
+            message: data.message,
+            details: data.details || data.detail,
+            response: data,
+          });
+          const error = new Error(data.message || data.error || "Grok 이미지 편집 실패");
+          error.details = data.details || data.detail || "";
+          error.statusCode = data.statusCode || response.status;
+          error.response = data;
+          throw error;
+        }
+
+        const resultItems = Array.isArray(data.results) ? data.results : [];
+        const successfulResults = resultItems.filter((item) => item?.ok && item.imageUrl);
+        const failedResults = resultItems.filter((item) => item && !item.ok);
+        const imageUrlsFromResults = successfulResults.map((item) => item.imageUrl);
+        const labelsFromResults = successfulResults.map((item) => item.label || `결과 ${item.index + 1}`);
+        const imageUrlsFromPayload = Array.isArray(data.imageUrls)
+          ? data.imageUrls.filter((url) => typeof url === "string" && url)
+          : [];
+        const imageUrls = [...imageUrlsFromResults, ...imageUrlsFromPayload]
+          .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index);
+
+        if (!Array.isArray(imageUrls)) {
+          throw new Error("서버 응답에 imageUrls 배열이 없습니다.");
+        }
+
+        console.log("[client][generate][response-counts]", {
+          resultArrayLength: resultItems.length,
+          successResultCount: successfulResults.length,
+          payloadImageUrlCount: imageUrlsFromPayload.length,
+          mergedSuccessImageCount: imageUrls.length,
+          failedResultCount: failedResults.length,
+        });
+
+        return {
+          results: resultItems,
+          originalImageUrl: typeof data.originalImageUrl === "string" ? data.originalImageUrl : "",
+          imageUrls,
+          scores: Array.isArray(data.scores) ? data.scores : [],
+          variantLabels: imageUrlsFromResults.length && labelsFromResults.length
+            ? imageUrls.map((url, index) => {
+              const resultIndex = imageUrlsFromResults.indexOf(url);
+              return resultIndex >= 0
+                ? labelsFromResults[resultIndex]
+                : Array.isArray(data.variantLabels) && data.variantLabels[index] ? data.variantLabels[index] : `결과 ${index + 1}`;
+            })
+            : Array.isArray(data.variantLabels) && data.variantLabels.length ? data.variantLabels : labelsFromResults,
+          failedImages: Array.isArray(data.failedImages) && data.failedImages.length ? data.failedImages : failedResults,
+          warningMessage: typeof data.warningMessage === "string" ? data.warningMessage : "",
+          generationMode: data.generationMode || generationMode,
+          generationMeta: data.generationMeta || null,
+          imageMetadata: Array.isArray(data.imageMetadata) ? data.imageMetadata : [],
+        };
+      }
+
+      async function chooseBestGrokResult({ mode, originalImage, generatedImages, fallbackIndex = 0 }) {
+        const fallback = normalizeSelection({ recommendedIndex: fallbackIndex }, generatedImages.length, mode);
+
+        try {
+          if (!originalImage || !generatedImages.length) {
+            return fallback;
+          }
+
+          const response = await fetch(`${API_BASE}/api/grok/choose-best`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              mode,
+              originalImage,
+              generatedImages,
+              prompt: buildSelectionPrompt(mode, generatedImages.length),
+            }),
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Grok 추천에 실패했습니다.");
+          }
+
+          return normalizeSelection(data.selection, generatedImages.length, mode);
+        } catch (error) {
+          console.error("[client][grok-select] fallback:", error);
+          return fallback;
+        }
+      }
+
+      function indexImageMetadata(metadataItems) {
+        const indexed = [];
+
+        (Array.isArray(metadataItems) ? metadataItems : []).forEach((item, fallbackIndex) => {
+          const imageIndex = Number.isInteger(item?.index) ? item.index : fallbackIndex;
+          indexed[imageIndex] = item;
+        });
+
+        return indexed;
+      }
+
+      function clampScore(value, fallback = null) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue)) return fallback;
+        const normalizedValue = numericValue >= 0 && numericValue <= 1 ? numericValue * 100 : numericValue;
+        return Math.min(100, Math.max(0, normalizedValue));
+      }
+
+      function getMetadataValue(metadata, names) {
+        const sources = [metadata?.qualityScores, metadata?.qualityGate, metadata];
+
+        for (const source of sources) {
+          if (!source) continue;
+          for (const name of names) {
+            if (source[name] !== undefined && source[name] !== null && source[name] !== "") {
+              return source[name];
+            }
+          }
+        }
+
+        return null;
+      }
+
+      function getGoodScore(metadata, names, { lowerIsBetter = false } = {}) {
+        const value = clampScore(getMetadataValue(metadata, names));
+        if (value === null) return null;
+        return lowerIsBetter ? 100 - value : value;
+      }
+
+      function getPenaltyScore(metadata, names) {
+        return clampScore(getMetadataValue(metadata, names), 0);
+      }
+
+      function weightedAverage(parts) {
+        const usableParts = parts.filter((part) => Number.isFinite(part.score));
+        const totalWeight = usableParts.reduce((sum, part) => sum + part.weight, 0);
+
+        if (!totalWeight) return null;
+
+        return usableParts.reduce((sum, part) => sum + part.score * part.weight, 0) / totalWeight;
+      }
+
+      function calculateDisneyRecommendationEntry(index) {
+        const metadata = imageMetadata[index] || {};
+        const faceIdentityScore = getGoodScore(metadata, [
+          "faceIdentityPreservationScore",
+          "identityPreservationScore",
+          "faceSimilarityScore",
+          "personSimilarityScore",
+          "likenessScore",
+          "facePreservationScore",
+        ]);
+        const eyeFeatureScore = weightedAverage([
+          { score: getGoodScore(metadata, ["eyeIntegrityScore", "eyePreservationScore", "eyeSimilarityScore"]), weight: 0.5 },
+          { score: getGoodScore(metadata, ["facialFeatureIntegrityScore", "facialFeaturePreservationScore", "eyesNoseMouthPreservationScore", "noseMouthIntegrityScore"]), weight: 0.5 },
+        ]);
+        const expressionScore = getGoodScore(metadata, [
+          "expressionPreservationScore",
+          "expressionSimilarityScore",
+          "smilePreservationScore",
+        ]);
+        const faceShapeScore = weightedAverage([
+          { score: getGoodScore(metadata, ["faceProportionScore", "faceProportionPreservationScore", "faceShapePreservationScore"]), weight: 0.7 },
+          { score: getGoodScore(metadata, ["faceChangeDistance", "facialDifferenceScore", "identityDistance"], { lowerIsBetter: true }), weight: 0.3 },
+        ]);
+        const poseScore = getGoodScore(metadata, [
+          "posePreservationScore",
+          "compositionPreservationScore",
+          "poseCompositionPreservationScore",
+        ]);
+        const realismScore = getGoodScore(metadata, [
+          "realismScore",
+          "photorealQualityScore",
+          "photorealismScore",
+        ]);
+        const conceptScore = getGoodScore(metadata, [
+          "conceptScore",
+          "backgroundStructureScore",
+          "backgroundAndConceptScore",
+          "wardrobeBackgroundCompletionScore",
+        ]);
+        const explicitPenalty = Math.max(
+          getPenaltyScore(metadata, ["overTransformationPenalty"]),
+          getPenaltyScore(metadata, ["distortionPenalty", "faceDistortionPenalty", "facialDistortionPenalty"]),
+          getPenaltyScore(metadata, ["eyeDistortionPenalty", "featureDistortionPenalty"]),
+          getPenaltyScore(metadata, ["identityDriftPenalty", "faceDriftPenalty", "differentPersonPenalty"]),
+          getPenaltyScore(metadata, ["beautificationPenalty", "overBeautificationPenalty"])
+        );
+        const lowFacePenalty = [
+          { score: faceIdentityScore, threshold: 78, multiplier: 1.4 },
+          { score: eyeFeatureScore, threshold: 76, multiplier: 1.2 },
+          { score: expressionScore, threshold: 72, multiplier: 0.8 },
+          { score: faceShapeScore, threshold: 72, multiplier: 0.9 },
+        ].reduce((penalty, item) => {
+          if (!Number.isFinite(item.score) || item.score >= item.threshold) return penalty;
+          return penalty + (item.threshold - item.score) * item.multiplier;
+        }, 0);
+        const distortionPenalty = Math.min(100, explicitPenalty + lowFacePenalty);
+        const facePreservationScore = weightedAverage([
+          { score: faceIdentityScore, weight: 0.4 },
+          { score: eyeFeatureScore, weight: 0.25 },
+          { score: expressionScore, weight: 0.15 },
+          { score: faceShapeScore, weight: 0.2 },
+        ]);
+        const finalRecommendationScore = weightedAverage([
+          { score: faceIdentityScore, weight: 0.4 },
+          { score: eyeFeatureScore, weight: 0.25 },
+          { score: expressionScore, weight: 0.15 },
+          { score: faceShapeScore, weight: 0.1 },
+          { score: poseScore, weight: 0.07 },
+          { score: conceptScore ?? realismScore, weight: 0.03 },
+        ]);
+        const finalScoreWithPenalty = Number.isFinite(finalRecommendationScore)
+          ? Math.max(0, finalRecommendationScore - distortionPenalty * 0.85)
+          : null;
+
+        return {
+          index,
+          conceptName: variantLabels[index] || metadata.label || `결과 ${index + 1}`,
+          facePreservationScore,
+          distortionPenalty,
+          finalRecommendationScore: finalScoreWithPenalty,
+          hasMetrics: Number.isFinite(finalScoreWithPenalty),
+          details: {
+            faceIdentityScore,
+            eyeFeatureScore,
+            expressionScore,
+            faceShapeScore,
+            poseScore,
+            realismScore,
+            conceptScore,
+            explicitPenalty,
+          },
+        };
+      }
+
+      function getDisneyRecommendationDiagnostics() {
+        const entries = Array.from({ length: imageUrls.length }, (_, index) => calculateDisneyRecommendationEntry(index));
+        const scoredEntries = entries.filter((entry) => entry.hasMetrics);
+        const sortedEntries = scoredEntries.length
+          ? [...scoredEntries].sort((a, b) => {
+            if (b.finalRecommendationScore !== a.finalRecommendationScore) {
+              return b.finalRecommendationScore - a.finalRecommendationScore;
+            }
+            return a.index - b.index;
+          })
+          : [];
+        const rankedIndices = sortedEntries.length
+          ? [
+            ...sortedEntries.map((entry) => entry.index),
+            ...entries.filter((entry) => !sortedEntries.some((sorted) => sorted.index === entry.index)).map((entry) => entry.index),
+          ]
+          : [];
+        const selectedEntry = sortedEntries[0] || null;
+
+        return {
+          entries,
+          rankedIndices,
+          selectedIndex: selectedEntry?.index ?? null,
+          selectedConceptName: selectedEntry?.conceptName || "",
+          hasMetrics: scoredEntries.length > 0,
+        };
+      }
+
+      function logDisneyRecommendationDiagnostics(stage, diagnostics) {
+        if (!diagnostics?.entries?.length) return;
+
+        console.log(`[disney recommendation diagnostics][${stage}]`, {
+          results: diagnostics.entries.map((entry) => ({
+            resultIndex: entry.index,
+            conceptName: entry.conceptName,
+            facePreservationScore: Number.isFinite(entry.facePreservationScore)
+              ? Math.round(entry.facePreservationScore * 10) / 10
+              : null,
+            distortionPenalty: Math.round(entry.distortionPenalty * 10) / 10,
+            finalRecommendationScore: Number.isFinite(entry.finalRecommendationScore)
+              ? Math.round(entry.finalRecommendationScore * 10) / 10
+              : null,
+          })),
+          selectedRecommendationIndex: diagnostics.selectedIndex,
+          selectedRecommendationConceptName: diagnostics.selectedConceptName,
+        });
+      }
+
+      function applyGrokSelection(selection) {
+        const normalized = normalizeSelection(selection, imageUrls.length, activeGenerationMode);
+        const rankedSelectionOrder = normalized.hasRankedIndices
+          ? buildDefaultResultOrder(imageUrls.length, normalized.recommendedIndex)
+            .sort((a, b) => {
+              const ranked = normalizeRankedIndices(normalized.rankedIndices, imageUrls.length);
+              const rankA = ranked.includes(a) ? ranked.indexOf(a) : imageUrls.length + a;
+              const rankB = ranked.includes(b) ? ranked.indexOf(b) : imageUrls.length + b;
+
+              if (a === normalized.recommendedIndex) return -1;
+              if (b === normalized.recommendedIndex) return 1;
+              return rankA - rankB;
+            })
+          : getScoreSortedResultOrder(normalized.recommendedIndex);
+
+        if (isDisneyMode(activeGenerationMode)) {
+          const diagnostics = getDisneyRecommendationDiagnostics();
+          const metadataSelectedIndex = diagnostics.hasMetrics ? diagnostics.selectedIndex : null;
+
+          recommendedIndex = Number.isInteger(metadataSelectedIndex)
+            ? metadataSelectedIndex
+            : normalized.recommendedIndex;
+          resultDisplayOrder = diagnostics.hasMetrics
+            ? diagnostics.rankedIndices
+            : rankedSelectionOrder;
+          selectedIndex = recommendedIndex;
+          recommendationReason = normalized.reason || RECOMMENDATION_DESCRIPTION;
+          variantLabels = variantLabels.length
+            ? Array.from({ length: imageUrls.length }, (_, index) => variantLabels[index] || normalized.labels[index] || `결과 ${index + 1}`)
+            : normalized.labels;
+
+          logDisneyRecommendationDiagnostics("final-selection", diagnostics);
+          console.log("[client][recommendation]", {
+            successCount: imageUrls.length,
+            selectedByVision: normalized.recommendedIndex,
+            selectedByFacePreservationScore: metadataSelectedIndex,
+            recommendedIndex,
+            rankedIndices: resultDisplayOrder,
+            reason: recommendationReason,
+          });
+          return;
+        }
+
+        const selectedScore = Number(imageScores[normalized.recommendedIndex]);
+        const fallbackBestIndex = imageScores.length
+          ? imageScores.reduce((bestIndex, score, index) => {
+            const numericScore = Number(score);
+            const bestScore = Number(imageScores[bestIndex]);
+            return Number.isFinite(numericScore) && numericScore > (Number.isFinite(bestScore) ? bestScore : Number.NEGATIVE_INFINITY)
+              ? index
+              : bestIndex;
+          }, 0)
+          : normalized.recommendedIndex;
+        const fallbackBestScore = Number(imageScores[fallbackBestIndex]);
+        const shouldUseScoreFallback = isDisneyMode(activeGenerationMode)
+          && Number.isFinite(fallbackBestScore)
+          && (!Number.isFinite(selectedScore) || selectedScore < fallbackBestScore - 12);
+
+        recommendedIndex = shouldUseScoreFallback ? fallbackBestIndex : normalized.recommendedIndex;
+        resultDisplayOrder = shouldUseScoreFallback
+          ? getScoreSortedResultOrder(recommendedIndex)
+          : rankedSelectionOrder;
+        selectedIndex = recommendedIndex;
+        recommendationReason = normalized.reason || RECOMMENDATION_DESCRIPTION;
+        variantLabels = isDisneyMode(activeGenerationMode) && variantLabels.length
+          ? Array.from({ length: imageUrls.length }, (_, index) => variantLabels[index] || normalized.labels[index] || `결과 ${index + 1}`)
+          : normalized.labels;
+        console.log("[client][recommendation]", {
+          successCount: imageUrls.length,
+          selectedByVision: normalized.recommendedIndex,
+          selectedByScore: fallbackBestIndex,
+          recommendedIndex,
+          rankedIndices: normalized.rankedIndices,
+          displayOrder: resultDisplayOrder,
+          reason: recommendationReason,
+        });
+        if (shouldUseScoreFallback) {
+          console.log("[disney recommend fallback override]", {
+            selectedByVision: normalized.recommendedIndex,
+            selectedByVisionScore: selectedScore,
+            selectedByPreservationScore: fallbackBestIndex,
+            selectedByPreservationScoreValue: fallbackBestScore,
+          });
+        }
+      }
+
+      function getImageModalItems() {
+        if (modalItemsOverride) {
+          return modalItemsOverride;
+        }
+
+        const recommendationLabel = getFeaturedLabel();
+        const orderedResultItems = getResultDisplayOrder()
+          .map((index) => ({ url: imageUrls[index], index }))
+          .filter((item) => item.url);
+
+        if (!orderedResultItems.length) {
+          return selectedImageDataUrl ? [{
+            url: selectedImageDataUrl,
+            label: "원본 이미지",
+            isRecommended: false,
+          }] : [];
+        }
+
+        return orderedResultItems.map(({ url, index }) => ({
+            url: toDisplayUrl(url),
+            label: index === recommendedIndex
+              ? `${recommendationLabel} · ${variantLabels[index] || `결과 ${index + 1}`}`
+              : `${variantLabels[index] || `AI 생성 결과 ${index + 1}`}`,
+            isRecommended: index === recommendedIndex,
+          }));
+      }
+
+      function setImageModalDownloadVisible(isVisible) {
+        imageModalDownload.classList.toggle("hidden", !isVisible);
+        imageModalDownload.classList.toggle("flex", isVisible);
+      }
+
+      function setImageModalDownloadStatus(message = "") {
+        imageModalDownloadStatus.textContent = message;
+      }
+
+      function getDownloadPolicy() {
+        const normalizedPlan = String(userPlan || "free").toLowerCase();
+        const shouldWatermark = normalizedPlan !== "paid";
+
+        return {
+          shouldWatermark,
+          maxSize: shouldWatermark ? WATERMARK_OUTPUT_LONG_EDGE : null,
+        };
+      }
+
+      function sanitizeFilenamePart(value) {
+        return String(value || "disney-live")
+          .replace(/[\\/:*?"<>|]+/g, "-")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "")
+          .toLowerCase();
+      }
+
+      function loadCanvasImage(sourceUrl) {
+        return new Promise(async (resolve, reject) => {
+          let objectUrl = "";
+          const image = new Image();
+
+          image.onload = () => {
+            if (objectUrl) {
+              URL.revokeObjectURL(objectUrl);
+            }
+            resolve(image);
+          };
+          image.onerror = () => {
+            if (objectUrl) {
+              URL.revokeObjectURL(objectUrl);
+            }
+            reject(new Error("다운로드할 이미지를 불러오지 못했습니다."));
+          };
+
+          try {
+            if (sourceUrl.startsWith("data:image/")) {
+              image.src = sourceUrl;
+              return;
+            }
+
+            const response = await fetch(sourceUrl);
+            if (!response.ok) {
+              throw new Error("이미지를 가져오지 못했습니다.");
+            }
+            const blob = await response.blob();
+            objectUrl = URL.createObjectURL(blob);
+            image.src = objectUrl;
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+
+      function drawSquareWatermark(ctx, canvasWidth, canvasHeight, watermarkText = WATERMARK_TEXT) {
+        const shortEdge = Math.min(canvasWidth, canvasHeight);
+        const size = Math.round(Math.min(150, Math.max(104, shortEdge * 0.2)));
+        const margin = Math.round(Math.max(14, shortEdge * 0.035));
+        const x = canvasWidth - size - margin;
+        const y = canvasHeight - size - margin;
+        const radius = Math.round(size * 0.12);
+        const lines = String(watermarkText || WATERMARK_TEXT).split(/\s+/).filter(Boolean);
+
+        ctx.save();
+        ctx.globalAlpha = 0.62;
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + size - radius, y);
+        ctx.quadraticCurveTo(x + size, y, x + size, y + radius);
+        ctx.lineTo(x + size, y + size - radius);
+        ctx.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
+        ctx.lineTo(x + radius, y + size);
+        ctx.quadraticCurveTo(x, y + size, x, y + size - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(18, 16, 17, 0.58)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.42)";
+        ctx.lineWidth = Math.max(1, size * 0.012);
+        ctx.stroke();
+
+        let fontSize = Math.round(size * 0.19);
+        const maxTextWidth = size * 0.78;
+        const lineHeightRatio = 1.02;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
+        do {
+          ctx.font = `700 ${fontSize}px Outfit, Arial, sans-serif`;
+          const widestLine = Math.max(...lines.map((line) => ctx.measureText(line).width));
+          const totalTextHeight = fontSize * lineHeightRatio * lines.length;
+          if ((widestLine <= maxTextWidth && totalTextHeight <= size * 0.72) || fontSize <= 12) {
+            break;
+          }
+          fontSize -= 1;
+        } while (fontSize > 11);
+
+        ctx.font = `700 ${fontSize}px Outfit, Arial, sans-serif`;
+        const lineHeight = fontSize * lineHeightRatio;
+        const startY = y + size / 2 - ((lines.length - 1) * lineHeight) / 2;
+        lines.forEach((line, index) => {
+          ctx.fillText(line, x + size / 2, startY + index * lineHeight);
+        });
+        ctx.restore();
+      }
+
+      async function downloadImageWithWatermark({
+        imageUrl,
+        filename,
+        watermarkText = WATERMARK_TEXT,
+        shouldWatermark = true,
+        maxSize = WATERMARK_OUTPUT_LONG_EDGE,
+      }) {
+        const image = await loadCanvasImage(imageUrl);
+        const sourceWidth = image.naturalWidth || image.width;
+        const sourceHeight = image.naturalHeight || image.height;
+        const longEdge = Math.max(sourceWidth, sourceHeight);
+        const scale = maxSize ? Math.min(1, maxSize / longEdge) : 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+        canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        if (shouldWatermark) {
+          drawSquareWatermark(ctx, canvas.width, canvas.height, watermarkText);
+        }
+
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error("다운로드 이미지를 만들지 못했습니다."));
+            }
+          }, "image/jpeg", 0.92);
+        });
+
+        const link = document.createElement("a");
+        const objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+      }
+
+      async function downloadCurrentModalImage() {
+        const items = getImageModalItems();
+        const item = items[activeImageModalIndex] || items[0];
+
+        if (!item?.url) return;
+
+        imageModalDownload.disabled = true;
+        setImageModalDownloadStatus("");
+        try {
+          const policy = getDownloadPolicy();
+          await downloadImageWithWatermark({
+            imageUrl: item.url,
+            filename: `${sanitizeFilenamePart(item.label)}${policy.shouldWatermark ? "-720p-magic-ai-studio" : ""}.jpg`,
+            watermarkText: WATERMARK_TEXT,
+            shouldWatermark: policy.shouldWatermark,
+            maxSize: policy.maxSize,
+          });
+        } catch (error) {
+          console.error("[client][download] failed:", error);
+          setImageModalDownloadStatus("다운로드 중 문제가 발생했어요.");
+        } finally {
+          imageModalDownload.disabled = false;
+        }
+      }
+
+      function renderImageModal() {
+        const items = getImageModalItems();
+        const item = items[activeImageModalIndex] || items[0];
+
+        if (!item) return;
+
+        imageModalImg.src = item.url;
+        imageModalLabel.textContent = item.label;
+        imageModalBadge.textContent = FEATURED_BADGE_TEXT;
+        imageModalBadge.classList.toggle("hidden", !item.isRecommended);
+        imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
+        setImageModalDownloadVisible(Boolean(item.url));
+        setImageModalDownloadStatus("");
+      }
+
+      function openModalWithItems(items, startIndex = 0) {
+        const safeItems = (Array.isArray(items) ? items : []).filter((item) => item?.url);
+
+        if (!safeItems.length) return;
+
+        modalItemsOverride = safeItems;
+        activeImageModalIndex = Math.min(Math.max(0, startIndex), safeItems.length - 1);
+        renderImageModal();
+        imageModal.classList.remove("hidden");
+        imageModal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+      }
+
+      function normalizeModalResult(result, fallbackIndex = 0) {
+        if (typeof result === "string") {
+          return {
+            url: toDisplayUrl(result),
+            label: `AI 생성 결과 ${fallbackIndex + 1}`,
+            isRecommended: fallbackIndex === recommendedIndex,
+          };
+        }
+
+        const resultIndex = Number.isInteger(result?.index) ? result.index : fallbackIndex;
+        const url = result?.url || imageUrls[resultIndex] || "";
+
+        return {
+          url: url ? toDisplayUrl(url) : "",
+          label: result?.label || (resultIndex === recommendedIndex
+            ? `${getFeaturedLabel()} · ${variantLabels[resultIndex] || `결과 ${resultIndex + 1}`}`
+            : `${variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`}`),
+          isRecommended: typeof result?.isRecommended === "boolean"
+            ? result.isRecommended
+            : resultIndex === recommendedIndex,
+        };
+      }
+
+      function openSingleResultModal(result) {
+        const item = typeof result === "string"
+          ? { url: toDisplayUrl(result), label: "이미지 확대", isRecommended: false }
+          : normalizeModalResult(result);
+
+        openModalWithItems([item]);
+      }
+
+      function openCompareModal(originalImage, recommendedResult) {
+        const beforeUrl = typeof originalImage === "string" ? originalImage : originalImage?.url;
+        const recommendedItem = normalizeModalResult(recommendedResult, recommendedIndex ?? 0);
+
+        if (!beforeUrl || !recommendedItem.url) return;
+
+        openModalWithItems([
+          {
+            url: toDisplayUrl(beforeUrl),
+            label: "원본 이미지",
+            isRecommended: false,
+          },
+          {
+            ...recommendedItem,
+            label: recommendedItem.label.startsWith("AI 추천")
+              ? recommendedItem.label
+              : `AI 추천 · ${recommendedItem.label.replace(`${getFeaturedLabel()} · `, "")}`,
+            isRecommended: true,
+          },
+        ], 1);
+      }
+
+      function openResultGalleryModal(allSuccessfulResults, startIndex = 0) {
+        const items = (Array.isArray(allSuccessfulResults) ? allSuccessfulResults : [])
+          .map((result, index) => normalizeModalResult(result, index))
+          .filter((item) => item.url);
+
+        if (!items.length) return;
+
+        openModalWithItems(items, startIndex);
+      }
+
+      function openRecommendedComparisonModal() {
+        const mainIndex = Number.isInteger(recommendedIndex) && imageUrls[recommendedIndex] ? recommendedIndex : 0;
+        const recommendedUrl = imageUrls[mainIndex] || "";
+        const beforeUrl = originalImageUrl || selectedImageDataUrl;
+
+        openCompareModal(beforeUrl, {
+          url: recommendedUrl,
+          index: mainIndex,
+          label: `AI 추천 · ${variantLabels[mainIndex] || `결과 ${mainIndex + 1}`}`,
+          isRecommended: true,
+        });
+      }
+
+      function closeImageModal() {
+        imageModal.classList.add("hidden");
+        imageModal.classList.remove("flex");
+        imageModalImg.removeAttribute("src");
+        setImageModalDownloadVisible(false);
+        setImageModalDownloadStatus("");
+        modalItemsOverride = null;
+        document.body.style.overflow = "";
+      }
+
+      function moveImageModal(direction) {
+        const items = getImageModalItems();
+        if (items.length < 2) return;
+        activeImageModalIndex = (activeImageModalIndex + direction + items.length) % items.length;
+        renderImageModal();
+      }
+
+      function renderResults() {
+        if (!imageUrls.length && !failedImages.length) {
+          resultSection.classList.add("hidden");
+          return;
+        }
+
+        const mainIndex = Number.isInteger(recommendedIndex) && imageUrls.length ? recommendedIndex : 0;
+        const selectedUrl = imageUrls[mainIndex] || selectedImageDataUrl;
+        const comparisonOriginalImage = originalImageUrl ? toDisplayUrl(originalImageUrl) : selectedImageDataUrl;
+        const comparisonEditedImage = imageUrls.length ? toDisplayUrl(selectedUrl) : "";
+        const displayOrder = getResultDisplayOrder();
+        const otherImages = displayOrder
+          .map((index) => ({ url: imageUrls[index], index }))
+          .filter((item) => item.url)
+          .filter((item) => item.index !== mainIndex);
+        resultSection.classList.remove("hidden");
+        sourceSection.classList.toggle("hidden", imageUrls.length > 0);
+        recommendedComparisonSlider.classList.toggle("hidden", !comparisonEditedImage);
+        recommendedZoomButton.classList.toggle("hidden", !comparisonEditedImage);
+        recommendedZoomButton.disabled = !comparisonEditedImage;
+        if (comparisonEditedImage) {
+          RecommendedComparisonSlider({
+            originalImage: comparisonOriginalImage,
+            editedImage: comparisonEditedImage,
+            altBefore: "업로드 원본 이미지",
+            altAfter: variantLabels[mainIndex] ? `AI 추천 결과 ${variantLabels[mainIndex]}` : "AI 추천 결과",
+          });
+        }
+        mainBadge.textContent = FEATURED_BADGE_TEXT;
+        mainBadge.title = RECOMMENDATION_DESCRIPTION;
+        mainVariantLabel.textContent = variantLabels[mainIndex] || `결과 ${mainIndex + 1}`;
+        mainVariantLabel.classList.toggle("hidden", !imageUrls.length);
+        recommendationText.textContent = USER_RECOMMENDATION_TEXT;
+        if (generationMeta) {
+          logDebug("[client][generation-meta]", generationMeta);
+          logDebug("[client][image-metadata]", imageMetadata);
+        }
+
+        thumbnailList.classList.remove("hidden");
+        thumbnailList.classList.remove("flex-col");
+        thumbnailList.classList.remove("overflow-x-auto", "hide-scrollbar", "flex");
+        thumbnailList.classList.add("result-grid");
+        thumbnailList.innerHTML = otherImages
+          .map(({ url, index }, otherIndex) => {
+            return `
+              <article class="result-card relative min-w-[188px] max-w-[220px] overflow-hidden border ${index === selectedIndex ? "border-primary" : "border-white/70"} transition">
+                <button class="relative block w-full aspect-[4/5] group overflow-hidden rounded-t-[28px]" data-zoom-index="${index}" type="button">
+                  <img alt="Candidate ${index + 1}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" src="${toDisplayUrl(url)}" />
+                  ${index === selectedIndex ? `
+                    <div class="absolute top-3 right-3 bg-primary text-on-primary rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                      <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check</span>
+                    </div>
+                  ` : ""}
+                  <span class="absolute inset-x-3 bottom-3 rounded-full bg-black/45 text-white px-3 py-2 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">크게 보기</span>
+                </button>
+                <div class="p-3 text-xs text-on-surface flex flex-col gap-3">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-label-caps text-label-caps uppercase text-on-surface-variant">추가 ${otherIndex + 1}</span>
+                  </div>
+                  <span class="min-h-10 text-sm leading-5 font-semibold text-primary">${variantLabels[index] || `결과 ${index + 1}`}</span>
+                  <button class="h-10 rounded-full ${index === selectedIndex ? "bg-primary text-on-primary" : "glass-panel text-primary"} font-semibold transition-colors hover:bg-white/70" data-index="${index}" type="button">
+                    ${index === selectedIndex ? "선택됨" : "이 이미지 선택"}
+                  </button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+        if (failedImages.length) {
+          thumbnailList.insertAdjacentHTML("beforeend", failedImages
+            .map((failed, failedIndex) => `
+              <article class="result-card relative min-w-[188px] max-w-[220px] overflow-hidden border border-error/45 transition">
+                <div class="relative w-full aspect-[4/5] overflow-hidden rounded-t-[28px] bg-gradient-to-br from-surface-container-high via-surface to-secondary-container text-on-surface flex flex-col items-center justify-center gap-3 px-4 text-center">
+                  <div class="relative w-12 h-12 rounded-full bg-white/75 text-error flex items-center justify-center shadow-sm">
+                    <span class="material-symbols-outlined text-[24px]">priority_high</span>
+                  </div>
+                  <span class="relative font-semibold">생성 실패</span>
+                  <span class="relative text-xs leading-5 text-on-surface-variant">이미지를 불러오는 중 문제가 발생했어요.</span>
+                </div>
+                <div class="p-3 text-xs text-on-surface flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-label-caps text-label-caps uppercase text-on-surface-variant">Result ${imageUrls.length + failedIndex + 1}</span>
+                  </div>
+                  <span class="text-error leading-5">이미지를 불러오는 중 문제가 발생했어요.</span>
+                </div>
+              </article>
+            `)
+            .join(""));
+        }
+        console.log("[client][render-results]", {
+          totalResultCount: imageUrls.length + failedImages.length,
+          successCount: imageUrls.length,
+          failedCount: failedImages.length,
+          recommendedIndex,
+          displayOrder,
+          additionalSuccessCount: otherImages.length,
+          displayedSuccessCount: imageUrls.length ? otherImages.length + 1 : 0,
+          renderedAdditionalAndFailureCardCount: otherImages.length + failedImages.length,
+          modalResultCount: getImageModalItems().length,
+        });
+      }
+
+      async function runGrokPipeline({ imageFile, originalImage, mode = activeGenerationMode }) {
+        setStatus(isDisneyMode(mode)
+          ? "디즈니 실사풍 결과 4개를 생성하고 있어요. 1장은 한복 뮬란 컨셉으로 고정됩니다."
+          : "에펠탑 배경 파리 스냅 결과 4개를 생성하고 있어요.");
+        console.log("[client][grok-edit] generation start");
+
+        const data = await generateGrokResults({
+          mode,
+          imageFile,
+        });
+
+        activeGenerationMode = data.generationMode || mode;
+        originalImageUrl = data.originalImageUrl || "";
+        imageUrls = data.imageUrls;
+        imageScores = data.scores;
+        failedImages = data.failedImages;
+        generationMeta = data.generationMeta;
+        imageMetadata = indexImageMetadata(data.imageMetadata);
+        variantLabels = data.variantLabels.length
+          ? data.variantLabels
+          : imageUrls.map((_, index) => getFallbackLabels(activeGenerationMode)[index] || `결과 ${index + 1}`);
+        const initialDisneyDiagnostics = isDisneyMode(activeGenerationMode)
+          ? getDisneyRecommendationDiagnostics()
+          : null;
+        if (initialDisneyDiagnostics) {
+          logDisneyRecommendationDiagnostics("initial-generation", initialDisneyDiagnostics);
+        }
+        const scoreFallbackIndex = imageScores.length
+          ? imageScores.reduce((bestIndex, score, index) => {
+            const numericScore = Number(score);
+            const bestScore = Number(imageScores[bestIndex]);
+            return Number.isFinite(numericScore) && numericScore > (Number.isFinite(bestScore) ? bestScore : Number.NEGATIVE_INFINITY)
+              ? index
+              : bestIndex;
+          }, 0)
+          : 0;
+        recommendedIndex = imageUrls.length
+          ? initialDisneyDiagnostics?.hasMetrics
+            ? initialDisneyDiagnostics.selectedIndex
+            : scoreFallbackIndex
+          : null;
+        resultDisplayOrder = imageUrls.length
+          ? initialDisneyDiagnostics?.hasMetrics
+            ? initialDisneyDiagnostics.rankedIndices
+            : getScoreSortedResultOrder(recommendedIndex)
+          : [];
+        selectedIndex = recommendedIndex ?? 0;
+        console.log("[client][generation-result-counts]", {
+          rawResultCount: data.results.length,
+          successCount: imageUrls.length,
+          failedCount: failedImages.length,
+          initialRecommendedIndex: recommendedIndex,
+          initialDisplayOrder: resultDisplayOrder,
+        });
+        renderResults();
+
+        if (imageUrls.length) {
+          setStatus("AI가 4개 결과 중 추천 이미지를 고르고 있어요.");
+          const selection = await chooseBestGrokResult({
+            mode: activeGenerationMode,
+            originalImage,
+            generatedImages: imageUrls,
+            fallbackIndex: scoreFallbackIndex,
+          });
+          applyGrokSelection(selection);
+        }
+
+        renderResults();
+        setStatus(data.warningMessage || RECOMMENDATION_DESCRIPTION);
+        console.log("[client][slider-inputs]", {
+          originalImageUrl: originalImageUrl || "local-preview-data-url",
+          recommendedImageUrl: Number.isInteger(recommendedIndex) ? imageUrls[recommendedIndex] : imageUrls[0],
+        });
+        console.log("[client][grok-edit] generation success:", data);
+      }
+
+      document.addEventListener("submit", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log("[client][grok-edit] form submit blocked");
+      }, true);
+
+      screenStartButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setAppScreen(button.dataset.screenTarget || "home");
+        });
+      });
+
+      generationModeInputs.forEach((input) => {
+        input.addEventListener("change", syncGenerationModeUi);
+      });
+      syncGenerationModeUi();
+      setAppScreen("landing");
+
+      photoInput.addEventListener("change", async (event) => {
+        event.stopPropagation();
+        selectedFile = event.target.files[0];
+        console.log("선택된 파일:", selectedFile);
+
+        if (!selectedFile) {
+          generateButton.disabled = true;
+          if (!imageUrls.length) {
+            sourceSection.classList.add("hidden");
+          }
+          setStatus("이미지를 선택해 주세요.");
+          hideError();
+          return;
+        }
+
+        hideError();
+        selectedImageDataUrl = await readFileAsDataUrl(selectedFile);
+        sourcePreview.src = selectedImageDataUrl;
+        sourceSection.classList.remove("hidden");
+        generateButton.disabled = false;
+        if (!isGenerating && !imageUrls.length) {
+          resultSection.classList.add("hidden");
+        }
+        setStatus("이미지가 선택되었습니다. 생성 버튼을 눌러주세요.");
+        console.log("[client][grok-edit] upload ready:", {
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+          fileSize: selectedFile.size,
+        });
+      });
+
+      generateButton.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        console.log("생성 시 selectedFile:", selectedFile);
+
+        if (!selectedFile) {
+          showError("이미지 파일이 없습니다.");
+          setStatus("이미지를 선택해 주세요.");
+          return;
+        }
+
+        hideError();
+        isGenerating = true;
+        generateButton.disabled = true;
+        activeGenerationMode = getGenerationMode();
+        clearResults();
+        sourceSection.classList.add("hidden");
+        setAppScreen("generating");
+        setStatus("AI 편집 요청을 준비하는 중...");
+
+        try {
+          await runGrokPipeline({
+            imageFile: selectedFile,
+            originalImage: selectedImageDataUrl,
+            mode: activeGenerationMode,
+          });
+          setAppScreen("result");
+        } catch (error) {
+          console.error("[client][grok-edit] generation failed:", error);
+          if (error.response) {
+            console.error("[client][grok-edit] server details:", error.response);
+          }
+          clearResults();
+          setAppScreen("editor");
+          setStatus("");
+          showError("이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        } finally {
+          isGenerating = false;
+          generateButton.disabled = false;
+        }
+      });
+
+      thumbnailList.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const zoomButton = event.target.closest("[data-zoom-index]");
+
+        if (zoomButton) {
+          const index = Number(zoomButton.dataset.zoomIndex);
+          const successfulResults = imageUrls.map((url, resultIndex) => ({
+            url,
+            index: resultIndex,
+            label: resultIndex === recommendedIndex
+              ? `${getFeaturedLabel()} · ${variantLabels[resultIndex] || `결과 ${resultIndex + 1}`}`
+              : `${variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`}`,
+            isRecommended: resultIndex === recommendedIndex,
+          }));
+          openResultGalleryModal(successfulResults, index);
+          return;
+        }
+
+        const button = event.target.closest("[data-index]");
+
+        if (!button) return;
+
+        selectedIndex = Number(button.dataset.index);
+        renderResults();
+        console.log("[client][grok-edit] selected candidate:", selectedIndex);
+      });
+
+      sourceZoomButton.addEventListener("click", () => {
+        if (selectedImageDataUrl) {
+          openSingleResultModal({
+            url: selectedImageDataUrl,
+            label: "원본 이미지",
+            isRecommended: false,
+          });
+        }
+      });
+
+      recommendedZoomButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openRecommendedComparisonModal();
+      });
+
+      recommendedComparisonSlider.addEventListener("pointerdown", (event) => {
+        if (!selectedImageDataUrl || !imageUrls.length) return;
+
+        event.preventDefault();
+        isComparisonDragging = true;
+        recommendedComparisonSlider.setPointerCapture(event.pointerId);
+        updateComparisonFromClientX(event.clientX);
+      });
+
+      recommendedComparisonSlider.addEventListener("pointermove", (event) => {
+        if (!isComparisonDragging) return;
+
+        event.preventDefault();
+        updateComparisonFromClientX(event.clientX);
+      });
+
+      recommendedComparisonSlider.addEventListener("pointerup", (event) => {
+        isComparisonDragging = false;
+        if (recommendedComparisonSlider.hasPointerCapture(event.pointerId)) {
+          recommendedComparisonSlider.releasePointerCapture(event.pointerId);
+        }
+      });
+
+      recommendedComparisonSlider.addEventListener("pointercancel", (event) => {
+        isComparisonDragging = false;
+        if (recommendedComparisonSlider.hasPointerCapture(event.pointerId)) {
+          recommendedComparisonSlider.releasePointerCapture(event.pointerId);
+        }
+      });
+
+      recommendedComparisonSlider.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+
+        event.preventDefault();
+        setComparisonSliderPosition(comparisonSliderPosition + (event.key === "ArrowRight" ? 5 : -5));
+      });
+
+      imageModal.addEventListener("click", (event) => {
+        if (event.target === imageModal || event.target === imageModalShell) {
+          closeImageModal();
+        }
+      });
+
+      imageModalDownload.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        downloadCurrentModalImage();
+      });
+      imageModalClose.addEventListener("click", closeImageModal);
+      imageModalPrev.addEventListener("click", () => moveImageModal(-1));
+      imageModalNext.addEventListener("click", () => moveImageModal(1));
+      imageModalPrevMobile.addEventListener("click", () => moveImageModal(-1));
+      imageModalNextMobile.addEventListener("click", () => moveImageModal(1));
+
+      window.addEventListener("keydown", (event) => {
+        if (imageModal.classList.contains("hidden")) return;
+
+        if (event.key === "Escape") {
+          closeImageModal();
+          return;
+        }
+
+        if (event.key === "ArrowLeft") {
+          moveImageModal(-1);
+          return;
+        }
+
+        if (event.key === "ArrowRight") {
+          moveImageModal(1);
+        }
+      });
+    </script>
+  </body>
+</html>

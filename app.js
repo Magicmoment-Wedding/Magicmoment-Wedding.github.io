@@ -14,7 +14,7 @@ import { renderStudioPage } from "./pages/studio.js";
 import { renderSuggestionsPage } from "./pages/suggestions.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, FREE_POLICY, PRINT_PRODUCTS, getCreditBreakdown, getGenerationAccess, getRemainingFreeGenerations } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
-import { chooseBestGrokResult, generateResults, generateStudioResults } from "./services/generator.js";
+import { generateResults, generateStudioResults } from "./services/generator.js";
 import { getPresetPromptIntent } from "./services/prompt-intents.js";
 import { navigate, PREVIOUS_ROUTE, ROUTES, getRouteFromHash, initRouter } from "./services/router.js";
 import { getState, subscribe, updateState } from "./services/store.js";
@@ -148,73 +148,6 @@ function getImageModalItems(state) {
   ].filter((item) => item.url);
 }
 
-async function evaluateCurrentGenerationRecommendation(resultPayload) {
-  if (resultPayload?.generationMeta?.resultMode !== "real") {
-    return;
-  }
-
-  const resultIds = resultPayload.results.map((result) => result.id).join("|");
-  const originalImage = resultPayload.results[0]?.beforeUrl;
-  const prompt = resultPayload.generationMeta?.evaluationPrompt ?? "";
-
-  if ((resultPayload.results?.length ?? 0) < 2) {
-    updateState({
-      results: resultPayload.results.map((result, index) => ({
-        ...result,
-        isRecommended: index === 0,
-        score: index === 0 ? 100 : null,
-      })),
-      generationMeta: {
-        ...getState().generationMeta,
-        recommendedIndex: 0,
-        recommendationStatus: "success",
-        recommendationConfidence: "low",
-        recommendationReason: "가장 자연스러운 이미지입니다.",
-      },
-    });
-    return;
-  }
-
-  updateState({
-    generationMeta: {
-      ...getState().generationMeta,
-      recommendationStatus: "pending",
-      recommendationReason: "가장 자연스러운 이미지입니다.",
-    },
-  });
-
-  const evaluation = await chooseBestGrokResult(originalImage, resultPayload.results, prompt);
-  const currentState = getState();
-  const currentResultIds = currentState.results.map((result) => result.id).join("|");
-
-  if (currentResultIds !== resultIds) {
-    return;
-  }
-
-  const bestIndex = Number.isInteger(evaluation.bestIndex)
-    && evaluation.bestIndex >= 0
-    && evaluation.bestIndex < currentState.results.length
-    ? evaluation.bestIndex
-    : 0;
-  const recommendationStatus = "success";
-
-  updateState({
-    results: currentState.results.map((result, index) => ({
-      ...result,
-      isRecommended: index === bestIndex,
-      score: index === bestIndex ? 100 : null,
-    })),
-    selectedThumbnailIndex: currentState.selectedThumbnailIndex === 0 ? bestIndex : currentState.selectedThumbnailIndex,
-    generationMeta: {
-      ...currentState.generationMeta,
-      recommendedIndex: bestIndex,
-      recommendationStatus,
-      recommendationConfidence: evaluation.confidence ?? "low",
-      recommendationReason: "가장 자연스러운 이미지입니다.",
-    },
-  });
-}
-
 function openImageModal(imageUrl, label) {
   const state = getState();
   const items = getImageModalItems(state);
@@ -324,10 +257,12 @@ async function performGeneration({ isFree }) {
       resultPayload,
     });
 
+    const recommendedIndex = getRecommendedResultIndex(resultPayload);
+
     updateState({
       isGenerating: false,
       activePreviewMode: "after",
-      selectedThumbnailIndex: 0,
+      selectedThumbnailIndex: recommendedIndex ?? 0,
       results: resultPayload.results,
       generationMeta: {
         ...resultPayload.generationMeta,
@@ -344,7 +279,6 @@ async function performGeneration({ isFree }) {
 
     console.log("[generation] 결과 화면 이동");
     navigate(ROUTES.RESULT);
-    evaluateCurrentGenerationRecommendation(resultPayload);
   } catch (error) {
     console.error("[generation] 결과 처리 실패", error);
     updateState({

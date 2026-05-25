@@ -4,8 +4,8 @@ import { getRatioDisplay } from "./credit.js";
 import { delay } from "./ai-utils.js";
 import { analyzePresetImage } from "./grok-analysis.js";
 import { buildParisEiffelPrompt } from "./prompt-builder.js";
-import { canUseRealAiForPreset, getAppConfig } from "./config.js";
-import { generateParisEiffelImage } from "./xai-generation.js";
+import { canUseApiGenerationForPreset, isOnlineApiPlaceholder } from "./config.js";
+import { generateParisEiffelImage } from "./api-generation.js";
 import { getPresetPromptIntent } from "./prompt-intents.js";
 
 const DEFAULT_GENERATION_COUNT = 4;
@@ -24,80 +24,30 @@ function buildSafeMockPayload(state) {
   }
 }
 
-export async function chooseBestGrokResult(originalImage, generatedImages, prompt) {
-  const fallback = {
-    bestIndex: 0,
-    confidence: "low",
-    status: "success",
-    reason: RECOMMENDATION_DESCRIPTION,
-  };
-
-  try {
-    const imageUrls = generatedImages
-      .map((image) => typeof image === "string" ? image : image?.url)
-      .filter(Boolean)
-      .slice(0, DEFAULT_GENERATION_COUNT);
-
-    if (!originalImage || !imageUrls.length) {
-      return fallback;
-    }
-
-    console.log("[generation] grok choose best result", {
-      promptLength: prompt?.length ?? 0,
-      imageCount: imageUrls.length,
-    });
-
-    const response = await fetch("http://localhost:3000/api/grok/choose-best", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        mode: "parisSnap",
-        originalImage,
-        generatedImages: imageUrls,
-      }),
-    });
-    const payload = await response.json();
-
-    if (!response.ok || !payload?.success) {
-      throw new Error(payload?.error || "Grok recommendation failed");
-    }
-
-    const bestIndex = Number.isInteger(payload.selection?.recommendedIndex)
-      && payload.selection.recommendedIndex >= 0
-      && payload.selection.recommendedIndex < imageUrls.length
-      ? payload.selection.recommendedIndex
-      : 0;
-
-    return {
-      bestIndex,
-      confidence: payload.fallback ? "low" : "high",
-      status: "success",
-      reason: payload.selection?.reason || RECOMMENDATION_DESCRIPTION,
-    };
-  } catch (error) {
-    console.error("[generation] grok recommendation failed", error);
-    return fallback;
-  }
-}
-
 function createRealPayload(state, mockPayload, generatedImages, analysisMeta, prompt) {
   const sourceImage = getSourceImage(state.sourceImageId);
+  const firstSuccessfulIndex = generatedImages.findIndex((image) => {
+    const imageUrl = typeof image === "string" ? image : image?.url;
+    return Boolean(imageUrl);
+  });
+  const recommendedIndex = firstSuccessfulIndex >= 0 ? firstSuccessfulIndex : null;
   const realResults = generatedImages.map((imageUrl, index) => {
     const normalizedImageUrl = typeof imageUrl === "string" ? imageUrl : imageUrl.url;
     const fallbackResult = mockPayload.results[index] ?? mockPayload.results[0];
+    const isFailed = !normalizedImageUrl || imageUrl?.status === "failed";
 
     return {
       id: `real-${state.selectedPresetId}-${index + 1}`,
       afterUrl: normalizedImageUrl,
       beforeUrl: sourceImage.url,
       title: fallbackResult?.title ?? `파리 에펠탑 ${index + 1}`,
-      badge: imageUrl?.variantLabel || fallbackResult?.badge || (index === 0 ? "대표 장소" : "다른 장소"),
+      badge: isFailed ? "생성 실패" : imageUrl?.variantLabel || fallbackResult?.badge || (index === 0 ? "대표 장소" : "다른 장소"),
       variantLabel: imageUrl?.variantLabel || (index === 0 ? "대표 장소" : "다른 장소"),
       tags: fallbackResult?.tags ?? ["파리 에펠탑", "야외 웨딩 스냅"],
       score: null,
-      isRecommended: false,
+      isRecommended: index === recommendedIndex,
+      status: isFailed ? "failed" : "success",
+      errorMessage: imageUrl?.errorMessage || "",
     };
   });
 
@@ -106,15 +56,13 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
     generationMeta: {
       ...mockPayload.generationMeta,
       generatedCount: realResults.length,
-      recommendedIndex: null,
-      recommendationStatus: realResults.length >= 2 ? "pending" : "unavailable",
-      recommendationReason: realResults.length >= 2
-        ? RECOMMENDATION_DESCRIPTION
-        : RECOMMENDATION_DESCRIPTION,
+      recommendedIndex,
+      recommendationStatus: recommendedIndex === null ? "unavailable" : "success",
+      recommendationReason: RECOMMENDATION_DESCRIPTION,
       evaluationPrompt: prompt,
       analysisMeta,
       resultMode: "real",
-      resultProvider: "xai",
+      resultProvider: "next-api",
     },
   };
 }
@@ -134,29 +82,23 @@ function attachMockMeta(mockPayload, analysisMeta, reason) {
 
 async function generateParisEiffelResults(state, mockPayload) {
   const analysisMeta = await analyzePresetImage(state);
-  const config = getAppConfig();
 
-  if (!canUseRealAiForPreset(state.selectedPresetId)) {
+  if (!canUseApiGenerationForPreset(state.selectedPresetId)) {
+    const fallbackReason = isOnlineApiPlaceholder() ? "api_base_url_not_configured" : "preset_not_enabled";
     console.log("[generation] fallback to mock", {
-      reason: config.useRealAi ? "preset_not_enabled" : "real_ai_disabled",
+      reason: fallbackReason,
       presetKey: state.selectedPresetId,
     });
-    return attachMockMeta(mockPayload, analysisMeta, config.useRealAi ? "preset_not_enabled" : "real_ai_disabled");
+    return attachMockMeta(mockPayload, analysisMeta, fallbackReason);
   }
 
-  if (!config.xAiApiKey) {
-    console.log("[generation] fallback to mock", {
-      reason: "missing_api_keys",
-      presetKey: state.selectedPresetId,
-    });
-    return attachMockMeta(mockPayload, analysisMeta, "missing_api_keys");
-  }
-
-  const prompt = buildParisEiffelPrompt({
-    analysisMeta,
-    ratioLabel: getRatioDisplay(state.selectedRatio, state.customRatio),
-    customText: state.customPresetDraft?.style?.trim() ?? "",
-  });
+  const prompt = state.selectedPresetId === "paris_eiffel"
+    ? buildParisEiffelPrompt({
+      analysisMeta,
+      ratioLabel: getRatioDisplay(state.selectedRatio, state.customRatio),
+      customText: state.customPresetDraft?.style?.trim() ?? "",
+    })
+    : "";
 
   try {
     const generatedImages = await generateParisEiffelImage({
@@ -171,20 +113,20 @@ async function generateParisEiffelResults(state, mockPayload) {
 
     if (!generatedImages.length) {
       console.log("[generation] fallback to mock", {
-        reason: "empty_xai_response",
+        reason: "empty_api_response",
         presetKey: state.selectedPresetId,
       });
-      return attachMockMeta(mockPayload, analysisMeta, "empty_xai_response");
+      return attachMockMeta(mockPayload, analysisMeta, "empty_api_response");
     }
 
     return createRealPayload(state, mockPayload, generatedImages, analysisMeta, prompt);
   } catch (error) {
-    console.error("[generation] xai request failed", error);
+    console.error("[generation] api request failed", error);
     console.log("[generation] fallback to mock", {
-      reason: "xai_request_failed",
+      reason: "api_request_failed",
       presetKey: state.selectedPresetId,
     });
-    return attachMockMeta(mockPayload, analysisMeta, "xai_request_failed");
+    return attachMockMeta(mockPayload, analysisMeta, "api_request_failed");
   }
 }
 
@@ -209,7 +151,7 @@ export async function generateResults(state) {
   const [payload] = await Promise.all([
     (async () => {
       try {
-        if (state.selectedPresetId !== "paris_eiffel") {
+        if (!canUseApiGenerationForPreset(state.selectedPresetId)) {
           console.log("[generation] fallback to mock", {
             reason: "mock_only_preset",
             presetKey: state.selectedPresetId,

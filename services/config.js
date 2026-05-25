@@ -1,41 +1,49 @@
 const DEFAULT_APP_CONFIG = {
-  USE_REAL_AI: false,
-  XAI_API_KEY: "",
-  XAI_IMAGE_MODEL: "grok-imagine-image",
+  API_ENABLED_PRESETS: ["paris_eiffel", "disney"],
 };
+const LOCAL_API_BASE_URL = "http://localhost:3000";
+const ONLINE_API_BASE_URL = "https://magic-ai-studio-api.vercel.app";
 
-function readWindowConfig() {
-  if (typeof window === "undefined" || !window.__APP_ENV__) {
+function getRuntimeApiConfig() {
+  if (typeof window === "undefined") {
     return {};
   }
 
-  return window.__APP_ENV__;
-}
-
-function toBoolean(value) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    return value.toLowerCase() === "true";
-  }
-
-  return false;
-}
-
-export function getAppConfig() {
-  const runtimeConfig = readWindowConfig();
-
   return {
-    useRealAi: toBoolean(runtimeConfig.USE_REAL_AI ?? DEFAULT_APP_CONFIG.USE_REAL_AI),
-    xAiApiKey: runtimeConfig.XAI_API_KEY ?? DEFAULT_APP_CONFIG.XAI_API_KEY,
-    xAiImageModel: runtimeConfig.XAI_IMAGE_MODEL ?? DEFAULT_APP_CONFIG.XAI_IMAGE_MODEL,
+    ...(window.MAGIC_AI_STUDIO_CONFIG || {}),
+    API_BASE_URL: window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL,
   };
 }
 
-export function canUseRealAiForPreset(presetKey) {
-  const config = getAppConfig();
+function getLocalApiBaseUrl() {
+  return LOCAL_API_BASE_URL;
+}
 
-  return config.useRealAi && presetKey === "paris_eiffel";
+export function getApiBaseUrl() {
+  const runtimeConfig = getRuntimeApiConfig();
+  const isGithubPages = typeof window !== "undefined"
+    && window.location.hostname.includes("github.io");
+  const fallbackUrl = isGithubPages ? ONLINE_API_BASE_URL : getLocalApiBaseUrl();
+
+  return String(runtimeConfig.API_BASE_URL || fallbackUrl).replace(/\/+$/, "");
+}
+
+export function isOnlineApiPlaceholder() {
+  return false;
+}
+
+export function assertApiBaseUrlConfigured() {
+  if (!isOnlineApiPlaceholder()) return;
+
+  const error = new Error("ONLINE_API_BASE_URL_PLACEHOLDER");
+  error.publicMessage = "온라인 생성 서버 주소가 아직 설정되지 않았어요.";
+  throw error;
+}
+
+export function getApiUrl(path) {
+  return `${getApiBaseUrl()}${path}`;
+}
+
+export function canUseApiGenerationForPreset(presetKey) {
+  return DEFAULT_APP_CONFIG.API_ENABLED_PRESETS.includes(presetKey) && !isOnlineApiPlaceholder();
 }

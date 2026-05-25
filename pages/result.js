@@ -12,6 +12,23 @@ export function markRecommendedImage(bestIndex, index, status = "success") {
   return `<div class="absolute top-3 left-3 z-10 rounded-full ${status === "success" ? "bg-primary text-on-primary" : "bg-black/55 text-white"} px-3 py-1 font-label-caps text-label-caps shadow-md">${label}</div>`;
 }
 
+function isFailedResult(result) {
+  return result?.status === "failed" || !result?.afterUrl;
+}
+
+function renderFailedImagePanel(result, size = "large") {
+  const compact = size === "compact";
+  const message = result?.errorMessage || "이미지를 생성하지 못했어요.";
+
+  return `
+    <div class="absolute inset-0 bg-error-container text-on-error-container flex flex-col items-center justify-center gap-2 px-3 text-center">
+      <span class="material-symbols-outlined ${compact ? "text-[22px]" : "text-[34px]"}" style="font-variation-settings: 'FILL' 0;">error</span>
+      <p class="${compact ? "text-[11px]" : "text-sm"} font-semibold">생성 실패</p>
+      ${compact ? "" : `<p class="text-xs leading-relaxed">${escapeHtml(message)}</p>`}
+    </div>
+  `;
+}
+
 export function renderResultPage(state) {
   const sourceImage = getSourceImage(state.sourceImageId);
   const safeResults = state.results.length > 0
@@ -38,10 +55,14 @@ export function renderResultPage(state) {
   const currentResult = safeResults[selectedIndex] ?? safeResults[0];
   const mainResultIndex = Number.isInteger(recommendedIndex) ? recommendedIndex : 0;
   const mainResult = safeResults[mainResultIndex] ?? safeResults[0];
+  const isMainFailed = isFailedResult(mainResult);
+  const isCurrentFailed = isFailedResult(currentResult);
   const recommendationStatus = state.generationMeta?.recommendationStatus ?? "pending";
   const alternateResults = safeResults
     .map((result, index) => ({ result, index }))
     .filter((item) => item.index !== mainResultIndex);
+  const getImageModalIndex = (resultIndex) =>
+    1 + safeResults.slice(0, resultIndex).filter((result) => !isFailedResult(result)).length;
   const generationMeta = state.generationMeta ?? {
     presetName: "파리 에펠탑",
     ratioLabel: "원본",
@@ -67,16 +88,22 @@ export function renderResultPage(state) {
   return `
     <section class="result-recommendation-layout w-full flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_8.5rem] gap-3">
       <article class="recommended-result-card relative rounded-xl overflow-hidden glass-panel glow-shadow border-2 ${selectedIndex === mainResultIndex ? "border-primary" : "border-white/60"}">
-        <button class="relative block w-full aspect-[4/5] overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${mainResultIndex + 1}" aria-label="추천 결과 크게 보기">
-          <img alt="${escapeHtml(mainResult.title)}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="${mainResult.afterUrl}" />
-          <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-1 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">클릭해서 크게 보기</span>
-          ${markRecommendedImage(mainResultIndex, mainResultIndex, recommendationStatus)}
-          ${selectedIndex === mainResultIndex ? `
-            <div class="absolute top-3 right-3 bg-primary-container text-on-primary-container rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
-              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
-            </div>
-          ` : ""}
-        </button>
+        ${isMainFailed ? `
+          <div class="relative block w-full aspect-[4/5] overflow-hidden">
+            ${renderFailedImagePanel(mainResult)}
+          </div>
+        ` : `
+          <button class="relative block w-full aspect-[4/5] overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${getImageModalIndex(mainResultIndex)}" aria-label="추천 결과 크게 보기">
+            <img alt="${escapeHtml(mainResult.title)}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="${mainResult.afterUrl}" />
+            <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-1 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">클릭해서 크게 보기</span>
+            ${markRecommendedImage(mainResultIndex, mainResultIndex, recommendationStatus)}
+            ${selectedIndex === mainResultIndex ? `
+              <div class="absolute top-3 right-3 bg-primary-container text-on-primary-container rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span>
+              </div>
+            ` : ""}
+          </button>
+        `}
         <div class="p-4 bg-white/65 flex flex-col gap-2">
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -85,8 +112,8 @@ export function renderResultPage(state) {
             </div>
             ${mainResult.variantLabel ? `<span class="shrink-0 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">${escapeHtml(mainResult.variantLabel)}</span>` : ""}
           </div>
-          <button class="w-full h-10 rounded-full ${selectedIndex === mainResultIndex ? "bg-primary text-on-primary" : "glass-panel text-primary"} text-sm font-semibold" data-thumbnail-index="${mainResultIndex}">
-            ${selectedIndex === mainResultIndex ? "선택됨" : "추천 결과 선택"}
+          <button class="w-full h-10 rounded-full ${isMainFailed ? "bg-white/45 text-on-surface-variant cursor-not-allowed" : selectedIndex === mainResultIndex ? "bg-primary text-on-primary" : "glass-panel text-primary"} text-sm font-semibold" ${isMainFailed ? "disabled" : `data-thumbnail-index="${mainResultIndex}"`}>
+            ${isMainFailed ? "선택 불가" : selectedIndex === mainResultIndex ? "선택됨" : "추천 결과 선택"}
           </button>
         </div>
       </article>
@@ -97,19 +124,25 @@ export function renderResultPage(state) {
           ${alternateResults.map(
             ({ result, index }, alternateIndex) => `
               <article class="alternate-result-card shrink-0 w-28 md:w-full rounded-lg overflow-hidden bg-white/55 border ${index === selectedIndex ? "border-primary shadow-md" : "border-white/60"}">
-                <button class="relative block w-full aspect-[4/5] overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${index + 1}" aria-label="추가 ${alternateIndex + 1} 크게 보기">
-                  <img alt="${escapeHtml(result.title)}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" src="${result.afterUrl}" />
-                  ${index === selectedIndex ? `
-                    <div class="absolute top-2 right-2 bg-primary-container text-on-primary-container rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
-                      <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
-                    </div>
-                  ` : ""}
-                </button>
+                ${isFailedResult(result) ? `
+                  <div class="relative block w-full aspect-[4/5] overflow-hidden">
+                    ${renderFailedImagePanel(result, "compact")}
+                  </div>
+                ` : `
+                  <button class="relative block w-full aspect-[4/5] overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${getImageModalIndex(index)}" aria-label="추가 ${alternateIndex + 1} 크게 보기">
+                    <img alt="${escapeHtml(result.title)}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" src="${result.afterUrl}" />
+                    ${index === selectedIndex ? `
+                      <div class="absolute top-2 right-2 bg-primary-container text-on-primary-container rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                        <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
+                      </div>
+                    ` : ""}
+                  </button>
+                `}
                 <div class="p-2 flex flex-col gap-2">
                   <p class="text-xs font-semibold text-on-surface">추가 ${alternateIndex + 1}</p>
                   ${result.variantLabel ? `<p class="text-[11px] text-primary">${escapeHtml(result.variantLabel)}</p>` : ""}
-                  <button class="h-8 rounded-full ${index === selectedIndex ? "bg-primary text-on-primary" : "glass-panel text-primary"} text-xs font-semibold" data-thumbnail-index="${index}">
-                    ${index === selectedIndex ? "선택됨" : "이 이미지 선택"}
+                  <button class="h-8 rounded-full ${isFailedResult(result) ? "bg-white/45 text-on-surface-variant cursor-not-allowed" : index === selectedIndex ? "bg-primary text-on-primary" : "glass-panel text-primary"} text-xs font-semibold" ${isFailedResult(result) ? "disabled" : `data-thumbnail-index="${index}"`}>
+                    ${isFailedResult(result) ? "실패" : index === selectedIndex ? "선택됨" : "이 이미지 선택"}
                   </button>
                 </div>
               </article>
@@ -130,10 +163,12 @@ export function renderResultPage(state) {
       </div>
       <div class="glass-panel glow-shadow rounded-DEFAULT p-3 flex flex-col gap-3">
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">AFTER</span>
-        <button class="relative w-full aspect-[4/5] rounded-lg overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${selectedIndex + 1}" aria-label="AI 생성 결과 크게 보기">
-          <img alt="After preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" src="${currentResult.afterUrl}" />
-          <span class="absolute inset-x-3 bottom-3 rounded-full bg-black/45 text-white px-3 py-1 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">클릭해서 크게 보기</span>
-          ${markRecommendedImage(recommendedIndex, selectedIndex, recommendationStatus)}
+        <button class="relative w-full aspect-[4/5] rounded-lg overflow-hidden group" ${isCurrentFailed ? "" : `data-action="open-image-modal" data-image-modal-index="${getImageModalIndex(selectedIndex)}"`} aria-label="AI 생성 결과 크게 보기">
+          ${isCurrentFailed ? renderFailedImagePanel(currentResult) : `
+            <img alt="After preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" src="${currentResult.afterUrl}" />
+            <span class="absolute inset-x-3 bottom-3 rounded-full bg-black/45 text-white px-3 py-1 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">클릭해서 크게 보기</span>
+            ${markRecommendedImage(recommendedIndex, selectedIndex, recommendationStatus)}
+          `}
         </button>
         <p class="text-xs text-on-surface-variant">${escapeHtml(currentResult.badge)}</p>
       </div>

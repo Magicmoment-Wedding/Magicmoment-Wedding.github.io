@@ -923,6 +923,9 @@
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
       const WATERMARK_TEXT = "Magic Ai Studio";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
+      const ONE_MB_BYTES = 1024 * 1024;
+      const SUPABASE_UPLOAD_FAILED_MESSAGE = "이미지 업로드에 실패했어요. 다시 시도해 주세요.";
+      const SOURCE_IMAGE_LOAD_FAILED_MESSAGE = "업로드된 이미지를 불러오지 못했어요. 다시 시도해 주세요.";
       let userPlan = "free"; // free | ad | paid
       const DEBUG_MODE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
       const GENERATION_MODES = {
@@ -1379,6 +1382,98 @@ Important balance:
         });
       }
 
+      function toSizeMB(bytes) {
+        if (!Number.isFinite(bytes)) {
+          return 0;
+        }
+
+        return Number((bytes / ONE_MB_BYTES).toFixed(2));
+      }
+
+      async function requestSignedUploadUrl(file) {
+        const requestUrl = `${window.API_BASE_URL}/api/storage/create-upload-url`;
+        console.log("[upload] selected file", {
+          name: file.name,
+          sizeMB: toSizeMB(file.size),
+          type: file.type || "application/octet-stream",
+        });
+
+        const response = await fetch(requestUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type || "application/octet-stream",
+          }),
+        });
+        const responseBody = await readResponseBody(response);
+        const data = parseJsonResponseBody(responseBody, SUPABASE_UPLOAD_FAILED_MESSAGE);
+
+        if (!response.ok || !data.ok || !data.signedUrl || !data.path || !data.token) {
+          console.error("[upload] signed upload url failed", {
+            status: response.status,
+            ok: Boolean(data.ok),
+            hasSignedUrl: Boolean(data.signedUrl),
+            hasToken: Boolean(data.token),
+            path: data.path || null,
+            message: data.message,
+          });
+          const error = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
+          error.publicMessage = SUPABASE_UPLOAD_FAILED_MESSAGE;
+          throw error;
+        }
+
+        console.log("[upload] signed upload url received", {
+          path: data.path,
+          hasSignedUrl: Boolean(data.signedUrl),
+          hasToken: Boolean(data.token),
+        });
+
+        return data;
+      }
+
+      async function uploadFileToSignedUrl(file, signedUpload) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("cacheControl", "3600");
+        uploadFormData.append("", file);
+
+        const response = await fetch(signedUpload.signedUrl, {
+          method: "PUT",
+          body: uploadFormData,
+        });
+
+        if (!response.ok) {
+          let responseBody = "";
+          try {
+            responseBody = await response.text();
+          } catch {}
+          console.error("[upload] signed upload failed", {
+            status: response.status,
+            path: signedUpload.path,
+            responseBody,
+          });
+          const error = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
+          error.publicMessage = SUPABASE_UPLOAD_FAILED_MESSAGE;
+          throw error;
+        }
+
+        console.log("[upload] upload complete", {
+          path: signedUpload.path,
+          status: response.status,
+          fileName: file.name,
+          sizeMB: toSizeMB(file.size),
+        });
+
+        return signedUpload.path;
+      }
+
+      async function uploadImageToPrivateStorage(file) {
+        const signedUpload = await requestSignedUploadUrl(file);
+        return uploadFileToSignedUrl(file, signedUpload);
+      }
+
       function getModeConfig(mode) {
         return MODE_CONFIG[mode] || MODE_CONFIG[GENERATION_MODES.PARIS_SNAP];
       }
@@ -1631,11 +1726,15 @@ ${modeExample}`;
       async function generateGrokResults({ mode, imageFile }) {
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
+        const imagePath = await uploadImageToPrivateStorage(imageFile);
         const formData = new FormData();
-        formData.append("image", imageFile);
+        formData.append("imagePath", imagePath);
         formData.append("mode", generationMode);
         formData.append("presetKey", config.presetKey);
         formData.append("count", "4");
+        console.log("[generate] sending imagePath", {
+          imagePath,
+        });
         const requestUrl = `${window.API_BASE_URL}/api/generate`;
         console.log("[client][generate][request]", {
           API_BASE_URL: window.API_BASE_URL,
@@ -1647,6 +1746,7 @@ ${modeExample}`;
           fileName: imageFile?.name,
           fileType: imageFile?.type,
           fileSize: imageFile?.size,
+          imagePath,
         });
 
         ensureApiBaseUrlConfigured();
@@ -1678,6 +1778,9 @@ ${modeExample}`;
           const error = new Error(data.message || "이미지 생성 실패");
           error.statusCode = data.status || response.status;
           error.response = data;
+          if (data.message === SOURCE_IMAGE_LOAD_FAILED_MESSAGE) {
+            error.publicMessage = SOURCE_IMAGE_LOAD_FAILED_MESSAGE;
+          }
           throw error;
         }
 
@@ -2530,6 +2633,7 @@ ${modeExample}`;
           fileName: selectedFile.name,
           fileType: selectedFile.type,
           fileSize: selectedFile.size,
+          fileSizeMB: toSizeMB(selectedFile.size),
         });
       });
 

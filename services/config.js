@@ -20,10 +20,12 @@ function getLocalApiBaseUrl() {
 }
 
 export function getApiBaseUrl() {
-  const runtimeConfig = getRuntimeApiConfig();
-  const isGithubPages = typeof window !== "undefined"
-    && window.location.hostname.includes("github.io");
-  const fallbackUrl = isGithubPages ? ONLINE_API_BASE_URL : getLocalApiBaseUrl();
+  const isLocal =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
+
+const fallbackUrl = isLocal ? getLocalApiBaseUrl() : ONLINE_API_BASE_URL;
 
   return String(runtimeConfig.API_BASE_URL || fallbackUrl).replace(/\/+$/, "");
 }

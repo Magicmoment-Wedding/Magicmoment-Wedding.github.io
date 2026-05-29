@@ -452,12 +452,14 @@
       }
 
       .feed-card {
-        min-height: 184px;
+        aspect-ratio: 3 / 4;
         border-radius: 24px;
         overflow: hidden;
         position: relative;
-        background-size: cover;
+        background-size: contain;
+        background-repeat: no-repeat;
         background-position: center;
+        background-color: rgba(255, 255, 255, 0.1);
         color: white;
         box-shadow: 0 18px 42px rgba(53, 47, 48, 0.16);
       }
@@ -703,9 +705,10 @@
                 <p class="font-label-caps text-label-caps uppercase text-primary">Magic Ai Studio</p>
                 <p class="font-display text-[19px] leading-none text-on-surface">Home Feed</p>
               </div>
-              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" type="button">
-                <span class="material-symbols-outlined text-[20px]">menu</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button class="px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold transition-colors" data-home-tab="edit" type="button">사진편집</button>
+                <button class="px-4 py-2 rounded-full bg-white/70 text-primary text-xs font-semibold hover:bg-white transition-colors" data-home-tab="gallery" type="button">갤러리</button>
+              </div>
             </div>
             <div class="mt-8">
               <p class="font-display text-[34px] leading-[0.95] text-on-surface">Capture your<br /><span class="italic text-primary">Perfect Moment</span></p>
@@ -714,14 +717,16 @@
             <div class="mt-6 flex flex-col gap-4">
               <article class="feed-card" style="background-image:url('mock-images/home/home_paris_couple_01.png')">
                 <div class="absolute inset-x-5 bottom-5 z-10">
-                  <p class="font-display text-[22px] leading-none">Paris Wedding Style</p>
-                  <button class="mt-4 h-10 w-full rounded-full bg-primary-container/90 text-on-primary-container text-sm font-semibold" data-screen-target="editor" type="button">이 스타일로 만들기</button>
+                  <p class="font-display text-[18px] leading-none">AI 웨딩사진 편집</p>
+                  <p class="text-xs text-white/80 mt-1">간편하게 사진을 업로드하고 배경을 변경해보세요.</p>
+                  <button class="mt-3 h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold" data-screen-target="editor" type="button">편집 바로가기</button>
                 </div>
               </article>
               <article class="feed-card" style="background-image:url('mock-images/home/home_disney_bride_01.png')">
                 <div class="absolute inset-x-5 bottom-5 z-10">
-                  <p class="font-display text-[22px] leading-none">Fairytale Live Action</p>
-                  <button class="mt-4 h-10 w-full rounded-full bg-primary-container/90 text-on-primary-container text-sm font-semibold" data-screen-target="editor" type="button">이 스타일로 만들기</button>
+                  <p class="font-display text-[18px] leading-none">결과 갤러리</p>
+                  <p class="text-xs text-white/80 mt-1">이전 생성 결과와 추천 이미지를 확인해보세요.</p>
+                  <button class="mt-3 h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold" data-screen-target="gallery" type="button">갤러리 바로가기</button>
                 </div>
               </article>
             </div>
@@ -737,7 +742,7 @@
                 <span class="material-symbols-outlined text-[19px]">auto_awesome</span>
               </span>
             </div>
-            <label class="upload-drop mt-4" for="photoInput">
+            <label id="photoUploadBox" class="upload-drop mt-4" for="photoInput">
               <span class="icon-bubble">
                 <span class="material-symbols-outlined text-[26px]">cloud_upload</span>
               </span>
@@ -749,10 +754,16 @@
             <input accept="image/png,image/jpeg,image/webp" class="sr-only" id="photoInput" type="file" />
 
             <section class="mt-4 hidden" id="sourceSection">
-              <button class="relative w-full aspect-[4/5] overflow-hidden rounded-[24px] group bg-surface-container" id="sourceZoomButton" type="button">
-                <img alt="Uploaded preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" id="sourcePreview" />
-                <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-2 text-center text-xs">크게 보기</span>
-              </button>
+              <div class="relative">
+                <button id="changePhotoButton" class="absolute top-3 left-3 z-10 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-semibold text-on-surface shadow-sm transition hover:bg-white" type="button">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                  <span>사진 변경하기</span>
+                </button>
+                <button class="relative w-full aspect-[4/5] overflow-hidden rounded-[24px] group bg-surface-container" id="sourceZoomButton" type="button">
+                  <img alt="Uploaded preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" id="sourcePreview" />
+                  <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-2 text-center text-xs">크게 보기</span>
+                </button>
+              </div>
             </section>
 
             <fieldset class="mt-5 flex flex-col gap-3">
@@ -864,7 +875,28 @@
               </button>
               <p class="text-sm font-semibold text-primary hidden" id="mainVariantLabel"></p>
               <div class="result-grid" id="thumbnailList"></div>
+              <div class="flex flex-col gap-3 mt-4 hidden" id="resultActionButtons">
+                <button class="h-12 w-full rounded-full bg-primary text-on-primary font-button text-sm flex items-center justify-center gap-2 transition-colors" id="resultDownloadButton" type="button">
+                  <span class="material-symbols-outlined text-[18px]">download</span>
+                  <span>다운로드</span>
+                </button>
+                <button class="h-12 w-full rounded-full bg-primary-container/60 text-on-primary-container font-button text-sm flex items-center justify-center gap-2 transition-colors hover:bg-primary-container/80" id="resultGalleryUploadButton" type="button">
+                  <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+                  <span>갤러리 업로드</span>
+                </button>
+              </div>
             </section>
+          </section>
+
+          <section class="screen-panel app-screen hidden" id="galleryScreen">
+            <div class="app-topbar">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <p class="font-display text-[19px] text-primary">결과 갤러리</p>
+              <span class="w-9"></span>
+            </div>
+            <div id="galleryContent" class="mt-4"></div>
           </section>
 
           <nav class="app-bottom-nav">
@@ -1163,9 +1195,13 @@ Important balance:
       const editorScreen = document.getElementById("editorScreen");
       const generatingScreen = document.getElementById("generatingScreen");
       const resultScreen = document.getElementById("resultScreen");
+      const galleryScreen = document.getElementById("galleryScreen");
+      const galleryContent = document.getElementById("galleryContent");
       const screenStartButtons = Array.from(document.querySelectorAll("[data-screen-target]"));
       const generatingStatusText = document.getElementById("generatingStatusText");
       const photoInput = document.getElementById("photoInput");
+      const photoUploadBox = document.getElementById("photoUploadBox");
+      const changePhotoButton = document.getElementById("changePhotoButton");
       const generationModeInputs = Array.from(document.querySelectorAll("input[name='generationMode']"));
       const disneyModeHint = document.getElementById("disneyModeHint");
       const generateButton = document.getElementById("generateButton");
@@ -1198,6 +1234,10 @@ Important balance:
       const imageModalPrevMobile = document.getElementById("imageModalPrevMobile");
       const imageModalNextMobile = document.getElementById("imageModalNextMobile");
       const imageModalCount = document.getElementById("imageModalCount");
+      const resultActionButtons = document.getElementById("resultActionButtons");
+      const resultDownloadButton = document.getElementById("resultDownloadButton");
+      const resultGalleryUploadButton = document.getElementById("resultGalleryUploadButton");
+      const homeTabButtons = Array.from(document.querySelectorAll("[data-home-tab]"));
 
       let selectedFile = null;
       let selectedImageDataUrl = "";
@@ -1215,6 +1255,7 @@ Important balance:
       let selectedIndex = 0;
       let activeImageModalIndex = 0;
       let isGenerating = false;
+      let galleryImages = [];
       let comparisonSliderPosition = 50;
       let isComparisonDragging = false;
       let modalItemsOverride = null;
@@ -1232,6 +1273,7 @@ Important balance:
           { name: "editor", element: editorScreen, activeClass: "" },
           { name: "generating", element: generatingScreen, activeClass: "" },
           { name: "result", element: resultScreen, activeClass: "" },
+          { name: "gallery", element: galleryScreen, activeClass: "" },
         ];
 
         screens.forEach(({ name, element, activeClass }) => {
@@ -2605,6 +2647,14 @@ ${modeExample}`;
       syncGenerationModeUi();
       setAppScreen("landing");
 
+      changePhotoButton.addEventListener("click", () => {
+        photoInput.click();
+      });
+
+      function syncPhotoUploadUi() {
+        photoUploadBox.classList.toggle("hidden", Boolean(selectedImageDataUrl));
+      }
+
       photoInput.addEventListener("change", async (event) => {
         event.stopPropagation();
         selectedFile = event.target.files[0];
@@ -2615,6 +2665,8 @@ ${modeExample}`;
           if (!imageUrls.length) {
             sourceSection.classList.add("hidden");
           }
+          selectedImageDataUrl = "";
+          syncPhotoUploadUi();
           setStatus("이미지를 선택해 주세요.");
           hideError();
           return;
@@ -2624,6 +2676,7 @@ ${modeExample}`;
         selectedImageDataUrl = await readFileAsDataUrl(selectedFile);
         sourcePreview.src = selectedImageDataUrl;
         sourceSection.classList.remove("hidden");
+        syncPhotoUploadUi();
         generateButton.disabled = false;
         if (!isGenerating && !imageUrls.length) {
           resultSection.classList.add("hidden");

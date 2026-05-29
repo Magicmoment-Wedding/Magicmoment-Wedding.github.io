@@ -456,6 +456,13 @@ async function handleAction(action, target) {
   }
 
   if (action === "open-image-modal") {
+    // concierge 페이지에서 data-image-url로 직접 전달받는 경우
+    if (target?.dataset.imageUrl) {
+      openImageModal(target.dataset.imageUrl, target.dataset.imageLabel || "이미지");
+      return;
+    }
+    
+    // result 페이지에서 data-thumbnail-index로 전달받는 경우
     const items = getImageModalItems(state);
     const itemIndex = Number.parseInt(target?.dataset.imageModalIndex ?? "", 10);
     const item = Number.isInteger(itemIndex) ? items[itemIndex] : null;
@@ -507,7 +514,10 @@ async function handleAction(action, target) {
   }
 
   if (action === "upload-concierge-photo") {
-    updateState({ conciergeUploadCount: 1 });
+    const fileInput = document.getElementById("concierge-file-input");
+    if (fileInput) {
+      fileInput.click();
+    }
     return;
   }
 
@@ -856,6 +866,40 @@ app.addEventListener("input", (event) => {
   if (target.dataset.suggestionBody !== undefined) {
     updateState({ suggestionDraftBody: target.value });
   }
+});
+
+app.addEventListener("change", (event) => {
+  const target = event.target;
+
+  if (!(target instanceof HTMLInputElement) || target.type !== "file") {
+    return;
+  }
+
+  if (target.dataset.fileInput !== "concierge") {
+    return;
+  }
+
+  const file = target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  const previousImage = getState().conciergeUploadedImage;
+  const previewUrl = URL.createObjectURL(file);
+
+  if (previousImage?.url?.startsWith("blob:")) {
+    URL.revokeObjectURL(previousImage.url);
+  }
+
+  updateState({
+    conciergeUploadCount: Math.max(1, getState().conciergeUploadCount),
+    conciergeUploadedImage: {
+      url: previewUrl,
+      label: file.name || "업로드 사진",
+    },
+  });
+
+  target.value = "";
 });
 
 subscribe((state) => {

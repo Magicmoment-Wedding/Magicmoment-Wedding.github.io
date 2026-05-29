@@ -92,24 +92,34 @@ export function renderHomePage(state) {
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">STYLE GALLERY</span>
         <button class="font-label-caps text-label-caps text-primary" data-route="gallery">전체 보기</button>
       </div>
-      <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
-        ${HOME_SHOWCASE.map((style) => `
-          <article class="min-w-[15rem] w-[15rem] rounded-xl overflow-hidden glass-panel border border-white/50">
-            <div class="relative aspect-[4/5]">
-              <img alt="${style.title}" class="absolute inset-0 w-full h-full object-cover" src="${style.thumbnail}" />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent"></div>
-              <div class="absolute bottom-3 left-3 right-3">
-                <p class="font-display text-[24px] leading-none text-white">${style.title}</p>
-                <p class="text-xs text-white/80 mt-2">${style.badge}</p>
-              </div>
-            </div>
-            <div class="p-4">
-              <button class="w-full h-11 rounded-full bg-primary text-on-primary text-sm" data-gallery-style-id="gallery-${style.presetId}">
-                이 스타일로 만들기
-              </button>
-            </div>
-          </article>
-        `).join("")}
+      <div class="flex flex-col gap-3">
+        <!-- Card 1: 편집 바로가기 -->
+        <article class="w-full rounded-xl overflow-hidden glass-panel border border-white/50">
+          <div class="relative w-full aspect-[3/4] flex items-center justify-center bg-surface-container">
+            <img alt="AI 웨딩사진 편집" class="max-h-full max-w-full object-contain" src="${HOME_SHOWCASE[0]?.thumbnail}" />
+          </div>
+          <div class="p-4">
+            <p class="font-display text-[20px] leading-none text-on-surface">AI 웨딩사진 편집</p>
+            <p class="text-xs text-on-surface-variant mt-2">간편하게 사진을 업로드하고 AI로 배경을 변경해보세요.</p>
+            <button class="w-full mt-3 h-11 rounded-full bg-primary text-on-primary text-sm" data-route="create">
+              편집 바로가기
+            </button>
+          </div>
+        </article>
+
+        <!-- Card 2: 갤러리 바로가기 -->
+        <article class="w-full rounded-xl overflow-hidden glass-panel border border-white/50">
+          <div class="relative w-full aspect-[3/4] flex items-center justify-center bg-surface-container">
+            <img alt="결과 갤러리" class="max-h-full max-w-full object-contain" src="${HOME_SHOWCASE[1]?.thumbnail || HOME_SHOWCASE[0]?.thumbnail}" />
+          </div>
+          <div class="p-4">
+            <p class="font-display text-[20px] leading-none text-on-surface">결과 갤러리</p>
+            <p class="text-xs text-on-surface-variant mt-2">이전 생성 결과와 추천 이미지를 확인해보세요.</p>
+            <button class="w-full mt-3 h-11 rounded-full bg-primary text-on-primary text-sm" data-route="gallery">
+              갤러리 바로가기
+            </button>
+          </div>
+        </article>
       </div>
     </section>
 

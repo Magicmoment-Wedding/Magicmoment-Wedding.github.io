@@ -146,7 +146,7 @@ export function renderHomePage(state) {
         <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
         생성하기
       </button>
-      <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="open-credits" data-modal-reason="header">
+      <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-route="credits">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">diamond</span>
         크레딧 구매하기
       </button>

@@ -16,17 +16,17 @@ export function renderCreditsPage(state) {
         <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-display text-lg">500 크레딧</p>
+              <p class="font-display text-lg">200 크레딧</p>
               <p class="text-sm text-on-surface-variant mt-1">AI 웨딩사진 생성용 기본 패키지</p>
             </div>
             <div class="text-right">
               <div class="text-sm text-on-surface-variant">가격</div>
-              <div class="font-medium text-primary text-[18px]">49,000원</div>
+              <div class="font-medium text-primary text-[18px]">19,800원</div>
             </div>
           </div>
           <div class="mt-4">
             <button class="w-full h-12 rounded-full bg-primary text-on-primary" data-action="show-alert" data-message="결제 기능은 준비 중입니다.">
-              준비 중
+              구매 준비 중
             </button>
           </div>
         </article>
@@ -34,17 +34,17 @@ export function renderCreditsPage(state) {
         <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-display text-lg">1000 크레딧</p>
-              <p class="text-sm text-on-surface-variant mt-1">10% 할인 패키지</p>
+              <p class="font-display text-lg">500 크레딧</p>
+              <p class="text-sm text-on-surface-variant mt-1">더 많은 웨딩사진을 만들 수 있는 패키지</p>
             </div>
             <div class="text-right">
               <div class="text-sm text-on-surface-variant">가격</div>
-              <div class="font-medium text-primary text-[18px]">88,000원</div>
+              <div class="font-medium text-primary text-[18px]">39,800원</div>
             </div>
           </div>
           <div class="mt-4">
             <button class="w-full h-12 rounded-full bg-primary text-on-primary" data-action="show-alert" data-message="결제 기능은 준비 중입니다.">
-              준비 중
+              구매 준비 중
             </button>
           </div>
         </article>

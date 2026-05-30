@@ -1285,6 +1285,10 @@ Important balance:
           }
         });
 
+        if (screen === "editor") {
+          syncEditorScreenUi();
+        }
+
         window.scrollTo({ top: 0, behavior: "auto" });
       }
 
@@ -2654,6 +2658,20 @@ ${modeExample}`;
 
       function syncPhotoUploadUi() {
         photoUploadBox.classList.toggle("hidden", Boolean(selectedImageDataUrl));
+      }
+
+      function syncEditorScreenUi() {
+        const hasPreviewImage = Boolean(selectedImageDataUrl);
+        photoUploadBox.classList.toggle("hidden", hasPreviewImage);
+        if (hasPreviewImage) {
+          sourcePreview.src = selectedImageDataUrl;
+          sourceSection.classList.remove("hidden");
+          generateButton.disabled = !selectedFile;
+        } else {
+          sourceSection.classList.add("hidden");
+          sourcePreview.removeAttribute("src");
+          generateButton.disabled = true;
+        }
       }
 
       photoInput.addEventListener("change", async (event) => {

@@ -12,6 +12,8 @@ import { renderOptionsPage } from "./pages/options.js";
 import { renderResultPage } from "./pages/result.js";
 import { renderStudioPage } from "./pages/studio.js";
 import { renderSuggestionsPage } from "./pages/suggestions.js";
+import { renderCreditsPage } from "./pages/credits.js";
+import { renderSettingsPage } from "./pages/settings.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, FREE_POLICY, PRINT_PRODUCTS, getCreditBreakdown, getGenerationAccess, getRemainingFreeGenerations } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
@@ -45,6 +47,10 @@ function renderRoute(route, state) {
 
 function getPage(route, state) {
   switch (route) {
+    case ROUTES.CREDITS:
+      return { title: "크레딧", content: renderCreditsPage(state) };
+    case ROUTES.SETTINGS:
+      return { title: "설정", content: renderSettingsPage(state) };
     case ROUTES.CREATE:
       return { title: "샘플 이미지 선택", content: renderCreatePage(state) };
     case ROUTES.OPTIONS:
@@ -447,6 +453,16 @@ async function handleAction(action, target) {
     }
 
     navigate(PREVIOUS_ROUTE[state.route] ?? ROUTES.HOME);
+    return;
+  }
+
+  if (action === "show-alert") {
+    window.alert(target?.dataset?.message ?? "준비 중입니다.");
+    return;
+  }
+
+  if (action === "toggle-notifications") {
+    updateState({ notificationsEnabled: !state.notificationsEnabled });
     return;
   }
 

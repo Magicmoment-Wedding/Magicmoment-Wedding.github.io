@@ -9,7 +9,7 @@ export function renderLayout({ route, title, content, state }) {
     <main class="w-full max-w-md mx-auto pt-20 pb-32 px-container-padding flex flex-col gap-stack-gap-lg relative z-10">
       ${content}
     </main>
-    ${renderBottomNav({ route, hasResults: state.results.length > 0 })}
+    ${route === "credits" || route === "settings" ? "" : renderBottomNav({ route, hasResults: state.results.length > 0 })}
     ${renderModal(state)}
     ${state.isGenerating ? renderLoadingOverlay() : ""}
   `;

@@ -1,5 +1,7 @@
 export const ROUTES = {
   HOME: "home",
+  CREDITS: "credits",
+  SETTINGS: "settings",
   CREATE: "create",
   OPTIONS: "options",
   RESULT: "result",
@@ -16,6 +18,8 @@ const VALID_ROUTES = new Set(Object.values(ROUTES));
 export const PREVIOUS_ROUTE = {
   home: ROUTES.HOME,
   create: ROUTES.HOME,
+  credits: ROUTES.HOME,
+  settings: ROUTES.HOME,
   options: ROUTES.CREATE,
   result: ROUTES.OPTIONS,
   gallery: ROUTES.HOME,

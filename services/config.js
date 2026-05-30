@@ -2,7 +2,7 @@ const DEFAULT_APP_CONFIG = {
   API_ENABLED_PRESETS: ["paris_eiffel", "disney"],
 };
 const LOCAL_API_BASE_URL = "http://localhost:3000";
-const ONLINE_API_BASE_URL = "https://magic-ai-studio-api.vercel.app";
+const ONLINE_API_BASE_URL = "https://api.magicaistudio.co.kr";
 
 function getRuntimeApiConfig() {
   if (typeof window === "undefined") {
@@ -20,13 +20,13 @@ function getLocalApiBaseUrl() {
 }
 
 export function getApiBaseUrl() {
+  const runtimeConfig = getRuntimeApiConfig();
   const isLocal =
-  typeof window !== "undefined" &&
-  (window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1");
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
 
-const fallbackUrl = isLocal ? getLocalApiBaseUrl() : ONLINE_API_BASE_URL;
-
+  const fallbackUrl = isLocal ? getLocalApiBaseUrl() : ONLINE_API_BASE_URL;
   return String(runtimeConfig.API_BASE_URL || fallbackUrl).replace(/\/+$/, "");
 }
 

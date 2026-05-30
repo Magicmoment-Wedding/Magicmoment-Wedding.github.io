@@ -1,4 +1,4 @@
-import { assertApiBaseUrlConfigured } from "./config.js";
+import { assertApiBaseUrlConfigured, getApiUrl } from "./config.js";
 
 function getGenerationMode(presetKey) {
   if (presetKey === "disney") return "disneyLive";
@@ -40,15 +40,15 @@ export async function generateImages(prompt, options = {}) {
     formData.append("prompt", prompt.trim());
   }
 
-  const requestUrl = `${window.API_BASE_URL}/api/generate`;
+  const requestUrl = getApiUrl("/api/generate");
   console.log("[generation] api generate request", {
-    API_BASE_URL: window.API_BASE_URL,
+    API_BASE_URL: requestUrl.replace(/\/api\/generate$/, ""),
     requestUrl,
     mode: generationMode,
     presetKey: backendPresetKey,
     promptLength: typeof prompt === "string" ? prompt.trim().length : 0,
   });
-  const response = await fetch(`${window.API_BASE_URL}/api/generate`, {
+  const response = await fetch(requestUrl, {
     method: "POST",
     body: formData,
   });

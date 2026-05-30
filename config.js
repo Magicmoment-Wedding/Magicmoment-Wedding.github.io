@@ -1,5 +1,5 @@
 const LOCAL_API_BASE_URL = "http://localhost:3000";
-const ONLINE_API_BASE_URL = "https://magic-ai-studio-api.vercel.app";
+const ONLINE_API_BASE_URL = "https://api.magicaistudio.co.kr";
 
 const API_BASE_URL =
   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"

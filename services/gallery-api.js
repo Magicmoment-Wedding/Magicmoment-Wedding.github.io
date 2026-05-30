@@ -3,11 +3,11 @@
  * Handles communication with backend gallery endpoints
  */
 
-const GALLERY_API_BASE = (window.API_BASE_URL || "").replace(/\/+$/, "");
+import { getApiUrl } from "./config.js";
 
 export async function fetchGalleryImages() {
   try {
-    const response = await fetch(`${GALLERY_API_BASE}/api/gallery`);
+    const response = await fetch(getApiUrl("/api/gallery"));
     if (!response.ok) {
       throw new Error(`Gallery fetch failed: ${response.status}`);
     }
@@ -28,7 +28,7 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
       createdAt: new Date().toISOString(),
     };
 
-    const response = await fetch(`${GALLERY_API_BASE}/api/gallery`, {
+    const response = await fetch(getApiUrl("/api/gallery"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +50,7 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
 
 export async function deleteGalleryImage(imageId) {
   try {
-    const response = await fetch(`${GALLERY_API_BASE}/api/gallery/${imageId}`, {
+    const response = await fetch(getApiUrl(`/api/gallery/${imageId}`), {
       method: "DELETE",
     });
 

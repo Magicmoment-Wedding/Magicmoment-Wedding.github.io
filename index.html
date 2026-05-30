@@ -578,7 +578,7 @@
         }
       }
     </style>
-    <script src="./config.js"></script>
+    <script src="./config.js?v=20260530"></script>
   </head>
   <body
     class="bg-background text-on-background font-body-large antialiased min-h-screen flex flex-col items-center relative overflow-x-hidden"
@@ -1433,8 +1433,9 @@ Important balance:
       }
 
       async function requestSignedUploadUrl(file) {
-        const requestUrl = `${window.API_BASE_URL}/api/storage/create-upload-url`;
+        const requestUrl = `${FRONT_API_BASE_URL}/api/storage/create-upload-url`;
         console.log("[upload] selected file", {
+          apiBaseUrl: FRONT_API_BASE_URL,
           name: file.name,
           sizeMB: toSizeMB(file.size),
           type: file.type || "application/octet-stream",
@@ -1777,9 +1778,9 @@ ${modeExample}`;
         console.log("[generate] sending imagePath", {
           imagePath,
         });
-        const requestUrl = `${window.API_BASE_URL}/api/generate`;
+        const requestUrl = `${FRONT_API_BASE_URL}/api/generate`;
         console.log("[client][generate][request]", {
-          API_BASE_URL: window.API_BASE_URL,
+          API_BASE_URL: FRONT_API_BASE_URL,
           requestUrl,
           requestedMode: mode,
           generationMode,
@@ -1792,13 +1793,13 @@ ${modeExample}`;
         });
 
         ensureApiBaseUrlConfigured();
-        const response = await fetch(`${window.API_BASE_URL}/api/generate`, {
+        const response = await fetch(`${FRONT_API_BASE_URL}/api/generate`, {
           method: "POST",
           body: formData,
         });
         const responseBody = await readResponseBody(response);
         console.log("[client][generate][response]", {
-          API_BASE_URL: window.API_BASE_URL,
+          API_BASE_URL: FRONT_API_BASE_URL,
           requestUrl,
           status: response.status,
         });
@@ -1806,7 +1807,7 @@ ${modeExample}`;
 
         if (!response.ok || !data.ok) {
           console.error("[client][generate][failed]", {
-            API_BASE_URL: window.API_BASE_URL,
+            API_BASE_URL: FRONT_API_BASE_URL,
             requestUrl,
             status: response.status,
             requestedMode: mode,

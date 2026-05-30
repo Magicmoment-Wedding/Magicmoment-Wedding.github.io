@@ -698,37 +698,89 @@
       </section>
 
       <section class="app-stage hidden" id="appStage">
-        <div class="mobile-frame">
+        <div class="mobile-frame pb-28">
           <section class="screen-panel app-screen hidden" id="homeScreen">
-            <div class="app-topbar">
-              <div>
-                <p class="font-label-caps text-label-caps uppercase text-primary">Magic Ai Studio</p>
-                <p class="font-display text-[19px] leading-none text-on-surface">Home Feed</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <button class="px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-semibold transition-colors" data-home-tab="edit" type="button">사진편집</button>
-                <button class="px-4 py-2 rounded-full bg-white/70 text-primary text-xs font-semibold hover:bg-white transition-colors" data-home-tab="gallery" type="button">갤러리</button>
-              </div>
+            <div class="app-topbar flex items-center justify-between px-4 pt-5 pb-3">
+              <button id="topCreditButton" class="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-semibold text-primary shadow-sm">
+                <span class="font-semibold">PRO</span>
+              </button>
+              <p class="font-display text-[20px] tracking-[0.18em] text-center text-primary">Magic Ai Studio</p>
+              <button id="topSettingsButton" class="w-10 h-10 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+              </button>
             </div>
-            <div class="mt-8">
-              <p class="font-display text-[34px] leading-[0.95] text-on-surface">Capture your<br /><span class="italic text-primary">Perfect Moment</span></p>
-              <p class="mt-3 text-xs leading-5 text-on-surface-variant">Turn your everyday photo into cinematic wedding memories.</p>
-            </div>
-            <div class="mt-6 flex flex-col gap-4">
-              <article class="feed-card" style="background-image:url('mock-images/home/home_paris_couple_01.png')">
-                <div class="absolute inset-x-5 bottom-5 z-10">
-                  <p class="font-display text-[18px] leading-none">AI 웨딩사진 편집</p>
-                  <p class="text-xs text-white/80 mt-1">간편하게 사진을 업로드하고 배경을 변경해보세요.</p>
-                  <button class="mt-3 h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold" data-screen-target="editor" type="button">편집 바로가기</button>
+            <div class="px-4">
+              <div class="rounded-[28px] bg-gradient-to-r from-[#fff0f6] via-[#ffe3f4] to-[#f9eef7] p-5 shadow-lg border border-white/70 overflow-hidden">
+                <p class="font-display text-[22px] leading-tight text-primary">웨딩사진을 여행처럼</p>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">당신의 웨딩사진을 새로운 순간으로 변환해보세요.</p>
+                <div class="mt-4 rounded-[24px] border border-white/60 overflow-hidden bg-white/10 shadow-sm">
+                  <div class="grid grid-cols-2 gap-0">
+                    <div class="relative overflow-hidden">
+                      <img src="mock-images/home/home_paris_couple_01.png" alt="Before" class="h-40 w-full object-cover" />
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <span class="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-primary">Before</span>
+                    </div>
+                    <div class="relative overflow-hidden">
+                      <img src="mock-images/home/home_disney_bride_01.png" alt="After" class="h-40 w-full object-cover" />
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <span class="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-primary">After</span>
+                    </div>
+                  </div>
                 </div>
-              </article>
-              <article class="feed-card" style="background-image:url('mock-images/home/home_disney_bride_01.png')">
-                <div class="absolute inset-x-5 bottom-5 z-10">
-                  <p class="font-display text-[18px] leading-none">결과 갤러리</p>
-                  <p class="text-xs text-white/80 mt-1">이전 생성 결과와 추천 이미지를 확인해보세요.</p>
-                  <button class="mt-3 h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold" data-screen-target="gallery" type="button">갤러리 바로가기</button>
+                <button class="mt-4 w-full h-14 rounded-full bg-primary text-on-primary text-sm font-semibold" data-screen-target="editor" type="button">바로 편집하기</button>
+              </div>
+
+              <section class="mt-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">추천 웨딩 변환</p>
+                    <h2 class="font-display text-[22px] leading-tight text-on-surface">인기 웨딩 스타일</h2>
+                  </div>
                 </div>
-              </article>
+                <div class="mt-4 space-y-4">
+                  <article class="relative overflow-hidden rounded-[28px] bg-black/5 shadow-sm">
+                    <img src="mock-images/home/home_paris_couple_01.png" alt="파리 에펠탑" class="h-44 w-full object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div class="absolute inset-x-4 bottom-4 text-white">
+                      <p class="text-xl font-semibold">파리 에펠탑</p>
+                      <p class="mt-1 text-xs leading-5">유럽 여행 스냅처럼 웨딩사진을 변환해보세요.</p>
+                      <button class="mt-4 h-12 w-full rounded-full bg-[#a2234f] text-white text-sm font-semibold" data-preset="parisSnap" type="button">지금 편집하기</button>
+                    </div>
+                  </article>
+                  <article class="relative overflow-hidden rounded-[28px] bg-black/5 shadow-sm">
+                    <img src="mock-images/home/home_disney_bride_01.png" alt="디즈니 공주" class="h-44 w-full object-cover" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                    <div class="absolute inset-x-4 bottom-4 text-white">
+                      <p class="text-xl font-semibold">디즈니 공주</p>
+                      <p class="mt-1 text-xs leading-5">실사 동화풍 웨딩 콘셉트로 변환해보세요.</p>
+                      <button class="mt-4 h-12 w-full rounded-full bg-[#a2234f] text-white text-sm font-semibold" data-preset="disneyLive" type="button">지금 편집하기</button>
+                    </div>
+                  </article>
+                </div>
+              </section>
+
+              <section class="mt-6 pb-6">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">더 많은 기능</p>
+                    <h2 class="font-display text-[22px] leading-tight text-on-surface">웨딩 준비를 더 쉽게</h2>
+                  </div>
+                </div>
+                <div class="mt-4 space-y-3">
+                  <button class="w-full rounded-[24px] bg-white/90 p-4 text-left shadow-sm border border-white/70" data-action="assistant-placeholder" type="button">
+                    <p class="text-sm font-semibold text-primary">어시스턴트에 연락하기</p>
+                    <p class="mt-1 text-xs leading-5 text-on-surface-variant">웨딩 스타일 상담을 준비중입니다.</p>
+                  </button>
+                  <button class="w-full rounded-[24px] bg-white/90 p-4 text-left shadow-sm border border-white/70" data-action="gallery-placeholder" type="button">
+                    <p class="text-sm font-semibold text-primary">갤러리</p>
+                    <p class="mt-1 text-xs leading-5 text-on-surface-variant">갤러리는 준비 중입니다.</p>
+                  </button>
+                  <button class="w-full rounded-[24px] bg-white/90 p-4 text-left shadow-sm border border-white/70" data-action="community-placeholder" type="button">
+                    <p class="text-sm font-semibold text-primary">커뮤니티</p>
+                    <p class="mt-1 text-xs leading-5 text-on-surface-variant">커뮤니티 기능은 준비 중입니다.</p>
+                  </button>
+                </div>
+              </section>
             </div>
           </section>
 
@@ -899,10 +951,23 @@
             <div id="galleryContent" class="mt-4"></div>
           </section>
 
-          <nav class="app-bottom-nav">
-            <button data-screen-target="home" type="button"><span class="material-symbols-outlined text-[18px]">home</span><span>홈</span></button>
-            <button data-screen-target="editor" type="button"><span class="material-symbols-outlined text-[18px]">add_photo_alternate</span><span>편집</span></button>
-            <button data-screen-target="home" type="button"><span class="material-symbols-outlined text-[18px]">shopping_bag</span><span>서비스</span></button>
+          <nav class="app-bottom-nav fixed left-0 right-0 bottom-3 mx-4 flex items-center justify-between px-4 py-2 bg-transparent z-40">
+            <button class="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] text-on-surface-variant" data-screen-target="editor" type="button">
+              <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+              <span>편집</span>
+            </button>
+
+            <div class="relative flex-1 flex flex-col items-center justify-center">
+              <button class="-mt-6 w-16 h-16 rounded-full bg-primary text-on-primary shadow-lg flex items-center justify-center" data-screen-target="home" type="button" aria-label="홈">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+              </button>
+              <span class="mt-1 text-[11px] uppercase tracking-[0.2em] text-on-surface-variant">홈</span>
+            </div>
+
+            <button class="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] text-on-surface-variant" id="bottomAssistantButton" type="button">
+              <span class="material-symbols-outlined text-[20px]">smart_toy</span>
+              <span>어시스턴트</span>
+            </button>
           </nav>
         </div>
       </section>
@@ -1261,7 +1326,24 @@ Important balance:
       let modalItemsOverride = null;
       let appScreen = "landing";
 
-      function setAppScreen(screen) {
+      function getCurrentAppHistoryState() {
+        return {
+          screen: appScreen,
+          modal: imageModal.classList.contains("hidden") ? null : "image",
+          modalIndex: imageModal.classList.contains("hidden") ? null : activeImageModalIndex,
+        };
+      }
+
+      function pushAppHistoryState(screen, modal = null, modalIndex = null) {
+        history.pushState({ screen, modal, modalIndex }, "", "");
+      }
+
+      function replaceAppHistoryState(screen, modal = null, modalIndex = null) {
+        history.replaceState({ screen, modal, modalIndex }, "", "");
+      }
+
+      function setAppScreen(screen, options = {}) {
+        const { pushHistory = true } = options;
         appScreen = screen;
         const isLanding = screen === "landing";
         landingScreen.classList.toggle("hidden", !isLanding);
@@ -1287,6 +1369,10 @@ Important balance:
 
         if (screen === "editor") {
           syncEditorScreenUi();
+        }
+
+        if (pushHistory) {
+          pushAppHistoryState(screen, imageModal.classList.contains("hidden") ? null : "image", activeImageModalIndex);
         }
 
         window.scrollTo({ top: 0, behavior: "auto" });
@@ -2373,7 +2459,7 @@ ${modeExample}`;
         setImageModalDownloadStatus("");
       }
 
-      function openModalWithItems(items, startIndex = 0) {
+      function openModalWithItems(items, startIndex = 0, options = {}) {
         const safeItems = (Array.isArray(items) ? items : []).filter((item) => item?.url);
 
         if (!safeItems.length) return;
@@ -2384,6 +2470,10 @@ ${modeExample}`;
         imageModal.classList.remove("hidden");
         imageModal.classList.add("flex");
         document.body.style.overflow = "hidden";
+
+        if (options.pushHistory !== false) {
+          pushAppHistoryState(appScreen, "image", activeImageModalIndex);
+        }
       }
 
       function normalizeModalResult(result, fallbackIndex = 0) {
@@ -2462,7 +2552,13 @@ ${modeExample}`;
         });
       }
 
-      function closeImageModal() {
+      function closeImageModal(options = {}) {
+        const { useHistory = true } = options;
+        if (useHistory && history.state?.modal === "image") {
+          history.back();
+          return;
+        }
+
         imageModal.classList.add("hidden");
         imageModal.classList.remove("flex");
         imageModalImg.removeAttribute("src");
@@ -2633,12 +2729,18 @@ ${modeExample}`;
         button.addEventListener("click", () => {
           const nextScreen = button.dataset.screenTarget || "home";
           const isLandingStartButton = landingScreen.contains(button) && nextScreen === "editor";
+          const isTopbarBackButton = button.closest(".app-topbar") && nextScreen === "home";
 
           if (isLandingStartButton) {
             console.log("[front] start edit clicked");
           }
 
-          setAppScreen(nextScreen);
+          if (isTopbarBackButton && appScreen !== "home") {
+            history.back();
+            return;
+          }
+
+          navigateToScreen(nextScreen);
 
           if (isLandingStartButton && appScreen === "editor") {
             console.log("[front] moved to editor");
@@ -2646,11 +2748,66 @@ ${modeExample}`;
         });
       });
 
+      const topCreditButton = document.getElementById("topCreditButton");
+      const topSettingsButton = document.getElementById("topSettingsButton");
+      const bottomAssistantButton = document.getElementById("bottomAssistantButton");
+      const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
+      const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
+
+      if (topCreditButton) {
+        topCreditButton.addEventListener("click", () => {
+          alert("PRO 기능은 준비 중입니다.");
+        });
+      }
+
+      if (topSettingsButton) {
+        topSettingsButton.addEventListener("click", () => {
+          alert("설정 기능은 준비 중입니다.");
+        });
+      }
+
+      featureActionButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const action = button.dataset.action;
+          if (action === "assistant-placeholder") {
+            alert("어시스턴트는 준비 중입니다.");
+          }
+          if (action === "gallery-placeholder") {
+            alert("갤러리는 준비 중입니다.");
+          }
+          if (action === "community-placeholder") {
+            alert("커뮤니티 기능은 준비 중입니다.");
+          }
+        });
+      });
+
+      presetJumpButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const preset = button.dataset.preset;
+          if (!preset) return;
+          const targetInput = Array.from(generationModeInputs).find((input) => input.value === preset);
+          if (targetInput) {
+            targetInput.checked = true;
+            syncGenerationModeUi();
+          }
+          navigateToScreen("editor");
+        });
+      });
+
+      if (bottomAssistantButton) {
+        bottomAssistantButton.addEventListener("click", () => {
+          alert("어시스턴트는 준비 중입니다.");
+        });
+      }
+
       generationModeInputs.forEach((input) => {
         input.addEventListener("change", syncGenerationModeUi);
       });
       syncGenerationModeUi();
-      setAppScreen("landing");
+      setAppScreen("landing", { pushHistory: false });
+      replaceAppHistoryState("landing", null);
+      pushAppHistoryState("landing", null);
+      window.addEventListener("popstate", onPopState);
 
       changePhotoButton.addEventListener("click", () => {
         photoInput.click();
@@ -2672,6 +2829,42 @@ ${modeExample}`;
           sourcePreview.removeAttribute("src");
           generateButton.disabled = true;
         }
+      }
+
+      function openModalFromHistory(startIndex = 0) {
+        const items = modalItemsOverride?.length ? modalItemsOverride : getImageModalItems();
+        if (!items.length) return;
+        openModalWithItems(items, Math.min(Math.max(0, startIndex), items.length - 1), { pushHistory: false });
+      }
+
+      function onPopState(event) {
+        const state = event.state;
+        if (!state || typeof state.screen === "undefined") {
+          const fallbackScreen = appScreen || "home";
+          replaceAppHistoryState(fallbackScreen, imageModal.classList.contains("hidden") ? null : "image", activeImageModalIndex);
+          return;
+        }
+
+        const targetScreen = state.screen;
+        const targetModal = state.modal;
+        const targetModalIndex = Number.isInteger(state.modalIndex) ? state.modalIndex : 0;
+
+        if (targetModal === "image") {
+          if (imageModal.classList.contains("hidden")) {
+            openModalFromHistory(targetModalIndex);
+          }
+        } else if (!imageModal.classList.contains("hidden")) {
+          closeImageModal({ useHistory: false });
+        }
+
+        if (targetScreen !== appScreen) {
+          setAppScreen(targetScreen, { pushHistory: false });
+        }
+      }
+
+      function navigateToScreen(screen) {
+        if (screen === appScreen) return;
+        setAppScreen(screen, { pushHistory: true });
       }
 
       photoInput.addEventListener("change", async (event) => {

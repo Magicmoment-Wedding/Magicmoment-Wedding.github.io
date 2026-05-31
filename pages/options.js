@@ -1,38 +1,21 @@
 import { getCompatiblePresets } from "../mock/presets.js";
 import { getSourceImage } from "../mock/sources.js";
-import { RATIO_OPTIONS, getGenerationAccess } from "../services/credit.js";
+import { RATIO_OPTIONS } from "../services/credit.js";
 import { escapeHtml, formatNumber } from "../services/format.js";
 
 export function renderOptionsPage(state, credits) {
   const sourceImage = getSourceImage(state.sourceImageId);
   const availablePresets = getCompatiblePresets(state.sourceImageId);
-  const access = getGenerationAccess(state);
   const isCustomPreset = state.selectedPresetId === "custom";
   const nextFlowTitle = isCustomPreset
     ? "자동 생성 대신 전문가 대행으로 연결됩니다"
-    : access.mode === "free"
-    ? access.requiresAds
-      ? `광고 ${access.adsToWatch}개 시청 후 ${access.nextFreeNumber}번째 무료 생성`
-      : "첫 생성은 광고 없이 무료"
-    : access.canAfford
-      ? `${formatNumber(access.cost)} 크레딧 차감 후 생성`
-      : "무료 종료, 크레딧 구매 필요";
+    : "크레딧 차감 없이 생성 테스트";
   const nextFlowDescription = isCustomPreset
     ? "원하는 스타일과 추가 요청을 남기면 매니저가 직접 배경 제작을 진행합니다."
-    : access.mode === "free"
-    ? `남은 무료 생성 ${access.freeRemaining}회. 현재 선택 조합의 정가는 ${formatNumber(access.cost)} 크레딧입니다.`
-    : access.canAfford
-      ? `현재 잔액 ${formatNumber(state.credits)} 크레딧에서 차감됩니다.`
-      : `현재 잔액은 ${formatNumber(state.credits)} 크레딧이며 ${formatNumber(access.shortfall)} 크레딧이 부족합니다.`;
+    : `현재 선택 조합의 예정 비용은 ${formatNumber(credits.total)} 크레딧입니다. 이번 단계에서는 잔액 확인이나 차감 없이 생성됩니다.`;
   const ctaLabel = isCustomPreset
     ? "전문가에게 맡기기"
-    : access.mode === "free"
-    ? access.requiresAds
-      ? "광고 보고 무료 생성"
-      : "무료 생성 시작"
-    : access.canAfford
-      ? `총 ${credits.total} 크레딧으로 생성 시작`
-      : "크레딧 구매 후 생성";
+    : "AI 사진 생성 시작";
 
   return `
     <section class="relative w-full rounded-xl overflow-hidden glass-panel glow-shadow p-4 flex gap-4 items-center">
@@ -135,7 +118,7 @@ export function renderOptionsPage(state, credits) {
       <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">CREDITS</span>
-          <span class="font-label-caps text-label-caps text-primary">실시간 계산</span>
+          <span class="font-label-caps text-label-caps text-primary">예정 비용</span>
         </div>
         <div class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
@@ -163,9 +146,9 @@ export function renderOptionsPage(state, credits) {
         <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
         ${ctaLabel}
       </button>
-      <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="open-credits" data-modal-reason="${access.mode === "paid" && !access.canAfford ? "shortage" : "header"}">
+      <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="open-credits" data-modal-reason="header">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">diamond</span>
-        크레딧 구매하기
+        크레딧 충전하기
       </button>
     </section>
   `;

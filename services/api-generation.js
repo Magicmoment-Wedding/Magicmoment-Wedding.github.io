@@ -1,4 +1,5 @@
 import { assertApiBaseUrlConfigured, getApiUrl } from "./config.js";
+import { getAnonymousId } from "./anonymous-id.js";
 
 function getGenerationMode(presetKey) {
   if (presetKey === "disney") return "disneyLive";
@@ -41,21 +42,40 @@ export async function generateImages(prompt, options = {}) {
   }
 
   const requestUrl = getApiUrl("/api/generate");
+  const anonymousId = getAnonymousId();
   console.log("[generation] api generate request", {
     API_BASE_URL: requestUrl.replace(/\/api\/generate$/, ""),
     requestUrl,
     mode: generationMode,
     presetKey: backendPresetKey,
     promptLength: typeof prompt === "string" ? prompt.trim().length : 0,
+    hasAnonymousId: Boolean(anonymousId),
   });
   const response = await fetch(requestUrl, {
     method: "POST",
+    headers: {
+      "X-Anonymous-Id": anonymousId,
+    },
     body: formData,
   });
-  const payload = await response.json();
+  const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || !payload?.ok) {
-    throw new Error(payload?.message || "image generation failed");
+    const isInsufficientCredits =
+      response.status === 402 ||
+      payload?.status === 402 ||
+      payload?.code === "INSUFFICIENT_CREDITS";
+    const error = new Error(payload?.message || "image generation failed");
+    error.statusCode = payload?.status || response.status;
+    error.code = payload?.code || (isInsufficientCredits ? "INSUFFICIENT_CREDITS" : "");
+    error.response = payload;
+    error.isInsufficientCredits = isInsufficientCredits;
+    if (isInsufficientCredits) {
+      error.publicMessage = payload?.message || "크레딧이 부족합니다. 충전 후 이용해 주세요.";
+      error.requiredCredits = payload?.requiredCredits;
+      error.currentCredits = payload?.currentCredits;
+    }
+    throw error;
   }
 
   const resultItems = Array.isArray(payload.results) ? payload.results : [];

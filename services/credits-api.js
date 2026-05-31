@@ -1,26 +1,6 @@
 import { getApiUrl } from "./config.js";
-
-export const ANONYMOUS_ID_STORAGE_KEY = "magic_ai_anonymous_id";
-
-function createAnonymousId() {
-  const randomString = Math.random().toString(36).slice(2, 10);
-  return `anonymous_${Date.now()}_${randomString}`;
-}
-
-export function getAnonymousId() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const storedId = window.localStorage.getItem(ANONYMOUS_ID_STORAGE_KEY);
-  if (storedId) {
-    return storedId;
-  }
-
-  const nextId = createAnonymousId();
-  window.localStorage.setItem(ANONYMOUS_ID_STORAGE_KEY, nextId);
-  return nextId;
-}
+import { getAnonymousId } from "./anonymous-id.js";
+export { ANONYMOUS_ID_STORAGE_KEY, getAnonymousId } from "./anonymous-id.js";
 
 function normalizeCreditBalance(payload) {
   const value = payload?.credits ?? payload?.balance;
@@ -53,13 +33,19 @@ export async function getCredits() {
 }
 
 export async function testChargeCredits(amount) {
+  const creditAmount = Number(amount);
+
+  if (!Number.isFinite(creditAmount) || creditAmount <= 0) {
+    throw new Error("Invalid credit charge amount");
+  }
+
   const response = await fetch(getApiUrl("/api/credits/test-charge"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Anonymous-Id": getAnonymousId(),
     },
-    body: JSON.stringify({ amount }),
+    body: JSON.stringify({ amount: creditAmount }),
   });
 
   return parseJsonResponse(response);

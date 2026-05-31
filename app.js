@@ -14,7 +14,7 @@ import { renderStudioPage } from "./pages/studio.js";
 import { renderSuggestionsPage } from "./pages/suggestions.js";
 import { renderCreditsPage } from "./pages/credits.js";
 import { renderSettingsPage } from "./pages/settings.js";
-import { CREDIT_PACKAGES, CREDIT_PRICING, FREE_POLICY, PRINT_PRODUCTS, getCreditBreakdown, getGenerationAccess, getRemainingFreeGenerations } from "./services/credit.js";
+import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
 import { getCredits, testChargeCredits } from "./services/credits-api.js";
@@ -86,12 +86,6 @@ function syncRoute() {
   }
 }
 
-function delay(ms) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
 async function refreshCredits({ clearMessage = false } = {}) {
   const requestId = latestCreditsRequestId + 1;
   latestCreditsRequestId = requestId;
@@ -121,7 +115,7 @@ async function refreshCredits({ clearMessage = false } = {}) {
 
     updateState({
       isCreditsLoading: false,
-      creditStatusMessage: "크레딧 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      creditStatusMessage: "크레딧 정보를 불러오지 못했습니다. 어시스턴트에게 문의하세요.",
       creditStatusType: "error",
     });
   }
@@ -242,48 +236,16 @@ function moveImageModal(direction) {
   });
 }
 
-async function watchAdsThenContinue(totalAds) {
-  for (let index = 1; index <= totalAds; index += 1) {
-    updateState({
-      activeModal: {
-        type: "ads",
-        status: "watching",
-        step: index,
-        total: totalAds,
-      },
-    });
-    await delay(2200);
-  }
-
-  updateState({
-    activeModal: {
-      type: "ads",
-      status: "complete",
-      step: totalAds,
-      total: totalAds,
-    },
-  });
-
-  await delay(900);
-  closeModal();
-}
-
-async function performGeneration({ isFree }) {
+async function performGeneration() {
   const state = getState();
   const generationCost = getCreditBreakdown(state).total;
-  const nextCredits = isFree ? state.credits : state.credits - generationCost;
-  const nextFreeUsage = isFree ? state.freeGenerationsUsed + 1 : state.freeGenerationsUsed;
   const requestState = {
     ...state,
-    credits: nextCredits,
-    freeGenerationsUsed: nextFreeUsage,
   };
 
   updateState({
     activeModal: null,
     isGenerating: true,
-    credits: nextCredits,
-    freeGenerationsUsed: nextFreeUsage,
   });
 
   console.log("[generation] 생성 시작", {
@@ -294,7 +256,7 @@ async function performGeneration({ isFree }) {
     selectedRatio: requestState.selectedRatio,
     customRatio: requestState.customRatio,
     useUpscale: requestState.useUpscale,
-    isFree,
+    creditBilling: "not_connected",
   });
 
   try {
@@ -314,13 +276,14 @@ async function performGeneration({ isFree }) {
       results: resultPayload.results,
       generationMeta: {
         ...resultPayload.generationMeta,
-        billedCredits: isFree ? 0 : generationCost,
+        billedCredits: 0,
         regularCredits: generationCost,
-        usedFreeGeneration: isFree,
-        freeGenerationNumber: isFree ? nextFreeUsage : null,
-        remainingCredits: nextCredits,
-        freeRemaining: getRemainingFreeGenerations(nextFreeUsage),
+        usedFreeGeneration: false,
+        freeGenerationNumber: null,
+        remainingCredits: state.credits,
         qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
+        billingTitle: "크레딧 차감 없이 생성되었습니다",
+        billingDescription: `현재 단계에서는 생성 비용 ${formatNumber(generationCost)} 크레딧 차감이 아직 연결되지 않았습니다.`,
         originRoute: ROUTES.OPTIONS,
       },
     });
@@ -329,9 +292,21 @@ async function performGeneration({ isFree }) {
     navigate(ROUTES.RESULT);
   } catch (error) {
     console.error("[generation] 결과 처리 실패", error);
-    updateState({
-      isGenerating: false,
-    });
+    if (error?.isInsufficientCredits || error?.code === "INSUFFICIENT_CREDITS" || error?.statusCode === 402) {
+      updateState({
+        isGenerating: false,
+        creditStatusMessage: error.publicMessage || "크레딧이 부족합니다. 충전 후 이용해 주세요.",
+        creditStatusType: "error",
+        activeModal: {
+          type: "credits",
+          reason: "shortage",
+          requiredCredits: generationCost,
+        },
+      });
+      return;
+    }
+
+    updateState({ isGenerating: false });
   }
 }
 
@@ -724,27 +699,7 @@ async function handleAction(action, target) {
       return;
     }
 
-    const access = getGenerationAccess(state);
-
-    if (access.mode === "free") {
-      if (access.requiresAds) {
-        await watchAdsThenContinue(FREE_POLICY.adsPerLockedFreeGeneration);
-      }
-
-      await performGeneration({ isFree: true });
-      return;
-    }
-
-    if (!access.canAfford) {
-      updateState({
-        activeModal: {
-          type: "paywall",
-        },
-      });
-      return;
-    }
-
-    await performGeneration({ isFree: false });
+    await performGeneration();
     return;
   }
 

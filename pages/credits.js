@@ -1,6 +1,7 @@
 import { CREDIT_PACKAGES } from "../services/credit.js";
 import { escapeHtml, formatCurrency, formatNumber } from "../services/format.js";
 
+// TODO: Disable free test charge before real payment launch
 export function renderCreditsPage(state) {
   const statusClass = state.creditStatusType === "error"
     ? "bg-red-50/80 text-red-600 border-red-100"
@@ -47,7 +48,7 @@ export function renderCreditsPage(state) {
                   data-credit-package="${pack.id}"
                   ${state.chargingCreditPackageId ? "disabled" : ""}
                 >
-                  ${isCharging ? "충전 중..." : "테스트 충전"}
+                  ${isCharging ? "충전 중..." : "무료 테스트 충전"}
                 </button>
               </div>
             </article>
@@ -59,7 +60,8 @@ export function renderCreditsPage(state) {
         <div class="flex items-start gap-2">
           <span class="material-symbols-outlined text-primary text-[18px] mt-0.5" style="font-variation-settings: 'FILL' 0;">info</span>
           <div>
-            실제 결제 연동 전 테스트 충전 화면입니다. 카드 결제와 간편 결제는 아직 연결되지 않았습니다.
+            <p class="mb-2">현재는 테스트 기간으로, 결제 없이 무료로 크레딧을 충전할 수 있습니다.</p>
+            <p>실제 카드결제와 간편결제는 로그인 시스템 구축 후 연결됩니다.</p>
           </div>
         </div>
       </div>

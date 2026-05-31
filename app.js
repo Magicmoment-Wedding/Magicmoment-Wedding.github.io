@@ -353,6 +353,7 @@ async function performStudioGeneration() {
   }
 }
 
+// TODO: Disable free test charge before real payment launch
 async function handleCreditPurchase(packageId) {
   const creditPack = CREDIT_PACKAGES.find((item) => item.id === packageId);
 
@@ -374,13 +375,13 @@ async function handleCreditPurchase(packageId) {
     updateState({
       credits: nextCredits,
       chargingCreditPackageId: null,
-      creditStatusMessage: "크레딧이 충전되었습니다.",
+      creditStatusMessage: "테스트 크레딧이 충전되었습니다.",
       creditStatusType: "success",
       activeModal: isCreditsRoute
         ? getState().activeModal
         : {
             type: "success",
-            title: "크레딧이 충전되었습니다.",
+            title: "테스트 크레딧이 충전되었습니다.",
             description: `${formatNumber(creditPack.credits)} 크레딧이 추가되어 현재 잔액은 ${formatNumber(nextCredits)}입니다.`,
           },
     });
@@ -388,10 +389,10 @@ async function handleCreditPurchase(packageId) {
     console.error("[credits] test charge failed", error);
     updateState({
       chargingCreditPackageId: null,
-      creditStatusMessage: "크레딧 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      creditStatusMessage: "크레딧 충전에 실패했습니다. 어시스턴트에게 문의하세요.",
       creditStatusType: "error",
     });
-    window.alert("크레딧 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    window.alert("크레딧 충전에 실패했습니다. 어시스턴트에게 문의하세요.");
   }
 }
 

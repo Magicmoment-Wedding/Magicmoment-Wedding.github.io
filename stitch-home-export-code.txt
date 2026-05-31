@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Magic Ai Studio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary-fixed-dim": "#ffb2be",
+                      "on-primary-fixed": "#400015",
+                      "secondary-fixed-dim": "#fcb4b5",
+                      "inverse-on-surface": "#fceeea",
+                      "surface-container-high": "#f3e5e2",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#9b3f54",
+                      "tertiary-fixed": "#ece0e0",
+                      "surface-variant": "#ede0dc",
+                      "on-background": "#211a18",
+                      "secondary-container": "#ffb7b8",
+                      "on-tertiary-fixed-variant": "#4d4546",
+                      "primary": "#701e34",
+                      "on-secondary-fixed": "#360e11",
+                      "surface-bright": "#fff8f6",
+                      "outline": "#877274",
+                      "on-secondary-container": "#7b4547",
+                      "error": "#ba1a1a",
+                      "error-container": "#ffdad6",
+                      "background": "#fff8f6",
+                      "on-tertiary-container": "#d2c6c7",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed-dim": "#d0c4c5",
+                      "on-secondary": "#ffffff",
+                      "surface-container-low": "#fff1ed",
+                      "primary-container": "#8e354a",
+                      "on-surface-variant": "#544245",
+                      "outline-variant": "#dac0c3",
+                      "on-error-container": "#93000a",
+                      "tertiary": "#433b3c",
+                      "on-primary-fixed-variant": "#7d283d",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-highest": "#ede0dc",
+                      "surface-dim": "#e4d7d4",
+                      "secondary-fixed": "#ffdad9",
+                      "inverse-primary": "#ffb2be",
+                      "on-surface": "#211a18",
+                      "tertiary-container": "#5a5253",
+                      "secondary": "#864f50",
+                      "surface-container": "#f9ebe7",
+                      "on-secondary-fixed-variant": "#6b383a",
+                      "inverse-surface": "#362f2d",
+                      "on-primary-container": "#ffb4c0",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed": "#ffd9de",
+                      "surface": "#fff8f6",
+                      "on-tertiary-fixed": "#201a1b"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "20px",
+                      "unit": "8px",
+                      "gutter": "24px",
+                      "container-max": "1200px",
+                      "section-gap": "120px",
+                      "margin-desktop": "64px"
+              },
+              "fontFamily": {
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Playfair Display"
+                      ],
+                      "display-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Playfair Display"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #FFF0F0; /* Override surface for specific prompt request, though usually we'd use surface */
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Subtle fade up animation for content */
+        .fade-up {
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .fade-up-delay-1 { animation-delay: 0.1s; }
+        .fade-up-delay-2 { animation-delay: 0.2s; }
+        .fade-up-delay-3 { animation-delay: 0.3s; }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-on-surface pb-32 overflow-x-hidden md:hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 z-40 bg-surface/80 backdrop-blur-md flex justify-between items-center w-full px-margin-mobile h-16 w-full max-w-md mx-auto left-0 right-0">
+<!-- Leading Action -->
+<button class="flex items-center justify-center px-4 py-2 bg-surface-container rounded-full hover:opacity-80 transition-opacity text-primary font-label-caps text-label-caps">
+            크레딧
+        </button>
+<!-- Headline -->
+<div class="font-headline-sm text-headline-sm font-medium text-primary">
+            Magic Ai Studio
+        </div>
+<!-- Trailing Icon -->
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity text-primary">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</header>
+<main class="pt-24 px-margin-mobile max-w-md mx-auto">
+<!-- Hero Section -->
+<section class="mb-12 fade-up">
+<h1 class="font-headline-md text-headline-md text-on-background mb-2">웨딩사진을 여행처럼</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-6 opacity-80">AI가 당신의 웨딩사진을 새로운 순간으로 바꿔드려요.</p>
+<div class="relative rounded-2xl overflow-hidden shadow-lg shadow-primary/5 bg-surface group">
+<img alt="Before/After comparison" class="w-full h-auto object-cover aspect-[1.75]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCp7eVsLngr8taukovtYdUhw1X2WWUV8p4QI8OUcETonM40RnYQSGLJNRqb9YgH8zqjH_CHNjo_bSj4xTPWIqL2S0GDJb6VNemj9zRDS2-yDgbgY9EqFWdhiCzIV4A6Pwq3yOKTZKBFcsdNdp6MTWkNnGvpubdtjWOeOqn6TAez-W_Hg8zyF32aXDUJ6qKXhamSw7Ss9lo5qMhaSjNXogqG_u-nqVIAr_M_FIiJASh8ffb-mkrDi1m7Hst9jh96SGiJpy787zkUe5W5"/>
+<!-- Labels overlay -->
+<div class="absolute inset-0 flex">
+<div class="w-1/2 flex items-start p-3">
+<span class="bg-black/30 backdrop-blur-sm text-white font-label-caps text-label-caps px-3 py-1 rounded-full">BEFORE</span>
+</div>
+<div class="w-1/2 flex items-start justify-end p-3">
+<span class="bg-black/30 backdrop-blur-sm text-white font-label-caps text-label-caps px-3 py-1 rounded-full">AFTER</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Popular Styles Section -->
+<section class="mb-12 fade-up fade-up-delay-1">
+<h2 class="font-body-lg text-body-lg font-bold text-on-background mb-6 tracking-tight">인기 웨딩 스타일</h2>
+<div class="space-y-6">
+<!-- Style Card 1 -->
+<div class="bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg shadow-primary/5 transition-shadow duration-300">
+<img alt="Paris Style" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpXCEWHWeMx82nx3xrIyXEcJPpTy0To2mJpG7W6WXDwZgW4M6FbK604O3S80P4KijX_6w_U5ioLt49DiBdbZSvsn-ftgqIIwykp7JocBGuY4DjoAEY1p2Aj79MTlO9GpJDlvWM9omoJDN3LPfP8fUqycLr2GqPJNXqD8INTHnygKdarLXAF01OA-JizVyy0LrtPamUQmLy8ljKOXwxFw4Fn44A5KlzHUC81U7pYOmMLQSJ8wwsWQVUw90vCdW9jGToVSebl3Ic3Ma_"/>
+<div class="p-5 flex flex-col items-center text-center">
+<h3 class="font-headline-sm text-headline-sm text-on-background mb-1">파리 에펠탑</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">유럽 여행 스냅처럼</p>
+<button class="w-full py-3 bg-primary text-on-primary font-label-caps text-label-caps rounded-full hover:opacity-90 transition-opacity">
+                            지금 편집하기
+                        </button>
+</div>
+</div>
+<!-- Style Card 2 -->
+<div class="bg-surface rounded-2xl overflow-hidden shadow-sm hover:shadow-lg shadow-primary/5 transition-shadow duration-300">
+<img alt="Disney Princess Style" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1OhbD9rTVUriU5jppi303s5s89b--Tm-bwIe03YT-oQFWxUFTNGGqm5yt9z0p5lzMq_UDi7mucQun-u_rL0btkQ9ybRFUXK8Zzu5_3fiHGxWAu0c4ULAGLOQaKFmAQX3pOBfYNP4ZxCEqyx-bjM-nydxmcZRiiV5fOCYbGzMLQ6BgGxhS60c-DuLQBdBMumjkivrupqMfQpVu_DmUHPpvFL5q42o-z1jjMOWwrEKF5-sPj7s9Narb7G4wvDi3GKEDMZVr8oJK2T06"/>
+<div class="p-5 flex flex-col items-center text-center">
+<h3 class="font-headline-sm text-headline-sm text-on-background mb-1">디즈니 공주</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-4">실사 동화풍 웨딩 콘셉트</p>
+<button class="w-full py-3 bg-primary text-on-primary font-label-caps text-label-caps rounded-full hover:opacity-90 transition-opacity">
+                            지금 편집하기
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- More Features Section -->
+<section class="mb-8 fade-up fade-up-delay-2">
+<h2 class="font-body-lg text-body-lg font-bold text-on-background mb-4 tracking-tight">더 많은 기능</h2>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-sm shadow-primary/5">
+<span class="material-symbols-outlined text-outline font-light" data-icon="auto_awesome" style="font-variation-settings: 'wght' 200;">auto_awesome</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant tracking-wider">어시스턴트</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-sm shadow-primary/5">
+<span class="material-symbols-outlined text-outline font-light" data-icon="photo_library" style="font-variation-settings: 'wght' 200;">photo_library</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant tracking-wider">갤러리</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-sm shadow-primary/5">
+<span class="material-symbols-outlined text-outline font-light" data-icon="forum" style="font-variation-settings: 'wght' 200;">forum</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant tracking-wider">커뮤니티</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 right-0 z-50 flex justify-around items-center px-6 h-16 w-[90%] max-w-md mx-auto rounded-full bg-surface-container/90 backdrop-blur-xl border border-outline-variant/30 shadow-lg shadow-primary/5">
+<!-- Tab 1: Inactive -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:text-primary transition-colors flex-1">
+<span class="material-symbols-outlined mb-1" data-icon="edit_note">edit_note</span>
+<span class="font-label-caps text-[10px] tracking-wider">사진편집</span>
+</button>
+<!-- Tab 2: Active (홈) - Enlarged Action Button -->
+<button class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full w-16 h-16 -mt-8 shadow-md hover:scale-110 transition-transform duration-300 ease-out z-10 border-4 border-[#FFF0F0]">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+</button>
+<!-- Tab 3: Inactive -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-70 hover:text-primary transition-colors flex-1">
+<span class="material-symbols-outlined mb-1" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label-caps text-[10px] tracking-wider">어시스턴트</span>
+</button>
+</nav>
+</body></html>

@@ -11,18 +11,18 @@ export const FREE_POLICY = {
 
 export const CREDIT_PACKAGES = [
   {
-    id: "pack-500",
-    credits: 500,
-    price: 49000,
-    name: "500 크레딧",
-    description: "가볍게 생성과 업스케일을 시작하는 기본 패키지",
+    id: "pack-200",
+    credits: 200,
+    price: 19800,
+    name: "200 크레딧",
+    description: "테스트 충전용 기본 패키지",
   },
   {
-    id: "pack-1000",
-    credits: 1000,
-    price: 88200,
-    name: "1000 크레딧",
-    description: "10% 할인 적용, 자주 사용하는 고객용 패키지",
+    id: "pack-500",
+    credits: 500,
+    price: 39800,
+    name: "500 크레딧",
+    description: "더 많은 웨딩사진을 만들 수 있는 테스트 패키지",
   },
 ];
 

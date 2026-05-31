@@ -1,56 +1,68 @@
+import { CREDIT_PACKAGES } from "../services/credit.js";
+import { escapeHtml, formatCurrency, formatNumber } from "../services/format.js";
+
 export function renderCreditsPage(state) {
+  const statusClass = state.creditStatusType === "error"
+    ? "bg-red-50/80 text-red-600 border-red-100"
+    : "bg-primary/10 text-primary border-primary/15";
+
   return `
     <section class="w-full flex flex-col gap-4">
       <div class="glass-panel rounded-DEFAULT p-4 flex items-center justify-between">
         <div>
-          <h2 class="font-display text-[20px]">크레딧</h2>
-          <p class="text-sm text-on-surface-variant mt-1">AI 웨딩사진 생성에 사용할 크레딧을 충전하세요.</p>
+          <h2 class="font-display text-[20px]">크레딧 충전</h2>
+          <p class="text-sm text-on-surface-variant mt-1">사진 1회 제작에는 25 크레딧이 사용됩니다.</p>
         </div>
         <div class="text-right">
           <div class="text-xs text-on-surface-variant">보유 크레딧</div>
-          <div class="font-display text-[20px] text-primary">${state.credits ?? 0}</div>
+          <div class="font-display text-[20px] text-primary">${state.isCreditsLoading ? "..." : formatNumber(state.credits)}</div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-3">
-        <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-display text-lg">200 크레딧</p>
-              <p class="text-sm text-on-surface-variant mt-1">AI 웨딩사진 생성용 기본 패키지</p>
-            </div>
-            <div class="text-right">
-              <div class="text-sm text-on-surface-variant">가격</div>
-              <div class="font-medium text-primary text-[18px]">19,800원</div>
-            </div>
-          </div>
-          <div class="mt-4">
-            <button class="w-full h-12 rounded-full bg-primary text-on-primary" data-action="show-alert" data-message="결제 기능은 준비 중입니다.">
-              구매 준비 중
-            </button>
-          </div>
-        </article>
+      ${state.creditStatusMessage ? `
+        <div class="rounded-DEFAULT border px-4 py-3 text-sm ${statusClass}">
+          ${escapeHtml(state.creditStatusMessage)}
+        </div>
+      ` : ""}
 
-        <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-display text-lg">500 크레딧</p>
-              <p class="text-sm text-on-surface-variant mt-1">더 많은 웨딩사진을 만들 수 있는 패키지</p>
-            </div>
-            <div class="text-right">
-              <div class="text-sm text-on-surface-variant">가격</div>
-              <div class="font-medium text-primary text-[18px]">39,800원</div>
-            </div>
-          </div>
-          <div class="mt-4">
-            <button class="w-full h-12 rounded-full bg-primary text-on-primary" data-action="show-alert" data-message="결제 기능은 준비 중입니다.">
-              구매 준비 중
-            </button>
-          </div>
-        </article>
+      <div class="grid grid-cols-1 gap-3">
+        ${CREDIT_PACKAGES.map((pack) => {
+          const isCharging = state.chargingCreditPackageId === pack.id;
+
+          return `
+            <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="font-display text-lg">${escapeHtml(pack.name)}</p>
+                  <p class="text-sm text-on-surface-variant mt-1">${escapeHtml(pack.description)}</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <div class="text-sm text-on-surface-variant">가격</div>
+                  <div class="font-medium text-primary text-[18px]">${formatCurrency(pack.price)}</div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <button
+                  class="w-full h-12 rounded-full bg-primary text-on-primary disabled:opacity-60 disabled:pointer-events-none"
+                  data-credit-package="${pack.id}"
+                  ${state.chargingCreditPackageId ? "disabled" : ""}
+                >
+                  ${isCharging ? "충전 중..." : "테스트 충전"}
+                </button>
+              </div>
+            </article>
+          `;
+        }).join("")}
       </div>
 
-      <div class="text-sm text-on-surface-variant mt-2">결제 기능은 준비 중입니다.</div>
+      <div class="rounded-DEFAULT bg-white/45 p-4 text-sm text-on-surface-variant leading-6">
+        <div class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-primary text-[18px] mt-0.5" style="font-variation-settings: 'FILL' 0;">info</span>
+          <div>
+            실제 결제 연동 전 테스트 충전 화면입니다. 카드 결제와 간편 결제는 아직 연결되지 않았습니다.
+          </div>
+        </div>
+      </div>
     </section>
   `;
 }

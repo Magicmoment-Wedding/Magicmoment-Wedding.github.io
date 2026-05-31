@@ -5,7 +5,7 @@ export function renderTopBar({ route, title, credits }) {
   const canGoBack = route !== "home";
   const navigationAttribute = canGoBack ? 'data-action="back"' : 'data-route="home"';
 
-  // When on the home route, show a compact Credits / PRO button on the left
+  // When on the home route, show a compact credit entry button on the left.
   const leftButton = canGoBack
     ? `<button
         aria-label="Back"
@@ -20,7 +20,7 @@ export function renderTopBar({ route, title, credits }) {
         data-route="credits"
       >
         <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
-        <span class="font-medium">PRO</span>
+        <span class="font-medium">크레딧</span>
       </button>`;
 
   return `

@@ -49,7 +49,7 @@ function getCreditDescription(modal, credits) {
     return `현재 작업에는 ${formatNumber(modal.requiredCredits ?? 0)} 크레딧이 필요합니다. 부족한 크레딧을 충전해 주세요.`;
   }
 
-  return "결제는 mock으로 처리되며 구매 직후 크레딧 잔액이 즉시 증가합니다.";
+  return "실제 결제 연동 전 테스트 충전으로 잔액을 확인할 수 있습니다.";
 }
 
 function renderAdsModal(modal) {
@@ -88,18 +88,26 @@ function renderCreditsModal(modal, state) {
         <span class="text-lg font-semibold text-primary">${formatNumber(state.credits)}</span>
       </div>
       <div class="space-y-3">
-        ${CREDIT_PACKAGES.map((pack) => `
+        ${CREDIT_PACKAGES.map((pack) => {
+          const isCharging = state.chargingCreditPackageId === pack.id;
+
+          return `
           <div class="rounded-DEFAULT bg-white/55 border border-white/50 p-4 flex items-center justify-between gap-4">
             <div>
               <p class="font-display text-[24px] leading-none text-on-surface">${escapeHtml(pack.name)}</p>
               <p class="text-sm text-on-surface-variant mt-2">${escapeHtml(pack.description)}</p>
               <p class="text-sm text-primary mt-2">${formatCurrency(pack.price)}</p>
             </div>
-            <button class="px-4 py-3 rounded-full bg-primary text-on-primary text-sm whitespace-nowrap" data-credit-package="${pack.id}">
-              구매하기
+            <button
+              class="px-4 py-3 rounded-full bg-primary text-on-primary text-sm whitespace-nowrap disabled:opacity-60 disabled:pointer-events-none"
+              data-credit-package="${pack.id}"
+              ${state.chargingCreditPackageId ? "disabled" : ""}
+            >
+              ${isCharging ? "충전 중..." : "테스트 충전"}
             </button>
           </div>
-        `).join("")}
+          `;
+        }).join("")}
       </div>
       <button class="w-full h-12 rounded-full glass-panel text-primary font-button" data-action="close-modal">
         나중에 하기
@@ -114,10 +122,10 @@ function renderPaywallModal() {
       <div class="space-y-2">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">FREE LIMIT</p>
         <h3 class="font-display text-[32px] leading-none text-on-surface">무료 생성이 모두 완료되었습니다</h3>
-        <p class="text-sm text-on-surface-variant">이제부터는 크레딧 구매 후 같은 생성 흐름을 이어갈 수 있습니다.</p>
+        <p class="text-sm text-on-surface-variant">이제부터는 크레딧 충전 후 같은 생성 흐름을 이어갈 수 있습니다.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="open-credits" data-modal-reason="post-free">
-        크레딧 구매하기
+        크레딧 충전하기
       </button>
       <button class="w-full h-12 rounded-full glass-panel text-primary font-button" data-action="close-modal">
         나중에 하기

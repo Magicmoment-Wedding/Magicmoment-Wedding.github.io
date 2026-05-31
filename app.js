@@ -17,11 +17,13 @@ import { renderSettingsPage } from "./pages/settings.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, FREE_POLICY, PRINT_PRODUCTS, getCreditBreakdown, getGenerationAccess, getRemainingFreeGenerations } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
+import { getCredits, testChargeCredits } from "./services/credits-api.js";
 import { getPresetPromptIntent } from "./services/prompt-intents.js";
 import { navigate, PREVIOUS_ROUTE, ROUTES, getRouteFromHash, initRouter } from "./services/router.js";
 import { getState, subscribe, updateState } from "./services/store.js";
 
 const app = document.getElementById("app");
+let latestCreditsRequestId = 0;
 
 function renderRoute(route, state) {
   if (route === ROUTES.RESULT && state.results.length === 0) {
@@ -76,13 +78,53 @@ function getPage(route, state) {
 }
 
 function syncRoute() {
-  updateState({ route: getRouteFromHash() });
+  const route = getRouteFromHash();
+  updateState({ route });
+
+  if (route === ROUTES.CREDITS) {
+    void refreshCredits({ clearMessage: true });
+  }
 }
 
 function delay(ms) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
+}
+
+async function refreshCredits({ clearMessage = false } = {}) {
+  const requestId = latestCreditsRequestId + 1;
+  latestCreditsRequestId = requestId;
+
+  updateState({
+    isCreditsLoading: true,
+    ...(clearMessage ? { creditStatusMessage: "", creditStatusType: "" } : {}),
+  });
+
+  try {
+    const payload = await getCredits();
+
+    if (latestCreditsRequestId !== requestId) {
+      return;
+    }
+
+    updateState({
+      credits: payload.credits ?? 0,
+      isCreditsLoading: false,
+    });
+  } catch (error) {
+    console.error("[credits] balance fetch failed", error);
+
+    if (latestCreditsRequestId !== requestId) {
+      return;
+    }
+
+    updateState({
+      isCreditsLoading: false,
+      creditStatusMessage: "크레딧 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      creditStatusType: "error",
+    });
+  }
 }
 
 function closeModal() {
@@ -336,23 +378,46 @@ async function performStudioGeneration() {
   }
 }
 
-function handleCreditPurchase(packageId) {
+async function handleCreditPurchase(packageId) {
   const creditPack = CREDIT_PACKAGES.find((item) => item.id === packageId);
 
   if (!creditPack) {
     return;
   }
 
-  const nextCredits = getState().credits + creditPack.credits;
-
   updateState({
-    credits: nextCredits,
-    activeModal: {
-      type: "success",
-      title: "크레딧 충전이 완료되었습니다",
-      description: `${formatNumber(creditPack.credits)} 크레딧이 추가되어 현재 잔액은 ${formatNumber(nextCredits)}입니다.`,
-    },
+    chargingCreditPackageId: packageId,
+    creditStatusMessage: "",
+    creditStatusType: "",
   });
+
+  try {
+    const payload = await testChargeCredits(creditPack.credits);
+    const nextCredits = payload.credits ?? getState().credits + creditPack.credits;
+    const isCreditsRoute = getState().route === ROUTES.CREDITS;
+
+    updateState({
+      credits: nextCredits,
+      chargingCreditPackageId: null,
+      creditStatusMessage: "크레딧이 충전되었습니다.",
+      creditStatusType: "success",
+      activeModal: isCreditsRoute
+        ? getState().activeModal
+        : {
+            type: "success",
+            title: "크레딧이 충전되었습니다.",
+            description: `${formatNumber(creditPack.credits)} 크레딧이 추가되어 현재 잔액은 ${formatNumber(nextCredits)}입니다.`,
+          },
+    });
+  } catch (error) {
+    console.error("[credits] test charge failed", error);
+    updateState({
+      chargingCreditPackageId: null,
+      creditStatusMessage: "크레딧 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      creditStatusType: "error",
+    });
+    window.alert("크레딧 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+  }
 }
 
 function handlePrintOrder(productId) {
@@ -786,7 +851,7 @@ app.addEventListener("click", async (event) => {
   }
 
   if (target.dataset.creditPackage) {
-    handleCreditPurchase(target.dataset.creditPackage);
+    await handleCreditPurchase(target.dataset.creditPackage);
     return;
   }
 

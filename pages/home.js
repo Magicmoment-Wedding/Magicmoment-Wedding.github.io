@@ -1,159 +1,77 @@
 import { HOME_SHOWCASE, SERVICE_CARDS } from "../mock/wedding-data.js";
-import { resolvePresetForSource } from "../mock/presets.js";
-import { getGenerationAccess, getRemainingFreeGenerations } from "../services/credit.js";
-import { formatNumber } from "../services/format.js";
 
-export function renderHomePage(state) {
-  const hasResults = state.results.length > 0;
-  const access = getGenerationAccess(state);
-  const freeRemaining = getRemainingFreeGenerations(state.freeGenerationsUsed);
-  const activePreset = resolvePresetForSource(state.selectedPresetId, state.sourceImageId);
-  const heroStory = HOME_SHOWCASE.find((item) => item.presetId === activePreset.id && item.sourceImageId === state.sourceImageId)
-    ?? HOME_SHOWCASE.find((item) => item.presetId === activePreset.id)
-    ?? HOME_SHOWCASE[0];
-  const nextStatusText = access.mode === "free"
-    ? access.requiresAds
-      ? `${access.adsToWatch}개 광고 후 ${access.nextFreeNumber}번째 무료 생성`
-      : "첫 생성은 광고 없이 무료"
-    : access.canAfford
-      ? `${formatNumber(access.cost)} 크레딧으로 다음 생성 가능`
-      : "무료 종료, 크레딧 구매 후 계속 생성";
+function getServiceCard(route, fallback = {}) {
+  return SERVICE_CARDS.find((item) => item.route === route) ?? fallback;
+}
+
+export function renderHomePage() {
+  const parisImage = HOME_SHOWCASE[0]?.thumbnail ?? "mock-images/home/home_paris_couple_01.png";
+  const disneyImage = HOME_SHOWCASE[1]?.thumbnail ?? "mock-images/home/home_disney_bride_01.png";
+  const assistant = getServiceCard("assistant", { route: "assistant", title: "어시스턴트" });
 
   return `
-    <section class="relative w-full aspect-[4/5] rounded-xl overflow-hidden glass-panel glow-shadow flex flex-col">
-      <div class="relative flex-grow w-full h-full">
-        <img
-          alt="Wedding sample"
-          class="absolute inset-0 w-full h-full object-cover"
-          src="${heroStory.thumbnail}"
-        />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent"></div>
-        <div class="absolute top-4 left-4 glass-panel rounded-full px-4 py-2 text-label-caps font-label-caps text-on-surface tracking-widest">
-          FREE ${freeRemaining}/3
-        </div>
-        <div class="absolute bottom-4 left-4 right-4 glass-panel rounded-DEFAULT p-4">
-          <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">WEDDING SNAP AI</p>
-          <h1 class="font-display text-[34px] leading-[1.05] text-on-surface mt-2">배경만 바꿔도<br />새로운 웨딩 화보가 됩니다</h1>
-          <p class="text-sm text-on-surface-variant mt-3">${heroStory.title} · ${heroStory.mood}</p>
-          <p class="text-sm text-on-surface-variant mt-2">${nextStatusText}</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">SERVICE FLOW</span>
-        <span class="font-label-caps text-label-caps text-primary px-3 py-1 bg-primary-container/20 rounded-full border border-primary-container/30">MVP READY</span>
-      </div>
-      <div class="grid grid-cols-2 gap-3 text-sm text-on-surface">
-        <div class="rounded-DEFAULT bg-white/45 p-4">
-          <p class="font-label-caps text-label-caps text-primary">STEP 1</p>
-          <p class="mt-2">샘플 이미지를 고르고</p>
-        </div>
-        <div class="rounded-DEFAULT bg-white/45 p-4">
-          <p class="font-label-caps text-label-caps text-primary">STEP 2</p>
-          <p class="mt-2">프리셋과 비율을 선택합니다</p>
-        </div>
-        <div class="rounded-DEFAULT bg-white/45 p-4">
-          <p class="font-label-caps text-label-caps text-primary">STEP 3</p>
-          <p class="mt-2">AI 생성 mock 로딩을 거칩니다</p>
-        </div>
-        <div class="rounded-DEFAULT bg-white/45 p-4">
-          <p class="font-label-caps text-label-caps text-primary">STEP 4</p>
-          <p class="mt-2">대표 결과와 썸네일을 확인합니다</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-3">
-      <div class="flex items-center justify-between">
-        <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">FREE POLICY</span>
-        <span class="font-label-caps text-label-caps text-primary">${formatNumber(state.credits)} CREDIT</span>
-      </div>
-      <p class="text-on-surface">총 3장 무료 체험 후 크레딧 구매로 전환되며, 2~3번째 생성은 광고 2개를 mock 시청한 뒤 이어집니다.</p>
-      <div class="flex gap-3">
-        <div class="flex-1 rounded-full bg-white/50 px-4 py-3 text-center text-sm">1장: 광고 없음</div>
-        <div class="flex-1 rounded-full bg-white/50 px-4 py-3 text-center text-sm">2~3장: 광고 2개</div>
-      </div>
-      <div class="grid grid-cols-2 gap-3 text-sm">
-        <div class="rounded-DEFAULT bg-white/45 p-4">
-          <p class="font-label-caps text-label-caps text-primary">FREE LEFT</p>
-          <p class="mt-2 text-on-surface">${freeRemaining}회 남음</p>
-        </div>
-        <div class="rounded-DEFAULT bg-white/45 p-4">
-          <p class="font-label-caps text-label-caps text-primary">CURRENT CREDIT</p>
-          <p class="mt-2 text-on-surface">${formatNumber(state.credits)} 크레딧</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">STYLE GALLERY</span>
-        <button class="font-label-caps text-label-caps text-primary" data-route="gallery">전체 보기</button>
-      </div>
-      <div class="flex flex-col gap-3">
-        <!-- Card 1: 편집 바로가기 -->
-        <article class="w-full rounded-xl overflow-hidden glass-panel border border-white/50">
-          <div class="relative w-full aspect-[3/4] flex items-center justify-center bg-surface-container">
-            <img alt="AI 웨딩사진 편집" class="max-h-full max-w-full object-contain" src="${HOME_SHOWCASE[0]?.thumbnail}" />
+    <section class="pt-1">
+      <h1 class="font-display text-[28px] leading-tight text-on-surface">웨딩사진을 여행처럼</h1>
+      <p class="mt-2 text-sm leading-6 text-on-surface-variant">AI가 당신의 웨딩사진을 새로운 순간으로 바꿔드려요.</p>
+      <div class="mt-5 overflow-hidden rounded-[22px] bg-white shadow-[0_18px_48px_rgba(129,80,92,0.12)] border border-white/80">
+        <div class="grid grid-cols-2">
+          <div class="relative min-w-0 overflow-hidden">
+            <img src="mock-images/before/before_studio_couple_01.jpg" alt="Before" class="h-36 w-full object-cover" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
+            <span class="absolute left-3 top-3 rounded-full bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">Before</span>
           </div>
-          <div class="p-4">
-            <p class="font-display text-[20px] leading-none text-on-surface">AI 웨딩사진 편집</p>
-            <p class="text-xs text-on-surface-variant mt-2">간편하게 사진을 업로드하고 AI로 배경을 변경해보세요.</p>
-            <button class="w-full mt-3 h-11 rounded-full bg-primary text-on-primary text-sm" data-route="create">
-              편집 바로가기
+          <div class="relative min-w-0 overflow-hidden">
+            <img src="${parisImage}" alt="After" class="h-36 w-full object-cover" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
+            <span class="absolute right-3 top-3 rounded-full bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">After</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-7">
+      <h2 class="text-[17px] font-semibold text-on-surface">인기 웨딩 스타일</h2>
+      <div class="mt-4 space-y-4">
+        <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
+          <img src="${parisImage}" alt="파리 에펠탑" class="h-40 w-full object-cover" />
+          <div class="px-5 pb-5 pt-4 text-center">
+            <h3 class="font-display text-[25px] leading-none text-on-surface">파리 에펠탑</h3>
+            <p class="mt-2 text-sm text-on-surface-variant">유럽 여행 스냅처럼</p>
+            <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-route="create">
+              지금 편집하기
             </button>
           </div>
         </article>
 
-        <!-- Card 2: 갤러리 바로가기 -->
-        <article class="w-full rounded-xl overflow-hidden glass-panel border border-white/50">
-          <div class="relative w-full aspect-[3/4] flex items-center justify-center bg-surface-container">
-            <img alt="결과 갤러리" class="max-h-full max-w-full object-contain" src="${HOME_SHOWCASE[1]?.thumbnail || HOME_SHOWCASE[0]?.thumbnail}" />
-          </div>
-          <div class="p-4">
-            <p class="font-display text-[20px] leading-none text-on-surface">결과 갤러리</p>
-            <p class="text-xs text-on-surface-variant mt-2">이전 생성 결과와 추천 이미지를 확인해보세요.</p>
-            <button class="w-full mt-3 h-11 rounded-full bg-primary text-on-primary text-sm" data-route="gallery">
-              갤러리 바로가기
+        <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
+          <img src="${disneyImage}" alt="디즈니 공주" class="h-40 w-full object-cover" />
+          <div class="px-5 pb-5 pt-4 text-center">
+            <h3 class="font-display text-[25px] leading-none text-on-surface">디즈니 공주</h3>
+            <p class="mt-2 text-sm text-on-surface-variant">실사 동화풍 웨딩 콘셉트</p>
+            <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-route="create">
+              지금 편집하기
             </button>
           </div>
         </article>
       </div>
     </section>
 
-    <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
-      <div class="flex items-center justify-between">
-        <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">EXPANDED SERVICE</span>
-        <span class="font-label-caps text-label-caps text-primary">MORE</span>
-      </div>
-      <div class="grid grid-cols-1 gap-3">
-        ${SERVICE_CARDS.filter((item) => ["studio", "assistant", "concierge"].includes(item.route)).map((item) => `
-        <button class="rounded-DEFAULT bg-white/45 p-4 text-left flex items-center justify-between gap-4 transition-transform active:scale-[0.98]" data-route="${item.route}">
-          <div>
-            <p class="font-display text-[26px] leading-none text-on-surface">${item.title}</p>
-            <p class="text-sm text-on-surface-variant mt-2">${item.description}</p>
-          </div>
-          <img alt="${item.title}" class="w-16 h-16 rounded-xl object-cover border border-white/60 flex-shrink-0" src="${item.thumbnail}" />
+    <section class="mt-7 pb-6">
+      <h2 class="text-[17px] font-semibold text-on-surface">더 많은 기능</h2>
+      <div class="mt-4 grid grid-cols-3 gap-3">
+        <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-route="${assistant.route}">
+          <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">auto_awesome</span>
+          <span class="text-[11px] font-medium">어시스턴트</span>
         </button>
-        `).join("")}
+        <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-route="gallery">
+          <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">photo_library</span>
+          <span class="text-[11px] font-medium">갤러리</span>
+        </button>
+        <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-route="more">
+          <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">forum</span>
+          <span class="text-[11px] font-medium">커뮤니티</span>
+        </button>
       </div>
-    </section>
-
-    <section class="w-full flex flex-col gap-3 mt-2">
-      <button class="w-full h-14 rounded-full bg-primary/90 hover:bg-primary text-on-primary font-button text-button shadow-[0_8px_20px_rgba(129,80,92,0.3)] backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95 group" data-route="create">
-        <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-        생성하기
-      </button>
-      <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-route="credits">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">diamond</span>
-        크레딧 구매하기
-      </button>
-      <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-route="${hasResults ? "result" : "create"}">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">photo_library</span>
-        ${hasResults ? "최근 결과 보기" : "샘플 선택으로 이동"}
-      </button>
     </section>
   `;
 }

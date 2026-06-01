@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>Magic Ai Studio - Wedding Photos</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
@@ -982,7 +985,37 @@
         }
       }
     </style>
-    <script src="./config.js?v=20260530"></script>
+    <script>
+      window.MAGIC_AI_FRONTEND_VERSION = "20260601";
+
+      (() => {
+        const version = window.MAGIC_AI_FRONTEND_VERSION;
+        const versionKey = "magic_ai_frontend_version";
+
+        try {
+          const previousVersion = window.localStorage.getItem(versionKey);
+          if (previousVersion !== version) {
+            if (window.caches?.keys) {
+              window.caches.keys()
+                .then((cacheNames) => Promise.all(cacheNames.map((cacheName) => window.caches.delete(cacheName))))
+                .catch((error) => console.warn("[front-cache] cache cleanup failed", error));
+            }
+            window.localStorage.setItem(versionKey, version);
+          }
+        } catch (error) {
+          console.warn("[front-cache] version check failed", error);
+        }
+
+        if ("serviceWorker" in navigator) {
+          window.addEventListener("load", () => {
+            navigator.serviceWorker.getRegistrations()
+              .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+              .catch((error) => console.warn("[front-cache] service worker cleanup failed", error));
+          });
+        }
+      })();
+    </script>
+    <script src="./config.js?v=20260601"></script>
   </head>
   <body
     class="bg-background text-on-background font-body-large antialiased min-h-screen flex flex-col items-center relative overflow-x-hidden"

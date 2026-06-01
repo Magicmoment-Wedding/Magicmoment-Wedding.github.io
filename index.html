@@ -305,69 +305,400 @@
 
       .landing-page {
         width: 100%;
+        height: 100dvh;
+        overflow: hidden;
+        position: relative;
+        background:
+          radial-gradient(90% 44% at 50% 0%, rgba(244, 182, 195, 0.32), transparent 64%),
+          linear-gradient(180deg, #fff8f7 0%, #fcf1f2 48%, #fff8f7 100%);
+      }
+
+      .landing-carousel {
+        width: 100%;
+        height: 100dvh;
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .landing-carousel::-webkit-scrollbar {
+        display: none;
+      }
+
+      .landing-carousel {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
 
       .landing-section {
-        width: min(1120px, calc(100vw - 40px));
-        margin: 0 auto;
-        padding: 80px 0;
-      }
-
-      .landing-hero {
-        min-height: 100dvh;
-        display: grid;
-        gap: 42px;
+        flex: 0 0 100%;
+        width: 100%;
+        height: 100dvh;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        overflow-y: auto;
+        padding: clamp(18px, 4vw, 44px) 18px 104px;
+        display: flex;
         align-items: center;
+        justify-content: center;
       }
 
-      .cover-example {
+      .landing-section-inner {
+        width: min(1080px, 100%);
+        min-height: min(760px, calc(100dvh - 132px));
+        display: grid;
+        gap: 20px;
+        align-content: center;
+      }
+
+      .landing-brand-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .landing-eyebrow {
+        color: var(--rose-deep);
+        font-family: Outfit, sans-serif;
+        font-size: 12px;
+        line-height: 1;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+
+      .landing-title {
+        color: var(--ink);
+        font-family: "Cormorant Garamond", serif;
+        font-size: clamp(36px, 9vw, 68px);
+        line-height: 0.98;
+        font-weight: 600;
+        letter-spacing: 0;
+      }
+
+      .landing-copy {
+        max-width: 560px;
+        color: #6f5b60;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      .landing-primary-button,
+      .landing-secondary-button {
+        min-height: 48px;
+        border-radius: 9999px;
+        padding: 0 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .landing-primary-button {
+        color: #fff;
+        background: linear-gradient(135deg, #81505c, #9b6170);
+        box-shadow: 0 18px 42px rgba(129, 80, 92, 0.24);
+      }
+
+      .landing-secondary-button {
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(129, 80, 92, 0.22);
+      }
+
+      .landing-primary-button:hover,
+      .landing-secondary-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .before-after-compare {
+        --split: 52%;
         position: relative;
         overflow: hidden;
-        border-radius: 34px;
+        border-radius: 30px;
         aspect-ratio: 4 / 5;
+        min-height: 0;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(246, 235, 236, 0.72)),
+          #fff8f7;
+        border: 1px solid rgba(255, 255, 255, 0.86);
+        box-shadow: 0 24px 70px rgba(129, 80, 92, 0.18);
+        touch-action: none;
       }
 
-      .cover-example::before,
-      .cover-example::after {
-        content: "";
+      .before-after-compare img {
         position: absolute;
         inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center 45%;
+        user-select: none;
+        -webkit-user-drag: none;
       }
 
-      .cover-example::before {
-        background:
-          linear-gradient(135deg, rgba(53, 47, 48, 0.2), rgba(196, 139, 151, 0.18)),
-          url("mock-images/before/before_studio_couple_01.jpg") center / cover;
-        clip-path: inset(0 50% 0 0);
+      .before-after-before {
+        clip-path: inset(0 calc(100% - var(--split)) 0 0);
+        background: #fff;
       }
 
-      .cover-example::after {
-        background:
-          linear-gradient(135deg, rgba(255, 248, 247, 0.08), rgba(196, 139, 151, 0.16)),
-          url("mock-images/after/after_paris_couple_01.png") center / cover;
-        clip-path: inset(0 0 0 50%);
+      .before-after-after {
+        background: linear-gradient(180deg, #fff8f7, #f6ebec);
       }
 
-      .cover-divider {
+      .before-after-shade {
         position: absolute;
-        z-index: 2;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, transparent 52%, rgba(31, 26, 27, 0.16));
+      }
+
+      .before-after-divider {
+        position: absolute;
+        z-index: 4;
         inset-block: 0;
-        left: 50%;
+        left: var(--split);
         width: 2px;
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 0 24px rgba(31, 26, 27, 0.25);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 0 24px rgba(31, 26, 27, 0.2);
+        transform: translateX(-1px);
       }
 
-      .landing-card {
-        border-radius: 32px;
-        background: rgba(255, 255, 255, 0.58);
-        border: 1px solid rgba(255, 255, 255, 0.72);
-        box-shadow: 0 20px 70px rgba(129, 80, 92, 0.12);
-      }
-
-      .landing-grid {
+      .before-after-handle {
+        position: absolute;
+        z-index: 5;
+        top: 50%;
+        left: var(--split);
+        width: 46px;
+        height: 46px;
+        border-radius: 9999px;
         display: grid;
-        gap: 18px;
+        place-items: center;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 16px 34px rgba(31, 26, 27, 0.2);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+
+      .before-after-input {
+        position: absolute;
+        z-index: 6;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: ew-resize;
+      }
+
+      .before-after-label {
+        position: absolute;
+        z-index: 7;
+        bottom: 14px;
+        min-width: 72px;
+        border-radius: 9999px;
+        padding: 8px 12px;
+        color: #2f2729;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .before-after-label.before {
+        left: 14px;
+      }
+
+      .before-after-label.after {
+        right: 14px;
+      }
+
+      .landing-gallery-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1.05fr 0.82fr 0.92fr;
+        gap: 12px;
+        min-height: 390px;
+      }
+
+      .landing-photo-card,
+      .landing-plan-card,
+      .landing-concept-card {
+        overflow: hidden;
+        border-radius: 26px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.76);
+        box-shadow: 0 18px 50px rgba(129, 80, 92, 0.13);
+      }
+
+      .landing-photo-card img,
+      .landing-concept-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .landing-photo-tall {
+        grid-row: span 2;
+      }
+
+      .landing-photo-wide {
+        grid-column: span 2;
+      }
+
+      .landing-concepts {
+        display: grid;
+        gap: 12px;
+      }
+
+      .landing-concept-card {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        min-height: 126px;
+      }
+
+      .landing-concept-card img {
+        object-position: center;
+      }
+
+      .landing-concept-copy {
+        min-width: 0;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 6px;
+      }
+
+      .landing-pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .landing-plan-card {
+        min-height: 148px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .landing-plan-card.is-featured {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 217, 224, 0.46));
+        border-color: rgba(129, 80, 92, 0.28);
+        box-shadow: 0 22px 58px rgba(129, 80, 92, 0.19);
+      }
+
+      .landing-plan-title {
+        color: #2a2224;
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .landing-plan-price {
+        color: var(--rose-deep);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 26px;
+        line-height: 1;
+        font-weight: 700;
+      }
+
+      .landing-plan-copy {
+        color: #725e63;
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .landing-plan-button {
+        min-height: 34px;
+        border-radius: 9999px;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.16);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .landing-plan-card.is-featured .landing-plan-button {
+        color: #fff;
+        background: var(--rose-deep);
+      }
+
+      .landing-dots {
+        position: absolute;
+        z-index: 20;
+        left: 50%;
+        bottom: 26px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 8px 12px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.14);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      .landing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: rgba(131, 115, 118, 0.36);
+        transition: width 180ms ease, background 180ms ease;
+      }
+
+      .landing-dot.is-active {
+        width: 24px;
+        background: var(--rose-deep);
+      }
+
+      .landing-arrow {
+        position: absolute;
+        z-index: 20;
+        top: 50%;
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        display: none;
+        place-items: center;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 16px 40px rgba(129, 80, 92, 0.14);
+        transform: translateY(-50%);
+      }
+
+      .landing-arrow:disabled {
+        opacity: 0.38;
+      }
+
+      .landing-arrow.prev {
+        left: 20px;
+      }
+
+      .landing-arrow.next {
+        right: 20px;
       }
 
       .app-stage {
@@ -541,23 +872,96 @@
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .landing-hero,
-        .landing-split {
+        .landing-section-inner {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(360px, 0.82fr);
-          gap: 48px;
-          align-items: start;
+          grid-template-columns: minmax(0, 0.95fr) minmax(360px, 0.85fr);
+          gap: 42px;
+          align-items: center;
         }
 
-        .landing-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+        .landing-section-inner.single-column {
+          max-width: 760px;
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .landing-copy {
+          font-size: 17px;
+        }
+
+        .landing-gallery-grid {
+          min-height: 520px;
+        }
+
+        .landing-concepts {
+          gap: 16px;
+        }
+
+        .landing-concept-card {
+          grid-template-columns: 150px minmax(0, 1fr);
+          min-height: 154px;
+        }
+
+        .landing-pricing-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .landing-plan-card {
+          min-height: 190px;
+          padding: 18px;
+        }
+
+        .landing-arrow {
+          display: grid;
         }
       }
 
       @media (max-width: 420px) {
         .landing-section {
-          width: min(100% - 32px, 1120px);
-          padding: 54px 0;
+          padding: 16px 16px 96px;
+          align-items: stretch;
+        }
+
+        .landing-section-inner {
+          min-height: calc(100dvh - 112px);
+          gap: 16px;
+        }
+
+        .landing-title {
+          font-size: 38px;
+        }
+
+        .before-after-compare {
+          border-radius: 26px;
+        }
+
+        .landing-gallery-grid {
+          min-height: 342px;
+          gap: 10px;
+        }
+
+        .landing-concept-card {
+          grid-template-columns: 96px minmax(0, 1fr);
+          min-height: 112px;
+          border-radius: 22px;
+        }
+
+        .landing-concept-copy {
+          padding: 14px;
+        }
+
+        .landing-plan-card {
+          min-height: 136px;
+          padding: 12px;
+          border-radius: 22px;
+        }
+
+        .landing-plan-title {
+          font-size: 13px;
+        }
+
+        .landing-plan-price {
+          font-size: 23px;
         }
 
         .app-stage {
@@ -585,116 +989,170 @@
   >
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
-        <section class="landing-section landing-hero">
-          <div>
-            <div class="flex items-center gap-3">
-              <div class="brand-mark">
-                <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+        <div class="landing-carousel" id="landingCarousel" aria-label="Magic Ai Studio 랜딩 소개">
+          <section class="landing-section" aria-label="Before After 쇼케이스">
+            <div class="landing-section-inner">
+              <div class="flex flex-col gap-5">
+                <div class="landing-brand-row">
+                  <div class="flex items-center gap-3">
+                    <div class="brand-mark">
+                      <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    </div>
+                    <div>
+                      <p class="landing-eyebrow">Magic Ai Studio</p>
+                      <p class="mt-1 text-sm text-on-surface-variant">premium wedding AI atelier</p>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p class="landing-eyebrow">Before / After</p>
+                  <h1 class="landing-title mt-3">웨딩사진을<br />새로운 순간으로</h1>
+                  <p class="landing-copy mt-4">얼굴과 포즈는 유지하고, 배경과 분위기만 자연스럽게 바꿔드려요.</p>
+                </div>
+                <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
+                  <span>사진 편집 시작하기</span>
+                  <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </button>
               </div>
-              <div>
-                <p class="font-label-caps text-label-caps uppercase text-primary">Magic Ai Studio</p>
-                <p class="text-sm text-on-surface-variant">AI wedding photo atelier</p>
+              <div class="before-after-compare" data-before-after-slider>
+                <img class="before-after-after" src="mock-images/after/after_paris_couple_01.png" alt="AI 편집 후 파리 웨딩사진" />
+                <img class="before-after-before" src="mock-images/before/before_studio_couple_01.jpg" alt="편집 전 원본 웨딩사진" />
+                <div class="before-after-shade"></div>
+                <div class="before-after-divider" aria-hidden="true"></div>
+                <div class="before-after-handle" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
+                </div>
+                <span class="before-after-label before">Before</span>
+                <span class="before-after-label after">After</span>
+                <input class="before-after-input" type="range" min="8" max="92" value="52" aria-label="Before After 비교 슬라이더" />
               </div>
             </div>
-            <p class="mt-12 font-label-caps text-label-caps uppercase text-primary">Wedding AI retouch</p>
-            <h1 class="mt-4 font-display text-[48px] sm:text-[76px] leading-[0.98] text-on-surface">
-              내 얼굴은 그대로,<br />웨딩사진은 더 영화처럼.
-            </h1>
-            <p class="mt-6 max-w-[620px] text-[18px] leading-8 text-on-surface-variant">
-              AI가 얼굴과 포즈는 유지하고, 배경과 분위기만 자연스럽게 바꿔드립니다.
-            </p>
-            <button
-              class="primary-action mt-8 h-14 rounded-full bg-primary px-8 text-on-primary font-button text-button flex items-center justify-center gap-2"
-              data-screen-target="editor"
-              type="button"
-            >
-              <span>사진 편집 시작하기</span>
-              <span class="material-symbols-outlined text-[21px]">arrow_forward</span>
-            </button>
-          </div>
-          <div class="glass-panel glow-shadow rounded-[38px] p-4">
-            <div class="cover-example">
-              <div class="cover-divider"></div>
-              <span class="absolute left-4 bottom-4 z-10 soft-chip px-3 py-1 text-xs text-on-surface">Before</span>
-              <span class="absolute right-4 bottom-4 z-10 soft-chip px-3 py-1 text-xs text-on-surface">After</span>
-              <span class="absolute left-4 top-4 z-10 soft-chip px-4 py-2 font-label-caps text-label-caps uppercase text-primary">대표 예시</span>
+          </section>
+
+          <section class="landing-section" aria-label="갤러리 프리뷰">
+            <div class="landing-section-inner">
+              <div class="flex flex-col gap-4">
+                <p class="landing-eyebrow">Gallery Preview</p>
+                <h2 class="landing-title">당신이 원하는<br />스타일을 골라보세요</h2>
+                <p class="landing-copy">다양한 AI 웨딩 샘플을 보고 나에게 어울리는 분위기를 찾아보세요.</p>
+                <button class="landing-secondary-button w-full sm:w-fit" data-screen-target="gallery" type="button">
+                  <span>갤러리 바로가기</span>
+                  <span class="material-symbols-outlined text-[19px]">collections</span>
+                </button>
+              </div>
+              <div class="landing-gallery-grid">
+                <article class="landing-photo-card landing-photo-tall">
+                  <img src="mock-images/gallery/gallery_outdoor_wedding_snap_01.png" alt="야외 웨딩 스냅 샘플" />
+                </article>
+                <article class="landing-photo-card">
+                  <img src="mock-images/gallery/gallery_drama_romance_01.png" alt="드라마 로맨스 웨딩 샘플" />
+                </article>
+                <article class="landing-photo-card">
+                  <img src="mock-images/gallery/gallery_disney_mood_01.png" alt="로맨틱 무드 웨딩 샘플" />
+                </article>
+                <article class="landing-photo-card landing-photo-wide">
+                  <img src="mock-images/gallery/gallery_studio_original_01.png" alt="스튜디오 웨딩 샘플" />
+                </article>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section class="landing-section landing-split">
-          <div>
-            <p class="font-label-caps text-label-caps uppercase text-primary">Before / After</p>
-            <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">원본의 인상은 지키고, 장면만 새롭게.</h2>
-            <p class="mt-4 text-base leading-7 text-on-surface-variant">얼굴, 포즈, 구도 보존을 우선으로 두고 웨딩 화보에 어울리는 배경과 조명을 더합니다.</p>
-          </div>
-          <div class="landing-card p-4">
-            <div class="cover-example">
-              <div class="cover-divider"></div>
+          <section class="landing-section" aria-label="어시스턴트 커스텀 콘셉트">
+            <div class="landing-section-inner">
+              <div class="flex flex-col gap-4">
+                <p class="landing-eyebrow">Custom Concept</p>
+                <h2 class="landing-title">당신의 상상력을<br />더하세요</h2>
+                <p class="landing-copy">메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.</p>
+                <button class="landing-primary-button w-full sm:w-fit" data-action="assistant-placeholder" type="button">
+                  <span>어시스턴트에게 문의하기</span>
+                  <span class="material-symbols-outlined text-[19px]">chat</span>
+                </button>
+              </div>
+              <div class="landing-concepts">
+                <article class="landing-concept-card">
+                  <img src="mock-images/services/service_assistant_01.png" alt="시네마틱 커스텀 웨딩 콘셉트" />
+                  <div class="landing-concept-copy">
+                    <p class="landing-eyebrow text-[10px]">Cinematic</p>
+                    <h3 class="font-display text-[25px] leading-none text-on-surface">영화 같은 한 장면</h3>
+                    <p class="text-xs leading-5 text-on-surface-variant">조명과 색감까지 맞춘 프리미엄 상담형 제작</p>
+                  </div>
+                </article>
+                <article class="landing-concept-card">
+                  <img src="mock-images/services/service_studio_01.png" alt="전통과 감성을 담은 커스텀 웨딩 콘셉트" />
+                  <div class="landing-concept-copy">
+                    <p class="landing-eyebrow text-[10px]">Concierge</p>
+                    <h3 class="font-display text-[25px] leading-none text-on-surface">맞춤 콘셉트 제작</h3>
+                    <p class="text-xs leading-5 text-on-surface-variant">원하는 배경과 무드를 상담으로 구체화해요.</p>
+                  </div>
+                </article>
+                <article class="landing-concept-card">
+                  <img src="mock-images/after/after_drama_bride_01.png" alt="드라마틱 커스텀 웨딩 콘셉트" />
+                  <div class="landing-concept-copy">
+                    <p class="landing-eyebrow text-[10px]">Editorial</p>
+                    <h3 class="font-display text-[25px] leading-none text-on-surface">감성 화보 무드</h3>
+                    <p class="text-xs leading-5 text-on-surface-variant">기본 메뉴 밖의 상상도 자연스럽게 제안합니다.</p>
+                  </div>
+                </article>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section class="landing-section">
-          <p class="font-label-caps text-label-caps uppercase text-primary">Modes</p>
-          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">두 가지 편집 모드</h2>
-          <div class="landing-grid mt-8 sm:grid-cols-2">
-            <article class="landing-card p-6">
-              <span class="icon-bubble"><span class="material-symbols-outlined">travel_explore</span></span>
-              <h3 class="mt-5 font-display text-[30px] leading-none text-on-surface">유럽 명소 스냅</h3>
-              <p class="mt-3 text-sm leading-6 text-on-surface-variant">파리, 베니스, 아말피 감성의 자연스러운 여행 웨딩컷</p>
-            </article>
-            <article class="landing-card p-6">
-              <span class="icon-bubble"><span class="material-symbols-outlined">castle</span></span>
-              <h3 class="mt-5 font-display text-[30px] leading-none text-on-surface">디즈니 실사</h3>
-              <p class="mt-3 text-sm leading-6 text-on-surface-variant">실사 영화처럼 로맨틱한 판타지 웨딩 스타일</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="landing-section">
-          <p class="font-label-caps text-label-caps uppercase text-primary">Europe Snap</p>
-          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">유럽 명소 스냅 소개</h2>
-          <div class="landing-grid mt-8 sm:grid-cols-4">
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">파리 에펠탑</p><p class="mt-2 text-sm text-on-surface-variant">클래식한 파리 웨딩 스냅</p></article>
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">파리 루브르 야경</p><p class="mt-2 text-sm text-on-surface-variant">은은한 야경과 로맨틱 조명</p></article>
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">베니스 대운하</p><p class="mt-2 text-sm text-on-surface-variant">물빛과 건축이 어우러진 장면</p></article>
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">포지타노 아말피 해안</p><p class="mt-2 text-sm text-on-surface-variant">햇살 가득한 해안 화보 무드</p></article>
-          </div>
-        </section>
-
-        <section class="landing-section">
-          <p class="font-label-caps text-label-caps uppercase text-primary">Disney Live Action</p>
-          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">디즈니 실사 소개</h2>
-          <div class="landing-grid mt-8 sm:grid-cols-4">
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Cinderella Royal</p><p class="mt-2 text-sm text-on-surface-variant">블루, 실버, 크리스탈 궁전 무드</p></article>
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Belle Romantic</p><p class="mt-2 text-sm text-on-surface-variant">골드 톤의 따뜻한 로맨스</p></article>
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Aurora Enchanted</p><p class="mt-2 text-sm text-on-surface-variant">핑크 플로럴과 몽환적인 빛</p></article>
-            <article class="landing-card p-5"><p class="font-semibold text-on-surface">Mulan Oriental Hanbok</p><p class="mt-2 text-sm text-on-surface-variant">고급 한복과 동양적 정원 분위기</p></article>
-          </div>
-        </section>
-
-        <section class="landing-section">
-          <p class="font-label-caps text-label-caps uppercase text-primary">Download Options</p>
-          <h2 class="mt-3 font-display text-[44px] leading-tight text-on-surface">무료/광고/유료 안내</h2>
-          <div class="landing-grid mt-8">
-            <article class="landing-card p-6"><p class="font-semibold text-on-surface">무료 다운로드</p><p class="mt-2 text-sm text-on-surface-variant">Magic Ai Studio 워터마크 포함</p></article>
-            <article class="landing-card p-6"><p class="font-semibold text-on-surface">광고보기 다운로드</p><p class="mt-2 text-sm text-on-surface-variant">워터마크 포함</p></article>
-            <article class="landing-card p-6"><p class="font-semibold text-on-surface">유료 다운로드</p><p class="mt-2 text-sm text-on-surface-variant">워터마크 제거 가능</p></article>
-          </div>
-        </section>
-
-        <section class="landing-section text-center">
-          <h2 class="font-display text-[46px] leading-tight text-on-surface">지금, 웨딩사진을 새 장면으로.</h2>
-          <button
-            class="primary-action mx-auto mt-7 h-14 rounded-full bg-primary px-8 text-on-primary font-button text-button flex items-center justify-center gap-2"
-            data-screen-target="editor"
-            type="button"
-          >
-            <span>지금 사진 편집 시작하기</span>
-            <span class="material-symbols-outlined text-[21px]">arrow_forward</span>
-          </button>
-        </section>
+          <section class="landing-section" aria-label="요금제">
+            <div class="landing-section-inner single-column">
+              <div class="text-center">
+                <p class="landing-eyebrow">Our Plans</p>
+                <h2 class="landing-title mt-3">요금제를 선택하세요</h2>
+                <p class="landing-copy mx-auto mt-3">최적의 제작 환경을 위한 다양한 옵션을 확인해보세요.</p>
+              </div>
+              <div class="landing-pricing-grid">
+                <article class="landing-plan-card">
+                  <div>
+                    <p class="landing-plan-title">광고 두 개 보기</p>
+                    <p class="landing-plan-price mt-3">무료</p>
+                    <p class="landing-plan-copy mt-2">워터마크 체험</p>
+                  </div>
+                  <button class="landing-plan-button" data-screen-target="editor" type="button">무료 시작</button>
+                </article>
+                <article class="landing-plan-card">
+                  <div>
+                    <p class="landing-plan-title">200 크레딧</p>
+                    <p class="landing-plan-price mt-3">19,800원</p>
+                    <p class="landing-plan-copy mt-2">노워터마크 제작</p>
+                  </div>
+                  <button class="landing-plan-button" data-screen-target="credits" type="button">구매하기</button>
+                </article>
+                <article class="landing-plan-card is-featured">
+                  <div>
+                    <p class="landing-plan-title">500 크레딧</p>
+                    <p class="landing-plan-price mt-3">39,800원</p>
+                    <p class="landing-plan-copy mt-2">테이블 포토 제작</p>
+                  </div>
+                  <button class="landing-plan-button" data-screen-target="credits" type="button">구매하기</button>
+                </article>
+                <article class="landing-plan-card is-featured">
+                  <div>
+                    <p class="landing-plan-title">프리미엄 커스텀</p>
+                    <p class="landing-plan-price mt-3">99,000원</p>
+                    <p class="landing-plan-copy mt-2">업스케일링 + 맞춤 제작</p>
+                  </div>
+                  <button class="landing-plan-button" data-action="assistant-placeholder" type="button">문의하기</button>
+                </article>
+              </div>
+            </div>
+          </section>
+        </div>
+        <button class="landing-arrow prev" data-landing-prev type="button" aria-label="이전 랜딩 섹션">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button class="landing-arrow next" data-landing-next type="button" aria-label="다음 랜딩 섹션">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+        <div class="landing-dots" role="tablist" aria-label="랜딩 섹션 이동">
+          <button class="landing-dot is-active" data-landing-dot="0" type="button" aria-label="Before After 섹션으로 이동" aria-selected="true"></button>
+          <button class="landing-dot" data-landing-dot="1" type="button" aria-label="갤러리 섹션으로 이동" aria-selected="false"></button>
+          <button class="landing-dot" data-landing-dot="2" type="button" aria-label="어시스턴트 섹션으로 이동" aria-selected="false"></button>
+          <button class="landing-dot" data-landing-dot="3" type="button" aria-label="요금제 섹션으로 이동" aria-selected="false"></button>
+        </div>
       </section>
 
       <section class="app-stage hidden" id="appStage">
@@ -788,10 +1246,10 @@
               </span>
               <span class="flex flex-col gap-2">
                 <span class="font-display text-[26px] leading-none text-on-surface">사진 업로드</span>
-                <span class="px-5 text-xs leading-5 text-on-surface-variant">PNG, JPG, WEBP 이미지를 선택해 주세요.</span>
+                <span class="px-5 text-xs leading-5 text-on-surface-variant">PNG, JPG, WEBP, HEIC 이미지를 선택해 주세요.</span>
               </span>
             </label>
-            <input accept="image/png,image/jpeg,image/webp" class="sr-only" id="photoInput" type="file" />
+            <input accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" id="photoInput" type="file" />
 
             <section class="mt-4 hidden" id="sourceSection">
               <div class="relative">
@@ -1081,8 +1539,10 @@
       const WATERMARK_TEXT = "Magic Ai Studio";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
       const ONE_MB_BYTES = 1024 * 1024;
+      const MOBILE_RECOMMENDED_MAX_IMAGE_BYTES = 10 * ONE_MB_BYTES;
       const SUPABASE_UPLOAD_FAILED_MESSAGE = "이미지 업로드에 실패했어요. 다시 시도해 주세요.";
-      const SOURCE_IMAGE_LOAD_FAILED_MESSAGE = "업로드된 이미지를 불러오지 못했어요. 다시 시도해 주세요.";
+      const HEIC_UPLOAD_WARNING_MESSAGE = "아이폰 원본 HEIC 사진은 일부 환경에서 실패할 수 있습니다. JPG로 변환된 사진이나 스크린샷으로 다시 시도해 주세요.";
+      const LARGE_IMAGE_WARNING_MESSAGE = "사진 용량이 커서 처리에 실패할 수 있습니다. 10MB 이하 사진으로 다시 시도해 주세요.";
       const CREDIT_CHARGE_SUCCESS_MESSAGE = "크레딧이 충전되었습니다.";
       const CREDIT_CHARGE_FAILED_MESSAGE = "크레딧 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.";
       let userPlan = "free"; // free | ad | paid
@@ -1318,6 +1778,12 @@ Important balance:
 - If the face looks like a different person, the result is a failure.`;
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
+      const landingCarousel = document.getElementById("landingCarousel");
+      const landingSections = Array.from(document.querySelectorAll("#landingCarousel .landing-section"));
+      const landingDots = Array.from(document.querySelectorAll("[data-landing-dot]"));
+      const landingPrevButton = document.querySelector("[data-landing-prev]");
+      const landingNextButton = document.querySelector("[data-landing-next]");
+      const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
       const editorScreen = document.getElementById("editorScreen");
       const generatingScreen = document.getElementById("generatingScreen");
@@ -1666,6 +2132,58 @@ Important balance:
         }
       }
 
+      function sanitizeLogValue(value, depth = 0) {
+        if (value === null || typeof value === "undefined") {
+          return value;
+        }
+
+        if (typeof value === "string") {
+          if (value.startsWith("data:image/")) {
+            return `[data-image length=${value.length}]`;
+          }
+          if (value.length > 1200) {
+            return `${value.slice(0, 1200)}... [truncated length=${value.length}]`;
+          }
+          return value;
+        }
+
+        if (typeof value !== "object") {
+          return value;
+        }
+
+        if (depth > 4) {
+          return "[nested]";
+        }
+
+        if (Array.isArray(value)) {
+          return value.map((item) => sanitizeLogValue(item, depth + 1));
+        }
+
+        return Object.fromEntries(Object.entries(value).map(([key, item]) => {
+          const normalizedKey = key.replace(/[-_]/g, "").toLowerCase();
+          if (
+            ["apikey", "authorization", "secret", "signedurl", "accesstoken", "refreshtoken", "token"].includes(normalizedKey) ||
+            normalizedKey.endsWith("secret") ||
+            normalizedKey.endsWith("apikey")
+          ) {
+            return [key, "[redacted]"];
+          }
+          if (/imageBase64|b64_json|base64/i.test(key) && typeof item === "string") {
+            return [key, `[base64 length=${item.length}]`];
+          }
+          return [key, sanitizeLogValue(item, depth + 1)];
+        }));
+      }
+
+      function logMobileDebug(label, payload = undefined, level = "log") {
+        const method = typeof console[level] === "function" ? level : "log";
+        if (typeof payload === "undefined") {
+          console[method](`[mobile-debug] ${label}`);
+          return;
+        }
+        console[method](`[mobile-debug] ${label}`, sanitizeLogValue(payload));
+      }
+
       function setStatus(message) {
         statusText.textContent = message;
         if (generatingStatusText && appScreen === "generating") {
@@ -1729,29 +2247,164 @@ Important balance:
         return Number((bytes / ONE_MB_BYTES).toFixed(2));
       }
 
+      function getFileExtension(fileName = "") {
+        const normalizedName = String(fileName || "").trim().toLowerCase();
+        const extensionStart = normalizedName.lastIndexOf(".");
+        return extensionStart >= 0 ? normalizedName.slice(extensionStart) : "";
+      }
+
+      function inferContentTypeFromFileName(fileName = "") {
+        const extension = getFileExtension(fileName);
+        if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+        if (extension === ".png") return "image/png";
+        if (extension === ".webp") return "image/webp";
+        if (extension === ".heic") return "image/heic";
+        if (extension === ".heif") return "image/heif";
+        return "";
+      }
+
+      function getEffectiveFileType(file) {
+        return file?.type || inferContentTypeFromFileName(file?.name) || "application/octet-stream";
+      }
+
+      function getExtensionForContentType(contentType) {
+        if (contentType === "image/jpeg") return ".jpg";
+        if (contentType === "image/png") return ".png";
+        if (contentType === "image/webp") return ".webp";
+        if (contentType === "image/heic") return ".heic";
+        if (contentType === "image/heif") return ".heif";
+        return ".jpg";
+      }
+
+      function getUploadFileName(file) {
+        const name = String(file?.name || "").trim();
+        if (name) return name;
+        return `mobile-upload${getExtensionForContentType(getEffectiveFileType(file))}`;
+      }
+
+      function isHeicOrHeifFile(file) {
+        const effectiveType = getEffectiveFileType(file);
+        const extension = getFileExtension(file?.name);
+        return effectiveType === "image/heic" ||
+          effectiveType === "image/heif" ||
+          extension === ".heic" ||
+          extension === ".heif";
+      }
+
+      function isLargeMobileImage(file) {
+        return Number.isFinite(file?.size) && file.size > MOBILE_RECOMMENDED_MAX_IMAGE_BYTES;
+      }
+
+      function getFileDebugInfo(file) {
+        return {
+          name: getUploadFileName(file),
+          declaredType: file?.type || "",
+          effectiveType: getEffectiveFileType(file),
+          size: file?.size || 0,
+          sizeMB: toSizeMB(file?.size || 0),
+          extension: getFileExtension(file?.name),
+          isHeicOrHeif: isHeicOrHeifFile(file),
+        };
+      }
+
+      function getSelectedFileWarnings(file) {
+        const warnings = [];
+        if (isHeicOrHeifFile(file)) {
+          warnings.push(HEIC_UPLOAD_WARNING_MESSAGE);
+        }
+        if (isLargeMobileImage(file)) {
+          warnings.push(LARGE_IMAGE_WARNING_MESSAGE);
+        }
+        return warnings;
+      }
+
+      function getFileSpecificFailureMessage(file) {
+        if (isHeicOrHeifFile(file)) {
+          return HEIC_UPLOAD_WARNING_MESSAGE;
+        }
+        if (isLargeMobileImage(file)) {
+          return LARGE_IMAGE_WARNING_MESSAGE;
+        }
+        return "";
+      }
+
+      function getFileFailureFallbackMessage(file) {
+        return getFileSpecificFailureMessage(file) || "이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요.";
+      }
+
+      function createUploadFile(file) {
+        const effectiveType = getEffectiveFileType(file);
+        const uploadFileName = getUploadFileName(file);
+
+        if (file?.type === effectiveType && file?.name === uploadFileName) {
+          return file;
+        }
+
+        try {
+          return new File([file], uploadFileName, {
+            type: effectiveType,
+            lastModified: file?.lastModified || Date.now(),
+          });
+        } catch (error) {
+          console.warn("[upload] normalized File creation failed, using original file", error);
+          return file;
+        }
+      }
+
       async function requestSignedUploadUrl(file) {
         const requestUrl = `${FRONT_API_BASE_URL}/api/storage/create-upload-url`;
+        const fileInfo = getFileDebugInfo(file);
+        const uploadFileName = getUploadFileName(file);
+        const contentType = getEffectiveFileType(file);
+        logMobileDebug("upload url request start", {
+          requestUrl,
+          ...fileInfo,
+        });
         console.log("[upload] selected file", {
           apiBaseUrl: FRONT_API_BASE_URL,
-          name: file.name,
+          name: uploadFileName,
           sizeMB: toSizeMB(file.size),
-          type: file.type || "application/octet-stream",
+          type: contentType,
+          declaredType: file.type || "",
         });
 
-        const response = await fetch(requestUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fileName: file.name,
-            contentType: file.type || "application/octet-stream",
-          }),
-        });
+        let response;
+        try {
+          response = await fetch(requestUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fileName: uploadFileName,
+              contentType,
+            }),
+          });
+        } catch (error) {
+          logMobileDebug("upload url request fail", {
+            requestUrl,
+            ...fileInfo,
+            message: error?.message || String(error),
+          }, "error");
+          const uploadError = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
+          uploadError.publicMessage = getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
+          uploadError.cause = error;
+          throw uploadError;
+        }
+
         const responseBody = await readResponseBody(response);
         const data = parseJsonResponseBody(responseBody, SUPABASE_UPLOAD_FAILED_MESSAGE);
 
         if (!response.ok || !data.ok || !data.signedUrl || !data.path || !data.token) {
+          logMobileDebug("upload url request fail", {
+            status: response.status,
+            ok: Boolean(data.ok),
+            hasSignedUrl: Boolean(data.signedUrl),
+            hasToken: Boolean(data.token),
+            path: data.path || null,
+            message: data.message,
+            body: data,
+          }, "error");
           console.error("[upload] signed upload url failed", {
             status: response.status,
             ok: Boolean(data.ok),
@@ -1760,11 +2413,21 @@ Important balance:
             path: data.path || null,
             message: data.message,
           });
-          const error = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
-          error.publicMessage = SUPABASE_UPLOAD_FAILED_MESSAGE;
+          const error = new Error(data.message || SUPABASE_UPLOAD_FAILED_MESSAGE);
+          error.statusCode = data.status || response.status;
+          error.code = data.code || data.error || "";
+          error.response = data;
+          error.publicMessage = data.message || getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
           throw error;
         }
 
+        logMobileDebug("upload url request success", {
+          status: response.status,
+          path: data.path,
+          hasSignedUrl: Boolean(data.signedUrl),
+          hasToken: Boolean(data.token),
+          contentType,
+        });
         console.log("[upload] signed upload url received", {
           path: data.path,
           hasSignedUrl: Boolean(data.signedUrl),
@@ -1775,35 +2438,72 @@ Important balance:
       }
 
       async function uploadFileToSignedUrl(file, signedUpload) {
+        const uploadFile = createUploadFile(file);
+        const fileInfo = getFileDebugInfo(uploadFile);
+        logMobileDebug("signed upload start", {
+          path: signedUpload.path,
+          ...fileInfo,
+        });
         const uploadFormData = new FormData();
         uploadFormData.append("cacheControl", "3600");
-        uploadFormData.append("", file);
+        uploadFormData.append("", uploadFile, getUploadFileName(uploadFile));
 
-        const response = await fetch(signedUpload.signedUrl, {
-          method: "PUT",
-          body: uploadFormData,
-        });
+        let response;
+        try {
+          response = await fetch(signedUpload.signedUrl, {
+            method: "PUT",
+            body: uploadFormData,
+          });
+        } catch (error) {
+          logMobileDebug("signed upload fail", {
+            path: signedUpload.path,
+            ...fileInfo,
+            message: error?.message || String(error),
+          }, "error");
+          const uploadError = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
+          uploadError.publicMessage = getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
+          uploadError.cause = error;
+          throw uploadError;
+        }
 
         if (!response.ok) {
           let responseBody = "";
           try {
             responseBody = await response.text();
           } catch {}
+          let data = {};
+          try {
+            data = responseBody ? JSON.parse(responseBody) : {};
+          } catch {}
+          logMobileDebug("signed upload fail", {
+            status: response.status,
+            path: signedUpload.path,
+            ...fileInfo,
+            body: Object.keys(data).length ? data : responseBody,
+          }, "error");
           console.error("[upload] signed upload failed", {
             status: response.status,
             path: signedUpload.path,
-            responseBody,
+            responseBody: sanitizeLogValue(responseBody),
           });
-          const error = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
-          error.publicMessage = SUPABASE_UPLOAD_FAILED_MESSAGE;
+          const error = new Error(data.message || SUPABASE_UPLOAD_FAILED_MESSAGE);
+          error.statusCode = data.status || response.status;
+          error.code = data.code || data.error || "";
+          error.response = data;
+          error.publicMessage = data.message || getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
           throw error;
         }
 
+        logMobileDebug("signed upload success", {
+          status: response.status,
+          path: signedUpload.path,
+          ...fileInfo,
+        });
         console.log("[upload] upload complete", {
           path: signedUpload.path,
           status: response.status,
-          fileName: file.name,
-          sizeMB: toSizeMB(file.size),
+          fileName: uploadFile.name,
+          sizeMB: toSizeMB(uploadFile.size),
         });
 
         return signedUpload.path;
@@ -2095,6 +2795,7 @@ ${modeExample}`;
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
         const imagePath = await uploadImageToPrivateStorage(imageFile);
+        const fileInfo = getFileDebugInfo(imageFile);
         const formData = new FormData();
         formData.append("imagePath", imagePath);
         formData.append("mode", generationMode);
@@ -2119,21 +2820,51 @@ ${modeExample}`;
 
         ensureApiBaseUrlConfigured();
         const anonymousId = getAnonymousId();
-        console.log("[generate] anonymous id", anonymousId);
-        const response = await fetch(requestUrl, {
-          method: "POST",
-          headers: {
-            "X-Anonymous-Id": anonymousId,
-          },
-          body: formData,
+        logMobileDebug("generate request start", {
+          requestUrl,
+          requestedMode: mode,
+          generationMode,
+          presetKey: config.presetKey,
+          imagePath,
+          hasAnonymousId: Boolean(anonymousId),
+          ...fileInfo,
         });
+        console.log("[generate] anonymous id", {
+          hasAnonymousId: Boolean(anonymousId),
+        });
+        let response;
+        try {
+          response = await fetch(requestUrl, {
+            method: "POST",
+            headers: {
+              "X-Anonymous-Id": anonymousId,
+            },
+            body: formData,
+          });
+        } catch (error) {
+          logMobileDebug("generate response status", {
+            status: "network-error",
+            requestUrl,
+            message: error?.message || String(error),
+          }, "error");
+          const generateError = new Error("이미지 생성 요청에 실패했습니다.");
+          generateError.publicMessage = getFileFailureFallbackMessage(imageFile);
+          generateError.cause = error;
+          throw generateError;
+        }
         const responseBody = await readResponseBody(response);
+        logMobileDebug("generate response status", {
+          status: response.status,
+          ok: response.ok,
+          requestUrl,
+        }, response.ok ? "log" : "error");
         console.log("[client][generate][response]", {
           API_BASE_URL: FRONT_API_BASE_URL,
           requestUrl,
           status: response.status,
         });
         const data = parseJsonResponseBody(responseBody, "서버 응답을 읽지 못했습니다.");
+        logMobileDebug("generate response body", data, response.ok ? "log" : "error");
 
         if (!response.ok || !data.ok) {
           const isInsufficientCredits =
@@ -2149,8 +2880,8 @@ ${modeExample}`;
             presetKey: config.presetKey,
             hasImage: Boolean(imageFile),
             message: data.message,
-            errorBody: responseBody,
-            response: data,
+            errorBody: sanitizeLogValue(responseBody),
+            response: sanitizeLogValue(data),
           });
           const error = new Error(data.message || "이미지 생성 실패");
           error.statusCode = data.status || response.status;
@@ -2161,8 +2892,10 @@ ${modeExample}`;
             error.isInsufficientCredits = true;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
-          } else if (data.message === SOURCE_IMAGE_LOAD_FAILED_MESSAGE) {
-            error.publicMessage = SOURCE_IMAGE_LOAD_FAILED_MESSAGE;
+          } else if (data.message) {
+            error.publicMessage = data.message;
+          } else {
+            error.publicMessage = getFileFailureFallbackMessage(imageFile);
           }
           throw error;
         }
@@ -2957,7 +3690,115 @@ ${modeExample}`;
           originalImageUrl: originalImageUrl || "local-preview-data-url",
           recommendedImageUrl: Number.isInteger(recommendedIndex) ? imageUrls[recommendedIndex] : imageUrls[0],
         });
-        console.log("[client][grok-edit] generation success:", data);
+        console.log("[client][grok-edit] generation success:", sanitizeLogValue(data));
+      }
+
+      function getLandingIndex() {
+        if (!landingCarousel) return 0;
+        const width = landingCarousel.clientWidth || window.innerWidth || 1;
+        return Math.min(
+          Math.max(Math.round(landingCarousel.scrollLeft / width), 0),
+          Math.max(landingSections.length - 1, 0),
+        );
+      }
+
+      function syncLandingControls() {
+        const activeIndex = getLandingIndex();
+        landingDots.forEach((dot, index) => {
+          const isActive = index === activeIndex;
+          dot.classList.toggle("is-active", isActive);
+          dot.setAttribute("aria-selected", String(isActive));
+        });
+
+        if (landingPrevButton) {
+          landingPrevButton.disabled = activeIndex <= 0;
+        }
+        if (landingNextButton) {
+          landingNextButton.disabled = activeIndex >= landingSections.length - 1;
+        }
+      }
+
+      function scrollLandingTo(index) {
+        if (!landingCarousel || !landingSections.length) return;
+        const boundedIndex = Math.min(Math.max(index, 0), landingSections.length - 1);
+        landingCarousel.scrollTo({
+          left: boundedIndex * landingCarousel.clientWidth,
+          behavior: "smooth",
+        });
+      }
+
+      function setupLandingCarousel() {
+        if (!landingCarousel) return;
+
+        landingCarousel.addEventListener("scroll", () => {
+          window.requestAnimationFrame(syncLandingControls);
+        }, { passive: true });
+
+        landingDots.forEach((dot) => {
+          dot.addEventListener("click", () => {
+            scrollLandingTo(Number.parseInt(dot.dataset.landingDot, 10) || 0);
+          });
+        });
+
+        landingPrevButton?.addEventListener("click", () => {
+          scrollLandingTo(getLandingIndex() - 1);
+        });
+        landingNextButton?.addEventListener("click", () => {
+          scrollLandingTo(getLandingIndex() + 1);
+        });
+
+        landingCarousel.addEventListener("wheel", (event) => {
+          if (appScreen !== "landing" || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+          event.preventDefault();
+          landingCarousel.scrollBy({
+            left: event.deltaY,
+            behavior: "smooth",
+          });
+        }, { passive: false });
+
+        window.addEventListener("resize", () => {
+          scrollLandingTo(getLandingIndex());
+          syncLandingControls();
+        });
+
+        syncLandingControls();
+      }
+
+      function setupBeforeAfterSliders() {
+        beforeAfterSliders.forEach((slider) => {
+          const input = slider.querySelector(".before-after-input");
+          if (!input) return;
+
+          const updateSplit = (value) => {
+            const split = Math.min(Math.max(Number(value) || 50, 8), 92);
+            slider.style.setProperty("--split", `${split}%`);
+            input.value = String(split);
+          };
+
+          input.addEventListener("input", () => updateSplit(input.value));
+          slider.addEventListener("pointerdown", (event) => {
+            const updateFromPointer = (pointerEvent) => {
+              const rect = slider.getBoundingClientRect();
+              const split = ((pointerEvent.clientX - rect.left) / rect.width) * 100;
+              updateSplit(split);
+            };
+
+            updateFromPointer(event);
+            slider.setPointerCapture?.(event.pointerId);
+            const onPointerMove = (pointerEvent) => updateFromPointer(pointerEvent);
+            const onPointerUp = () => {
+              slider.removeEventListener("pointermove", onPointerMove);
+              slider.removeEventListener("pointerup", onPointerUp);
+              slider.removeEventListener("pointercancel", onPointerUp);
+            };
+
+            slider.addEventListener("pointermove", onPointerMove);
+            slider.addEventListener("pointerup", onPointerUp);
+            slider.addEventListener("pointercancel", onPointerUp);
+          });
+
+          updateSplit(input.value);
+        });
       }
 
       document.addEventListener("submit", (event) => {
@@ -3059,6 +3900,8 @@ ${modeExample}`;
         input.addEventListener("change", syncGenerationModeUi);
       });
       syncGenerationModeUi();
+      setupLandingCarousel();
+      setupBeforeAfterSliders();
       setAppScreen("landing", { pushHistory: false });
       replaceAppHistoryState("landing", null);
       pushAppHistoryState("landing", null);
@@ -3151,15 +3994,41 @@ ${modeExample}`;
         }
 
         hideError();
-        selectedImageDataUrl = await readFileAsDataUrl(selectedFile);
-        sourcePreview.src = selectedImageDataUrl;
-        sourceSection.classList.remove("hidden");
-        syncPhotoUploadUi();
+        const selectedFileInfo = getFileDebugInfo(selectedFile);
+        logMobileDebug("selected file name", selectedFileInfo.name);
+        logMobileDebug("selected file type", {
+          declaredType: selectedFileInfo.declaredType,
+          effectiveType: selectedFileInfo.effectiveType,
+          extension: selectedFileInfo.extension,
+        });
+        logMobileDebug("selected file size", {
+          size: selectedFileInfo.size,
+          sizeMB: selectedFileInfo.sizeMB,
+        });
+        try {
+          selectedImageDataUrl = await readFileAsDataUrl(selectedFile);
+          sourcePreview.src = selectedImageDataUrl;
+          sourceSection.classList.remove("hidden");
+          syncPhotoUploadUi();
+        } catch (error) {
+          selectedImageDataUrl = "";
+          sourcePreview.removeAttribute("src");
+          sourceSection.classList.add("hidden");
+          syncPhotoUploadUi();
+          logMobileDebug("selected file preview fail", {
+            ...selectedFileInfo,
+            message: error?.message || String(error),
+          }, "error");
+        }
         generateButton.disabled = false;
         if (!isGenerating && !imageUrls.length) {
           resultSection.classList.add("hidden");
         }
         setStatus("이미지가 선택되었습니다. 생성 버튼을 눌러주세요.");
+        const selectedFileWarnings = getSelectedFileWarnings(selectedFile);
+        if (selectedFileWarnings.length) {
+          showError(selectedFileWarnings.join("\n"));
+        }
         console.log("[client][grok-edit] upload ready:", {
           fileName: selectedFile.name,
           fileType: selectedFile.type,
@@ -3200,15 +4069,18 @@ ${modeExample}`;
         } catch (error) {
           console.error("[client][grok-edit] generation failed:", error);
           if (error.response) {
-            console.error("[client][grok-edit] server details:", error.response);
+            console.error("[client][grok-edit] server details:", sanitizeLogValue(error.response));
           }
           clearResults();
           setAppScreen("editor", { replaceHistory: true });
           setStatus(error.isInsufficientCredits ? "크레딧 충전 후 같은 사진으로 다시 생성할 수 있어요." : "");
+          const publicFailureMessage = error.publicMessage ||
+            error.response?.message ||
+            getFileFailureFallbackMessage(selectedFile);
           showError(
             error.isInsufficientCredits
               ? error.publicMessage || "크레딧이 부족합니다. 충전 후 이용해 주세요."
-              : error.publicMessage || "이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요.",
+              : publicFailureMessage,
             { showCreditButton: error.isInsufficientCredits },
           );
         } finally {

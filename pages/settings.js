@@ -45,7 +45,7 @@ export function renderSettingsPage(state) {
           </label>
         </div>
 
-        <button class="rounded-DEFAULT p-4 glass-panel flex items-center justify-between" data-action="show-alert" data-message="문의 기능은 준비 중입니다.">
+        <button class="rounded-DEFAULT p-4 glass-panel flex items-center justify-between" data-action="open-assistant-chat">
           <div>
             <p class="font-display">고객센터 / 문의</p>
             <p class="text-sm text-on-surface-variant mt-1">서비스 이용 중 궁금한 점을 문의하세요</p>

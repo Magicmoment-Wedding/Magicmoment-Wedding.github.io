@@ -14,6 +14,7 @@ import { renderStudioPage } from "./pages/studio.js";
 import { renderSuggestionsPage } from "./pages/suggestions.js";
 import { renderCreditsPage } from "./pages/credits.js";
 import { renderSettingsPage } from "./pages/settings.js";
+import { openAssistantChat } from "./services/assistant-chat.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
@@ -145,11 +146,6 @@ function openCustomPresetModal() {
 
 function getGalleryStyle(styleId) {
   return STYLE_GALLERY.find((item) => item.id === styleId) ?? STYLE_GALLERY[0];
-}
-
-function getLastUserQuestion(messages) {
-  const lastUserMessage = [...messages].reverse().find((message) => message.role === "user");
-  return lastUserMessage?.text ?? "";
 }
 
 function getRecommendedResultIndex(payload) {
@@ -461,15 +457,7 @@ function applyGalleryStyle(styleId) {
 }
 
 function connectAssistantToExpert() {
-  const state = getState();
-  const idea = state.assistantDraft.trim() || getLastUserQuestion(state.assistantMessages);
-
-  updateState({
-    conciergeSource: "assistant",
-    conciergeConcept: idea || state.conciergeConcept,
-  });
-
-  navigate(ROUTES.CONCIERGE);
+  openAssistantChat();
 }
 
 async function handleAction(action, target) {
@@ -499,6 +487,11 @@ async function handleAction(action, target) {
 
   if (action === "show-alert") {
     window.alert(target?.dataset?.message ?? "준비 중입니다.");
+    return;
+  }
+
+  if (action === "open-assistant-chat") {
+    openAssistantChat();
     return;
   }
 

@@ -1,13 +1,8 @@
-import { HOME_SHOWCASE, SERVICE_CARDS } from "../mock/wedding-data.js";
-
-function getServiceCard(route, fallback = {}) {
-  return SERVICE_CARDS.find((item) => item.route === route) ?? fallback;
-}
+import { HOME_SHOWCASE } from "../mock/wedding-data.js";
 
 export function renderHomePage() {
   const parisImage = HOME_SHOWCASE[0]?.thumbnail ?? "mock-images/home/home_paris_couple_01.png";
   const disneyImage = HOME_SHOWCASE[1]?.thumbnail ?? "mock-images/home/home_disney_bride_01.png";
-  const assistant = getServiceCard("assistant", { route: "assistant", title: "어시스턴트" });
 
   return `
     <section class="pt-1">
@@ -59,7 +54,7 @@ export function renderHomePage() {
     <section class="mt-7 pb-6">
       <h2 class="text-[17px] font-semibold text-on-surface">더 많은 기능</h2>
       <div class="mt-4 grid grid-cols-3 gap-3">
-        <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-route="${assistant.route}">
+        <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-action="open-assistant-chat">
           <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">auto_awesome</span>
           <span class="text-[11px] font-medium">어시스턴트</span>
         </button>

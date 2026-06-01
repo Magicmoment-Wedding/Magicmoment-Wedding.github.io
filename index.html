@@ -1096,7 +1096,7 @@
                 <p class="landing-eyebrow">Custom Concept</p>
                 <h2 class="landing-title">당신의 상상력을<br />더하세요</h2>
                 <p class="landing-copy">메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.</p>
-                <button class="landing-primary-button w-full sm:w-fit" data-action="assistant-placeholder" type="button">
+                <button class="landing-primary-button w-full sm:w-fit" data-action="open-assistant-chat" type="button">
                   <span>어시스턴트에게 문의하기</span>
                   <span class="material-symbols-outlined text-[19px]">chat</span>
                 </button>
@@ -1168,7 +1168,7 @@
                     <p class="landing-plan-price mt-3">99,000원</p>
                     <p class="landing-plan-copy mt-2">업스케일링 + 맞춤 제작</p>
                   </div>
-                  <button class="landing-plan-button" data-action="assistant-placeholder" type="button">문의하기</button>
+                  <button class="landing-plan-button" data-action="open-assistant-chat" type="button">문의하기</button>
                 </article>
               </div>
             </div>
@@ -1246,7 +1246,7 @@
               <section class="mt-7 pb-6">
                 <h2 class="text-[17px] font-semibold text-on-surface">더 많은 기능</h2>
                 <div class="mt-4 grid grid-cols-3 gap-3">
-                  <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-action="assistant-placeholder" type="button">
+                  <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-action="open-assistant-chat" type="button">
                     <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">auto_awesome</span>
                     <span class="text-[11px] font-medium">어시스턴트</span>
                   </button>
@@ -3867,6 +3867,7 @@ ${modeExample}`;
       const topSettingsButton = document.getElementById("topSettingsButton");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
+      const ASSISTANT_CHAT_URL = "http://pf.kakao.com/_xeNSts/chat";
       const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
 
       if (topCreditButton) {
@@ -3895,11 +3896,22 @@ ${modeExample}`;
         });
       }
 
+      function openAssistantChat() {
+        const chatWindow = window.open(ASSISTANT_CHAT_URL, "_blank");
+
+        if (chatWindow) {
+          chatWindow.opener = null;
+          return;
+        }
+
+        window.location.assign(ASSISTANT_CHAT_URL);
+      }
+
       featureActionButtons.forEach((button) => {
         button.addEventListener("click", () => {
           const action = button.dataset.action;
-          if (action === "assistant-placeholder") {
-            alert("어시스턴트는 준비 중입니다.");
+          if (action === "open-assistant-chat") {
+            openAssistantChat();
           }
           if (action === "gallery-placeholder") {
             alert("갤러리는 준비 중입니다.");
@@ -3925,7 +3937,7 @@ ${modeExample}`;
 
       if (bottomAssistantButton) {
         bottomAssistantButton.addEventListener("click", () => {
-          alert("어시스턴트는 준비 중입니다.");
+          openAssistantChat();
         });
       }
 

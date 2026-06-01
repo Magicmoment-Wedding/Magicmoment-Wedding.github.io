@@ -32,7 +32,13 @@ export function renderBottomNav({ route }) {
     <nav class="fixed bottom-3 left-4 right-4 max-w-md mx-auto z-50 grid grid-cols-3 items-center h-[64px] rounded-[24px] bg-white/80 backdrop-blur-2xl border border-white/70 shadow-[0_-10px_38px_rgba(129,80,92,0.12)] md:hidden">
       ${navButton({ label: "사진편집", icon: "add_photo_alternate", isActive: isCreateActive, route: "create" })}
       ${navButton({ label: "홈", icon: "home", isActive: route === "home", route: "home", isHome: true })}
-      ${navButton({ label: "어시스턴트", icon: "smart_toy", isActive: isAssistantActive, route: "assistant" })}
+      <button
+        class="flex flex-col items-center justify-center gap-1 text-[11px] transition-colors ${isAssistantActive ? "text-primary" : "text-on-surface-variant hover:text-primary"}"
+        data-action="open-assistant-chat"
+      >
+        <span class="material-symbols-outlined text-[21px] active:scale-105 transition-transform" style="font-variation-settings: 'FILL' ${isAssistantActive ? 1 : 0};">smart_toy</span>
+        <span class="font-label-caps text-[11px] leading-none">어시스턴트</span>
+      </button>
     </nav>
   `;
 }

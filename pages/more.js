@@ -12,7 +12,7 @@ export function renderMorePage() {
 
     <section class="grid grid-cols-1 gap-4">
       ${items.map((item) => `
-        <button class="w-full glass-panel glow-shadow rounded-xl p-5 text-left flex items-center justify-between gap-4 transition-transform active:scale-[0.98]" data-route="${item.route}">
+        <button class="w-full glass-panel glow-shadow rounded-xl p-5 text-left flex items-center justify-between gap-4 transition-transform active:scale-[0.98]" ${item.route === "assistant" ? 'data-action="open-assistant-chat"' : `data-route="${item.route}"`}>
           <div class="flex-1">
             <p class="font-label-caps text-label-caps text-primary tracking-widest">${item.preset} · ${item.mood}</p>
             <p class="font-display text-[28px] leading-none text-on-surface mt-2">${item.title}</p>

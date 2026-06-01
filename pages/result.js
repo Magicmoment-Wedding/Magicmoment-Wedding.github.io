@@ -220,8 +220,9 @@ export function renderResultPage(state) {
     <section class="w-full flex flex-col gap-3">
       <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="download-result">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">download</span>
-        선택 이미지 다운로드
+        사진/갤러리에 저장
       </button>
+      <p class="px-2 text-xs leading-5 text-on-surface-variant">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요. 데스크톱에서는 이미지가 다운로드됩니다.</p>
       <button class="w-full h-14 rounded-full ${generationMeta.upscaleIncluded ? "glass-panel text-primary" : "bg-primary/90 text-on-primary shadow-[0_8px_20px_rgba(129,80,92,0.3)]"} font-button text-button backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95 group" data-action="purchase-upscale">
         <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
         ${generationMeta.upscaleIncluded ? "고해상도 변환 완료" : `고해상도 변환 (${CREDIT_PRICING.upscale} 크레딧)`}

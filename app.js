@@ -26,6 +26,72 @@ import { getState, subscribe, updateState } from "./services/store.js";
 const app = document.getElementById("app");
 let latestCreditsRequestId = 0;
 
+function isMobileSaveEnvironment() {
+  const userAgent = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ||
+    window.matchMedia?.("(pointer: coarse)")?.matches === true;
+}
+
+function getImageSaveLabel() {
+  return isMobileSaveEnvironment() ? "사진/갤러리에 저장" : "이미지 다운로드";
+}
+
+function getShareCancelError(error) {
+  return error?.name === "AbortError" || /abort|cancel|canceled|cancelled/i.test(error?.message || "");
+}
+
+function fallbackDownloadImage(imageUrl, filename) {
+  const link = document.createElement("a");
+  link.href = imageUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+async function saveImageForDevice(imageUrl, filename = "magic-ai-studio-result.jpg") {
+  const isMobile = isMobileSaveEnvironment();
+
+  if (isMobile && navigator.share && navigator.canShare && typeof File === "function") {
+    try {
+      const response = await fetch(imageUrl);
+
+      if (!response.ok) {
+        throw new Error("이미지를 가져오지 못했습니다.");
+      }
+
+      const blob = await response.blob();
+      const file = new File([blob], filename, { type: blob.type || "image/jpeg" });
+
+      if (navigator.canShare({ files: [file] })) {
+        window.alert("저장 창이 열렸습니다. 사진 앱 저장을 선택해 주세요.");
+        await navigator.share({
+          files: [file],
+          title: "Magic Ai Studio 결과 이미지",
+          text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
+        });
+        return;
+      }
+    } catch (error) {
+      if (getShareCancelError(error)) {
+        return;
+      }
+
+      console.warn("[save] share failed, using fallback", error);
+    }
+  }
+
+  fallbackDownloadImage(imageUrl, filename);
+
+  if (isMobile) {
+    window.alert("저장이 바로 되지 않으면 열린 이미지를 길게 눌러 ‘사진에 저장’을 선택해 주세요.");
+    const opened = window.open(imageUrl, "_blank");
+    if (opened) {
+      opened.opener = null;
+    }
+  }
+}
+
 function renderRoute(route, state) {
   if (route === ROUTES.RESULT && state.results.length === 0) {
     navigate(ROUTES.HOME);
@@ -203,6 +269,10 @@ function openImageModal(imageUrl, label) {
       ...item,
       index,
       items,
+      saveLabel: getImageSaveLabel(),
+      saveHelp: isMobileSaveEnvironment()
+        ? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요."
+        : "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.",
     },
   });
 }
@@ -228,6 +298,10 @@ function moveImageModal(direction) {
       ...nextItem,
       index: nextIndex,
       items,
+      saveLabel: getImageSaveLabel(),
+      saveHelp: isMobileSaveEnvironment()
+        ? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요."
+        : "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.",
     },
   });
 }
@@ -408,7 +482,7 @@ function handlePrintOrder(productId) {
   });
 }
 
-function downloadSelectedResult() {
+async function downloadSelectedResult() {
   const state = getState();
   const selectedResult = state.results[state.selectedThumbnailIndex] ?? state.results[0];
 
@@ -416,12 +490,7 @@ function downloadSelectedResult() {
     return;
   }
 
-  const link = document.createElement("a");
-  link.href = selectedResult.afterUrl;
-  link.download = `${selectedResult.id ?? "bloom-result"}.png`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  await saveImageForDevice(selectedResult.afterUrl, `${selectedResult.id ?? "magic-ai-studio-result"}.jpg`);
 }
 
 function submitCustomPreset() {
@@ -535,6 +604,14 @@ async function handleAction(action, target) {
 
   if (action === "image-modal-next") {
     moveImageModal(1);
+    return;
+  }
+
+  if (action === "save-image-modal") {
+    const modal = getState().activeImageModal;
+    if (modal?.url) {
+      await saveImageForDevice(modal.url, `${modal.label || "magic-ai-studio-result"}.jpg`);
+    }
     return;
   }
 
@@ -729,7 +806,8 @@ async function handleAction(action, target) {
   }
 
   if (action === "download-result") {
-    downloadSelectedResult();
+    await downloadSelectedResult();
+    return;
   }
 }
 

@@ -215,6 +215,13 @@ function renderImageModal(imageModal) {
             </button>
           </div>
         ` : ""}
+        <div class="flex flex-col items-center gap-2">
+          <button class="h-12 min-w-52 rounded-full bg-white/90 px-6 text-primary font-button flex items-center justify-center gap-2" data-action="save-image-modal">
+            <span class="material-symbols-outlined text-[20px]">download</span>
+            <span>${escapeHtml(imageModal.saveLabel ?? "이미지 다운로드")}</span>
+          </button>
+          <p class="max-w-sm text-center text-xs leading-5 text-white/70">${escapeHtml(imageModal.saveHelp ?? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요.")}</p>
+        </div>
       </div>
     </div>
   `;

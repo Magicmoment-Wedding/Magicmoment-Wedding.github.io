@@ -281,6 +281,124 @@
         transform: translateX(3px);
       }
 
+      .editor-screen {
+        padding-bottom: 132px;
+      }
+
+      .editor-upload-card {
+        min-height: clamp(248px, 42dvh, 330px);
+        border-radius: 26px;
+        border-style: solid;
+      }
+
+      .editor-style-toggle {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        padding: 6px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      }
+
+      .editor-style-option {
+        min-width: 0;
+        min-height: 42px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        color: #7a6267;
+        background: rgba(255, 255, 255, 0.76);
+        font-size: 12px;
+        font-weight: 700;
+        word-break: keep-all;
+        transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      }
+
+      .editor-style-option:has(input:checked) {
+        color: #fff;
+        background: var(--rose-deep);
+        box-shadow: 0 12px 28px rgba(129, 80, 92, 0.24);
+      }
+
+      .editor-option-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .editor-option-card {
+        min-height: 96px;
+        border-radius: 18px;
+        padding: 14px;
+        color: #6f5b60;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+        text-align: left;
+        font-size: 13px;
+        line-height: 1.35;
+        word-break: keep-all;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .editor-option-card:has(input:checked) {
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.86);
+        border-color: var(--rose-deep);
+        box-shadow: 0 14px 34px rgba(129, 80, 92, 0.13);
+      }
+
+      .editor-option-check {
+        width: 20px;
+        height: 20px;
+        border-radius: 9999px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: var(--rose-deep);
+        opacity: 0;
+        transform: scale(0.82);
+        transition: opacity 160ms ease, transform 160ms ease;
+      }
+
+      .editor-option-card:has(input:checked) .editor-option-check {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .editor-option-card.is-disabled {
+        cursor: default;
+        opacity: 0.68;
+        background: rgba(255, 255, 255, 0.5);
+        border-color: rgba(129, 80, 92, 0.12);
+      }
+
+      .editor-option-badge {
+        align-self: flex-start;
+        border-radius: 9999px;
+        padding: 4px 8px;
+        color: #9a6f78;
+        background: rgba(129, 80, 92, 0.08);
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .editor-generate-button {
+        position: sticky;
+        bottom: 0;
+        min-height: 58px;
+        flex-direction: column;
+        gap: 2px;
+        z-index: 4;
+      }
+
       .result-card {
         border-radius: 28px;
         background: rgba(255, 255, 255, 0.54);
@@ -320,13 +438,12 @@
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: clamp(12px, 3vw, 28px);
-        padding: clamp(20px, 4vw, 48px) 18px clamp(72px, 8vw, 118px);
+        padding: clamp(18px, 4vw, 36px) 18px clamp(76px, 8vw, 120px);
       }
 
       .landing-section {
         width: 100%;
-        padding: clamp(28px, 6vw, 78px) 0;
+        padding: clamp(44px, 8vw, 104px) 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -335,8 +452,26 @@
       .landing-section-inner {
         width: min(1120px, 100%);
         display: grid;
-        gap: 20px;
+        gap: clamp(24px, 5vw, 56px);
         align-content: center;
+      }
+
+      .landing-hero-section {
+        padding-top: clamp(22px, 4vw, 44px);
+      }
+
+      .landing-hero-section .landing-section-inner {
+        width: min(920px, 100%);
+        justify-items: center;
+        text-align: center;
+      }
+
+      .landing-hero-copy {
+        max-width: 660px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
       }
 
       .landing-brand-row {
@@ -359,17 +494,19 @@
       .landing-title {
         color: var(--ink);
         font-family: "Cormorant Garamond", serif;
-        font-size: clamp(36px, 9vw, 68px);
-        line-height: 0.98;
+        font-size: clamp(34px, 7vw, 56px);
+        line-height: 1.16;
         font-weight: 600;
         letter-spacing: 0;
+        word-break: keep-all;
       }
 
       .landing-copy {
         max-width: 560px;
         color: #6f5b60;
         font-size: 15px;
-        line-height: 1.65;
+        line-height: 1.78;
+        word-break: keep-all;
       }
 
       .landing-primary-button,
@@ -408,7 +545,9 @@
         position: relative;
         overflow: hidden;
         border-radius: 30px;
-        aspect-ratio: 4 / 5;
+        width: 100%;
+        max-width: 760px;
+        aspect-ratio: 16 / 9;
         min-height: 0;
         background:
           linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(246, 235, 236, 0.72)),
@@ -424,7 +563,7 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
-        object-position: center 45%;
+        object-position: center 48%;
         user-select: none;
         -webkit-user-drag: none;
       }
@@ -514,14 +653,15 @@
       .landing-gallery-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1.05fr 0.82fr 0.92fr;
-        gap: 12px;
-        min-height: 390px;
+        gap: 14px;
+      }
+
+      .landing-gallery-grid .landing-photo-card {
+        aspect-ratio: 3 / 4;
       }
 
       .landing-photo-card,
-      .landing-plan-card,
-      .landing-concept-card {
+      .landing-plan-card {
         overflow: hidden;
         border-radius: 26px;
         background: rgba(255, 255, 255, 0.62);
@@ -529,8 +669,7 @@
         box-shadow: 0 18px 50px rgba(129, 80, 92, 0.13);
       }
 
-      .landing-photo-card img,
-      .landing-concept-card img {
+      .landing-photo-card img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -538,50 +677,48 @@
       }
 
       .landing-photo-tall {
-        grid-row: span 2;
+        margin-top: 0;
       }
 
       .landing-photo-wide {
-        grid-column: span 2;
+        margin-top: 0;
       }
 
-      .landing-concepts {
-        display: grid;
-        gap: 12px;
+      .landing-gallery-grid .landing-photo-card:nth-child(even) {
+        margin-top: 28px;
       }
 
-      .landing-concept-card {
-        display: grid;
-        grid-template-columns: 112px minmax(0, 1fr);
-        min-height: 126px;
+      .landing-custom-image {
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        overflow: hidden;
+        border-radius: 30px;
+        background: #fff8f7;
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        box-shadow: 0 24px 70px rgba(129, 80, 92, 0.18);
       }
 
-      .landing-concept-card img {
+      .landing-custom-image img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
         object-position: center;
-      }
-
-      .landing-concept-copy {
-        min-width: 0;
-        padding: 18px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 6px;
       }
 
       .landing-pricing-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 14px;
       }
 
       .landing-plan-card {
-        min-height: 148px;
-        padding: 14px;
+        min-height: 182px;
+        padding: 18px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 10px;
+        gap: 18px;
       }
 
       .landing-plan-card.is-featured {
@@ -590,9 +727,19 @@
         box-shadow: 0 22px 58px rgba(129, 80, 92, 0.19);
       }
 
+      .landing-plan-eyebrow {
+        margin-bottom: 12px;
+        color: #9a6f78;
+        font-family: Outfit, sans-serif;
+        font-size: 10px;
+        line-height: 1;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+      }
+
       .landing-plan-title {
         color: #2a2224;
-        font-size: 14px;
+        font-size: 16px;
         line-height: 1.25;
         font-weight: 700;
         word-break: keep-all;
@@ -601,20 +748,21 @@
       .landing-plan-price {
         color: var(--rose-deep);
         font-family: "Cormorant Garamond", serif;
-        font-size: 26px;
+        font-size: 30px;
         line-height: 1;
         font-weight: 700;
       }
 
       .landing-plan-copy {
         color: #725e63;
-        font-size: 12px;
-        line-height: 1.35;
+        font-size: 13px;
+        line-height: 1.5;
+        word-break: keep-all;
       }
 
       .landing-plan-button {
-        min-height: 34px;
-        border-radius: 9999px;
+        min-height: 40px;
+        border-radius: 14px;
         color: var(--rose-deep);
         background: rgba(255, 255, 255, 0.72);
         border: 1px solid rgba(129, 80, 92, 0.16);
@@ -805,6 +953,10 @@
           align-items: center;
         }
 
+        .landing-hero-section .landing-section-inner {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
         .landing-section-inner.single-column {
           max-width: 1120px;
           grid-template-columns: minmax(0, 1fr);
@@ -815,69 +967,58 @@
         }
 
         .landing-gallery-grid {
-          min-height: 520px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 18px;
         }
 
-        .landing-concepts {
-          gap: 16px;
-        }
-
-        .landing-concept-card {
-          grid-template-columns: 150px minmax(0, 1fr);
-          min-height: 154px;
+        .landing-gallery-grid .landing-photo-card:nth-child(even) {
+          margin-top: 48px;
         }
 
         .landing-pricing-grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 14px;
+          gap: 18px;
         }
 
         .landing-plan-card {
-          min-height: 190px;
-          padding: 18px;
+          min-height: 248px;
+          padding: 28px;
         }
       }
 
       @media (max-width: 420px) {
         .landing-sections {
-          padding: 12px 16px 84px;
-          gap: 4px;
+          padding: 6px 14px 80px;
         }
 
         .landing-section {
-          padding: 26px 0;
+          padding: 42px 0;
           align-items: stretch;
         }
 
         .landing-section-inner {
-          gap: 16px;
+          gap: 28px;
         }
 
         .landing-title {
-          font-size: 38px;
+          font-size: 34px;
         }
 
         .before-after-compare {
-          border-radius: 26px;
+          border-radius: 18px;
+          aspect-ratio: 1.72 / 1;
         }
 
         .landing-gallery-grid {
-          min-height: 342px;
           gap: 10px;
         }
 
-        .landing-concept-card {
-          grid-template-columns: 96px minmax(0, 1fr);
-          min-height: 112px;
+        .landing-custom-image {
           border-radius: 22px;
         }
 
-        .landing-concept-copy {
-          padding: 14px;
-        }
-
         .landing-plan-card {
-          min-height: 136px;
+          min-height: 214px;
           padding: 12px;
           border-radius: 22px;
         }
@@ -946,7 +1087,7 @@
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
         <div class="landing-sections" id="landingSections" aria-label="Magic Ai Studio 랜딩 소개">
-          <section class="landing-section" aria-label="Before After 쇼케이스">
+          <section class="landing-section landing-hero-section" aria-label="Before After 쇼케이스">
             <div class="landing-section-inner">
               <div class="flex flex-col gap-5">
                 <div class="landing-brand-row">
@@ -960,15 +1101,6 @@
                     </div>
                   </div>
                 </div>
-                <div>
-                  <p class="landing-eyebrow">Before / After</p>
-                  <h1 class="landing-title mt-3">웨딩사진을<br />새로운 순간으로</h1>
-                  <p class="landing-copy mt-4">얼굴과 포즈는 유지하고, 배경과 분위기만 자연스럽게 바꿔드려요.</p>
-                </div>
-                <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
-                  <span>사진 편집 시작하기</span>
-                  <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                </button>
               </div>
               <div class="before-after-compare" data-before-after-slider>
                 <img class="before-after-after" src="mock-images/after/after_paris_couple_01.png" alt="AI 편집 후 파리 웨딩사진" />
@@ -981,6 +1113,17 @@
                 <span class="before-after-label before">Before</span>
                 <span class="before-after-label after">After</span>
                 <input class="before-after-input" type="range" min="8" max="92" value="52" aria-label="Before After 비교 슬라이더" />
+              </div>
+              <div class="landing-hero-copy">
+                <div>
+                  <p class="landing-eyebrow">Before / After</p>
+                  <h1 class="landing-title mt-3">웨딩사진을 새로운 순간으로</h1>
+                  <p class="landing-copy mt-4">얼굴과 포즈는 유지하고, 배경과 분위기만 자연스럽게 바꿔드려요.<br />당신만의 소중한 기억을 예술적인 웨딩 화보로 재탄생 시킵니다.</p>
+                </div>
+                <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
+                  <span>사진 편집 시작하기</span>
+                  <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </button>
               </div>
             </div>
           </section>
@@ -1015,40 +1158,17 @@
 
           <section class="landing-section" aria-label="어시스턴트 커스텀 콘셉트">
             <div class="landing-section-inner">
-              <div class="flex flex-col gap-4">
+              <div class="landing-custom-image">
+                <img src="mock-images/landing/hanok_custom_concept.jpg" alt="한옥 커스텀 웨딩 콘셉트" />
+              </div>
+              <div class="flex flex-col gap-5">
                 <p class="landing-eyebrow">Custom Concept</p>
-                <h2 class="landing-title">당신의 상상력을<br />더하세요</h2>
-                <p class="landing-copy">메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.</p>
+                <h2 class="landing-title">당신의 상상력을 더하세요</h2>
+                <p class="landing-copy">메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.<br />전통 한옥, 시네마틱 무드, 이국적인 배경까지 원하는 모든 감성을 담아드립니다.</p>
                 <button class="landing-primary-button w-full sm:w-fit" data-action="open-assistant-chat" type="button">
                   <span>어시스턴트에게 문의하기</span>
-                  <span class="material-symbols-outlined text-[19px]">chat</span>
+                  <span class="material-symbols-outlined text-[19px]">auto_fix_high</span>
                 </button>
-              </div>
-              <div class="landing-concepts">
-                <article class="landing-concept-card">
-                  <img src="mock-images/services/service_assistant_01.png" alt="시네마틱 커스텀 웨딩 콘셉트" />
-                  <div class="landing-concept-copy">
-                    <p class="landing-eyebrow text-[10px]">Cinematic</p>
-                    <h3 class="font-display text-[25px] leading-none text-on-surface">영화 같은 한 장면</h3>
-                    <p class="text-xs leading-5 text-on-surface-variant">조명과 색감까지 맞춘 프리미엄 상담형 제작</p>
-                  </div>
-                </article>
-                <article class="landing-concept-card">
-                  <img src="mock-images/services/service_studio_01.png" alt="전통과 감성을 담은 커스텀 웨딩 콘셉트" />
-                  <div class="landing-concept-copy">
-                    <p class="landing-eyebrow text-[10px]">Concierge</p>
-                    <h3 class="font-display text-[25px] leading-none text-on-surface">맞춤 콘셉트 제작</h3>
-                    <p class="text-xs leading-5 text-on-surface-variant">원하는 배경과 무드를 상담으로 구체화해요.</p>
-                  </div>
-                </article>
-                <article class="landing-concept-card">
-                  <img src="mock-images/after/after_drama_bride_01.png" alt="드라마틱 커스텀 웨딩 콘셉트" />
-                  <div class="landing-concept-copy">
-                    <p class="landing-eyebrow text-[10px]">Editorial</p>
-                    <h3 class="font-display text-[25px] leading-none text-on-surface">감성 화보 무드</h3>
-                    <p class="text-xs leading-5 text-on-surface-variant">기본 메뉴 밖의 상상도 자연스럽게 제안합니다.</p>
-                  </div>
-                </article>
               </div>
             </div>
           </section>
@@ -1063,6 +1183,7 @@
               <div class="landing-pricing-grid">
                 <article class="landing-plan-card">
                   <div>
+                    <p class="landing-plan-eyebrow">EXPERIENCE</p>
                     <p class="landing-plan-title">광고 두 개 보기</p>
                     <p class="landing-plan-price mt-3">무료</p>
                     <p class="landing-plan-copy mt-2">워터마크 체험</p>
@@ -1071,6 +1192,7 @@
                 </article>
                 <article class="landing-plan-card">
                   <div>
+                    <p class="landing-plan-eyebrow">STARTER</p>
                     <p class="landing-plan-title">200 크레딧</p>
                     <p class="landing-plan-price mt-3">19,800원</p>
                     <p class="landing-plan-copy mt-2">노워터마크 제작</p>
@@ -1079,6 +1201,7 @@
                 </article>
                 <article class="landing-plan-card is-featured">
                   <div>
+                    <p class="landing-plan-eyebrow">STANDARD</p>
                     <p class="landing-plan-title">500 크레딧</p>
                     <p class="landing-plan-price mt-3">39,800원</p>
                     <p class="landing-plan-copy mt-2">테이블 포토 제작</p>
@@ -1087,6 +1210,7 @@
                 </article>
                 <article class="landing-plan-card is-featured">
                   <div>
+                    <p class="landing-plan-eyebrow">ULTIMATE</p>
                     <p class="landing-plan-title">프리미엄 커스텀</p>
                     <p class="landing-plan-price mt-3">99,000원</p>
                     <p class="landing-plan-copy mt-2">업스케일링 + 맞춤 제작</p>
@@ -1174,24 +1298,21 @@
             </div>
           </section>
 
-          <section class="screen-panel app-screen hidden" id="editorScreen">
+          <section class="screen-panel app-screen editor-screen hidden" id="editorScreen">
             <div class="app-topbar">
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
               <p class="font-display text-[19px] text-primary">Magic Ai Studio</p>
-              <span class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center">
-                <span class="material-symbols-outlined text-[19px]">auto_awesome</span>
-              </span>
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-action="settings-placeholder" type="button">
+                <span class="material-symbols-outlined text-[19px]">settings</span>
+              </button>
             </div>
-            <label id="photoUploadBox" class="upload-drop mt-4" for="photoInput">
+            <label id="photoUploadBox" class="upload-drop editor-upload-card mt-5" for="photoInput">
               <span class="icon-bubble">
-                <span class="material-symbols-outlined text-[26px]">cloud_upload</span>
+                <span class="material-symbols-outlined text-[26px]">add_a_photo</span>
               </span>
-              <span class="flex flex-col gap-2">
-                <span class="font-display text-[26px] leading-none text-on-surface">사진 업로드</span>
-                <span class="px-5 text-xs leading-5 text-on-surface-variant">PNG, JPG, WEBP, HEIC 이미지를 선택해 주세요.</span>
-              </span>
+              <span class="px-5 text-sm leading-6 text-on-surface-variant">여기에 사진을 올려주세요</span>
             </label>
             <input accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" id="photoInput" type="file" />
 
@@ -1208,34 +1329,70 @@
               </div>
             </section>
 
-            <fieldset class="mt-5 flex flex-col gap-3">
-              <legend class="font-label-caps text-label-caps uppercase text-on-surface-variant">내가 원하는 편집 스타일</legend>
-              <div class="app-chip-grid">
-                <label class="app-chip">
+            <fieldset class="mt-6">
+              <legend class="sr-only">편집 스타일 선택</legend>
+              <div class="editor-style-toggle">
+                <label class="editor-style-option">
                   <input class="sr-only" name="generationMode" type="radio" value="parisSnap" checked />
-                  <span class="material-symbols-outlined text-[17px]">travel_explore</span>
-                  <span>유럽 명소 스냅</span>
+                  <span>유럽명소스냅</span>
                 </label>
-                <label class="app-chip">
+                <label class="editor-style-option">
                   <input class="sr-only" name="generationMode" type="radio" value="disneyLive" />
-                  <span class="material-symbols-outlined text-[17px]">castle</span>
                   <span>디즈니 실사</span>
                 </label>
               </div>
             </fieldset>
-            <p class="hidden mt-3 rounded-[20px] bg-secondary-container/70 px-4 py-3 text-xs leading-5 text-primary" id="disneyModeHint">
-              신데렐라, 벨, 오로라, 한복 뮬란 실사풍으로 자연스럽게 연출해요.
-            </p>
-            <section class="mt-6">
-              <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">추천 서비스 모드 선택</p>
-              <div class="mt-3 grid grid-cols-3 gap-3">
-                <div class="rounded-[22px] bg-white/60 p-4 text-center text-xs text-on-surface-variant"><span class="material-symbols-outlined text-primary">image</span><p class="mt-2">고해상도</p></div>
-                <div class="rounded-[22px] bg-white/60 p-4 text-center text-xs text-on-surface-variant"><span class="material-symbols-outlined text-primary">museum</span><p class="mt-2">명소 배경</p></div>
-                <div class="rounded-[22px] bg-white/60 p-4 text-center text-xs text-on-surface-variant"><span class="material-symbols-outlined text-primary">auto_fix_high</span><p class="mt-2">시네마틱</p></div>
+
+            <section class="mt-7" id="europeOptions">
+              <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">명소 선택</p>
+              <div class="editor-option-grid mt-3">
+                <label class="editor-option-card">
+                  <input class="sr-only" name="generationPlace" type="radio" value="eiffel" checked />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="font-semibold">파리 에펠탑</span>
+                </label>
+                <label class="editor-option-card">
+                  <input class="sr-only" name="generationPlace" type="radio" value="louvre" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="font-semibold">파리 루브르 박물관</span>
+                </label>
+                <label class="editor-option-card">
+                  <input class="sr-only" name="generationPlace" type="radio" value="venice" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="font-semibold">베네치아</span>
+                </label>
+                <label class="editor-option-card">
+                  <input class="sr-only" name="generationPlace" type="radio" value="italy_village" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="font-semibold">이탈리아 시골마을</span>
+                </label>
               </div>
             </section>
-            <div class="mt-5 rounded-[24px] bg-white/60 px-4 py-3">
-              <p class="text-xs leading-5 text-on-surface-variant" id="statusText">이미지를 선택해 주세요.</p>
+
+            <section class="mt-7 hidden" id="disneyOptions">
+              <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">디즈니 실사 콘셉트</p>
+              <div class="editor-option-grid mt-3">
+                <button class="editor-option-card is-disabled" type="button" disabled>
+                  <span class="editor-option-badge">자동 생성</span>
+                  <span class="font-semibold">신데렐라</span>
+                </button>
+                <button class="editor-option-card is-disabled" type="button" disabled>
+                  <span class="editor-option-badge">자동 생성</span>
+                  <span class="font-semibold">미녀와야수</span>
+                </button>
+                <button class="editor-option-card is-disabled" type="button" disabled>
+                  <span class="editor-option-badge">자동 생성</span>
+                  <span class="font-semibold">오로라</span>
+                </button>
+                <button class="editor-option-card is-disabled" type="button" disabled>
+                  <span class="editor-option-badge">자동 생성</span>
+                  <span class="font-semibold">뮬란</span>
+                </button>
+              </div>
+            </section>
+
+            <div class="mt-5 hidden rounded-[24px] bg-white/60 px-4 py-3" id="editorFeedback">
+              <p class="text-xs leading-5 text-on-surface-variant" id="statusText"></p>
               <p class="hidden pt-1 text-xs leading-5 text-error" id="errorText"></p>
               <button
                 class="mt-3 hidden h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold"
@@ -1246,13 +1403,13 @@
               </button>
             </div>
             <button
-              class="primary-action mt-4 w-full h-12 rounded-full bg-primary text-on-primary font-button text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              class="primary-action editor-generate-button mt-6 w-full rounded-full bg-primary text-on-primary font-button text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               disabled
               id="generateButton"
               type="button"
             >
-              <span>AI 웨딩사진 만들기</span>
-              <span class="material-symbols-outlined text-[19px]">auto_awesome</span>
+              <span class="font-semibold">AI 웨딩사진 만들기</span>
+              <span class="text-[11px] opacity-80">AI 배경 바꾸기 · 25크레딧</span>
             </button>
           </section>
 
@@ -1327,8 +1484,10 @@
               <div class="flex flex-col gap-3 mt-4 hidden" id="resultActionButtons">
                 <button class="h-12 w-full rounded-full bg-primary text-on-primary font-button text-sm flex items-center justify-center gap-2 transition-colors" id="resultDownloadButton" type="button">
                   <span class="material-symbols-outlined text-[18px]">download</span>
-                  <span>다운로드</span>
+                  <span id="resultDownloadButtonLabel">이미지 다운로드</span>
                 </button>
+                <p class="text-xs leading-5 text-on-surface-variant" id="resultSaveHelp">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요.</p>
+                <p class="min-h-5 text-xs leading-5 text-primary" id="resultSaveStatus"></p>
                 <button class="h-12 w-full rounded-full bg-primary-container/60 text-on-primary-container font-button text-sm flex items-center justify-center gap-2 transition-colors hover:bg-primary-container/80" id="resultGalleryUploadButton" type="button">
                   <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
                   <span>갤러리 업로드</span>
@@ -1466,8 +1625,9 @@
         <div class="flex flex-col items-center gap-2">
           <button class="hidden h-14 min-w-52 items-center justify-center gap-2 rounded-full bg-white/90 px-8 text-center text-[17px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalDownload" type="button">
             <span class="material-symbols-outlined text-[21px]">download</span>
-            <span>이미지 다운로드</span>
+            <span id="imageModalDownloadLabel">이미지 다운로드</span>
           </button>
+          <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요.</p>
           <p class="min-h-5 text-sm text-white/80" id="imageModalDownloadStatus"></p>
         </div>
       </div>
@@ -1666,6 +1826,24 @@ Important balance:
 - Generate four clearly different Disney-inspired concepts, but keep all four recognizable as edits of the original wedding photo.`,
         },
       };
+      const LANDMARK_OPTIONS = {
+        eiffel: {
+          label: "파리 에펠탑",
+          prompt: "Paris Eiffel Tower landmark snap background",
+        },
+        louvre: {
+          label: "파리 루브르 박물관",
+          prompt: "Paris Louvre Museum landmark snap background",
+        },
+        venice: {
+          label: "베네치아",
+          prompt: "Venice canal and classic Italian city landmark snap background",
+        },
+        italy_village: {
+          label: "이탈리아 시골마을",
+          prompt: "romantic Italian countryside village snap background",
+        },
+      };
       const FIXED_GENERATION_POLICY = `4-result generation policy:
 - Generate 4 results in the same direction with only weak differences.
 - Prioritize stability over diversity.
@@ -1739,11 +1917,14 @@ Important balance:
       const photoUploadBox = document.getElementById("photoUploadBox");
       const changePhotoButton = document.getElementById("changePhotoButton");
       const generationModeInputs = Array.from(document.querySelectorAll("input[name='generationMode']"));
-      const disneyModeHint = document.getElementById("disneyModeHint");
+      const generationPlaceInputs = Array.from(document.querySelectorAll("input[name='generationPlace']"));
       const generateButton = document.getElementById("generateButton");
       const statusText = document.getElementById("statusText");
       const errorText = document.getElementById("errorText");
+      const editorFeedback = document.getElementById("editorFeedback");
       const creditShortageButton = document.getElementById("creditShortageButton");
+      const europeOptions = document.getElementById("europeOptions");
+      const disneyOptions = document.getElementById("disneyOptions");
       const sourceSection = document.getElementById("sourceSection");
       const sourcePreview = document.getElementById("sourcePreview");
       const sourceZoomButton = document.getElementById("sourceZoomButton");
@@ -1764,6 +1945,8 @@ Important balance:
       const imageModalLabel = document.getElementById("imageModalLabel");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalDownload = document.getElementById("imageModalDownload");
+      const imageModalDownloadLabel = document.getElementById("imageModalDownloadLabel");
+      const imageModalDownloadHelp = document.getElementById("imageModalDownloadHelp");
       const imageModalDownloadStatus = document.getElementById("imageModalDownloadStatus");
       const imageModalClose = document.getElementById("imageModalClose");
       const imageModalPrev = document.getElementById("imageModalPrev");
@@ -1773,6 +1956,9 @@ Important balance:
       const imageModalCount = document.getElementById("imageModalCount");
       const resultActionButtons = document.getElementById("resultActionButtons");
       const resultDownloadButton = document.getElementById("resultDownloadButton");
+      const resultDownloadButtonLabel = document.getElementById("resultDownloadButtonLabel");
+      const resultSaveHelp = document.getElementById("resultSaveHelp");
+      const resultSaveStatus = document.getElementById("resultSaveStatus");
       const resultGalleryUploadButton = document.getElementById("resultGalleryUploadButton");
       const homeTabButtons = Array.from(document.querySelectorAll("[data-home-tab]"));
 
@@ -1789,6 +1975,7 @@ Important balance:
       let resultDisplayOrder = [];
       let recommendationReason = RECOMMENDATION_DESCRIPTION;
       let activeGenerationMode = GENERATION_MODES.PARIS_SNAP;
+      let selectedLocationPreset = "eiffel";
       let selectedIndex = 0;
       let activeImageModalIndex = 0;
       let isGenerating = false;
@@ -2011,6 +2198,20 @@ Important balance:
         return checkedPlace?.value || selectedPlace?.value || "";
       }
 
+      function getSelectedLandmarkOption() {
+        const candidate = selectedLocationPreset || getGenerationPlaceValue() || "eiffel";
+        const value = LANDMARK_OPTIONS[candidate] ? candidate : "eiffel";
+        return {
+          value,
+          ...LANDMARK_OPTIONS[value],
+        };
+      }
+
+      function syncSelectedLocationPreset() {
+        const value = getGenerationPlaceValue();
+        selectedLocationPreset = LANDMARK_OPTIONS[value] ? value : "eiffel";
+      }
+
       function getGenerationMode() {
         const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
         const rawPlace = getGenerationPlaceValue();
@@ -2025,7 +2226,9 @@ Important balance:
 
       function syncGenerationModeUi() {
         const mode = getGenerationMode();
-        disneyModeHint.classList.toggle("hidden", mode !== GENERATION_MODES.DISNEY_LIVE);
+        syncSelectedLocationPreset();
+        europeOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.PARIS_SNAP);
+        disneyOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.DISNEY_LIVE);
       }
 
       function getFeaturedLabel() {
@@ -2124,7 +2327,7 @@ Important balance:
       }
 
       function setStatus(message) {
-        statusText.textContent = message;
+        statusText.textContent = message || "";
         if (generatingStatusText && appScreen === "generating") {
           generatingStatusText.textContent = message;
         }
@@ -2134,6 +2337,7 @@ Important balance:
         errorText.textContent = "";
         errorText.style.display = "none";
         creditShortageButton.classList.add("hidden");
+        editorFeedback?.classList.add("hidden");
       }
 
       function clearResults() {
@@ -2160,9 +2364,12 @@ Important balance:
         recommendationText.textContent = USER_RECOMMENDATION_TEXT;
         thumbnailList.innerHTML = "";
         resultSection.classList.add("hidden");
+        resultActionButtons.classList.add("hidden");
+        resultSaveStatus.textContent = "";
       }
 
       function showError(message, options = {}) {
+        editorFeedback?.classList.remove("hidden");
         errorText.textContent = message;
         errorText.style.whiteSpace = "pre-wrap";
         errorText.style.display = "block";
@@ -2497,9 +2704,13 @@ Important balance:
 
       function buildGenerationPrompt(mode) {
         const config = getModeConfig(mode);
+        const landmark = !isDisneyMode(mode) ? getSelectedLandmarkOption() : null;
 
         return [
           config.basePrompt,
+          landmark
+            ? `Selected Europe landmark option: ${landmark.label} (${landmark.prompt}). Use this selected landmark as the intended background direction while preserving the original people, pose, crop, and camera angle.`
+            : "",
           isDisneyMode(mode) ? DISNEY_GENERATION_POLICY : FIXED_GENERATION_POLICY,
         ].filter(Boolean).join("\n\n");
       }
@@ -2733,13 +2944,24 @@ ${modeExample}`;
       async function generateGrokResults({ mode, imageFile }) {
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
+        const selectedLandmark = !isDisneyMode(generationMode) ? getSelectedLandmarkOption() : null;
         const imagePath = await uploadImageToPrivateStorage(imageFile);
         const fileInfo = getFileDebugInfo(imageFile);
         const formData = new FormData();
         formData.append("imagePath", imagePath);
         formData.append("mode", generationMode);
         formData.append("presetKey", config.presetKey);
+        formData.append("prompt", buildGenerationPrompt(generationMode));
         formData.append("count", "4");
+        if (selectedLandmark) {
+          formData.append("locationPreset", selectedLandmark.value);
+          formData.append("generationPlace", selectedLandmark.value);
+          formData.append("generationPlaceLabel", selectedLandmark.label);
+        }
+        console.log("[generate] mode =", isDisneyMode(generationMode) ? "disneyLive" : "europe");
+        if (selectedLandmark) {
+          console.log("[generate] locationPreset =", selectedLandmark.value);
+        }
         console.log("[generate] sending imagePath", {
           imagePath,
         });
@@ -2750,6 +2972,9 @@ ${modeExample}`;
           requestedMode: mode,
           generationMode,
           presetKey: config.presetKey,
+          locationPreset: selectedLandmark?.value || "",
+          generationPlace: selectedLandmark?.value || "",
+          generationPlaceLabel: selectedLandmark?.label || "",
           hasImage: Boolean(imageFile),
           fileName: imageFile?.name,
           fileType: imageFile?.type,
@@ -2764,6 +2989,9 @@ ${modeExample}`;
           requestedMode: mode,
           generationMode,
           presetKey: config.presetKey,
+          locationPreset: selectedLandmark?.value || "",
+          generationPlace: selectedLandmark?.value || "",
+          generationPlaceLabel: selectedLandmark?.label || "",
           imagePath,
           hasAnonymousId: Boolean(anonymousId),
           ...fileInfo,
@@ -2817,6 +3045,9 @@ ${modeExample}`;
             requestedMode: mode,
             generationMode,
             presetKey: config.presetKey,
+            locationPreset: selectedLandmark?.value || "",
+            generationPlace: selectedLandmark?.value || "",
+            generationPlaceLabel: selectedLandmark?.label || "",
             hasImage: Boolean(imageFile),
             message: data.message,
             errorBody: sanitizeLogValue(responseBody),
@@ -3182,6 +3413,40 @@ ${modeExample}`;
         imageModalDownloadStatus.textContent = message;
       }
 
+      function isMobileSaveEnvironment() {
+        const userAgent = navigator.userAgent || "";
+        return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ||
+          window.matchMedia?.("(pointer: coarse)")?.matches === true;
+      }
+
+      function getSaveButtonLabel() {
+        return isMobileSaveEnvironment() ? "사진/갤러리에 저장" : "이미지 다운로드";
+      }
+
+      function getSaveHelpText() {
+        return isMobileSaveEnvironment()
+          ? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요."
+          : "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.";
+      }
+
+      function syncSaveCopy() {
+        const label = getSaveButtonLabel();
+        const helpText = getSaveHelpText();
+
+        if (resultDownloadButtonLabel) {
+          resultDownloadButtonLabel.textContent = label;
+        }
+        if (resultSaveHelp) {
+          resultSaveHelp.textContent = helpText;
+        }
+        if (imageModalDownloadLabel) {
+          imageModalDownloadLabel.textContent = label;
+        }
+        if (imageModalDownloadHelp) {
+          imageModalDownloadHelp.textContent = helpText;
+        }
+      }
+
       function getDownloadPolicy() {
         const normalizedPlan = String(userPlan || "free").toLowerCase();
         const shouldWatermark = normalizedPlan !== "paid";
@@ -3291,9 +3556,56 @@ ${modeExample}`;
         ctx.restore();
       }
 
-      async function downloadImageWithWatermark({
+      function getShareCancelError(error) {
+        const name = error?.name || "";
+        const message = error?.message || "";
+
+        return name === "AbortError" ||
+          /abort|cancel|canceled|cancelled|share canceled|사용자가 취소/i.test(message);
+      }
+
+      function getBlobExtension(blobType = "") {
+        if (/png/i.test(blobType)) return "png";
+        if (/webp/i.test(blobType)) return "webp";
+        return "jpg";
+      }
+
+      function fallbackDownloadBlob(blob, filename) {
+        const link = document.createElement("a");
+        const objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      }
+
+      function fallbackOpenImage(imageUrl) {
+        const opened = window.open(imageUrl, "_blank");
+        if (opened) {
+          opened.opener = null;
+          return true;
+        }
+        return false;
+      }
+
+      function fallbackOpenBlob(blob) {
+        const objectUrl = URL.createObjectURL(blob);
+        const opened = window.open(objectUrl, "_blank");
+
+        if (opened) {
+          opened.opener = null;
+          window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+          return true;
+        }
+
+        URL.revokeObjectURL(objectUrl);
+        return false;
+      }
+
+      async function createImageBlobWithWatermark({
         imageUrl,
-        filename,
         watermarkText = WATERMARK_TEXT,
         shouldWatermark = true,
         maxSize = WATERMARK_OUTPUT_LONG_EDGE,
@@ -3325,14 +3637,83 @@ ${modeExample}`;
           }, "image/jpeg", 0.92);
         });
 
-        const link = document.createElement("a");
-        const objectUrl = URL.createObjectURL(blob);
-        link.href = objectUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(objectUrl);
+        return blob;
+      }
+
+      async function saveImageForDevice({
+        imageUrl,
+        filename,
+        statusSetter = () => {},
+        watermarkText = WATERMARK_TEXT,
+        shouldWatermark = true,
+        maxSize = WATERMARK_OUTPUT_LONG_EDGE,
+      }) {
+        let blob;
+
+        try {
+          blob = await createImageBlobWithWatermark({
+            imageUrl,
+            watermarkText,
+            shouldWatermark,
+            maxSize,
+          });
+        } catch (error) {
+          console.warn("[client][save] blob creation failed, using fallback", error);
+
+          if (fallbackOpenImage(imageUrl)) {
+            statusSetter("저장이 바로 되지 않으면 열린 이미지를 길게 눌러 ‘사진에 저장’을 선택해 주세요.");
+            return;
+          }
+
+          throw error;
+        }
+
+        const safeFilename = filename.replace(/\.(png|jpe?g|webp)$/i, `.${getBlobExtension(blob.type)}`);
+        const isMobile = isMobileSaveEnvironment();
+        const canShareFile = isMobile &&
+          typeof File === "function" &&
+          typeof navigator.share === "function" &&
+          typeof navigator.canShare === "function";
+
+        if (canShareFile) {
+          const file = new File([blob], safeFilename, { type: blob.type || "image/jpeg" });
+
+          if (navigator.canShare({ files: [file] })) {
+            statusSetter("저장 창이 열렸습니다. 사진 앱 저장을 선택해 주세요.");
+
+            try {
+              await navigator.share({
+                files: [file],
+                title: "Magic Ai Studio 결과 이미지",
+                text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
+              });
+              return;
+            } catch (error) {
+              if (getShareCancelError(error)) {
+                statusSetter("");
+                return;
+              }
+
+              console.warn("[client][save] share failed, falling back to download", error);
+            }
+          }
+        }
+
+        fallbackDownloadBlob(blob, safeFilename);
+
+        if (isMobile && fallbackOpenBlob(blob)) {
+          statusSetter("저장이 바로 되지 않으면 열린 이미지를 길게 눌러 ‘사진에 저장’을 선택해 주세요.");
+          return;
+        }
+
+        statusSetter(isMobile
+          ? "저장이 바로 되지 않으면 다운로드된 이미지를 열어 길게 눌러 저장해 주세요."
+          : "이미지 다운로드를 시작했습니다.");
+      }
+
+      async function downloadImageWithWatermark(options) {
+        const blob = await createImageBlobWithWatermark(options);
+        fallbackDownloadBlob(blob, options.filename);
       }
 
       async function downloadCurrentModalImage() {
@@ -3345,18 +3726,48 @@ ${modeExample}`;
         setImageModalDownloadStatus("");
         try {
           const policy = getDownloadPolicy();
-          await downloadImageWithWatermark({
+          await saveImageForDevice({
             imageUrl: item.url,
             filename: `${sanitizeFilenamePart(item.label)}${policy.shouldWatermark ? "-720p-magic-ai-studio" : ""}.jpg`,
+            statusSetter: setImageModalDownloadStatus,
             watermarkText: WATERMARK_TEXT,
             shouldWatermark: policy.shouldWatermark,
             maxSize: policy.maxSize,
           });
         } catch (error) {
-          console.error("[client][download] failed:", error);
-          setImageModalDownloadStatus("다운로드 중 문제가 발생했어요.");
+          console.error("[client][save] failed:", error);
+          setImageModalDownloadStatus("저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.");
         } finally {
           imageModalDownload.disabled = false;
+        }
+      }
+
+      async function saveRecommendedResultImage() {
+        const mainIndex = Number.isInteger(recommendedIndex) && imageUrls[recommendedIndex] ? recommendedIndex : 0;
+        const imageUrl = imageUrls[mainIndex] ? toDisplayUrl(imageUrls[mainIndex]) : "";
+
+        if (!imageUrl) return;
+
+        resultDownloadButton.disabled = true;
+        resultSaveStatus.textContent = "";
+        try {
+          const policy = getDownloadPolicy();
+          const label = variantLabels[mainIndex] || "recommended-result";
+          await saveImageForDevice({
+            imageUrl,
+            filename: `${sanitizeFilenamePart(label)}${policy.shouldWatermark ? "-720p-magic-ai-studio" : ""}.jpg`,
+            statusSetter: (message) => {
+              resultSaveStatus.textContent = message;
+            },
+            watermarkText: WATERMARK_TEXT,
+            shouldWatermark: policy.shouldWatermark,
+            maxSize: policy.maxSize,
+          });
+        } catch (error) {
+          console.error("[client][save][recommended] failed:", error);
+          resultSaveStatus.textContent = "저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.";
+        } finally {
+          resultDownloadButton.disabled = false;
         }
       }
 
@@ -3373,6 +3784,7 @@ ${modeExample}`;
         imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
         setImageModalDownloadVisible(Boolean(item.url));
         setImageModalDownloadStatus("");
+        syncSaveCopy();
       }
 
       function openModalWithItems(items, startIndex = 0, options = {}) {
@@ -3498,6 +3910,10 @@ ${modeExample}`;
         const allResultImages = getAllResultImages();
         resultSection.classList.remove("hidden");
         sourceSection.classList.toggle("hidden", imageUrls.length > 0);
+        resultActionButtons.classList.toggle("hidden", !comparisonEditedImage);
+        resultDownloadButton.disabled = !comparisonEditedImage;
+        resultSaveStatus.textContent = "";
+        syncSaveCopy();
         recommendedComparisonSlider.classList.toggle("hidden", !comparisonEditedImage);
         recommendedZoomButton.classList.toggle("hidden", !comparisonEditedImage);
         recommendedZoomButton.disabled = !comparisonEditedImage;
@@ -3754,6 +4170,9 @@ ${modeExample}`;
           if (action === "community-placeholder") {
             alert("커뮤니티 기능은 준비 중입니다.");
           }
+          if (action === "settings-placeholder") {
+            alert("설정 기능은 준비 중입니다.");
+          }
         });
       });
 
@@ -3778,6 +4197,9 @@ ${modeExample}`;
 
       generationModeInputs.forEach((input) => {
         input.addEventListener("change", syncGenerationModeUi);
+      });
+      generationPlaceInputs.forEach((input) => {
+        input.addEventListener("change", syncSelectedLocationPreset);
       });
       syncGenerationModeUi();
       setupBeforeAfterSliders();
@@ -3843,7 +4265,7 @@ ${modeExample}`;
           if (appScreen === "result" && targetScreen === "editor") {
             isGenerating = false;
             generateButton.disabled = !selectedFile;
-            setStatus(selectedFile ? "이미지가 준비되었습니다. 다시 생성하거나 사진을 변경할 수 있어요." : "이미지를 선택해 주세요.");
+            setStatus(selectedFile ? "사진이 준비되었습니다. 다시 생성하거나 사진을 변경할 수 있어요." : "사진을 먼저 올려주세요.");
             hideError();
           }
           setAppScreen(targetScreen, { pushHistory: false });
@@ -3867,7 +4289,7 @@ ${modeExample}`;
           }
           selectedImageDataUrl = "";
           syncPhotoUploadUi();
-          setStatus("이미지를 선택해 주세요.");
+          setStatus("사진을 먼저 올려주세요.");
           hideError();
           return;
         }
@@ -3923,7 +4345,7 @@ ${modeExample}`;
 
         if (!selectedFile) {
           showError("이미지 파일이 없습니다.");
-          setStatus("이미지를 선택해 주세요.");
+          setStatus("사진을 먼저 올려주세요.");
           return;
         }
 
@@ -4053,6 +4475,11 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         downloadCurrentModalImage();
+      });
+      resultDownloadButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        saveRecommendedResultImage();
       });
       imageModalClose.addEventListener("click", closeImageModal);
       imageModalPrev.addEventListener("click", () => moveImageModal(-1));

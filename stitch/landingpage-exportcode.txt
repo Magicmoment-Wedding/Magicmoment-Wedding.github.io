@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Magic AI Studio | 프리미엄 웨딩 AI 아틀리에</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#6b383a",
+                    "tertiary-fixed": "#ece0e0",
+                    "surface-container": "#f9ebe7",
+                    "on-tertiary-fixed-variant": "#4d4546",
+                    "surface-container-highest": "#ede0dc",
+                    "surface-container-high": "#f3e5e2",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#362f2d",
+                    "surface-dim": "#e4d7d4",
+                    "secondary": "#864f50",
+                    "on-error": "#ffffff",
+                    "on-surface-variant": "#544245",
+                    "primary-fixed": "#ffd9de",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#5a5253",
+                    "surface-variant": "#ede0dc",
+                    "surface-container-low": "#fff1ed",
+                    "on-primary-container": "#ffb4c0",
+                    "outline": "#877274",
+                    "surface-bright": "#fff8f6",
+                    "on-primary-fixed-variant": "#7d283d",
+                    "secondary-fixed-dim": "#fcb4b5",
+                    "on-secondary-fixed": "#360e11",
+                    "tertiary-fixed-dim": "#d0c4c5",
+                    "on-primary-fixed": "#400015",
+                    "surface-tint": "#9b3f54",
+                    "outline-variant": "#dac0c3",
+                    "primary-fixed-dim": "#ffb2be",
+                    "inverse-on-surface": "#fceeea",
+                    "on-surface": "#211a18",
+                    "surface": "#fff8f6",
+                    "primary": "#701e34",
+                    "primary-container": "#8e354a",
+                    "background": "#fff8f6",
+                    "on-tertiary-container": "#d2c6c7",
+                    "on-tertiary-fixed": "#201a1b",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#7b4547",
+                    "secondary-container": "#ffb7b8",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#ffb2be",
+                    "secondary-fixed": "#ffdad9",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary": "#433b3c",
+                    "on-background": "#211a18",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "section-gap": "120px",
+                    "margin-desktop": "64px",
+                    "container-max": "1200px",
+                    "margin-mobile": "20px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Playfair Display"],
+                    "display-lg-mobile": ["Playfair Display"],
+                    "display-lg": ["Playfair Display"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Playfair Display"],
+                    "label-caps": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "label-caps": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #fff8f6;
+            color: #211a18;
+            -webkit-font-smoothing: antialiased;
+        }
+        .shimmer-bg {
+            background: linear-gradient(
+                45deg,
+                rgba(255, 248, 246, 1) 0%,
+                rgba(255, 230, 235, 1) 50%,
+                rgba(255, 248, 246, 1) 100%
+            );
+            background-size: 200% 200%;
+            animation: shimmer 10s ease infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .bento-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+            }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 dark:bg-background/80 backdrop-blur-md flex justify-between items-center px-margin-mobile py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim cursor-pointer hover:opacity-70 transition-opacity active:scale-95 transition-transform duration-300" data-icon="menu">menu</span>
+<h1 class="font-headline-sm text-headline-sm-mobile tracking-tight text-primary dark:text-primary-fixed-dim">Magic AI Studio</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim cursor-pointer hover:opacity-70 transition-opacity active:scale-95 transition-transform duration-300" data-icon="shopping_bag">shopping_bag</span>
+</div>
+</header>
+<main class="pt-20">
+<!-- 1. Hero / Before-After Showcase -->
+<section class="px-margin-mobile md:px-margin-desktop py-16 flex flex-col items-center text-center">
+<div class="relative w-full max-w-4xl mb-12 group overflow-hidden rounded-xl shadow-sm bg-white p-2 border border-surface-variant">
+<img alt="AI Wedding Transformation Comparison" class="w-full h-auto rounded-lg" src="https://lh3.googleusercontent.com/aida/ADBb0ugfcD_-VXliWEfI6zd_PkyDX5AVnDKAXXM6J4WgQ_kCufefireqD52rbnPtmeomdaqpSUWp3Uq1QqP4EYiX2GRAYMssOLUMhEODBJiAu7A2lzdlA7R0tdSZqLYXq-eIIbeRYoaEf7lNwMMLMN4wxtJw4xmjBTZajlXKYnDJYlELQzAF7wasV6dzmdyg3kZZLloZCjcMf_Qk6ZYC3qWQxoQwugaJ8dc9eX2WcQrcPYKd1SrqWzPdi6qHG5iK"/>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-[2px]">
+<span class="bg-white/90 px-6 py-2 rounded-full text-label-caps font-label-caps text-primary shadow-lg">BEFORE &amp; AFTER</span>
+</div>
+</div>
+<div class="max-w-2xl">
+<h2 class="font-headline-md text-headline-md text-primary mb-4">웨딩사진을 새로운 순간으로</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-10">
+                    얼굴과 포즈는 유지하고, 배경과 분위기만 자연스럽게 바꿔드려요.<br/>
+                    당신만의 소중한 기억을 예술적인 웨딩 화보로 재탄생 시킵니다.
+                </p>
+<button class="bg-primary-container text-on-primary hover:opacity-90 transition-all duration-300 px-10 py-4 rounded-full font-label-caps text-label-caps tracking-widest uppercase shadow-md active:scale-95">
+                    사진 편집 시작하기
+                </button>
+</div>
+</section>
+<!-- 2. Gallery Preview -->
+<section class="bg-surface-container-low py-20">
+<div class="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline-md text-headline-md text-primary mb-4">당신이 원하는 스타일을 골라보세요</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">다양한 AI 웨딩 샘플을 보고 나에게 어울리는 분위기를 찾아보세요.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+<div class="rounded-xl overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow">
+<img alt="Romantic Floral Arch Wedding" class="w-full aspect-[3/4] object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0uiKxb8hNi_2pyV_BJXuOlijfg9lh2ZjdCZEdtw3BDa4bv6HKAw6JWineZagpaw-XxvXtU16vRF_OuDU1TmhwqsBhGQ8dKwpy07nwIWEIjPa2zT65ZfaC56ezn1i798ehG882Jj8CPkgQJx8IErjltvdyC1h5wovJL2KD-qN61lzTSyYOTe8DnTDAo5YiO-Ne-bqNLp71jZ0w4cliUPF_wbFWKT1WvNjKUk-dGXRGVopvS_dQp-Z2Dqswiwd"/>
+</div>
+<div class="rounded-xl overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow md:mt-12">
+<img alt="Parisian Sunset Wedding Scene" class="w-full aspect-[3/4] object-cover" src="https://lh3.googleusercontent.com/aida/ADBb0ui4KYSk3ACwheJ_8kxYScTkqdZ1aAbKk_dv0usPz4DRTJsX_g-O10BGbaogfTjxjPhwlFW03dTp1YAY6B175Req5v43jK4qF07YA_w_FXP89_UTTh404sRDof8JJ-5x0hPHDfIFfxpdK0Vkop5OQJrped5pRJrjbsu_QYrTG7alYL5tFIkSzRnWyZ98CmSUWTu9S_ba_b-qYo5FJVOZH2I9E60FK-K7dHlw7RJX7k1C4Fiq7ZmbiRVJxT4"/>
+</div>
+<div class="rounded-xl overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow">
+<img class="w-full aspect-[3/4] object-cover" data-alt="A cinematic, dreamy wedding portrait of a couple in front of a blooming floral hedge during the golden hour. The soft evening light filters through the leaves, creating a warm, hazy glow that emphasizes the soft blush tones of the Korean wedding aesthetic. The overall mood is ethereal and sophisticated, with high-end editorial lighting and pristine white textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2mGp3VOXbLz93HVG50vWPgU_Lj81GVMSxprpk0CcSeslZgDS3n0LLymSdER7i0fPFspZclzx_0bBHE8bChqoTbfHEUk2t1KBapOsPrD3Yuefo7yR-22x9CmpL9kZI9yNnZ0Py9JDP-CgLirrG-3ySswltmAbq5cE0QeYsd9h3gtpIGsRiWB6puGMj-Sx8zSqRbxb-NWgnIa86Le1R8LNSDmj8ODiGcZVrwcLdiau3TCikCC9U-NrXtsizaQcllHurjuHh3ysIF2C9"/>
+</div>
+<div class="rounded-xl overflow-hidden shadow-sm bg-white hover:shadow-md transition-shadow md:mt-12">
+<img class="w-full aspect-[3/4] object-cover" data-alt="An atmospheric indoor wedding setting featuring thousands of fairy lights cascading from the ceiling over a minimalist altar. The scene is bathed in cool ivory and soft blush lighting, maintaining a premium Korean wedding studio vibe. The composition is clean and modern, focusing on the play of light and shadow on the elegant surfaces." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu3Ovc_x_ro8I-5G4MmgJlzKxD6Zj1taoKF2sOBgf2Eez91NXAZ5T3Dj2VXSZ6RqjK621qosc8CFMHgE3iIQ2H1PZ8m-rd4NPorgAB2079U45uViAmrKy87vFUu6Kx1CpQ_ENhNz6SjYey5Gv5yDhIXEIDCrKz04CXa0_MyWZ1XQpqQJ_IGPQuaEXfFJfuHqZFW8lpHYVici-O62-IHRRqbyk7XhroX2qUO1cU96CD-H6TKLZSXWS6mhCXmTn1XZG1auC925G0lqFe"/>
+</div>
+</div>
+<div class="flex justify-center mt-16">
+<button class="border border-outline text-primary px-12 py-3 rounded-full font-label-caps text-label-caps tracking-widest hover:bg-surface-variant transition-colors">
+                        갤러리 바로가기
+                    </button>
+</div>
+</div>
+</section>
+<!-- 3. Assistant / Custom Concept -->
+<section class="px-margin-mobile md:px-margin-desktop py-24 flex flex-col lg:flex-row items-center gap-16 max-w-container-max mx-auto">
+<div class="w-full lg:w-1/2 relative">
+<div class="absolute -top-4 -left-4 w-24 h-24 bg-primary-fixed rounded-full -z-10 blur-2xl opacity-60"></div>
+<img alt="Traditional Korean Hanok Wedding Concept" class="w-full rounded-2xl shadow-xl" src="https://lh3.googleusercontent.com/aida/ADBb0uhuy560zisAO_cl0iVbCCb68_F84WrZVmlY3DfZhlubd9jIL8dKiWqSOmzou-QLWqWNQz8iBmtyHvKBdfJGr145xBUj7aUYOMtGB2aq4uPM_50kda7I5ZsxvrdhjnYQrqT_Q1yQKCBJec2Sf5D7k1yM7LBSnf9Va_ynZhoSEpvWADDYcZ5xn9XRHfq2fpNuL8x-JpN0Qd8jx1lg1iCowjRwCV891vJVVV3k5pR2JECGlHVkOGgAvqYBMMA4"/>
+<div class="absolute -bottom-4 -right-4 w-32 h-32 bg-secondary-container rounded-full -z-10 blur-2xl opacity-60"></div>
+</div>
+<div class="w-full lg:w-1/2 space-y-6">
+<h2 class="font-headline-md text-headline-md text-primary">당신의 상상력을 더하세요</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.<br/>
+                    전통 한옥, 시네마틱 무드, 이국적인 배경까지 원하는 모든 감성을 담아드립니다.
+                </p>
+<div class="pt-4">
+<button class="bg-primary text-on-primary px-10 py-4 rounded-full font-label-caps text-label-caps tracking-widest shadow-lg hover:brightness-110 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="auto_fix_high">auto_fix_high</span>
+                        어시스턴트에게 문의하기
+                    </button>
+</div>
+</div>
+</section>
+<!-- 4. Pricing Plans -->
+<section class="bg-surface-container py-24 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline-md text-headline-md text-primary mb-4">요금제를 선택하세요</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">최적의 제작 환경을 위한 다양한 옵션을 확인해보세요.</p>
+</div>
+<div class="bento-grid">
+<!-- Card 1 -->
+<div class="bg-surface-bright p-8 rounded-2xl flex flex-col h-full border border-outline-variant shadow-sm hover:translate-y-[-4px] transition-transform duration-300">
+<div class="mb-auto">
+<span class="font-label-caps text-label-caps text-secondary mb-4 block">EXPERIENCE</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">광고 두 개 보기</h3>
+<p class="font-headline-md text-headline-md text-primary mb-6">무료</p>
+<ul class="space-y-3 mb-8 text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm" data-icon="check">check</span> 워터마크 포함</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm" data-icon="check">check</span> 1회 체험용</li>
+</ul>
+</div>
+<button class="w-full border border-outline text-primary py-3 rounded-xl font-label-caps text-label-caps hover:bg-surface-variant transition-colors">무료 시작</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-bright p-8 rounded-2xl flex flex-col h-full border border-outline-variant shadow-sm hover:translate-y-[-4px] transition-transform duration-300">
+<div class="mb-auto">
+<span class="font-label-caps text-label-caps text-secondary mb-4 block">STARTER</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">200 크레딧</h3>
+<p class="font-headline-md text-headline-md text-primary mb-6">19,800원</p>
+<ul class="space-y-3 mb-8 text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm" data-icon="check">check</span> 노워터마크 제작</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm" data-icon="check">check</span> 고화질 다운로드</li>
+</ul>
+</div>
+<button class="w-full bg-primary-container text-on-primary py-3 rounded-xl font-label-caps text-label-caps hover:brightness-110 transition-all">구매하기</button>
+</div>
+<!-- Card 3 (Highlighted) -->
+<div class="bg-white p-8 rounded-2xl flex flex-col h-full border-2 border-primary shadow-xl hover:translate-y-[-4px] transition-transform duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-primary text-white font-label-caps text-[10px] px-3 py-1 rounded-bl-lg">BEST</div>
+<div class="mb-auto">
+<span class="font-label-caps text-label-caps text-primary mb-4 block">STANDARD</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">500 크레딧</h3>
+<p class="font-headline-md text-headline-md text-primary mb-6">39,800원</p>
+<ul class="space-y-3 mb-8 text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary" data-icon="check">check</span> 테이블 포토 제작</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary" data-icon="check">check</span> 커스텀 옵션 개방</li>
+</ul>
+</div>
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-label-caps text-label-caps hover:brightness-110 transition-all">구매하기</button>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-bright p-8 rounded-2xl flex flex-col h-full border border-outline-variant shadow-sm hover:translate-y-[-4px] transition-transform duration-300">
+<div class="mb-auto">
+<span class="font-label-caps text-label-caps text-secondary mb-4 block">ULTIMATE</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">프리미엄 커스텀</h3>
+<p class="font-headline-md text-headline-md text-primary mb-6">99,000원</p>
+<ul class="space-y-3 mb-8 text-on-surface-variant">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm" data-icon="check">check</span> 업스케일링 4K</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm" data-icon="check">check</span> 맞춤 제작 지원</li>
+</ul>
+</div>
+<button class="w-full border border-primary text-primary py-3 rounded-xl font-label-caps text-label-caps hover:bg-primary/5 transition-colors">문의하기</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="bg-background py-12 px-margin-mobile text-center border-t border-outline-variant/30">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-2">Magic AI Studio</h2>
+<p class="text-on-surface-variant text-sm mb-6 opacity-60">© 2024 Magic AI Studio. All rights reserved.</p>
+<div class="flex justify-center gap-6">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="share">share</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="mail">mail</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors" data-icon="help_center">help_center</span>
+</div>
+</footer>
+<!-- BottomNavBar (Hidden on desktop, simplified as per JSON requirement but following the aesthetic) -->
+<nav class="md:hidden fixed bottom-8 w-full z-50 flex justify-center items-center gap-4">
+<div class="bg-white/80 backdrop-blur-xl px-8 py-3 rounded-full flex gap-10 shadow-2xl border border-white/50">
+<div class="flex items-center justify-center text-primary dark:text-primary-fixed-dim scale-125 transition-transform duration-300">
+<span class="material-symbols-outlined" data-icon="fiber_manual_record" style="font-variation-settings: 'FILL' 1;">fiber_manual_record</span>
+</div>
+<div class="flex items-center justify-center text-outline-variant dark:text-outline-variant opacity-40 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="fiber_manual_record">fiber_manual_record</span>
+</div>
+<div class="flex items-center justify-center text-outline-variant dark:text-outline-variant opacity-40 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="fiber_manual_record">fiber_manual_record</span>
+</div>
+<div class="flex items-center justify-center text-outline-variant dark:text-outline-variant opacity-40 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined" data-icon="fiber_manual_record">fiber_manual_record</span>
+</div>
+</div>
+</nav>
+<script>
+        // Simple interactive effect for pricing cards
+        document.querySelectorAll('.bento-grid > div').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'var(--tw-colors-primary)';
+            });
+            card.addEventListener('mouseleave', () => {
+                if (!card.classList.contains('border-2')) {
+                    card.style.borderColor = '';
+                }
+            });
+        });
+    </script>
+</body></html>

@@ -1,4 +1,4 @@
-export const ASSISTANT_CHAT_URL = "http://pf.kakao.com/_xeNSts/chat";
+export const ASSISTANT_CHAT_URL = "https://pf.kakao.com/_xeNSts/chat";
 
 export function openAssistantChat() {
   if (typeof window === "undefined") {

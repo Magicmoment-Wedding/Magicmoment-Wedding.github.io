@@ -308,50 +308,32 @@
 
       .landing-page {
         width: 100%;
-        height: 100dvh;
-        overflow: hidden;
+        min-height: 100dvh;
+        overflow-x: hidden;
         position: relative;
         background:
           radial-gradient(90% 44% at 50% 0%, rgba(244, 182, 195, 0.32), transparent 64%),
           linear-gradient(180deg, #fff8f7 0%, #fcf1f2 48%, #fff8f7 100%);
       }
 
-      .landing-carousel {
+      .landing-sections {
         width: 100%;
-        height: 100dvh;
         display: flex;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .landing-carousel::-webkit-scrollbar {
-        display: none;
-      }
-
-      .landing-carousel {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+        flex-direction: column;
+        gap: clamp(12px, 3vw, 28px);
+        padding: clamp(20px, 4vw, 48px) 18px clamp(72px, 8vw, 118px);
       }
 
       .landing-section {
-        flex: 0 0 100%;
         width: 100%;
-        height: 100dvh;
-        scroll-snap-align: start;
-        scroll-snap-stop: always;
-        overflow-y: auto;
-        padding: clamp(18px, 4vw, 44px) 18px 104px;
+        padding: clamp(28px, 6vw, 78px) 0;
         display: flex;
         align-items: center;
         justify-content: center;
       }
 
       .landing-section-inner {
-        width: min(1080px, 100%);
-        min-height: min(760px, calc(100dvh - 132px));
+        width: min(1120px, 100%);
         display: grid;
         gap: 20px;
         align-content: center;
@@ -611,8 +593,9 @@
       .landing-plan-title {
         color: #2a2224;
         font-size: 14px;
+        line-height: 1.25;
         font-weight: 700;
-        white-space: nowrap;
+        word-break: keep-all;
       }
 
       .landing-plan-price {
@@ -642,66 +625,6 @@
       .landing-plan-card.is-featured .landing-plan-button {
         color: #fff;
         background: var(--rose-deep);
-      }
-
-      .landing-dots {
-        position: absolute;
-        z-index: 20;
-        left: 50%;
-        bottom: 26px;
-        transform: translateX(-50%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 9px;
-        padding: 8px 12px;
-        border-radius: 9999px;
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(255, 255, 255, 0.82);
-        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.14);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-      }
-
-      .landing-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 9999px;
-        background: rgba(131, 115, 118, 0.36);
-        transition: width 180ms ease, background 180ms ease;
-      }
-
-      .landing-dot.is-active {
-        width: 24px;
-        background: var(--rose-deep);
-      }
-
-      .landing-arrow {
-        position: absolute;
-        z-index: 20;
-        top: 50%;
-        width: 44px;
-        height: 44px;
-        border-radius: 9999px;
-        display: none;
-        place-items: center;
-        color: var(--rose-deep);
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(255, 255, 255, 0.82);
-        box-shadow: 0 16px 40px rgba(129, 80, 92, 0.14);
-        transform: translateY(-50%);
-      }
-
-      .landing-arrow:disabled {
-        opacity: 0.38;
-      }
-
-      .landing-arrow.prev {
-        left: 20px;
-      }
-
-      .landing-arrow.next {
-        right: 20px;
       }
 
       .app-stage {
@@ -883,7 +806,7 @@
         }
 
         .landing-section-inner.single-column {
-          max-width: 760px;
+          max-width: 1120px;
           grid-template-columns: minmax(0, 1fr);
         }
 
@@ -913,20 +836,20 @@
           min-height: 190px;
           padding: 18px;
         }
-
-        .landing-arrow {
-          display: grid;
-        }
       }
 
       @media (max-width: 420px) {
+        .landing-sections {
+          padding: 12px 16px 84px;
+          gap: 4px;
+        }
+
         .landing-section {
-          padding: 16px 16px 96px;
+          padding: 26px 0;
           align-items: stretch;
         }
 
         .landing-section-inner {
-          min-height: calc(100dvh - 112px);
           gap: 16px;
         }
 
@@ -1022,7 +945,7 @@
   >
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
-        <div class="landing-carousel" id="landingCarousel" aria-label="Magic Ai Studio 랜딩 소개">
+        <div class="landing-sections" id="landingSections" aria-label="Magic Ai Studio 랜딩 소개">
           <section class="landing-section" aria-label="Before After 쇼케이스">
             <div class="landing-section-inner">
               <div class="flex flex-col gap-5">
@@ -1173,18 +1096,6 @@
               </div>
             </div>
           </section>
-        </div>
-        <button class="landing-arrow prev" data-landing-prev type="button" aria-label="이전 랜딩 섹션">
-          <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-        <button class="landing-arrow next" data-landing-next type="button" aria-label="다음 랜딩 섹션">
-          <span class="material-symbols-outlined">chevron_right</span>
-        </button>
-        <div class="landing-dots" role="tablist" aria-label="랜딩 섹션 이동">
-          <button class="landing-dot is-active" data-landing-dot="0" type="button" aria-label="Before After 섹션으로 이동" aria-selected="true"></button>
-          <button class="landing-dot" data-landing-dot="1" type="button" aria-label="갤러리 섹션으로 이동" aria-selected="false"></button>
-          <button class="landing-dot" data-landing-dot="2" type="button" aria-label="어시스턴트 섹션으로 이동" aria-selected="false"></button>
-          <button class="landing-dot" data-landing-dot="3" type="button" aria-label="요금제 섹션으로 이동" aria-selected="false"></button>
         </div>
       </section>
 
@@ -1811,11 +1722,6 @@ Important balance:
 - If the face looks like a different person, the result is a failure.`;
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
-      const landingCarousel = document.getElementById("landingCarousel");
-      const landingSections = Array.from(document.querySelectorAll("#landingCarousel .landing-section"));
-      const landingDots = Array.from(document.querySelectorAll("[data-landing-dot]"));
-      const landingPrevButton = document.querySelector("[data-landing-prev]");
-      const landingNextButton = document.querySelector("[data-landing-next]");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
       const editorScreen = document.getElementById("editorScreen");
@@ -3726,77 +3632,6 @@ ${modeExample}`;
         console.log("[client][grok-edit] generation success:", sanitizeLogValue(data));
       }
 
-      function getLandingIndex() {
-        if (!landingCarousel) return 0;
-        const width = landingCarousel.clientWidth || window.innerWidth || 1;
-        return Math.min(
-          Math.max(Math.round(landingCarousel.scrollLeft / width), 0),
-          Math.max(landingSections.length - 1, 0),
-        );
-      }
-
-      function syncLandingControls() {
-        const activeIndex = getLandingIndex();
-        landingDots.forEach((dot, index) => {
-          const isActive = index === activeIndex;
-          dot.classList.toggle("is-active", isActive);
-          dot.setAttribute("aria-selected", String(isActive));
-        });
-
-        if (landingPrevButton) {
-          landingPrevButton.disabled = activeIndex <= 0;
-        }
-        if (landingNextButton) {
-          landingNextButton.disabled = activeIndex >= landingSections.length - 1;
-        }
-      }
-
-      function scrollLandingTo(index) {
-        if (!landingCarousel || !landingSections.length) return;
-        const boundedIndex = Math.min(Math.max(index, 0), landingSections.length - 1);
-        landingCarousel.scrollTo({
-          left: boundedIndex * landingCarousel.clientWidth,
-          behavior: "smooth",
-        });
-      }
-
-      function setupLandingCarousel() {
-        if (!landingCarousel) return;
-
-        landingCarousel.addEventListener("scroll", () => {
-          window.requestAnimationFrame(syncLandingControls);
-        }, { passive: true });
-
-        landingDots.forEach((dot) => {
-          dot.addEventListener("click", () => {
-            scrollLandingTo(Number.parseInt(dot.dataset.landingDot, 10) || 0);
-          });
-        });
-
-        landingPrevButton?.addEventListener("click", () => {
-          scrollLandingTo(getLandingIndex() - 1);
-        });
-        landingNextButton?.addEventListener("click", () => {
-          scrollLandingTo(getLandingIndex() + 1);
-        });
-
-        landingCarousel.addEventListener("wheel", (event) => {
-          if (appScreen !== "landing" || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-          event.preventDefault();
-          landingCarousel.scrollBy({
-            left: event.deltaY,
-            behavior: "smooth",
-          });
-        }, { passive: false });
-
-        window.addEventListener("resize", () => {
-          scrollLandingTo(getLandingIndex());
-          syncLandingControls();
-        });
-
-        syncLandingControls();
-      }
-
       function setupBeforeAfterSliders() {
         beforeAfterSliders.forEach((slider) => {
           const input = slider.querySelector(".before-after-input");
@@ -3867,7 +3702,7 @@ ${modeExample}`;
       const topSettingsButton = document.getElementById("topSettingsButton");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
-      const ASSISTANT_CHAT_URL = "http://pf.kakao.com/_xeNSts/chat";
+      const ASSISTANT_CHAT_URL = "https://pf.kakao.com/_xeNSts/chat";
       const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
 
       if (topCreditButton) {
@@ -3945,7 +3780,6 @@ ${modeExample}`;
         input.addEventListener("change", syncGenerationModeUi);
       });
       syncGenerationModeUi();
-      setupLandingCarousel();
       setupBeforeAfterSliders();
       setAppScreen("landing", { pushHistory: false });
       replaceAppHistoryState("landing", null);

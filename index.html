@@ -164,7 +164,7 @@
       }
 
       .comparison-slider {
-        touch-action: none;
+        touch-action: pan-y;
       }
 
       .comparison-slider img {
@@ -348,11 +348,59 @@
         transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
       }
 
+      .editor-option-card.has-preview {
+        position: relative;
+        min-height: 118px;
+        overflow: hidden;
+        isolation: isolate;
+        color: #fff;
+        background: var(--preset-fallback, rgba(129, 80, 92, 0.28));
+        border-color: rgba(255, 255, 255, 0.42);
+        box-shadow: 0 18px 42px rgba(53, 47, 48, 0.14);
+      }
+
+      .editor-option-card.has-preview::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        background-image:
+          linear-gradient(180deg, rgba(31, 26, 27, 0.08), rgba(31, 26, 27, 0.66)),
+          var(--preset-image),
+          var(--preset-fallback);
+        background-size: cover;
+        background-position: var(--preset-position, center);
+        transform: scale(1.01);
+      }
+
+      .editor-option-card.has-preview::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: linear-gradient(140deg, rgba(255, 255, 255, 0.14), transparent 48%, rgba(0, 0, 0, 0.2));
+      }
+
+      .editor-option-card.has-preview .editor-option-title {
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+        color: #fff;
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.38);
+      }
+
       .editor-option-card:has(input:checked) {
         color: var(--rose-deep);
         background: rgba(255, 255, 255, 0.86);
         border-color: var(--rose-deep);
         box-shadow: 0 14px 34px rgba(129, 80, 92, 0.13);
+      }
+
+      .editor-option-card.has-preview:has(input:checked) {
+        color: #fff;
+        background: var(--preset-fallback, rgba(129, 80, 92, 0.28));
+        border-color: #fff;
+        box-shadow: 0 16px 38px rgba(129, 80, 92, 0.24), 0 0 0 2px rgba(129, 80, 92, 0.55);
       }
 
       .editor-option-check {
@@ -373,6 +421,15 @@
         transform: scale(1);
       }
 
+      .editor-option-card.has-preview .editor-option-check {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.92);
+      }
+
       .editor-option-card.is-disabled {
         cursor: default;
         opacity: 0.68;
@@ -380,12 +437,21 @@
         border-color: rgba(129, 80, 92, 0.12);
       }
 
+      .editor-option-card.has-preview.is-disabled {
+        opacity: 1;
+        color: #fff;
+        background: var(--preset-fallback, rgba(129, 80, 92, 0.28));
+        border-color: rgba(255, 255, 255, 0.42);
+      }
+
       .editor-option-badge {
         align-self: flex-start;
+        position: relative;
+        z-index: 1;
         border-radius: 9999px;
         padding: 4px 8px;
-        color: #9a6f78;
-        background: rgba(129, 80, 92, 0.08);
+        color: #fff;
+        background: rgba(0, 0, 0, 0.34);
         font-size: 10px;
         font-weight: 700;
       }
@@ -396,6 +462,25 @@
         flex-direction: column;
         gap: 2px;
         z-index: 1;
+      }
+
+      .viewport-alert {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        right: 14px;
+        z-index: 80;
+        border-radius: 22px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        box-shadow: 0 18px 56px rgba(53, 47, 48, 0.18);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+
+      .viewport-alert.is-error {
+        border-color: rgba(186, 26, 26, 0.24);
       }
 
       #resultScreen {
@@ -564,7 +649,7 @@
       }
 
       .before-after-compare {
-        --split: 52%;
+        --split: 50%;
         position: relative;
         overflow: hidden;
         border-radius: 30px;
@@ -577,7 +662,7 @@
           #fff8f7;
         border: 1px solid rgba(255, 255, 255, 0.86);
         box-shadow: 0 24px 70px rgba(129, 80, 92, 0.18);
-        touch-action: none;
+        touch-action: pan-y;
       }
 
       .before-after-compare img {
@@ -585,7 +670,7 @@
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
         object-position: center 48%;
         user-select: none;
         -webkit-user-drag: none;
@@ -1135,7 +1220,7 @@
                 </div>
                 <span class="before-after-label before">Before</span>
                 <span class="before-after-label after">After</span>
-                <input class="before-after-input" type="range" min="8" max="92" value="52" aria-label="Before After 비교 슬라이더" />
+                <input class="before-after-input" type="range" min="8" max="92" value="50" aria-label="Before After 비교 슬라이더" />
               </div>
               <div class="landing-hero-copy">
                 <div>
@@ -1248,6 +1333,23 @@
 
       <section class="app-stage hidden" id="appStage">
         <div class="mobile-frame pb-28">
+          <div class="viewport-alert is-error hidden" id="viewportAlert" role="alert" aria-live="assertive">
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 h-8 w-8 shrink-0 rounded-full bg-error-container text-error flex items-center justify-center">
+                <span class="material-symbols-outlined text-[18px]">priority_high</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-on-surface" id="viewportAlertTitle">생성 실패</p>
+                <p class="mt-1 text-xs leading-5 text-on-surface-variant" id="viewportAlertMessage"></p>
+                <button class="mt-3 hidden h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold" id="viewportAlertCreditButton" type="button">
+                  크레딧 충전하러 가기
+                </button>
+              </div>
+              <button class="h-8 w-8 shrink-0 rounded-full bg-white/70 text-on-surface-variant flex items-center justify-center" id="viewportAlertClose" type="button" aria-label="알림 닫기">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+          </div>
           <section class="screen-panel app-screen hidden" id="homeScreen">
             <div class="app-topbar flex items-center justify-between px-4 pt-5 pb-3">
               <button id="topCreditButton" class="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-semibold text-primary shadow-sm">
@@ -1263,18 +1365,18 @@
               <section class="pt-3">
                 <h1 class="font-display text-[26px] leading-tight text-on-surface">웨딩사진을 여행처럼</h1>
                 <p class="mt-2 text-sm leading-6 text-on-surface-variant">AI가 당신의 웨딩사진을 새로운 순간으로 바꿔드려요.</p>
-                <div class="mt-5 overflow-hidden rounded-[22px] bg-white shadow-[0_18px_48px_rgba(129,80,92,0.12)] border border-white/80">
-                  <div class="grid grid-cols-2">
-                    <div class="relative min-w-0 overflow-hidden">
-                      <img src="mock-images/before/before_studio_couple_01.jpg" alt="Before" class="h-36 w-full object-cover" />
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
-                      <span class="absolute left-3 top-3 rounded-full bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">Before</span>
+                <div class="mt-5">
+                  <div class="before-after-compare" data-before-after-slider>
+                    <img class="before-after-after" src="mock-images/home/home_paris_couple_01.png" alt="AI 편집 후 파리 웨딩사진" draggable="false" />
+                    <img class="before-after-before" src="mock-images/before/before_studio_couple_01.jpg" alt="편집 전 원본 웨딩사진" draggable="false" />
+                    <div class="before-after-shade"></div>
+                    <div class="before-after-divider" aria-hidden="true"></div>
+                    <div class="before-after-handle" aria-hidden="true">
+                      <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
                     </div>
-                    <div class="relative min-w-0 overflow-hidden">
-                      <img src="mock-images/home/home_paris_couple_01.png" alt="After" class="h-36 w-full object-cover" />
-                      <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
-                      <span class="absolute right-3 top-3 rounded-full bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">After</span>
-                    </div>
+                    <span class="before-after-label before">Before</span>
+                    <span class="before-after-label after">After</span>
+                    <input class="before-after-input" type="range" min="8" max="92" value="50" aria-label="Before After 비교 슬라이더" />
                   </div>
                 </div>
               </section>
@@ -1367,49 +1469,87 @@
             </fieldset>
 
             <section class="mt-7" id="europeOptions">
-              <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">명소 선택</p>
+              <div>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 유럽의 명소 배경을 선택해 주세요</p>
+                <p class="mt-1 text-xs leading-5 text-on-surface-variant">예쁨단계 1 · 얼굴이 거의 변하지 않아요</p>
+              </div>
               <div class="editor-option-grid mt-3">
-                <label class="editor-option-card">
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('mock-images/presets/europe-eiffel.jpg'); --preset-fallback: linear-gradient(135deg, #a8c7df 0%, #f6d9c6 46%, #6f8793 100%); --preset-position: center;"
+                >
                   <input class="sr-only" name="generationPlace" type="radio" value="eiffel" checked />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="font-semibold">에펠탑</span>
+                  <span class="editor-option-title font-semibold">에펠탑</span>
                 </label>
-                <label class="editor-option-card">
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('mock-images/presets/europe-louvre.jpg'); --preset-fallback: linear-gradient(135deg, #c5b49e 0%, #dfe7ee 44%, #77695f 100%); --preset-position: center;"
+                >
                   <input class="sr-only" name="generationPlace" type="radio" value="louvre" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="font-semibold">루브르 박물관</span>
+                  <span class="editor-option-title font-semibold">루브르 박물관</span>
                 </label>
-                <label class="editor-option-card">
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('mock-images/presets/europe-venice.jpg'); --preset-fallback: linear-gradient(135deg, #7db4c7 0%, #d6b28f 48%, #586c72 100%); --preset-position: center;"
+                >
                   <input class="sr-only" name="generationPlace" type="radio" value="venice" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="font-semibold">베네치아</span>
+                  <span class="editor-option-title font-semibold">베네치아</span>
                 </label>
-                <label class="editor-option-card">
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('mock-images/presets/europe-amalfi.jpg'); --preset-fallback: linear-gradient(135deg, #64b9d2 0%, #f4d49c 43%, #a97d64 100%); --preset-position: center;"
+                >
                   <input class="sr-only" name="generationPlace" type="radio" value="amalfi" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="font-semibold">아말피 코스트 절벽</span>
+                  <span class="editor-option-title font-semibold">아말피 코스트 절벽</span>
                 </label>
               </div>
             </section>
 
             <section class="mt-7 hidden" id="disneyOptions">
-              <p class="font-label-caps text-label-caps uppercase text-on-surface-variant">디즈니 실사 콘셉트</p>
+              <div>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">4개의 컨셉으로 자동 변환됩니다</p>
+                <p class="mt-1 text-xs leading-5 text-on-surface-variant">예쁨단계 3 · 얼굴 및 의상이 디즈니 캐릭터에 맞게 약간 예뻐져요</p>
+              </div>
               <div class="editor-option-grid mt-3">
-                <button class="editor-option-card is-disabled" type="button" disabled>
+                <button
+                  class="editor-option-card has-preview is-disabled"
+                  style="--preset-image: url('mock-images/presets/disney-cinderella.jpg'); --preset-fallback: linear-gradient(135deg, #b9cff2 0%, #f6edf8 48%, #7787b5 100%); --preset-position: center;"
+                  type="button"
+                  disabled
+                >
                   <span class="editor-option-badge">자동 생성</span>
-                  <span class="font-semibold">신데렐라</span>
+                  <span class="editor-option-title font-semibold">신데렐라</span>
                 </button>
-                <button class="editor-option-card is-disabled" type="button" disabled>
+                <button
+                  class="editor-option-card has-preview is-disabled"
+                  style="--preset-image: url('mock-images/presets/disney-belle.jpg'); --preset-fallback: linear-gradient(135deg, #8c6c50 0%, #e5c56e 46%, #6f5845 100%); --preset-position: center;"
+                  type="button"
+                  disabled
+                >
                   <span class="editor-option-badge">자동 생성</span>
-                  <span class="font-semibold">미녀와야수</span>
+                  <span class="editor-option-title font-semibold">벨</span>
                 </button>
-                <button class="editor-option-card is-disabled" type="button" disabled>
+                <button
+                  class="editor-option-card has-preview is-disabled"
+                  style="--preset-image: url('mock-images/presets/disney-aurora.jpg'); --preset-fallback: linear-gradient(135deg, #b8d5bd 0%, #f2c9d8 50%, #8a7bb5 100%); --preset-position: center;"
+                  type="button"
+                  disabled
+                >
                   <span class="editor-option-badge">자동 생성</span>
-                  <span class="font-semibold">오로라</span>
+                  <span class="editor-option-title font-semibold">오로라</span>
                 </button>
-                <button class="editor-option-card is-disabled" type="button" disabled>
+                <button
+                  class="editor-option-card has-preview is-disabled"
+                  style="--preset-image: url('mock-images/presets/disney-mulan.jpg'); --preset-fallback: linear-gradient(135deg, #496c54 0%, #d7b784 47%, #7f4c57 100%); --preset-position: center;"
+                  type="button"
+                  disabled
+                >
                   <span class="editor-option-badge">자동 생성</span>
-                  <span class="font-semibold">뮬란</span>
+                  <span class="editor-option-title font-semibold">뮬란</span>
                 </button>
               </div>
             </section>
@@ -1445,7 +1585,7 @@
                 <div>
                   <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
                   <h2 class="mt-2 font-display text-[34px] leading-tight text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
-                  <p class="mt-3 text-xs leading-5 text-on-surface-variant" id="generatingStatusText">AI 편집 요청을 준비하는 중...</p>
+                  <p class="mt-3 text-xs leading-5 text-on-surface-variant" id="generatingStatusText">잠시만 기다려 주세요.</p>
                 </div>
               </div>
             </div>
@@ -1689,13 +1829,16 @@
       const HEIC_UPLOAD_WARNING_MESSAGE = "아이폰 원본 HEIC 사진은 일부 환경에서 실패할 수 있습니다. JPG로 변환된 사진이나 스크린샷으로 다시 시도해 주세요.";
       const LARGE_IMAGE_WARNING_MESSAGE = "사진 용량이 커서 처리에 실패할 수 있습니다. 10MB 이하 사진으로 다시 시도해 주세요.";
       const CREDIT_CHARGE_SUCCESS_MESSAGE = "크레딧이 충전되었습니다.";
-      const CREDIT_CHARGE_FAILED_MESSAGE = "크레딧 충전에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+      const CREDIT_CHARGE_FAILED_MESSAGE = "크레딧 충전에 실패했습니다. 어시스턴트에게 문의하세요.";
       let userPlan = "free"; // free | ad | paid
       const DEBUG_MODE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
       const GENERATION_MODES = {
         PARIS_SNAP: "parisSnap",
         DISNEY_LIVE: "disneyLive",
       };
+      const GENERATING_STATUS_TEXT = "잠시만 기다려 주세요.";
+      const CREDIT_SHORTAGE_MESSAGE = "크레딧이 부족합니다. 충전 후 이용해 주세요.";
+      const GENERAL_GENERATION_FAILURE_MESSAGE = "이미지를 생성하지 못했어요. 어시스턴트에게 문의하세요.";
       const GENERATION_MODE_ALIASES = {
         parissnap: GENERATION_MODES.PARIS_SNAP,
         paris: GENERATION_MODES.PARIS_SNAP,
@@ -2031,6 +2174,11 @@ Important balance:
       const photoInput = document.getElementById("photoInput");
       const photoUploadBox = document.getElementById("photoUploadBox");
       const changePhotoButton = document.getElementById("changePhotoButton");
+      const viewportAlert = document.getElementById("viewportAlert");
+      const viewportAlertTitle = document.getElementById("viewportAlertTitle");
+      const viewportAlertMessage = document.getElementById("viewportAlertMessage");
+      const viewportAlertCreditButton = document.getElementById("viewportAlertCreditButton");
+      const viewportAlertClose = document.getElementById("viewportAlertClose");
       const generationModeInputs = Array.from(document.querySelectorAll("input[name='generationMode']"));
       const generationPlaceInputs = Array.from(document.querySelectorAll("input[name='generationPlace']"));
       const generateButton = document.getElementById("generateButton");
@@ -2477,6 +2625,21 @@ Important balance:
         errorText.style.display = "none";
         creditShortageButton.classList.add("hidden");
         editorFeedback?.classList.add("hidden");
+        hideViewportAlert();
+      }
+
+      function hideViewportAlert() {
+        viewportAlert?.classList.add("hidden");
+        viewportAlertCreditButton?.classList.add("hidden");
+      }
+
+      function showViewportAlert(message, options = {}) {
+        if (!viewportAlert || !viewportAlertMessage) return;
+
+        viewportAlertTitle.textContent = options.title || "생성 실패";
+        viewportAlertMessage.textContent = message;
+        viewportAlertCreditButton?.classList.toggle("hidden", !options.showCreditButton);
+        viewportAlert.classList.remove("hidden");
       }
 
       function escapeHtml(value) {
@@ -2607,6 +2770,10 @@ Important balance:
         errorText.style.whiteSpace = "pre-wrap";
         errorText.style.display = "block";
         creditShortageButton.classList.toggle("hidden", !options.showCreditButton);
+        showViewportAlert(message, {
+          title: options.title || "생성 실패",
+          showCreditButton: options.showCreditButton,
+        });
       }
 
       function readFileAsDataUrl(file) {
@@ -2708,7 +2875,7 @@ Important balance:
       }
 
       function getFileFailureFallbackMessage(file) {
-        return getFileSpecificFailureMessage(file) || "이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요.";
+        return getFileSpecificFailureMessage(file) || GENERAL_GENERATION_FAILURE_MESSAGE;
       }
 
       function createUploadFile(file) {
@@ -3301,7 +3468,7 @@ ${modeExample}`;
           error.code = data.code || (isInsufficientCredits ? "INSUFFICIENT_CREDITS" : "");
           error.response = data;
           if (isInsufficientCredits) {
-            error.publicMessage = data.message || "크레딧이 부족합니다. 충전 후 이용해 주세요.";
+            error.publicMessage = CREDIT_SHORTAGE_MESSAGE;
             error.isInsufficientCredits = true;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
@@ -4279,9 +4446,7 @@ ${modeExample}`;
       }
 
       async function runGrokPipeline({ imageFile, originalImage, mode = activeGenerationMode }) {
-        setStatus(isDisneyMode(mode)
-          ? "디즈니 실사풍 결과 4개를 생성하고 있어요. 1장은 한복 뮬란 컨셉으로 고정됩니다."
-          : "에펠탑 배경 파리 스냅 결과 4개를 생성하고 있어요.");
+        setStatus(GENERATING_STATUS_TEXT);
         console.log("[client][grok-edit] generation start");
 
         const data = await generateGrokResults({
@@ -4407,6 +4572,15 @@ ${modeExample}`;
       creditShortageButton.addEventListener("click", () => {
         hideError();
         navigateToScreen("credits");
+      });
+
+      viewportAlertCreditButton?.addEventListener("click", () => {
+        hideError();
+        navigateToScreen("credits");
+      });
+
+      viewportAlertClose?.addEventListener("click", () => {
+        hideViewportAlert();
       });
 
       creditChargeButtons.forEach((button) => {
@@ -4640,7 +4814,7 @@ ${modeExample}`;
         clearResults();
         sourceSection.classList.add("hidden");
         setAppScreen("generating");
-        setStatus("AI 편집 요청을 준비하는 중...");
+        setStatus(GENERATING_STATUS_TEXT);
 
         try {
           await runGrokPipeline({
@@ -4659,13 +4833,11 @@ ${modeExample}`;
           clearResults();
           setAppScreen("editor", { replaceHistory: true });
           setStatus(error.isInsufficientCredits ? "크레딧 충전 후 같은 사진으로 다시 생성할 수 있어요." : "");
-          const publicFailureMessage = error.publicMessage ||
-            error.response?.message ||
-            getFileFailureFallbackMessage(selectedFile);
+          const publicFailureMessage = error.isInsufficientCredits
+            ? CREDIT_SHORTAGE_MESSAGE
+            : GENERAL_GENERATION_FAILURE_MESSAGE;
           showError(
-            error.isInsufficientCredits
-              ? error.publicMessage || "크레딧이 부족합니다. 충전 후 이용해 주세요."
-              : publicFailureMessage,
+            publicFailureMessage,
             { showCreditButton: error.isInsufficientCredits },
           );
         } finally {

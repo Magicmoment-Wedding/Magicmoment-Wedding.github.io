@@ -14,6 +14,7 @@ import { renderStudioPage } from "./pages/studio.js";
 import { renderSuggestionsPage } from "./pages/suggestions.js";
 import { renderCreditsPage } from "./pages/credits.js";
 import { renderSettingsPage } from "./pages/settings.js";
+import { setupBeforeAfterSliders } from "./components/before-after-slider.js";
 import { openAssistantChat } from "./services/assistant-chat.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
@@ -112,6 +113,7 @@ function renderRoute(route, state) {
     content: page.content,
     state,
   });
+  setupBeforeAfterSliders(app);
 }
 
 function getPage(route, state) {

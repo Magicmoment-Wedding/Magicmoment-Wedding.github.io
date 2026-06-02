@@ -1,3 +1,4 @@
+import { renderBeforeAfterSlider } from "../components/before-after-slider.js";
 import { HOME_SHOWCASE } from "../mock/wedding-data.js";
 
 export function renderHomePage() {
@@ -8,19 +9,15 @@ export function renderHomePage() {
     <section class="pt-1">
       <h1 class="font-display text-[28px] leading-tight text-on-surface">웨딩사진을 여행처럼</h1>
       <p class="mt-2 text-sm leading-6 text-on-surface-variant">AI가 당신의 웨딩사진을 새로운 순간으로 바꿔드려요.</p>
-      <div class="mt-5 overflow-hidden rounded-[22px] bg-white shadow-[0_18px_48px_rgba(129,80,92,0.12)] border border-white/80">
-        <div class="grid grid-cols-2">
-          <div class="relative min-w-0 overflow-hidden">
-            <img src="mock-images/before/before_studio_couple_01.jpg" alt="Before" class="h-36 w-full object-cover" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
-            <span class="absolute left-3 top-3 rounded-full bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">Before</span>
-          </div>
-          <div class="relative min-w-0 overflow-hidden">
-            <img src="${parisImage}" alt="After" class="h-36 w-full object-cover" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"></div>
-            <span class="absolute right-3 top-3 rounded-full bg-black/35 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">After</span>
-          </div>
-        </div>
+      <div class="mt-5">
+        ${renderBeforeAfterSlider({
+          beforeSrc: "mock-images/before/before_studio_couple_01.jpg",
+          afterSrc: parisImage,
+          beforeLabel: "BEFORE",
+          afterLabel: "AFTER",
+          beforeAlt: "편집 전 원본 웨딩사진",
+          afterAlt: "AI 편집 후 파리 웨딩사진",
+        })}
       </div>
     </section>
 

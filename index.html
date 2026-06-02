@@ -1871,9 +1871,12 @@
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
       const ONE_MB_BYTES = 1024 * 1024;
       const MOBILE_RECOMMENDED_MAX_IMAGE_BYTES = 10 * ONE_MB_BYTES;
-      const SUPABASE_UPLOAD_FAILED_MESSAGE = "이미지 업로드에 실패했어요. 다시 시도해 주세요.";
+      const MOBILE_MAX_UPLOAD_IMAGE_BYTES = 50 * ONE_MB_BYTES;
+      const SIGNED_UPLOAD_FAILED_MESSAGE = "사진 업로드 준비에 실패했습니다. 어시스턴트에게 문의하세요.";
+      const SUPABASE_UPLOAD_FAILED_MESSAGE = "사진 업로드에 실패했습니다. 네트워크 상태를 확인하거나 어시스턴트에게 문의하세요.";
       const HEIC_UPLOAD_WARNING_MESSAGE = "아이폰 원본 HEIC 사진은 일부 환경에서 실패할 수 있습니다. JPG로 변환된 사진이나 스크린샷으로 다시 시도해 주세요.";
-      const LARGE_IMAGE_WARNING_MESSAGE = "사진 용량이 커서 처리에 실패할 수 있습니다. 10MB 이하 사진으로 다시 시도해 주세요.";
+      const LARGE_IMAGE_WARNING_MESSAGE = "사진 용량이 커서 업로드 시간이 조금 더 걸릴 수 있어요.";
+      const OVERSIZED_IMAGE_MESSAGE = "사진 용량이 너무 커서 업로드가 어려울 수 있습니다. 더 작은 사진으로 다시 시도해 주세요.";
       const CREDIT_CHARGE_SUCCESS_MESSAGE = "크레딧이 충전되었습니다.";
       const CREDIT_CHARGE_FAILED_MESSAGE = "크레딧 충전에 실패했습니다. 어시스턴트에게 문의하세요.";
       let userPlan = "free"; // free | ad | paid
@@ -2887,6 +2890,10 @@ Important balance:
         return Number.isFinite(file?.size) && file.size > MOBILE_RECOMMENDED_MAX_IMAGE_BYTES;
       }
 
+      function isOversizedUploadImage(file) {
+        return Number.isFinite(file?.size) && file.size > MOBILE_MAX_UPLOAD_IMAGE_BYTES;
+      }
+
       function getFileDebugInfo(file) {
         return {
           name: getUploadFileName(file),
@@ -2904,24 +2911,12 @@ Important balance:
         if (isHeicOrHeifFile(file)) {
           warnings.push(HEIC_UPLOAD_WARNING_MESSAGE);
         }
-        if (isLargeMobileImage(file)) {
+        if (isOversizedUploadImage(file)) {
+          warnings.push(OVERSIZED_IMAGE_MESSAGE);
+        } else if (isLargeMobileImage(file)) {
           warnings.push(LARGE_IMAGE_WARNING_MESSAGE);
         }
         return warnings;
-      }
-
-      function getFileSpecificFailureMessage(file) {
-        if (isHeicOrHeifFile(file)) {
-          return HEIC_UPLOAD_WARNING_MESSAGE;
-        }
-        if (isLargeMobileImage(file)) {
-          return LARGE_IMAGE_WARNING_MESSAGE;
-        }
-        return "";
-      }
-
-      function getFileFailureFallbackMessage(file) {
-        return getFileSpecificFailureMessage(file) || GENERAL_GENERATION_FAILURE_MESSAGE;
       }
 
       function createUploadFile(file) {
@@ -2948,9 +2943,15 @@ Important balance:
         const fileInfo = getFileDebugInfo(file);
         const uploadFileName = getUploadFileName(file);
         const contentType = getEffectiveFileType(file);
-        logMobileDebug("upload url request start", {
+        logMobileDebug("signed url request start", {
           requestUrl,
           ...fileInfo,
+        });
+        console.log("[upload] signed url request start", {
+          fileName: uploadFileName,
+          fileType: contentType,
+          fileSize: file.size,
+          fileSizeMB: toSizeMB(file.size),
         });
         console.log("[upload] selected file", {
           apiBaseUrl: FRONT_API_BASE_URL,
@@ -2973,22 +2974,23 @@ Important balance:
             }),
           });
         } catch (error) {
-          logMobileDebug("upload url request fail", {
+          logMobileDebug("signed url request fail", {
             requestUrl,
             ...fileInfo,
             message: error?.message || String(error),
           }, "error");
-          const uploadError = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
-          uploadError.publicMessage = getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
+          const uploadError = new Error(SIGNED_UPLOAD_FAILED_MESSAGE);
+          uploadError.publicMessage = SIGNED_UPLOAD_FAILED_MESSAGE;
+          uploadError.stage = "signed-upload-url";
           uploadError.cause = error;
           throw uploadError;
         }
 
         const responseBody = await readResponseBody(response);
-        const data = parseJsonResponseBody(responseBody, SUPABASE_UPLOAD_FAILED_MESSAGE);
+        const data = parseJsonResponseBody(responseBody, SIGNED_UPLOAD_FAILED_MESSAGE);
 
         if (!response.ok || !data.ok || !data.signedUrl || !data.path || !data.token) {
-          logMobileDebug("upload url request fail", {
+          logMobileDebug("signed url request fail", {
             status: response.status,
             ok: Boolean(data.ok),
             hasSignedUrl: Boolean(data.signedUrl),
@@ -3005,22 +3007,23 @@ Important balance:
             path: data.path || null,
             message: data.message,
           });
-          const error = new Error(data.message || SUPABASE_UPLOAD_FAILED_MESSAGE);
+          const error = new Error(data.message || SIGNED_UPLOAD_FAILED_MESSAGE);
           error.statusCode = data.status || response.status;
           error.code = data.code || data.error || "";
           error.response = data;
-          error.publicMessage = data.message || getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
+          error.publicMessage = SIGNED_UPLOAD_FAILED_MESSAGE;
+          error.stage = "signed-upload-url";
           throw error;
         }
 
-        logMobileDebug("upload url request success", {
+        logMobileDebug("signed url request success", {
           status: response.status,
           path: data.path,
           hasSignedUrl: Boolean(data.signedUrl),
           hasToken: Boolean(data.token),
           contentType,
         });
-        console.log("[upload] signed upload url received", {
+        console.log("[upload] signed url request success", {
           path: data.path,
           hasSignedUrl: Boolean(data.signedUrl),
           hasToken: Boolean(data.token),
@@ -3032,9 +3035,16 @@ Important balance:
       async function uploadFileToSignedUrl(file, signedUpload) {
         const uploadFile = createUploadFile(file);
         const fileInfo = getFileDebugInfo(uploadFile);
-        logMobileDebug("signed upload start", {
+        logMobileDebug("upload start", {
           path: signedUpload.path,
           ...fileInfo,
+        });
+        console.log("[upload] upload start", {
+          path: signedUpload.path,
+          fileName: uploadFile.name,
+          fileType: uploadFile.type,
+          fileSize: uploadFile.size,
+          fileSizeMB: toSizeMB(uploadFile.size),
         });
         const uploadFormData = new FormData();
         uploadFormData.append("cacheControl", "3600");
@@ -3047,13 +3057,14 @@ Important balance:
             body: uploadFormData,
           });
         } catch (error) {
-          logMobileDebug("signed upload fail", {
+          logMobileDebug("upload fail", {
             path: signedUpload.path,
             ...fileInfo,
             message: error?.message || String(error),
           }, "error");
           const uploadError = new Error(SUPABASE_UPLOAD_FAILED_MESSAGE);
-          uploadError.publicMessage = getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
+          uploadError.publicMessage = SUPABASE_UPLOAD_FAILED_MESSAGE;
+          uploadError.stage = "supabase-upload";
           uploadError.cause = error;
           throw uploadError;
         }
@@ -3067,7 +3078,7 @@ Important balance:
           try {
             data = responseBody ? JSON.parse(responseBody) : {};
           } catch {}
-          logMobileDebug("signed upload fail", {
+          logMobileDebug("upload fail", {
             status: response.status,
             path: signedUpload.path,
             ...fileInfo,
@@ -3082,11 +3093,12 @@ Important balance:
           error.statusCode = data.status || response.status;
           error.code = data.code || data.error || "";
           error.response = data;
-          error.publicMessage = data.message || getFileSpecificFailureMessage(file) || SUPABASE_UPLOAD_FAILED_MESSAGE;
+          error.publicMessage = SUPABASE_UPLOAD_FAILED_MESSAGE;
+          error.stage = "supabase-upload";
           throw error;
         }
 
-        logMobileDebug("signed upload success", {
+        logMobileDebug("upload complete", {
           status: response.status,
           path: signedUpload.path,
           ...fileInfo,
@@ -3452,6 +3464,18 @@ ${modeExample}`;
           hasAnonymousId: Boolean(anonymousId),
           ...fileInfo,
         });
+        console.log("[generate] request start", {
+          requestUrl,
+          requestedMode: mode,
+          generationMode,
+          presetKey: config.presetKey,
+          locationPreset: selectedLandmark?.value || "",
+          generationPlace: selectedLandmark?.value || "",
+          generationPlaceLabel: selectedLandmark?.label || "",
+          hasAnonymousId: Boolean(anonymousId),
+          imagePath,
+          ...fileInfo,
+        });
         console.log("[generate] anonymous id", {
           hasAnonymousId: Boolean(anonymousId),
         });
@@ -3471,7 +3495,7 @@ ${modeExample}`;
             message: error?.message || String(error),
           }, "error");
           const generateError = new Error("이미지 생성 요청에 실패했습니다.");
-          generateError.publicMessage = getFileFailureFallbackMessage(imageFile);
+          generateError.publicMessage = GENERAL_GENERATION_FAILURE_MESSAGE;
           generateError.cause = error;
           throw generateError;
         }
@@ -3481,6 +3505,11 @@ ${modeExample}`;
           ok: response.ok,
           requestUrl,
         }, response.ok ? "log" : "error");
+        console.log("[generate] response status", {
+          status: response.status,
+          ok: response.ok,
+          requestUrl,
+        });
         console.log("[client][generate][response]", {
           API_BASE_URL: FRONT_API_BASE_URL,
           requestUrl,
@@ -3488,6 +3517,7 @@ ${modeExample}`;
         });
         const data = parseJsonResponseBody(responseBody, "서버 응답을 읽지 못했습니다.");
         logMobileDebug("generate response body", data, response.ok ? "log" : "error");
+        console.log("[generate] response body or message", sanitizeLogValue(data));
 
         if (!response.ok || !data.ok) {
           const isInsufficientCredits =
@@ -3521,7 +3551,7 @@ ${modeExample}`;
           } else if (data.message) {
             error.publicMessage = data.message;
           } else {
-            error.publicMessage = getFileFailureFallbackMessage(imageFile);
+            error.publicMessage = GENERAL_GENERATION_FAILURE_MESSAGE;
           }
           throw error;
         }
@@ -4801,12 +4831,22 @@ ${modeExample}`;
         hideError();
         const selectedFileInfo = getFileDebugInfo(selectedFile);
         logMobileDebug("selected file name", selectedFileInfo.name);
+        console.log("[upload] selected file name", selectedFileInfo.name);
         logMobileDebug("selected file type", {
           declaredType: selectedFileInfo.declaredType,
           effectiveType: selectedFileInfo.effectiveType,
           extension: selectedFileInfo.extension,
         });
+        console.log("[upload] selected file type", {
+          declaredType: selectedFileInfo.declaredType,
+          effectiveType: selectedFileInfo.effectiveType,
+          extension: selectedFileInfo.extension,
+        });
         logMobileDebug("selected file size", {
+          size: selectedFileInfo.size,
+          sizeMB: selectedFileInfo.sizeMB,
+        });
+        console.log("[upload] selected file size", {
           size: selectedFileInfo.size,
           sizeMB: selectedFileInfo.sizeMB,
         });
@@ -4832,7 +4872,7 @@ ${modeExample}`;
         setStatus("이미지가 선택되었습니다. 생성 버튼을 눌러주세요.");
         const selectedFileWarnings = getSelectedFileWarnings(selectedFile);
         if (selectedFileWarnings.length) {
-          showError(selectedFileWarnings.join("\n"));
+          showError(selectedFileWarnings.join("\n"), { title: "업로드 안내" });
         }
         console.log("[client][grok-edit] upload ready:", {
           fileName: selectedFile.name,
@@ -4850,6 +4890,12 @@ ${modeExample}`;
         if (!selectedFile) {
           showError("이미지 파일이 없습니다.");
           setStatus("사진을 먼저 올려주세요.");
+          return;
+        }
+
+        if (isOversizedUploadImage(selectedFile)) {
+          showError(OVERSIZED_IMAGE_MESSAGE, { title: "업로드 안내" });
+          setStatus("사진 용량을 확인해 주세요.");
           return;
         }
 
@@ -4881,7 +4927,7 @@ ${modeExample}`;
           setStatus(error.isInsufficientCredits ? "크레딧 충전 후 같은 사진으로 다시 생성할 수 있어요." : "");
           const publicFailureMessage = error.isInsufficientCredits
             ? CREDIT_SHORTAGE_MESSAGE
-            : GENERAL_GENERATION_FAILURE_MESSAGE;
+            : error.publicMessage || error.response?.message || GENERAL_GENERATION_FAILURE_MESSAGE;
           showError(
             publicFailureMessage,
             { showCreditButton: error.isInsufficientCredits },

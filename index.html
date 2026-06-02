@@ -1711,7 +1711,7 @@
                   <span class="material-symbols-outlined text-[18px]">download</span>
                   <span id="resultDownloadButtonLabel">이미지 다운로드</span>
                 </button>
-                <p class="text-xs leading-5 text-on-surface-variant" id="resultSaveHelp">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요.</p>
+                <p class="text-xs leading-5 text-on-surface-variant" id="resultSaveHelp">모바일에서는 저장창에서 사진 저장을 선택해 주세요.</p>
                 <p class="min-h-5 text-xs leading-5 text-primary" id="resultSaveStatus"></p>
                 <button class="h-12 w-full rounded-full bg-primary-container/60 text-on-primary-container font-button text-sm flex items-center justify-center gap-2 transition-colors hover:bg-primary-container/80" id="resultGalleryUploadButton" type="button">
                   <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
@@ -1852,7 +1852,7 @@
             <span class="material-symbols-outlined text-[21px]">download</span>
             <span id="imageModalDownloadLabel">이미지 다운로드</span>
           </button>
-          <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요.</p>
+          <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">모바일에서는 저장창에서 사진 저장을 선택해 주세요.</p>
           <p class="min-h-5 text-sm text-white/80" id="imageModalDownloadStatus"></p>
         </div>
       </div>
@@ -3897,10 +3897,45 @@ ${modeExample}`;
         imageModalDownloadStatus.textContent = message;
       }
 
-      function isMobileSaveEnvironment() {
+      function getSavePlatform() {
         const userAgent = navigator.userAgent || "";
-        return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ||
-          window.matchMedia?.("(pointer: coarse)")?.matches === true;
+        if (/Android/i.test(userAgent)) return "android";
+        if (/iPhone|iPad|iPod/i.test(userAgent)) return "ios";
+        if (/Mobile/i.test(userAgent) || window.matchMedia?.("(pointer: coarse)")?.matches === true) return "mobile";
+        return "desktop";
+      }
+
+      function isMobileSaveEnvironment() {
+        return getSavePlatform() !== "desktop";
+      }
+
+      function getShareOpenedMessage() {
+        const platform = getSavePlatform();
+        if (platform === "ios") {
+          return "공유창에서 ‘이미지 저장’을 선택하면 사진 앱에 저장됩니다.";
+        }
+        if (platform === "android") {
+          return "공유창에서 갤러리 저장, 사진 저장 또는 다운로드를 선택해 주세요.";
+        }
+        return "저장 창이 열렸습니다.";
+      }
+
+      function getDownloadStartedMessage() {
+        const platform = getSavePlatform();
+        if (platform === "android") {
+          return "이미지가 다운로드되었습니다. 휴대폰의 다운로드 폴더 또는 갤러리에서 확인해 주세요.";
+        }
+        if (platform === "ios") {
+          return "다운로드를 시작했습니다. 파일 앱 또는 다운로드 항목에서 확인해 주세요.";
+        }
+        if (platform === "mobile") {
+          return "다운로드를 시작했습니다. 휴대폰의 다운로드 폴더에서 확인해 주세요.";
+        }
+        return "이미지 다운로드를 시작했습니다.";
+      }
+
+      function getOpenImageMessage() {
+        return "이미지가 새 창으로 열렸습니다. 이미지를 길게 눌러 ‘이미지 저장’을 선택해 주세요.";
       }
 
       function getSaveButtonLabel() {
@@ -3908,9 +3943,17 @@ ${modeExample}`;
       }
 
       function getSaveHelpText() {
-        return isMobileSaveEnvironment()
-          ? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요."
-          : "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.";
+        const platform = getSavePlatform();
+        if (platform === "android") {
+          return "모바일에서는 저장창에서 사진 저장을 선택해 주세요.";
+        }
+        if (platform === "ios") {
+          return "공유창에서 ‘이미지 저장’을 선택하면 사진 앱에 저장됩니다.";
+        }
+        if (platform === "mobile") {
+          return "모바일에서는 저장창에서 사진 저장을 선택해 주세요.";
+        }
+        return "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.";
       }
 
       function syncSaveCopy() {
@@ -4054,14 +4097,18 @@ ${modeExample}`;
         return "jpg";
       }
 
-      function fallbackDownloadBlob(blob, filename) {
+      function fallbackDownloadUrl(downloadUrl, filename) {
         const link = document.createElement("a");
-        const objectUrl = URL.createObjectURL(blob);
-        link.href = objectUrl;
+        link.href = downloadUrl;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
         link.remove();
+      }
+
+      function fallbackDownloadBlob(blob, filename) {
+        const objectUrl = URL.createObjectURL(blob);
+        fallbackDownloadUrl(objectUrl, filename);
         window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       }
 
@@ -4085,6 +4132,41 @@ ${modeExample}`;
         }
 
         URL.revokeObjectURL(objectUrl);
+        return false;
+      }
+
+      async function tryShareUrl(imageUrl, statusSetter = () => {}) {
+        if (!isMobileSaveEnvironment() || typeof navigator.share !== "function" || !imageUrl || imageUrl.startsWith("data:")) {
+          return false;
+        }
+
+        try {
+          statusSetter("저장 창을 여는 중...");
+          await navigator.share({
+            url: imageUrl,
+            title: "Magic Ai Studio 결과 이미지",
+            text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
+          });
+          statusSetter(getShareOpenedMessage());
+          return true;
+        } catch (error) {
+          if (getShareCancelError(error)) {
+            statusSetter("공유창이 닫혔습니다. 저장 버튼을 다시 누르면 다시 열 수 있어요.");
+            return true;
+          }
+
+          console.warn("[client][save] url share failed, using fallback", error);
+          return false;
+        }
+      }
+
+      function openImageFallback(imageUrl, statusSetter = () => {}) {
+        if (fallbackOpenImage(imageUrl)) {
+          statusSetter(getOpenImageMessage());
+          return true;
+        }
+
+        statusSetter("저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.");
         return false;
       }
 
@@ -4132,7 +4214,11 @@ ${modeExample}`;
         shouldWatermark = true,
         maxSize = WATERMARK_OUTPUT_LONG_EDGE,
       }) {
+        const safeBaseFilename = filename || "magic-ai-studio-result.jpg";
+        const isMobile = isMobileSaveEnvironment();
         let blob;
+
+        statusSetter("저장 준비 중...");
 
         try {
           blob = await createImageBlobWithWatermark({
@@ -4142,18 +4228,25 @@ ${modeExample}`;
             maxSize,
           });
         } catch (error) {
-          console.warn("[client][save] blob creation failed, using fallback", error);
+          console.warn("[save] blob fetch failed, using fallback", error);
 
-          if (fallbackOpenImage(imageUrl)) {
-            statusSetter("저장이 바로 되지 않으면 열린 이미지를 길게 눌러 ‘사진에 저장’을 선택해 주세요.");
+          if (await tryShareUrl(imageUrl, statusSetter)) {
             return;
           }
 
-          throw error;
+          try {
+            fallbackDownloadUrl(imageUrl, safeBaseFilename);
+            statusSetter(getDownloadStartedMessage());
+            return;
+          } catch (downloadError) {
+            console.warn("[client][save] url download fallback failed, opening image", downloadError);
+          }
+
+          openImageFallback(imageUrl, statusSetter);
+          return;
         }
 
-        const safeFilename = filename.replace(/\.(png|jpe?g|webp)$/i, `.${getBlobExtension(blob.type)}`);
-        const isMobile = isMobileSaveEnvironment();
+        const safeFilename = safeBaseFilename.replace(/\.(png|jpe?g|webp)$/i, `.${getBlobExtension(blob.type)}`);
         const canShareFile = isMobile &&
           typeof File === "function" &&
           typeof navigator.share === "function" &&
@@ -4163,7 +4256,7 @@ ${modeExample}`;
           const file = new File([blob], safeFilename, { type: blob.type || "image/jpeg" });
 
           if (navigator.canShare({ files: [file] })) {
-            statusSetter("저장 창이 열렸습니다. 사진 앱 저장을 선택해 주세요.");
+            statusSetter("저장 창을 여는 중...");
 
             try {
               await navigator.share({
@@ -4171,10 +4264,11 @@ ${modeExample}`;
                 title: "Magic Ai Studio 결과 이미지",
                 text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
               });
+              statusSetter(getShareOpenedMessage());
               return;
             } catch (error) {
               if (getShareCancelError(error)) {
-                statusSetter("");
+                statusSetter("공유창이 닫혔습니다. 저장 버튼을 다시 누르면 다시 열 수 있어요.");
                 return;
               }
 
@@ -4183,16 +4277,24 @@ ${modeExample}`;
           }
         }
 
-        fallbackDownloadBlob(blob, safeFilename);
-
-        if (isMobile && fallbackOpenBlob(blob)) {
-          statusSetter("저장이 바로 되지 않으면 열린 이미지를 길게 눌러 ‘사진에 저장’을 선택해 주세요.");
+        if (await tryShareUrl(imageUrl, statusSetter)) {
           return;
         }
 
-        statusSetter(isMobile
-          ? "저장이 바로 되지 않으면 다운로드된 이미지를 열어 길게 눌러 저장해 주세요."
-          : "이미지 다운로드를 시작했습니다.");
+        try {
+          fallbackDownloadBlob(blob, safeFilename);
+          statusSetter(getDownloadStartedMessage());
+          return;
+        } catch (downloadError) {
+          console.warn("[client][save] blob download fallback failed, opening image", downloadError);
+        }
+
+        if (isMobile && fallbackOpenBlob(blob)) {
+          statusSetter(getOpenImageMessage());
+          return;
+        }
+
+        openImageFallback(imageUrl, statusSetter);
       }
 
       async function downloadImageWithWatermark(options) {

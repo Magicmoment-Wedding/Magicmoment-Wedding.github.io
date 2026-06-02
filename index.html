@@ -330,6 +330,40 @@
         gap: 10px;
       }
 
+      .beauty-stage-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 8px 10px;
+        border-radius: 9999px;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .beauty-stage-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 24px;
+        border-radius: 9999px;
+        padding: 4px 9px;
+        color: #fff;
+        background: var(--rose-deep);
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .beauty-stage-copy {
+        min-width: 0;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #705e61;
+      }
+
       .editor-option-card {
         min-height: 96px;
         border-radius: 18px;
@@ -1471,12 +1505,18 @@
             <section class="mt-7" id="europeOptions">
               <div>
                 <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 유럽의 명소 배경을 선택해 주세요</p>
-                <p class="mt-1 text-xs leading-5 text-on-surface-variant">예쁨단계 1 · 얼굴이 거의 변하지 않아요</p>
+                <div class="beauty-stage-note">
+                  <span class="beauty-stage-badge">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    예쁨단계 1
+                  </span>
+                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
+                </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('mock-images/presets/europe-eiffel.jpg'); --preset-fallback: linear-gradient(135deg, #a8c7df 0%, #f6d9c6 46%, #6f8793 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/europe-eiffel.jpg'); --preset-fallback: linear-gradient(135deg, #a8c7df 0%, #f6d9c6 46%, #6f8793 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="eiffel" checked />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -1484,7 +1524,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('mock-images/presets/europe-louvre.jpg'); --preset-fallback: linear-gradient(135deg, #c5b49e 0%, #dfe7ee 44%, #77695f 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/europe-louvre.jpg'); --preset-fallback: linear-gradient(135deg, #c5b49e 0%, #dfe7ee 44%, #77695f 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="louvre" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -1492,7 +1532,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('mock-images/presets/europe-venice.jpg'); --preset-fallback: linear-gradient(135deg, #7db4c7 0%, #d6b28f 48%, #586c72 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/europe-venice.jpg'); --preset-fallback: linear-gradient(135deg, #7db4c7 0%, #d6b28f 48%, #586c72 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="venice" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -1500,7 +1540,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('mock-images/presets/europe-amalfi.jpg'); --preset-fallback: linear-gradient(135deg, #64b9d2 0%, #f4d49c 43%, #a97d64 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/europe-amalfi.jpg'); --preset-fallback: linear-gradient(135deg, #64b9d2 0%, #f4d49c 43%, #a97d64 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="amalfi" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -1512,12 +1552,18 @@
             <section class="mt-7 hidden" id="disneyOptions">
               <div>
                 <p class="text-[15px] font-semibold leading-6 text-on-surface">4개의 컨셉으로 자동 변환됩니다</p>
-                <p class="mt-1 text-xs leading-5 text-on-surface-variant">예쁨단계 3 · 얼굴 및 의상이 디즈니 캐릭터에 맞게 약간 예뻐져요</p>
+                <div class="beauty-stage-note">
+                  <span class="beauty-stage-badge">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    예쁨단계 3
+                  </span>
+                  <span class="beauty-stage-copy">얼굴 및 의상이 디즈니 캐릭터에 맞게 약간 예뻐져요</span>
+                </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <button
                   class="editor-option-card has-preview is-disabled"
-                  style="--preset-image: url('mock-images/presets/disney-cinderella.jpg'); --preset-fallback: linear-gradient(135deg, #b9cff2 0%, #f6edf8 48%, #7787b5 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/disney-cinderella.jpg'); --preset-fallback: linear-gradient(135deg, #b9cff2 0%, #f6edf8 48%, #7787b5 100%); --preset-position: center;"
                   type="button"
                   disabled
                 >
@@ -1526,7 +1572,7 @@
                 </button>
                 <button
                   class="editor-option-card has-preview is-disabled"
-                  style="--preset-image: url('mock-images/presets/disney-belle.jpg'); --preset-fallback: linear-gradient(135deg, #8c6c50 0%, #e5c56e 46%, #6f5845 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/disney-belle.jpg'); --preset-fallback: linear-gradient(135deg, #8c6c50 0%, #e5c56e 46%, #6f5845 100%); --preset-position: center;"
                   type="button"
                   disabled
                 >
@@ -1535,7 +1581,7 @@
                 </button>
                 <button
                   class="editor-option-card has-preview is-disabled"
-                  style="--preset-image: url('mock-images/presets/disney-aurora.jpg'); --preset-fallback: linear-gradient(135deg, #b8d5bd 0%, #f2c9d8 50%, #8a7bb5 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/disney-aurora.jpg'); --preset-fallback: linear-gradient(135deg, #b8d5bd 0%, #f2c9d8 50%, #8a7bb5 100%); --preset-position: center;"
                   type="button"
                   disabled
                 >
@@ -1544,7 +1590,7 @@
                 </button>
                 <button
                   class="editor-option-card has-preview is-disabled"
-                  style="--preset-image: url('mock-images/presets/disney-mulan.jpg'); --preset-fallback: linear-gradient(135deg, #496c54 0%, #d7b784 47%, #7f4c57 100%); --preset-position: center;"
+                  style="--preset-image: url('public/images/presets/disney-mulan.jpg'); --preset-fallback: linear-gradient(135deg, #496c54 0%, #d7b784 47%, #7f4c57 100%); --preset-position: center;"
                   type="button"
                   disabled
                 >

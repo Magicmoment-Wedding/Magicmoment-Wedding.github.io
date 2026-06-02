@@ -1662,23 +1662,7 @@
               <div class="editor-option-grid mt-3">
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('public/images/presets/seoul-namsan-tower.jpg'); --preset-fallback: linear-gradient(135deg, #415a67 0%, #f5c58a 46%, #22333a 100%); --preset-position: center;"
-                >
-                  <input class="sr-only" name="generationPlace" type="radio" value="namsan_tower" />
-                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">남산타워</span>
-                </label>
-                <label
-                  class="editor-option-card has-preview"
-                  style="--preset-image: url('public/images/presets/seoul-lotte-tower.jpg'); --preset-fallback: linear-gradient(135deg, #80a7c8 0%, #f1c777 48%, #31465d 100%); --preset-position: center;"
-                >
-                  <input class="sr-only" name="generationPlace" type="radio" value="lotte_tower" />
-                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">롯데타워</span>
-                </label>
-                <label
-                  class="editor-option-card has-preview"
-                  style="--preset-image: url('public/images/presets/seoul-seoul-forest.jpg'); --preset-fallback: linear-gradient(135deg, #2d5334 0%, #d9c992 48%, #102417 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/presets/seoul-forest.jpg'); --preset-fallback: linear-gradient(135deg, #2d5334 0%, #d9c992 48%, #102417 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="seoul_forest" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -1686,11 +1670,27 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('public/images/presets/seoul-dongjak-bridge-night.jpg'); --preset-fallback: linear-gradient(135deg, #101d39 0%, #d39b46 48%, #07111f 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/presets/seoul-dongjak-bridge-night.jpg'); --preset-fallback: linear-gradient(135deg, #101d39 0%, #d39b46 48%, #07111f 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="dongjak_bridge_night" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">한강 동작대교 야경</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('/images/presets/seoul-hangang-sunset.jpg'); --preset-fallback: linear-gradient(135deg, #f1b15f 0%, #f6d1b2 48%, #6d7f8c 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="hangang_sunset" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">한강 노을 스냅</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('/images/presets/seoul-pink-muhly.jpg'); --preset-fallback: linear-gradient(135deg, #d997af 0%, #f3c8d3 48%, #9f6d82 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="pink_muhly" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">핑크뮬리</span>
                 </label>
               </div>
             </section>
@@ -2052,7 +2052,7 @@
               <span class="inline xs:hidden sm:hidden">갤러리</span>
             </button>
           </div>
-          <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">모바일에서는 저장창에서 사진 저장을 선택해 주세요.</p>
+          <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.</p>
           <p class="min-h-5 text-sm text-white/80" id="imageModalDownloadStatus"></p>
         </div>
       </div>
@@ -2173,10 +2173,10 @@ Important:
         [GENERATION_MODES.SEOUL_SNAP]: {
           presetKey: "seoul_landmark_snap",
           fallbackLabels: [
-            "Namsan Tower signature view",
-            "Lotte Tower city view",
             "Seoul Forest garden snap",
             "Han River bridge night view",
+            "Han River sunset snap",
+            "Pink muhly field snap",
           ],
           basePrompt: `Edit this photo into a natural Seoul landmark wedding travel snap.
 
@@ -2380,25 +2380,25 @@ Important balance:
           label: "아말피 코스트 절벽",
           prompt: "Amalfi Coast cliffside landmark snap background",
         },
-        namsan_tower: {
-          category: "seoul",
-          label: "남산타워",
-          prompt: "Namsan Seoul Tower city landmark snap background",
-        },
-        lotte_tower: {
-          category: "seoul",
-          label: "롯데타워",
-          prompt: "Lotte World Tower and Jamsil Seoul city landmark snap background",
-        },
         seoul_forest: {
           category: "seoul",
           label: "서울숲",
-          prompt: "Seoul Forest green park walkway landmark snap background",
+          prompt: "Seoul Forest signature park snap background with lawn, bamboo or tree line, reflective pond, and autumn walkway mood",
         },
         dongjak_bridge_night: {
           category: "seoul",
           label: "한강 동작대교 야경",
-          prompt: "Han River Dongjak Bridge Seoul night landmark snap background",
+          prompt: "Han River Dongjak Bridge night snap from the bridge railing with Seoul skyline, river, and city lights",
+        },
+        hangang_sunset: {
+          category: "seoul",
+          label: "한강 노을 스냅",
+          prompt: "Han River golden-hour sunset snap with warm backlight, waterfront, veil-like romantic outdoor wedding mood",
+        },
+        pink_muhly: {
+          category: "seoul",
+          label: "핑크뮬리",
+          prompt: "Wide pink muhly grass field snap with soft pink natural light and romantic atmosphere, no city buildings",
         },
         saryeoni_forest: {
           category: "jeju",
@@ -2423,8 +2423,12 @@ Important balance:
       };
       const DEFAULT_LOCATION_PRESET_BY_MODE = {
         [GENERATION_MODES.PARIS_SNAP]: "eiffel",
-        [GENERATION_MODES.SEOUL_SNAP]: "namsan_tower",
+        [GENERATION_MODES.SEOUL_SNAP]: "seoul_forest",
         [GENERATION_MODES.JEJU_SNAP]: "saryeoni_forest",
+      };
+      const LEGACY_LOCATION_PRESET_FALLBACKS = {
+        namsan_tower: "seoul_forest",
+        lotte_tower: "seoul_forest",
       };
       const LOCATION_RESULT_COPY = {
         eiffel: [
@@ -2499,42 +2503,6 @@ Important balance:
             description: "햇빛이 내려앉은 테라스 느낌의 결과입니다.",
           },
         ],
-        namsan_tower: [
-          {
-            title: "남산타워 시그니처 뷰",
-            description: "남산타워와 서울 시티뷰가 어우러진 대표 스냅입니다.",
-          },
-          {
-            title: "남산타워 로맨틱 스냅",
-            description: "서울 여행의 따뜻한 감성을 살린 로맨틱 배경입니다.",
-          },
-          {
-            title: "남산타워 서울 시티뷰",
-            description: "도심 풍경과 남산의 깊이감이 살아있는 장면입니다.",
-          },
-          {
-            title: "남산타워 야경 무드",
-            description: "서울의 빛과 랜드마크 무드를 차분하게 담았습니다.",
-          },
-        ],
-        lotte_tower: [
-          {
-            title: "롯데타워 시그니처 뷰",
-            description: "롯데타워가 선명하게 보이는 모던 서울 스냅입니다.",
-          },
-          {
-            title: "석촌호수 로맨틱 뷰",
-            description: "호수와 도심 반사가 어우러진 부드러운 배경입니다.",
-          },
-          {
-            title: "롯데타워 선셋 스냅",
-            description: "잠실의 노을빛과 타워 실루엣을 살린 결과입니다.",
-          },
-          {
-            title: "잠실 시티 야경",
-            description: "세련된 서울 도심 야경 분위기를 연결했습니다.",
-          },
-        ],
         seoul_forest: [
           {
             title: "서울숲 가든 스냅",
@@ -2569,6 +2537,42 @@ Important balance:
           {
             title: "서울 리버사이드 야경",
             description: "서울 강변의 도시 불빛을 차분하게 연결했습니다.",
+          },
+        ],
+        hangang_sunset: [
+          {
+            title: "한강 노을 스냅",
+            description: "골든아워의 따뜻한 역광과 물가 무드를 담은 결과입니다.",
+          },
+          {
+            title: "한강 선셋 웨딩",
+            description: "노을빛과 베일 같은 부드러운 야외 웨딩 감성입니다.",
+          },
+          {
+            title: "리버사이드 골든아워",
+            description: "한강 물빛과 석양의 따뜻한 색감을 자연스럽게 살렸습니다.",
+          },
+          {
+            title: "한강 로맨틱 노을",
+            description: "강변 산책의 잔잔한 배경과 로맨틱한 빛을 연결했습니다.",
+          },
+        ],
+        pink_muhly: [
+          {
+            title: "핑크뮬리 로맨틱 스냅",
+            description: "넓은 핑크뮬리 들판의 부드러운 색감을 담았습니다.",
+          },
+          {
+            title: "핑크뮬리 블룸",
+            description: "자연광과 분홍빛 풀이 어우러진 포근한 웨딩 무드입니다.",
+          },
+          {
+            title: "소프트 핑크 필드",
+            description: "도시 느낌 없이 자연스럽고 로맨틱한 들판 배경입니다.",
+          },
+          {
+            title: "핑크뮬리 햇살 스냅",
+            description: "은은한 햇살과 핑크빛 질감이 살아있는 결과입니다.",
           },
         ],
         saryeoni_forest: [
@@ -2788,7 +2792,7 @@ Important balance:
       let selectedLocationPreset = "eiffel";
       const selectedLocationPresets = {
         europe: "eiffel",
-        seoul: "namsan_tower",
+        seoul: "seoul_forest",
         jeju: "saryeoni_forest",
       };
       let resultLocationPreset = "eiffel";
@@ -3036,6 +3040,12 @@ Important balance:
         return Boolean(category && LANDMARK_OPTIONS[value]?.category === category);
       }
 
+      function normalizeSelectableLocationPreset(value) {
+        const preset = String(value || "");
+        if (LANDMARK_OPTIONS[preset]) return preset;
+        return LEGACY_LOCATION_PRESET_FALLBACKS[preset] || "";
+      }
+
       function setCheckedLocationPreset(value) {
         generationPlaceInputs.forEach((input) => {
           input.checked = input.value === value;
@@ -3049,7 +3059,9 @@ Important balance:
 
       function getSelectedLandmarkOption(mode = activeGenerationMode) {
         const category = getLocationCategoryForMode(mode);
-        const candidate = selectedLocationPresets[category] || selectedLocationPreset || getGenerationPlaceValue(mode) || getDefaultLocationPreset(mode);
+        const candidate = normalizeSelectableLocationPreset(
+          selectedLocationPresets[category] || selectedLocationPreset || getGenerationPlaceValue(mode) || getDefaultLocationPreset(mode),
+        );
         const value = isLocationPresetForMode(candidate, mode) ? candidate : getDefaultLocationPreset(mode);
         return {
           value,
@@ -3059,7 +3071,7 @@ Important balance:
 
       function syncSelectedLocationPreset(mode = getGenerationMode()) {
         const category = getLocationCategoryForMode(mode);
-        const value = getGenerationPlaceValue(mode) || selectedLocationPresets[category] || "";
+        const value = normalizeSelectableLocationPreset(getGenerationPlaceValue(mode) || selectedLocationPresets[category] || "");
         selectedLocationPreset = isLocationPresetForMode(value, mode)
           ? value
           : getDefaultLocationPreset(mode);
@@ -3348,13 +3360,15 @@ Important balance:
           : buildDefaultResultOrder(imageUrls.length, recommendedIndex);
         recommendationReason = storedState.recommendationReason || RECOMMENDATION_DESCRIPTION;
         activeGenerationMode = normalizeGenerationMode(storedState.activeGenerationMode);
-        selectedLocationPreset = LANDMARK_OPTIONS[storedState.selectedLocationPreset]
-          ? storedState.selectedLocationPreset
+        const storedSelectablePreset = normalizeSelectableLocationPreset(storedState.selectedLocationPreset);
+        selectedLocationPreset = storedSelectablePreset
+          ? storedSelectablePreset
           : selectedLocationPreset;
         if (storedState.selectedLocationPresets && typeof storedState.selectedLocationPresets === "object") {
           Object.entries(storedState.selectedLocationPresets).forEach(([category, preset]) => {
-            if (LANDMARK_OPTIONS[preset]?.category === category) {
-              selectedLocationPresets[category] = preset;
+            const selectablePreset = normalizeSelectableLocationPreset(preset);
+            if (LANDMARK_OPTIONS[selectablePreset]?.category === category) {
+              selectedLocationPresets[category] = selectablePreset;
             }
           });
         }
@@ -4500,7 +4514,7 @@ ${modeExample}`;
           return "공유창에서 ‘이미지 저장’을 선택하면 사진 앱에 저장됩니다.";
         }
         if (platform === "android") {
-          return "공유창에서 갤러리 저장, 사진 저장 또는 다운로드를 선택해 주세요.";
+          return "공유창이 열렸습니다.";
         }
         return "저장 창이 열렸습니다.";
       }
@@ -4508,7 +4522,7 @@ ${modeExample}`;
       function getDownloadStartedMessage() {
         const platform = getSavePlatform();
         if (platform === "android") {
-          return "이미지가 다운로드되었습니다. 휴대폰의 다운로드 폴더 또는 갤러리에서 확인해 주세요.";
+          return "이미지 다운로드가 시작되었습니다. 다운로드 폴더를 확인해 주세요.";
         }
         if (platform === "ios") {
           return "다운로드를 시작했습니다. 파일 앱 또는 다운로드 항목에서 확인해 주세요.";
@@ -4520,23 +4534,23 @@ ${modeExample}`;
       }
 
       function getOpenImageMessage() {
-        return "이미지가 새 창으로 열렸습니다. 이미지를 길게 눌러 ‘이미지 저장’을 선택해 주세요.";
+        return "이미지가 새 탭에서 열렸습니다. 이미지를 길게 눌러 저장해 주세요.";
       }
 
       function getSaveButtonLabel() {
-        return isMobileSaveEnvironment() ? "사진/갤러리에 저장" : "이미지 다운로드";
+        return "이미지 다운로드";
       }
 
       function getSaveHelpText() {
         const platform = getSavePlatform();
         if (platform === "android") {
-          return "모바일에서는 저장창에서 사진 저장을 선택해 주세요.";
+          return "다운로드 후 휴대폰의 다운로드 폴더를 확인해 주세요.";
         }
         if (platform === "ios") {
-          return "공유창에서 ‘이미지 저장’을 선택하면 사진 앱에 저장됩니다.";
+          return "저장이 바로 되지 않으면 이미지를 새 탭에서 길게 눌러 저장해 주세요.";
         }
         if (platform === "mobile") {
-          return "모바일에서는 저장창에서 사진 저장을 선택해 주세요.";
+          return "다운로드 후 휴대폰의 다운로드 폴더를 확인해 주세요.";
         }
         return "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.";
       }
@@ -4602,7 +4616,7 @@ ${modeExample}`;
               return;
             }
 
-            const response = await fetch(sourceUrl);
+            const response = await fetch(sourceUrl, { mode: "cors" });
             if (!response.ok) {
               throw new Error("이미지를 가져오지 못했습니다.");
             }
@@ -4689,16 +4703,18 @@ ${modeExample}`;
         document.body.appendChild(link);
         link.click();
         link.remove();
+        return true;
       }
 
       function fallbackDownloadBlob(blob, filename) {
         const objectUrl = URL.createObjectURL(blob);
         fallbackDownloadUrl(objectUrl, filename);
         window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        return true;
       }
 
       function fallbackOpenImage(imageUrl) {
-        const opened = window.open(imageUrl, "_blank");
+        const opened = window.open(imageUrl, "_blank", "noopener,noreferrer");
         if (opened) {
           opened.opener = null;
           return true;
@@ -4726,7 +4742,7 @@ ${modeExample}`;
         }
 
         try {
-          statusSetter("저장 창을 여는 중...");
+          statusSetter("공유창을 여는 중...");
           await navigator.share({
             url: imageUrl,
             title: "Magic Ai Studio 결과 이미지",
@@ -4751,7 +4767,20 @@ ${modeExample}`;
           return true;
         }
 
-        statusSetter("저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.");
+        statusSetter("이미지 저장에 실패했습니다. 어시스턴트에게 문의하세요.");
+        return false;
+      }
+
+      async function openImageThenShareFallback(imageUrl, statusSetter = () => {}) {
+        if (openImageFallback(imageUrl, statusSetter)) {
+          return true;
+        }
+
+        if (await tryShareUrl(imageUrl, statusSetter)) {
+          return true;
+        }
+
+        statusSetter("이미지 저장에 실패했습니다. 어시스턴트에게 문의하세요.");
         return false;
       }
 
@@ -4800,7 +4829,6 @@ ${modeExample}`;
         maxSize = WATERMARK_OUTPUT_LONG_EDGE,
       }) {
         const safeBaseFilename = filename || "magic-ai-studio-result.jpg";
-        const isMobile = isMobileSaveEnvironment();
         let blob;
 
         statusSetter("저장 준비 중...");
@@ -4813,73 +4841,22 @@ ${modeExample}`;
             maxSize,
           });
         } catch (error) {
-          console.warn("[save] blob fetch failed, using fallback", error);
-
-          if (await tryShareUrl(imageUrl, statusSetter)) {
-            return;
-          }
-
-          try {
-            fallbackDownloadUrl(imageUrl, safeBaseFilename);
-            statusSetter(getDownloadStartedMessage());
-            return;
-          } catch (downloadError) {
-            console.warn("[client][save] url download fallback failed, opening image", downloadError);
-          }
-
-          openImageFallback(imageUrl, statusSetter);
+          console.warn("[download] blob download failed, opening image in new tab", error);
+          await openImageThenShareFallback(imageUrl, statusSetter);
           return;
         }
 
         const safeFilename = safeBaseFilename.replace(/\.(png|jpe?g|webp)$/i, `.${getBlobExtension(blob.type)}`);
-        const canShareFile = isMobile &&
-          typeof File === "function" &&
-          typeof navigator.share === "function" &&
-          typeof navigator.canShare === "function";
-
-        if (canShareFile) {
-          const file = new File([blob], safeFilename, { type: blob.type || "image/jpeg" });
-
-          if (navigator.canShare({ files: [file] })) {
-            statusSetter("저장 창을 여는 중...");
-
-            try {
-              await navigator.share({
-                files: [file],
-                title: "Magic Ai Studio 결과 이미지",
-                text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
-              });
-              statusSetter(getShareOpenedMessage());
-              return;
-            } catch (error) {
-              if (getShareCancelError(error)) {
-                statusSetter("공유창이 닫혔습니다. 저장 버튼을 다시 누르면 다시 열 수 있어요.");
-                return;
-              }
-
-              console.warn("[client][save] share failed, falling back to download", error);
-            }
-          }
-        }
-
-        if (await tryShareUrl(imageUrl, statusSetter)) {
-          return;
-        }
 
         try {
           fallbackDownloadBlob(blob, safeFilename);
           statusSetter(getDownloadStartedMessage());
           return;
         } catch (downloadError) {
-          console.warn("[client][save] blob download fallback failed, opening image", downloadError);
+          console.warn("[download] blob download failed, opening image in new tab", downloadError);
         }
 
-        if (isMobile && fallbackOpenBlob(blob)) {
-          statusSetter(getOpenImageMessage());
-          return;
-        }
-
-        openImageFallback(imageUrl, statusSetter);
+        await openImageThenShareFallback(imageUrl, statusSetter);
       }
 
       async function downloadImageWithWatermark(options) {
@@ -4901,9 +4878,10 @@ ${modeExample}`;
         setImageModalDownloadStatus("");
         try {
           const policy = getDownloadPolicy();
+          const downloadIndex = Math.max(0, activeImageModalIndex);
           await saveImageForDevice({
             imageUrl: item.url,
-            filename: `${sanitizeFilenamePart(item.label)}${policy.shouldWatermark ? "-720p-magic-ai-studio" : ""}.jpg`,
+            filename: `magic-ai-studio-wedding-${downloadIndex + 1}.jpg`,
             statusSetter: setImageModalDownloadStatus,
             watermarkText: WATERMARK_TEXT,
             shouldWatermark: policy.shouldWatermark,
@@ -4911,7 +4889,7 @@ ${modeExample}`;
           });
         } catch (error) {
           console.error("[client][save] failed:", error);
-          setImageModalDownloadStatus("저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.");
+          setImageModalDownloadStatus("이미지 저장에 실패했습니다. 어시스턴트에게 문의하세요.");
         } finally {
           imageModalDownload.disabled = false;
         }
@@ -5008,7 +4986,7 @@ ${modeExample}`;
           });
         } catch (error) {
           console.error("[client][save][recommended] failed:", error);
-          resultSaveStatus.textContent = "저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.";
+          resultSaveStatus.textContent = "이미지 저장에 실패했습니다. 어시스턴트에게 문의하세요.";
         } finally {
           resultDownloadButton.disabled = false;
         }

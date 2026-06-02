@@ -1636,6 +1636,8 @@
     <script>
       const FRONT_API_BASE_URL = String(window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL || "").replace(/\/+$/, "");
       const ANONYMOUS_ID_STORAGE_KEY = "magic_ai_anonymous_id";
+      const RESULT_STATE_STORAGE_KEY = "magic_ai_last_result_state";
+      const APP_SCREEN_STORAGE_KEY = "magic_ai_app_screen";
       const IS_ONLINE_API_PLACEHOLDER = Boolean(window.MAGIC_AI_STUDIO_CONFIG?.IS_ONLINE_API_PLACEHOLDER);
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
@@ -1844,6 +1846,80 @@ Important balance:
           prompt: "Amalfi Coast cliffside landmark snap background",
         },
       };
+      const LOCATION_RESULT_COPY = {
+        eiffel: [
+          {
+            title: "에펠탑 리버사이드",
+            description: "센 강변의 자연스러운 여행 스냅 무드입니다.",
+          },
+          {
+            title: "에펠탑 가든 뷰",
+            description: "정원 산책길의 부드러운 웨딩 스냅 무드입니다.",
+          },
+          {
+            title: "에펠탑 프롬나드",
+            description: "파리 산책로의 안정적인 랜드마크 배경입니다.",
+          },
+          {
+            title: "에펠탑 테라스",
+            description: "테라스에서 바라본 로맨틱한 파리 장면입니다.",
+          },
+        ],
+        louvre: [
+          {
+            title: "루브르 클래식 뷰",
+            description: "루브르의 고전적인 건축미를 살린 웨딩 스냅입니다.",
+          },
+          {
+            title: "루브르 피라미드 뷰",
+            description: "유리 피라미드가 은은하게 보이는 파리 장면입니다.",
+          },
+          {
+            title: "루브르 코트야드",
+            description: "궁정 안뜰의 차분한 유럽 명소 무드입니다.",
+          },
+          {
+            title: "루브르 로열 워크",
+            description: "왕궁 산책로 느낌의 우아한 배경입니다.",
+          },
+        ],
+        venice: [
+          {
+            title: "베네치아 그랜드 뷰",
+            description: "베네치아 운하와 도시 풍경이 어우러진 장면입니다.",
+          },
+          {
+            title: "베네치아 운하 산책",
+            description: "물가 산책길의 로맨틱한 이탈리아 스냅입니다.",
+          },
+          {
+            title: "베네치아 로맨틱 워터프론트",
+            description: "운하변의 부드러운 빛과 웨딩 무드를 연결했습니다.",
+          },
+          {
+            title: "베네치아 선셋 브리지",
+            description: "석양이 비치는 다리 위의 감성적인 배경입니다.",
+          },
+        ],
+        amalfi: [
+          {
+            title: "아말피 클리프 뷰",
+            description: "아말피 절벽과 해안선이 살아있는 웨딩 스냅입니다.",
+          },
+          {
+            title: "아말피 씨사이드 뷰",
+            description: "지중해 바다를 배경으로 한 밝은 해안 무드입니다.",
+          },
+          {
+            title: "아말피 코스트 가든",
+            description: "해안 정원의 싱그러운 색감과 햇살을 담았습니다.",
+          },
+          {
+            title: "아말피 선라이트 테라스",
+            description: "햇빛이 내려앉은 테라스 느낌의 결과입니다.",
+          },
+        ],
+      };
       const FIXED_GENERATION_POLICY = `4-result generation policy:
 - Generate 4 results in the same direction with only weak differences.
 - Prioritize stability over diversity.
@@ -1976,6 +2052,7 @@ Important balance:
       let recommendationReason = RECOMMENDATION_DESCRIPTION;
       let activeGenerationMode = GENERATION_MODES.PARIS_SNAP;
       let selectedLocationPreset = "eiffel";
+      let resultLocationPreset = "eiffel";
       let selectedIndex = 0;
       let activeImageModalIndex = 0;
       let isGenerating = false;
@@ -2135,6 +2212,7 @@ Important balance:
       function setAppScreen(screen, options = {}) {
         const { pushHistory = true, replaceHistory = false } = options;
         appScreen = screen;
+        rememberAppScreen(screen);
         const isLanding = screen === "landing";
         landingScreen.classList.toggle("hidden", !isLanding);
         appStage.classList.toggle("hidden", isLanding);
@@ -2210,6 +2288,26 @@ Important balance:
       function syncSelectedLocationPreset() {
         const value = getGenerationPlaceValue();
         selectedLocationPreset = LANDMARK_OPTIONS[value] ? value : "eiffel";
+      }
+
+      function getResultLocationPreset() {
+        const candidate = resultLocationPreset || generationMeta?.locationPreset || selectedLocationPreset || "eiffel";
+        return LOCATION_RESULT_COPY[candidate] ? candidate : "eiffel";
+      }
+
+      function getLocationResultCopies(locationPreset = getResultLocationPreset()) {
+        return LOCATION_RESULT_COPY[locationPreset] || LOCATION_RESULT_COPY.eiffel;
+      }
+
+      function getRoleResultCopy({ isRecommended = false, additionalIndex = 0, fallbackLabel = "" } = {}) {
+        const copies = getLocationResultCopies();
+        const copyIndex = isRecommended ? 0 : additionalIndex;
+        const copy = copies[copyIndex] || copies[0];
+
+        return {
+          title: copy?.title || fallbackLabel || "AI 생성 결과",
+          description: copy?.description || RECOMMENDATION_DESCRIPTION,
+        };
       }
 
       function getGenerationMode() {
@@ -2340,6 +2438,15 @@ Important balance:
         editorFeedback?.classList.add("hidden");
       }
 
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
       function clearResults() {
         imageUrls = [];
         originalImageUrl = "";
@@ -2366,6 +2473,91 @@ Important balance:
         resultSection.classList.add("hidden");
         resultActionButtons.classList.add("hidden");
         resultSaveStatus.textContent = "";
+      }
+
+      function rememberAppScreen(screen) {
+        try {
+          window.sessionStorage.setItem(APP_SCREEN_STORAGE_KEY, screen);
+        } catch (error) {
+          return;
+        }
+      }
+
+      function getRememberedAppScreen() {
+        try {
+          return window.sessionStorage.getItem(APP_SCREEN_STORAGE_KEY) || "";
+        } catch (error) {
+          return "";
+        }
+      }
+
+      function persistResultState() {
+        if (!imageUrls.length && !failedImages.length) return;
+
+        try {
+          window.sessionStorage.setItem(RESULT_STATE_STORAGE_KEY, JSON.stringify({
+            imageUrls,
+            originalImageUrl,
+            imageScores,
+            variantLabels,
+            failedImages,
+            generationMeta,
+            imageMetadata,
+            recommendedIndex,
+            resultDisplayOrder,
+            recommendationReason,
+            activeGenerationMode,
+            selectedLocationPreset,
+            resultLocationPreset,
+            selectedIndex,
+          }));
+        } catch (error) {
+          console.warn("[client][result-state] session save skipped", error);
+        }
+      }
+
+      function restoreResultState() {
+        let storedState = null;
+
+        try {
+          storedState = JSON.parse(window.sessionStorage.getItem(RESULT_STATE_STORAGE_KEY) || "null");
+        } catch (error) {
+          return false;
+        }
+
+        if (!storedState || !Array.isArray(storedState.imageUrls) || !storedState.imageUrls.length) {
+          return false;
+        }
+
+        imageUrls = storedState.imageUrls;
+        originalImageUrl = storedState.originalImageUrl || "";
+        imageScores = Array.isArray(storedState.imageScores) ? storedState.imageScores : [];
+        variantLabels = Array.isArray(storedState.variantLabels) ? storedState.variantLabels : [];
+        failedImages = Array.isArray(storedState.failedImages) ? storedState.failedImages : [];
+        generationMeta = storedState.generationMeta || null;
+        imageMetadata = Array.isArray(storedState.imageMetadata) ? storedState.imageMetadata : [];
+        recommendedIndex = Number.isInteger(storedState.recommendedIndex) ? storedState.recommendedIndex : 0;
+        resultDisplayOrder = Array.isArray(storedState.resultDisplayOrder)
+          ? normalizeRankedIndices(storedState.resultDisplayOrder, imageUrls.length)
+          : buildDefaultResultOrder(imageUrls.length, recommendedIndex);
+        recommendationReason = storedState.recommendationReason || RECOMMENDATION_DESCRIPTION;
+        activeGenerationMode = normalizeGenerationMode(storedState.activeGenerationMode);
+        selectedLocationPreset = LANDMARK_OPTIONS[storedState.selectedLocationPreset]
+          ? storedState.selectedLocationPreset
+          : selectedLocationPreset;
+        resultLocationPreset = LOCATION_RESULT_COPY[storedState.resultLocationPreset]
+          ? storedState.resultLocationPreset
+          : generationMeta?.locationPreset || selectedLocationPreset || "eiffel";
+        selectedIndex = Number.isInteger(storedState.selectedIndex) ? storedState.selectedIndex : recommendedIndex;
+
+        if (generationMeta) {
+          generationMeta = {
+            ...generationMeta,
+            locationPreset: resultLocationPreset,
+          };
+        }
+
+        return true;
       }
 
       function showError(message, options = {}) {
@@ -2928,13 +3120,23 @@ ${modeExample}`;
 
           seenIndexes.add(index);
           seenUrls.add(url);
+          const additionalIndex = allResultImages.filter((item) => !item.isRecommended).length + 1;
+          const isRecommended = index === recommendedIndex;
+          const copy = isDisneyMode(activeGenerationMode)
+            ? null
+            : getRoleResultCopy({
+              isRecommended,
+              additionalIndex,
+              fallbackLabel: variantLabels[index] || `결과 ${index + 1}`,
+            });
           allResultImages.push({
             url,
             index,
-            label: index === recommendedIndex
-              ? `${getFeaturedLabel()} · ${variantLabels[index] || `결과 ${index + 1}`}`
-              : `${variantLabels[index] || `AI 생성 결과 ${index + 1}`}`,
-            isRecommended: index === recommendedIndex,
+            label: isRecommended
+              ? `${getFeaturedLabel()} · ${copy?.title || variantLabels[index] || `결과 ${index + 1}`}`
+              : `${copy?.title || variantLabels[index] || `AI 생성 결과 ${index + 1}`}`,
+            description: copy?.description || "",
+            isRecommended,
           });
         });
 
@@ -3098,7 +3300,13 @@ ${modeExample}`;
           failedImages: Array.isArray(data.failedImages) && data.failedImages.length ? data.failedImages : failedResults,
           warningMessage: typeof data.warningMessage === "string" ? data.warningMessage : "",
           generationMode: data.mode || generationMode,
-          generationMeta: null,
+          locationPreset: selectedLandmark?.value || "",
+          generationPlaceLabel: selectedLandmark?.label || "",
+          generationMeta: {
+            locationPreset: selectedLandmark?.value || "",
+            generationPlace: selectedLandmark?.value || "",
+            generationPlaceLabel: selectedLandmark?.label || "",
+          },
           imageMetadata: [],
         };
       }
@@ -3927,9 +4135,20 @@ ${modeExample}`;
         }
         mainBadge.textContent = FEATURED_BADGE_TEXT;
         mainBadge.title = RECOMMENDATION_DESCRIPTION;
-        mainVariantLabel.textContent = variantLabels[mainIndex] || `결과 ${mainIndex + 1}`;
+        const mainResultCopy = isDisneyMode(activeGenerationMode)
+          ? {
+            title: variantLabels[mainIndex] || `결과 ${mainIndex + 1}`,
+            description: USER_RECOMMENDATION_TEXT,
+          }
+          : getRoleResultCopy({
+            isRecommended: true,
+            fallbackLabel: variantLabels[mainIndex] || `결과 ${mainIndex + 1}`,
+          });
+        mainVariantLabel.textContent = mainResultCopy.title;
         mainVariantLabel.classList.toggle("hidden", !imageUrls.length);
-        recommendationText.textContent = USER_RECOMMENDATION_TEXT;
+        recommendationText.textContent = isDisneyMode(activeGenerationMode)
+          ? USER_RECOMMENDATION_TEXT
+          : mainResultCopy.description;
         if (generationMeta) {
           logDebug("[client][generation-meta]", generationMeta);
           logDebug("[client][image-metadata]", imageMetadata);
@@ -3940,11 +4159,22 @@ ${modeExample}`;
         thumbnailList.classList.remove("overflow-x-auto", "hide-scrollbar", "flex");
         thumbnailList.classList.add("result-grid");
         thumbnailList.innerHTML = allResultImages
-          .map(({ url, index, isRecommended }, resultListIndex) => {
+          .map(({ url, index, isRecommended, description }, resultListIndex) => {
             const additionalIndex = allResultImages
               .slice(0, resultListIndex)
               .filter((item) => !item.isRecommended).length + 1;
             const thumbnailLabel = isRecommended ? getFeaturedLabel() : `추가 결과 ${additionalIndex}`;
+            const cardCopy = isDisneyMode(activeGenerationMode)
+              ? {
+                title: variantLabels[index] || `결과 ${index + 1}`,
+                description: "",
+              }
+              : getRoleResultCopy({
+                isRecommended,
+                additionalIndex,
+                fallbackLabel: variantLabels[index] || `결과 ${index + 1}`,
+              });
+            const cardDescription = description || cardCopy.description;
 
             return `
               <article class="result-card relative min-w-[188px] max-w-[220px] overflow-hidden border ${index === selectedIndex ? "border-primary" : "border-white/70"} transition">
@@ -3964,7 +4194,8 @@ ${modeExample}`;
                   <div class="flex items-center justify-between gap-2">
                     <span class="font-label-caps text-label-caps uppercase text-on-surface-variant">${thumbnailLabel}</span>
                   </div>
-                  <span class="min-h-10 text-sm leading-5 font-semibold text-primary">${variantLabels[index] || `결과 ${index + 1}`}</span>
+                  <span class="min-h-10 text-sm leading-5 font-semibold text-primary">${escapeHtml(cardCopy.title)}</span>
+                  ${cardDescription ? `<span class="min-h-10 text-[11px] leading-5 text-on-surface-variant">${escapeHtml(cardDescription)}</span>` : ""}
                   <button class="h-10 rounded-full ${index === selectedIndex ? "bg-primary text-on-primary" : "glass-panel text-primary"} font-semibold transition-colors hover:bg-white/70" data-index="${index}" type="button">
                     ${index === selectedIndex ? "선택됨" : "이 이미지 선택"}
                   </button>
@@ -4018,11 +4249,17 @@ ${modeExample}`;
         });
 
         activeGenerationMode = data.generationMode || mode;
+        resultLocationPreset = !isDisneyMode(activeGenerationMode)
+          ? (data.locationPreset || data.generationMeta?.locationPreset || selectedLocationPreset || "eiffel")
+          : "eiffel";
         originalImageUrl = data.originalImageUrl || "";
         imageUrls = data.imageUrls;
         imageScores = data.scores;
         failedImages = data.failedImages;
-        generationMeta = data.generationMeta;
+        generationMeta = {
+          ...(data.generationMeta || {}),
+          locationPreset: resultLocationPreset,
+        };
         imageMetadata = indexImageMetadata(data.imageMetadata);
         variantLabels = data.variantLabels.length
           ? data.variantLabels
@@ -4038,8 +4275,7 @@ ${modeExample}`;
           initialDisplayOrder: resultDisplayOrder,
         });
         renderResults();
-
-        renderResults();
+        persistResultState();
         setStatus(data.warningMessage || RECOMMENDATION_DESCRIPTION);
         console.log("[client][slider-inputs]", {
           originalImageUrl: originalImageUrl || "local-preview-data-url",
@@ -4203,9 +4439,16 @@ ${modeExample}`;
       });
       syncGenerationModeUi();
       setupBeforeAfterSliders();
-      setAppScreen("landing", { pushHistory: false });
-      replaceAppHistoryState("landing", null);
-      pushAppHistoryState("landing", null);
+      const shouldRestoreResultScreen = getRememberedAppScreen() === "result" && restoreResultState();
+      if (shouldRestoreResultScreen) {
+        renderResults();
+        setAppScreen("result", { pushHistory: false });
+        replaceAppHistoryState("result", null);
+      } else {
+        setAppScreen("landing", { pushHistory: false });
+        replaceAppHistoryState("landing", null);
+        pushAppHistoryState("landing", null);
+      }
       window.addEventListener("popstate", onPopState);
 
       changePhotoButton.addEventListener("click", () => {
@@ -4409,6 +4652,7 @@ ${modeExample}`;
 
         selectedIndex = Number(button.dataset.index);
         renderResults();
+        persistResultState();
         console.log("[client][grok-edit] selected candidate:", selectedIndex);
       });
 

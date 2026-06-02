@@ -1817,17 +1817,17 @@
                 </div>
                 <div class="result-grid" id="thumbnailList"></div>
               </section>
-              <div class="flex flex-col gap-3 mt-4 hidden" id="resultActionButtons">
-                <button class="h-12 w-full rounded-full bg-primary text-on-primary font-button text-sm flex items-center justify-center gap-2 transition-colors" id="resultDownloadButton" type="button">
-                  <span class="material-symbols-outlined text-[18px]">download</span>
-                  <span id="resultDownloadButtonLabel">이미지 다운로드</span>
-                </button>
-                <p class="text-xs leading-5 text-on-surface-variant" id="resultSaveHelp">모바일에서는 저장창에서 사진 저장을 선택해 주세요.</p>
-                <p class="min-h-5 text-xs leading-5 text-primary" id="resultSaveStatus"></p>
-                <button class="h-12 w-full rounded-full bg-primary-container/60 text-on-primary-container font-button text-sm flex items-center justify-center gap-2 transition-colors hover:bg-primary-container/80" id="resultGalleryUploadButton" type="button">
-                  <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
-                  <span>갤러리 업로드</span>
-                </button>
+              <div class="mt-4 hidden rounded-[22px] border border-white/70 bg-white/60 px-4 py-4 shadow-[0_14px_34px_rgba(129,80,92,0.12)]" id="resultActionButtons">
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span class="material-symbols-outlined text-[19px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                  </span>
+                  <p class="text-sm leading-6 text-on-surface">
+                    사진이 완성되었습니다.<br />
+                    크게보기로 사진을 확인하시고 다운로드하세요.<br />
+                    4장 중 한 장은 갤러리에 업로드할 수 있어요.
+                  </p>
+                </div>
               </div>
             </section>
           </section>
@@ -1959,10 +1959,17 @@
           </button>
         </div>
         <div class="flex flex-col items-center gap-2">
-          <button class="hidden h-14 min-w-52 items-center justify-center gap-2 rounded-full bg-white/90 px-8 text-center text-[17px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalDownload" type="button">
-            <span class="material-symbols-outlined text-[21px]">download</span>
-            <span id="imageModalDownloadLabel">이미지 다운로드</span>
-          </button>
+          <div class="flex w-full max-w-md items-center justify-center gap-2">
+            <button class="hidden h-14 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalDownload" type="button">
+              <span class="material-symbols-outlined text-[21px]">download</span>
+              <span id="imageModalDownloadLabel">이미지 다운로드</span>
+            </button>
+            <button class="hidden h-12 shrink-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:px-4 sm:text-sm" id="imageModalGalleryUpload" type="button" aria-label="현재 이미지 갤러리에 올리기" title="갤러리 올리기">
+              <span class="material-symbols-outlined text-[19px]">cloud_upload</span>
+              <span class="hidden xs:inline sm:inline">갤러리 올리기</span>
+              <span class="inline xs:hidden sm:hidden">갤러리</span>
+            </button>
+          </div>
           <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">모바일에서는 저장창에서 사진 저장을 선택해 주세요.</p>
           <p class="min-h-5 text-sm text-white/80" id="imageModalDownloadStatus"></p>
         </div>
@@ -2665,6 +2672,7 @@ Important balance:
       const imageModalLabel = document.getElementById("imageModalLabel");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalDownload = document.getElementById("imageModalDownload");
+      const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
       const imageModalDownloadLabel = document.getElementById("imageModalDownloadLabel");
       const imageModalDownloadHelp = document.getElementById("imageModalDownloadHelp");
       const imageModalDownloadStatus = document.getElementById("imageModalDownloadStatus");
@@ -2696,11 +2704,17 @@ Important balance:
       let recommendationReason = RECOMMENDATION_DESCRIPTION;
       let activeGenerationMode = GENERATION_MODES.PARIS_SNAP;
       let selectedLocationPreset = "eiffel";
+      const selectedLocationPresets = {
+        europe: "eiffel",
+        seoul: "namsan_tower",
+        jeju: "saryeoni_forest",
+      };
       let resultLocationPreset = "eiffel";
       let selectedIndex = 0;
       let activeImageModalIndex = 0;
       let isGenerating = false;
       let galleryImages = [];
+      const uploadedGalleryImageUrls = new Set();
       let comparisonSliderPosition = 50;
       let isComparisonDragging = false;
       let modalItemsOverride = null;
@@ -2913,8 +2927,11 @@ Important balance:
         return resolveGenerationMode(value) || GENERATION_MODES.PARIS_SNAP;
       }
 
-      function getGenerationPlaceValue() {
-        const checkedPlace = document.querySelector("input[name='generationPlace']:checked, input[name='locationMode']:checked, input[name='place']:checked, input[name='location']:checked");
+      function getGenerationPlaceValue(mode = getGenerationModeFromInput()) {
+        const category = getLocationCategoryForMode(mode);
+        const checkedPlace = category
+          ? generationPlaceInputs.find((input) => input.checked && LANDMARK_OPTIONS[input.value]?.category === category)
+          : document.querySelector("input[name='generationPlace']:checked, input[name='locationMode']:checked, input[name='place']:checked, input[name='location']:checked");
         const selectedPlace = document.querySelector("select[name='generationPlace'], select[name='locationMode'], select[name='place'], select[name='location']");
 
         return checkedPlace?.value || selectedPlace?.value || "";
@@ -2943,8 +2960,14 @@ Important balance:
         });
       }
 
+      function getGenerationModeFromInput() {
+        const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
+        return resolveGenerationMode(rawMode) || GENERATION_MODES.PARIS_SNAP;
+      }
+
       function getSelectedLandmarkOption(mode = activeGenerationMode) {
-        const candidate = selectedLocationPreset || getGenerationPlaceValue() || getDefaultLocationPreset(mode);
+        const category = getLocationCategoryForMode(mode);
+        const candidate = selectedLocationPresets[category] || selectedLocationPreset || getGenerationPlaceValue(mode) || getDefaultLocationPreset(mode);
         const value = isLocationPresetForMode(candidate, mode) ? candidate : getDefaultLocationPreset(mode);
         return {
           value,
@@ -2953,10 +2976,14 @@ Important balance:
       }
 
       function syncSelectedLocationPreset(mode = getGenerationMode()) {
-        const value = getGenerationPlaceValue();
+        const category = getLocationCategoryForMode(mode);
+        const value = getGenerationPlaceValue(mode) || selectedLocationPresets[category] || "";
         selectedLocationPreset = isLocationPresetForMode(value, mode)
           ? value
           : getDefaultLocationPreset(mode);
+        if (category) {
+          selectedLocationPresets[category] = selectedLocationPreset;
+        }
         setCheckedLocationPreset(selectedLocationPreset);
       }
 
@@ -2982,7 +3009,8 @@ Important balance:
 
       function getGenerationMode() {
         const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
-        const rawPlace = getGenerationPlaceValue();
+        const inputMode = resolveGenerationMode(rawMode) || GENERATION_MODES.PARIS_SNAP;
+        const rawPlace = getGenerationPlaceValue(inputMode);
         const mode = resolveGenerationMode(rawMode) || resolveGenerationMode(rawPlace) || GENERATION_MODES.PARIS_SNAP;
 
         return MODE_CONFIG[mode] ? mode : GENERATION_MODES.PARIS_SNAP;
@@ -3165,7 +3193,9 @@ Important balance:
         thumbnailList.innerHTML = "";
         resultSection.classList.add("hidden");
         resultActionButtons.classList.add("hidden");
-        resultSaveStatus.textContent = "";
+        if (resultSaveStatus) {
+          resultSaveStatus.textContent = "";
+        }
       }
 
       function rememberAppScreen(screen) {
@@ -3201,6 +3231,7 @@ Important balance:
             recommendationReason,
             activeGenerationMode,
             selectedLocationPreset,
+            selectedLocationPresets: { ...selectedLocationPresets },
             resultLocationPreset,
             selectedIndex,
           }));
@@ -3238,6 +3269,17 @@ Important balance:
         selectedLocationPreset = LANDMARK_OPTIONS[storedState.selectedLocationPreset]
           ? storedState.selectedLocationPreset
           : selectedLocationPreset;
+        if (storedState.selectedLocationPresets && typeof storedState.selectedLocationPresets === "object") {
+          Object.entries(storedState.selectedLocationPresets).forEach(([category, preset]) => {
+            if (LANDMARK_OPTIONS[preset]?.category === category) {
+              selectedLocationPresets[category] = preset;
+            }
+          });
+        }
+        const restoredCategory = LANDMARK_OPTIONS[selectedLocationPreset]?.category;
+        if (restoredCategory) {
+          selectedLocationPresets[restoredCategory] = selectedLocationPreset;
+        }
         resultLocationPreset = LOCATION_RESULT_COPY[storedState.resultLocationPreset]
           ? storedState.resultLocationPreset
           : generationMeta?.locationPreset || selectedLocationPreset || "eiffel";
@@ -4348,8 +4390,10 @@ ${modeExample}`;
       }
 
       function setImageModalDownloadVisible(isVisible) {
-        imageModalDownload.classList.toggle("hidden", !isVisible);
-        imageModalDownload.classList.toggle("flex", isVisible);
+        imageModalDownload?.classList.toggle("hidden", !isVisible);
+        imageModalDownload?.classList.toggle("flex", isVisible);
+        imageModalGalleryUpload?.classList.toggle("hidden", !isVisible);
+        imageModalGalleryUpload?.classList.toggle("inline-flex", isVisible);
       }
 
       function setImageModalDownloadStatus(message = "") {
@@ -4761,9 +4805,13 @@ ${modeExample}`;
         fallbackDownloadBlob(blob, options.filename);
       }
 
-      async function downloadCurrentModalImage() {
+      function getCurrentModalImageItem() {
         const items = getImageModalItems();
-        const item = items[activeImageModalIndex] || items[0];
+        return items[activeImageModalIndex] || items[0] || null;
+      }
+
+      async function downloadCurrentModalImage() {
+        const item = getCurrentModalImageItem();
 
         if (!item?.url) return;
 
@@ -4784,6 +4832,74 @@ ${modeExample}`;
           setImageModalDownloadStatus("저장이 바로 되지 않으면 이미지를 길게 눌러 저장해 주세요.");
         } finally {
           imageModalDownload.disabled = false;
+        }
+      }
+
+      function getGalleryUploadUrl() {
+        return `${FRONT_API_BASE_URL}/api/gallery`;
+      }
+
+      async function uploadCurrentModalImageToGallery() {
+        const item = getCurrentModalImageItem();
+
+        if (!item?.url) return;
+
+        if (uploadedGalleryImageUrls.has(item.url)) {
+          setImageModalDownloadStatus("이미 갤러리에 업로드된 이미지입니다.");
+          return;
+        }
+
+        imageModalGalleryUpload.disabled = true;
+        setImageModalDownloadStatus("갤러리에 업로드하는 중...");
+
+        try {
+          ensureApiBaseUrlConfigured();
+          const payload = {
+            imageUrl: item.url,
+            title: item.label || `Magic Ai Studio 결과 ${activeImageModalIndex + 1}`,
+            style: activeGenerationMode || "",
+            mode: activeGenerationMode || "",
+            locationPreset: resultLocationPreset || generationMeta?.locationPreset || "",
+            selectedIndex: activeImageModalIndex,
+            createdAt: new Date().toISOString(),
+          };
+          const response = await fetch(getGalleryUploadUrl(), {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Anonymous-Id": getAnonymousId(),
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const duplicateCode = String(errorData.code || errorData.error || "").toUpperCase();
+            if (response.status === 409 || duplicateCode.includes("DUPLICATE") || duplicateCode.includes("ALREADY")) {
+              uploadedGalleryImageUrls.add(item.url);
+              setImageModalDownloadStatus("이미 갤러리에 업로드된 이미지입니다.");
+              return;
+            }
+
+            throw new Error(errorData.message || `Gallery upload failed: ${response.status}`);
+          }
+
+          const uploaded = await response.json().catch(() => ({}));
+          uploadedGalleryImageUrls.add(item.url);
+          galleryImages = [
+            {
+              imageUrl: item.url,
+              title: item.label || "Magic Ai Studio 결과",
+              ...(uploaded || {}),
+            },
+            ...galleryImages,
+          ];
+          setImageModalDownloadStatus("갤러리에 업로드되었습니다.");
+        } catch (error) {
+          console.error("[client][gallery-upload] failed:", error);
+          setImageModalDownloadStatus("갤러리 업로드에 실패했습니다. 어시스턴트에게 문의하세요.");
+        } finally {
+          imageModalGalleryUpload.disabled = false;
         }
       }
 
@@ -4956,8 +5072,12 @@ ${modeExample}`;
         resultSection.classList.remove("hidden");
         sourceSection.classList.toggle("hidden", imageUrls.length > 0);
         resultActionButtons.classList.toggle("hidden", !comparisonEditedImage);
-        resultDownloadButton.disabled = !comparisonEditedImage;
-        resultSaveStatus.textContent = "";
+        if (resultDownloadButton) {
+          resultDownloadButton.disabled = !comparisonEditedImage;
+        }
+        if (resultSaveStatus) {
+          resultSaveStatus.textContent = "";
+        }
         syncSaveCopy();
         recommendedComparisonSlider.classList.toggle("hidden", !comparisonEditedImage);
         recommendedZoomButton.classList.toggle("hidden", !comparisonEditedImage);
@@ -5279,7 +5399,9 @@ ${modeExample}`;
         input.addEventListener("change", syncGenerationModeUi);
       });
       generationPlaceInputs.forEach((input) => {
-        input.addEventListener("change", syncSelectedLocationPreset);
+        input.addEventListener("change", () => {
+          syncSelectedLocationPreset(getGenerationMode());
+        });
       });
       syncGenerationModeUi();
       setupBeforeAfterSliders();
@@ -5580,10 +5702,10 @@ ${modeExample}`;
         event.stopPropagation();
         downloadCurrentModalImage();
       });
-      resultDownloadButton.addEventListener("click", (event) => {
+      imageModalGalleryUpload?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        saveRecommendedResultImage();
+        uploadCurrentModalImageToGallery();
       });
       imageModalClose.addEventListener("click", closeImageModal);
       imageModalPrev.addEventListener("click", () => moveImageModal(-1));

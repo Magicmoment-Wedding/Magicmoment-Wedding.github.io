@@ -296,10 +296,17 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
         padding: 6px;
-        border-radius: 9999px;
+        border-radius: 24px;
         background: rgba(255, 255, 255, 0.58);
         border: 1px solid rgba(255, 255, 255, 0.78);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      }
+
+      @media (min-width: 520px) {
+        .editor-style-toggle {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          border-radius: 9999px;
+        }
       }
 
       .editor-style-option {
@@ -312,8 +319,10 @@
         padding: 0 12px;
         color: #7a6267;
         background: rgba(255, 255, 255, 0.76);
-        font-size: 12px;
+        font-size: clamp(10px, 2.8vw, 12px);
         font-weight: 700;
+        line-height: 1.15;
+        text-align: center;
         word-break: keep-all;
         transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
       }
@@ -1496,6 +1505,14 @@
                   <span>유럽명소스냅</span>
                 </label>
                 <label class="editor-style-option">
+                  <input class="sr-only" name="generationMode" type="radio" value="seoul_snap" />
+                  <span>서울명소스냅</span>
+                </label>
+                <label class="editor-style-option">
+                  <input class="sr-only" name="generationMode" type="radio" value="jeju_snap" />
+                  <span>제주도 스냅</span>
+                </label>
+                <label class="editor-style-option">
                   <input class="sr-only" name="generationMode" type="radio" value="disneyLive" />
                   <span>디즈니 실사</span>
                 </label>
@@ -1545,6 +1562,100 @@
                   <input class="sr-only" name="generationPlace" type="radio" value="amalfi" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">아말피 코스트 절벽</span>
+                </label>
+              </div>
+            </section>
+
+            <section class="mt-7 hidden" id="seoulOptions">
+              <div>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 서울의 명소 배경을 선택해 주세요</p>
+                <div class="beauty-stage-note">
+                  <span class="beauty-stage-badge">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    예쁨단계 1
+                  </span>
+                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
+                </div>
+              </div>
+              <div class="editor-option-grid mt-3">
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/seoul-namsan-tower.jpg'); --preset-fallback: linear-gradient(135deg, #415a67 0%, #f5c58a 46%, #22333a 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="namsan_tower" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">남산타워</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/seoul-lotte-tower.jpg'); --preset-fallback: linear-gradient(135deg, #80a7c8 0%, #f1c777 48%, #31465d 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="lotte_tower" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">롯데타워</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/seoul-seoul-forest.jpg'); --preset-fallback: linear-gradient(135deg, #2d5334 0%, #d9c992 48%, #102417 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="seoul_forest" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">서울숲</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/seoul-dongjak-bridge-night.jpg'); --preset-fallback: linear-gradient(135deg, #101d39 0%, #d39b46 48%, #07111f 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="dongjak_bridge_night" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">한강 동작대교 야경</span>
+                </label>
+              </div>
+            </section>
+
+            <section class="mt-7 hidden" id="jejuOptions">
+              <div>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 제주도의 스냅 배경을 선택해 주세요</p>
+                <div class="beauty-stage-note">
+                  <span class="beauty-stage-badge">
+                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    예쁨단계 1
+                  </span>
+                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
+                </div>
+              </div>
+              <div class="editor-option-grid mt-3">
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/jeju-saryeoni-forest.jpg'); --preset-fallback: linear-gradient(135deg, #1f3d2c 0%, #7a9a5f 48%, #0f2418 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="saryeoni_forest" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">사려니숲길</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/jeju-gimnyeong-beach.jpg'); --preset-fallback: linear-gradient(135deg, #4dbdcc 0%, #f5e6c5 48%, #163f58 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="gimnyeong_beach" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">김녕해변</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/jeju-songaksan.jpg'); --preset-fallback: linear-gradient(135deg, #496b35 0%, #9fbf8d 45%, #24516f 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="songaksan" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">송악산</span>
+                </label>
+                <label
+                  class="editor-option-card has-preview"
+                  style="--preset-image: url('public/images/presets/jeju-ora-buckwheat.jpg'); --preset-fallback: linear-gradient(135deg, #d7dfc6 0%, #f5f3df 48%, #6f8f57 100%); --preset-position: center;"
+                >
+                  <input class="sr-only" name="generationPlace" type="radio" value="ora_buckwheat" />
+                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
+                  <span class="editor-option-title font-semibold">오라동 메밀밭</span>
                 </label>
               </div>
             </section>
@@ -1881,6 +1992,8 @@
       const DEBUG_MODE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
       const GENERATION_MODES = {
         PARIS_SNAP: "parisSnap",
+        SEOUL_SNAP: "seoul_snap",
+        JEJU_SNAP: "jeju_snap",
         DISNEY_LIVE: "disneyLive",
       };
       const GENERATING_STATUS_TEXT = "잠시만 기다려 주세요.";
@@ -1894,9 +2007,37 @@
         europe: GENERATION_MODES.PARIS_SNAP,
         european: GENERATION_MODES.PARIS_SNAP,
         europesnap: GENERATION_MODES.PARIS_SNAP,
+        europesnapmode: GENERATION_MODES.PARIS_SNAP,
+        europelocationsnap: GENERATION_MODES.PARIS_SNAP,
+        europelocationsnaps: GENERATION_MODES.PARIS_SNAP,
+        europesnaps: GENERATION_MODES.PARIS_SNAP,
+        europesnapcategory: GENERATION_MODES.PARIS_SNAP,
+        europesnapstyle: GENERATION_MODES.PARIS_SNAP,
+        europesnappreset: GENERATION_MODES.PARIS_SNAP,
+        europesnaplandmark: GENERATION_MODES.PARIS_SNAP,
+        europesnaplandmarks: GENERATION_MODES.PARIS_SNAP,
+        europesnapphoto: GENERATION_MODES.PARIS_SNAP,
+        europeansnap: GENERATION_MODES.PARIS_SNAP,
+        europeansnaps: GENERATION_MODES.PARIS_SNAP,
+        europesnapedit: GENERATION_MODES.PARIS_SNAP,
+        europe_snap: GENERATION_MODES.PARIS_SNAP,
         "유럽명소스냅": GENERATION_MODES.PARIS_SNAP,
         "파리에펠탑": GENERATION_MODES.PARIS_SNAP,
+        seoulsnap: GENERATION_MODES.SEOUL_SNAP,
+        seoullandmark: GENERATION_MODES.SEOUL_SNAP,
+        seoullandmarksnap: GENERATION_MODES.SEOUL_SNAP,
+        seoul: GENERATION_MODES.SEOUL_SNAP,
+        seoul_snap: GENERATION_MODES.SEOUL_SNAP,
+        "서울명소스냅": GENERATION_MODES.SEOUL_SNAP,
+        jejusnap: GENERATION_MODES.JEJU_SNAP,
+        jejuisland: GENERATION_MODES.JEJU_SNAP,
+        jejuislandsnap: GENERATION_MODES.JEJU_SNAP,
+        jeju: GENERATION_MODES.JEJU_SNAP,
+        jeju_snap: GENERATION_MODES.JEJU_SNAP,
+        "제주도스냅": GENERATION_MODES.JEJU_SNAP,
+        "제주도": GENERATION_MODES.JEJU_SNAP,
         disneylive: GENERATION_MODES.DISNEY_LIVE,
+        disney_live: GENERATION_MODES.DISNEY_LIVE,
         disney: GENERATION_MODES.DISNEY_LIVE,
         liveactiondisney: GENERATION_MODES.DISNEY_LIVE,
         disneyliveaction: GENERATION_MODES.DISNEY_LIVE,
@@ -1927,6 +2068,78 @@ Background rule:
 - Replace only the background with a realistic Eiffel Tower setting.
 - Keep the background change natural and moderate.
 - Allow only slight variation in Eiffel Tower distance, terrace angle, surrounding scenery, and lighting.
+- Do not restyle the people.
+- Do not regenerate the people.
+- Do not beautify them into different-looking people.
+
+Blending:
+- Match lighting, shadows, perspective, and color tone naturally.
+- Keep the result realistic and photo-natural.
+
+Important:
+- Face preservation is more important than background accuracy.
+- If there is any conflict, reduce the background transformation strength.
+- Keep the final result subtle, natural, and realistic.`,
+        },
+        [GENERATION_MODES.SEOUL_SNAP]: {
+          presetKey: "seoul_landmark_snap",
+          fallbackLabels: [
+            "Namsan Tower signature view",
+            "Lotte Tower city view",
+            "Seoul Forest garden snap",
+            "Han River bridge night view",
+          ],
+          basePrompt: `Edit this photo into a natural Seoul landmark wedding travel snap.
+
+Keep the original people exactly the same.
+
+Priority:
+1. Preserve the original faces and identities exactly.
+2. Preserve eye shape, facial expression, hairstyle, hair color, skin tone, and overall facial impression.
+3. Preserve the original pose, hand position, body position, camera angle, framing, and composition.
+4. Preserve visible clothing and all visible props exactly.
+5. Preserve occlusions. Do not invent hidden hands, hidden fingers, hidden eyes, hidden shoes, or hidden facial parts.
+
+Background rule:
+- Replace only the background with the selected Seoul landmark setting.
+- Keep the background change natural and moderate.
+- Allow only slight variation in landmark distance, surrounding scenery, city lighting, park detail, river reflection, and atmosphere.
+- Do not restyle the people.
+- Do not regenerate the people.
+- Do not beautify them into different-looking people.
+
+Blending:
+- Match lighting, shadows, perspective, and color tone naturally.
+- Keep the result realistic and photo-natural.
+
+Important:
+- Face preservation is more important than background accuracy.
+- If there is any conflict, reduce the background transformation strength.
+- Keep the final result subtle, natural, and realistic.`,
+        },
+        [GENERATION_MODES.JEJU_SNAP]: {
+          presetKey: "jeju_snap",
+          fallbackLabels: [
+            "Saryeoni forest snap",
+            "Gimnyeong beach snap",
+            "Songaksan coastal view",
+            "Ora buckwheat field mood",
+          ],
+          basePrompt: `Edit this photo into a natural Jeju Island wedding travel snap.
+
+Keep the original people exactly the same.
+
+Priority:
+1. Preserve the original faces and identities exactly.
+2. Preserve eye shape, facial expression, hairstyle, hair color, skin tone, and overall facial impression.
+3. Preserve the original pose, hand position, body position, camera angle, framing, and composition.
+4. Preserve visible clothing and all visible props exactly.
+5. Preserve occlusions. Do not invent hidden hands, hidden fingers, hidden eyes, hidden shoes, or hidden facial parts.
+
+Background rule:
+- Replace only the background with the selected Jeju Island snap setting.
+- Keep the background change natural and moderate.
+- Allow only slight variation in forest depth, beach light, coastal cliff distance, field detail, weather, and atmosphere.
 - Do not restyle the people.
 - Do not regenerate the people.
 - Do not beautify them into different-looking people.
@@ -2059,21 +2272,70 @@ Important balance:
       };
       const LANDMARK_OPTIONS = {
         eiffel: {
+          category: "europe",
           label: "에펠탑",
           prompt: "Paris Eiffel Tower landmark snap background",
         },
         louvre: {
+          category: "europe",
           label: "루브르 박물관",
           prompt: "Paris Louvre Museum landmark snap background",
         },
         venice: {
+          category: "europe",
           label: "베네치아",
           prompt: "Venice canal and classic Italian city landmark snap background",
         },
         amalfi: {
+          category: "europe",
           label: "아말피 코스트 절벽",
           prompt: "Amalfi Coast cliffside landmark snap background",
         },
+        namsan_tower: {
+          category: "seoul",
+          label: "남산타워",
+          prompt: "Namsan Seoul Tower city landmark snap background",
+        },
+        lotte_tower: {
+          category: "seoul",
+          label: "롯데타워",
+          prompt: "Lotte World Tower and Jamsil Seoul city landmark snap background",
+        },
+        seoul_forest: {
+          category: "seoul",
+          label: "서울숲",
+          prompt: "Seoul Forest green park walkway landmark snap background",
+        },
+        dongjak_bridge_night: {
+          category: "seoul",
+          label: "한강 동작대교 야경",
+          prompt: "Han River Dongjak Bridge Seoul night landmark snap background",
+        },
+        saryeoni_forest: {
+          category: "jeju",
+          label: "사려니숲길",
+          prompt: "Jeju Saryeoni Forest Road cedar woodland snap background",
+        },
+        gimnyeong_beach: {
+          category: "jeju",
+          label: "김녕해변",
+          prompt: "Jeju Gimnyeong Beach emerald ocean snap background",
+        },
+        songaksan: {
+          category: "jeju",
+          label: "송악산",
+          prompt: "Jeju Songaksan oreum coastal cliff and sea snap background",
+        },
+        ora_buckwheat: {
+          category: "jeju",
+          label: "오라동 메밀밭",
+          prompt: "Jeju Ora-dong buckwheat flower field snap background",
+        },
+      };
+      const DEFAULT_LOCATION_PRESET_BY_MODE = {
+        [GENERATION_MODES.PARIS_SNAP]: "eiffel",
+        [GENERATION_MODES.SEOUL_SNAP]: "namsan_tower",
+        [GENERATION_MODES.JEJU_SNAP]: "saryeoni_forest",
       };
       const LOCATION_RESULT_COPY = {
         eiffel: [
@@ -2146,6 +2408,150 @@ Important balance:
           {
             title: "아말피 선라이트 테라스",
             description: "햇빛이 내려앉은 테라스 느낌의 결과입니다.",
+          },
+        ],
+        namsan_tower: [
+          {
+            title: "남산타워 시그니처 뷰",
+            description: "남산타워와 서울 시티뷰가 어우러진 대표 스냅입니다.",
+          },
+          {
+            title: "남산타워 로맨틱 스냅",
+            description: "서울 여행의 따뜻한 감성을 살린 로맨틱 배경입니다.",
+          },
+          {
+            title: "남산타워 서울 시티뷰",
+            description: "도심 풍경과 남산의 깊이감이 살아있는 장면입니다.",
+          },
+          {
+            title: "남산타워 야경 무드",
+            description: "서울의 빛과 랜드마크 무드를 차분하게 담았습니다.",
+          },
+        ],
+        lotte_tower: [
+          {
+            title: "롯데타워 시그니처 뷰",
+            description: "롯데타워가 선명하게 보이는 모던 서울 스냅입니다.",
+          },
+          {
+            title: "석촌호수 로맨틱 뷰",
+            description: "호수와 도심 반사가 어우러진 부드러운 배경입니다.",
+          },
+          {
+            title: "롯데타워 선셋 스냅",
+            description: "잠실의 노을빛과 타워 실루엣을 살린 결과입니다.",
+          },
+          {
+            title: "잠실 시티 야경",
+            description: "세련된 서울 도심 야경 분위기를 연결했습니다.",
+          },
+        ],
+        seoul_forest: [
+          {
+            title: "서울숲 가든 스냅",
+            description: "푸른 나무길과 자연광이 어우러진 공원 스냅입니다.",
+          },
+          {
+            title: "서울숲 로맨틱 산책",
+            description: "산책로의 잔잔한 깊이감과 웨딩 무드를 담았습니다.",
+          },
+          {
+            title: "서울숲 그린 포레스트",
+            description: "도시 속 숲의 싱그러운 색감이 살아있는 결과입니다.",
+          },
+          {
+            title: "서울숲 햇살 스냅",
+            description: "나뭇잎 사이로 들어오는 햇살 느낌을 살렸습니다.",
+          },
+        ],
+        dongjak_bridge_night: [
+          {
+            title: "한강 야경 스냅",
+            description: "한강의 반짝이는 물빛과 서울 야경을 담은 결과입니다.",
+          },
+          {
+            title: "동작대교 로맨틱 나잇",
+            description: "브리지 라이트가 만드는 로맨틱한 밤 분위기입니다.",
+          },
+          {
+            title: "한강 브리지 뷰",
+            description: "강변과 다리의 선이 안정적으로 이어지는 장면입니다.",
+          },
+          {
+            title: "서울 리버사이드 야경",
+            description: "서울 강변의 도시 불빛을 차분하게 연결했습니다.",
+          },
+        ],
+        saryeoni_forest: [
+          {
+            title: "사려니 포레스트 스냅",
+            description: "삼나무 숲길의 깊은 초록빛과 자연광을 담았습니다.",
+          },
+          {
+            title: "사려니 로맨틱 우드랜드",
+            description: "숲속 산책길의 차분하고 로맨틱한 무드입니다.",
+          },
+          {
+            title: "사려니 그린 포레스트",
+            description: "울창한 숲의 싱그러운 깊이감을 살린 결과입니다.",
+          },
+          {
+            title: "사려니 숲길 무드",
+            description: "신비로운 제주 숲길 분위기를 자연스럽게 연결했습니다.",
+          },
+        ],
+        gimnyeong_beach: [
+          {
+            title: "김녕 오션 스냅",
+            description: "에메랄드빛 바다와 밝은 해변이 어우러진 스냅입니다.",
+          },
+          {
+            title: "김녕 비치 로맨스",
+            description: "맑은 물빛과 모래사장의 청량한 로맨틱 무드입니다.",
+          },
+          {
+            title: "김녕 에메랄드 코스트",
+            description: "제주 바다의 투명한 색감을 중심으로 살렸습니다.",
+          },
+          {
+            title: "김녕 선샤인 비치",
+            description: "햇살 가득한 해변 여행 스냅 분위기입니다.",
+          },
+        ],
+        songaksan: [
+          {
+            title: "송악산 클리프 스냅",
+            description: "오름과 절벽, 바다가 함께 보이는 제주 스냅입니다.",
+          },
+          {
+            title: "송악산 오름 로맨스",
+            description: "초원 능선과 제주 바람의 자연스러운 무드를 담았습니다.",
+          },
+          {
+            title: "송악산 코스탈 뷰",
+            description: "해안 절벽과 바다 전망이 시원하게 이어지는 결과입니다.",
+          },
+          {
+            title: "송악산 제주 무드",
+            description: "제주 남서쪽 해안의 담백한 자연 분위기입니다.",
+          },
+        ],
+        ora_buckwheat: [
+          {
+            title: "메밀밭 로맨틱 스냅",
+            description: "하얀 메밀꽃 들판의 부드러운 웨딩 스냅 무드입니다.",
+          },
+          {
+            title: "오라동 화이트 블룸",
+            description: "넓게 펼쳐진 흰 꽃밭의 깨끗한 감성을 담았습니다.",
+          },
+          {
+            title: "메밀꽃 가든 스냅",
+            description: "제주 중산간의 꽃밭과 자연광을 연결했습니다.",
+          },
+          {
+            title: "제주 메밀밭 무드",
+            description: "넓은 들판과 하늘이 어우러진 제주 감성 결과입니다.",
           },
         ],
       };
@@ -2234,6 +2640,8 @@ Important balance:
       const editorFeedback = document.getElementById("editorFeedback");
       const creditShortageButton = document.getElementById("creditShortageButton");
       const europeOptions = document.getElementById("europeOptions");
+      const seoulOptions = document.getElementById("seoulOptions");
+      const jejuOptions = document.getElementById("jejuOptions");
       const disneyOptions = document.getElementById("disneyOptions");
       const sourceSection = document.getElementById("sourceSection");
       const sourcePreview = document.getElementById("sourcePreview");
@@ -2512,18 +2920,44 @@ Important balance:
         return checkedPlace?.value || selectedPlace?.value || "";
       }
 
-      function getSelectedLandmarkOption() {
-        const candidate = selectedLocationPreset || getGenerationPlaceValue() || "eiffel";
-        const value = LANDMARK_OPTIONS[candidate] ? candidate : "eiffel";
+      function getLocationCategoryForMode(mode = activeGenerationMode) {
+        const normalizedMode = normalizeGenerationMode(mode);
+        if (normalizedMode === GENERATION_MODES.JEJU_SNAP) return "jeju";
+        if (normalizedMode === GENERATION_MODES.SEOUL_SNAP) return "seoul";
+        if (normalizedMode === GENERATION_MODES.PARIS_SNAP) return "europe";
+        return "";
+      }
+
+      function getDefaultLocationPreset(mode = activeGenerationMode) {
+        return DEFAULT_LOCATION_PRESET_BY_MODE[normalizeGenerationMode(mode)] || "eiffel";
+      }
+
+      function isLocationPresetForMode(value, mode = activeGenerationMode) {
+        const category = getLocationCategoryForMode(mode);
+        return Boolean(category && LANDMARK_OPTIONS[value]?.category === category);
+      }
+
+      function setCheckedLocationPreset(value) {
+        generationPlaceInputs.forEach((input) => {
+          input.checked = input.value === value;
+        });
+      }
+
+      function getSelectedLandmarkOption(mode = activeGenerationMode) {
+        const candidate = selectedLocationPreset || getGenerationPlaceValue() || getDefaultLocationPreset(mode);
+        const value = isLocationPresetForMode(candidate, mode) ? candidate : getDefaultLocationPreset(mode);
         return {
           value,
           ...LANDMARK_OPTIONS[value],
         };
       }
 
-      function syncSelectedLocationPreset() {
+      function syncSelectedLocationPreset(mode = getGenerationMode()) {
         const value = getGenerationPlaceValue();
-        selectedLocationPreset = LANDMARK_OPTIONS[value] ? value : "eiffel";
+        selectedLocationPreset = isLocationPresetForMode(value, mode)
+          ? value
+          : getDefaultLocationPreset(mode);
+        setCheckedLocationPreset(selectedLocationPreset);
       }
 
       function getResultLocationPreset() {
@@ -2558,10 +2992,18 @@ Important balance:
         return mode === GENERATION_MODES.DISNEY_LIVE;
       }
 
+      function isLocationMode(mode = activeGenerationMode) {
+        return !isDisneyMode(mode) && Boolean(getLocationCategoryForMode(mode));
+      }
+
       function syncGenerationModeUi() {
         const mode = getGenerationMode();
-        syncSelectedLocationPreset();
+        if (isLocationMode(mode)) {
+          syncSelectedLocationPreset(mode);
+        }
         europeOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.PARIS_SNAP);
+        seoulOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.SEOUL_SNAP);
+        jejuOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.JEJU_SNAP);
         disneyOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.DISNEY_LIVE);
       }
 
@@ -3154,12 +3596,18 @@ Important balance:
 
       function buildGenerationPrompt(mode) {
         const config = getModeConfig(mode);
-        const landmark = !isDisneyMode(mode) ? getSelectedLandmarkOption() : null;
+        const landmark = isLocationMode(mode) ? getSelectedLandmarkOption(mode) : null;
+        const locationCategory = getLocationCategoryForMode(mode);
+        const landmarkCategoryLabel = locationCategory === "jeju"
+          ? "Jeju Island snap"
+          : locationCategory === "seoul"
+            ? "Seoul landmark"
+            : "Europe landmark";
 
         return [
           config.basePrompt,
           landmark
-            ? `Selected Europe landmark option: ${landmark.label} (${landmark.prompt}). Use this selected landmark as the intended background direction while preserving the original people, pose, crop, and camera angle.`
+            ? `Selected ${landmarkCategoryLabel} option: ${landmark.label} (${landmark.prompt}). Use this selected landmark as the intended background direction while preserving the original people, pose, crop, and camera angle.`
             : "",
           isDisneyMode(mode) ? DISNEY_GENERATION_POLICY : FIXED_GENERATION_POLICY,
         ].filter(Boolean).join("\n\n");
@@ -3167,6 +3615,9 @@ Important balance:
 
       function buildSelectionPrompt(mode, imageCount = 4) {
         const candidateCount = Number.isInteger(imageCount) && imageCount > 0 ? imageCount : 4;
+        const locationExampleCopies = getLocationResultCopies(
+          isLocationMode(mode) ? getSelectedLandmarkOption(mode).value : "eiffel",
+        );
         const modeExample = isDisneyMode(mode)
           ? `{
   "recommendedIndex": 0,
@@ -3184,10 +3635,10 @@ Important balance:
   "reason": "Best preservation of the original face, eyes, expression, pose, and natural realism.",
   "rankedIndices": [0, 2, 1, 3],
   "labels": [
-    "Eiffel Tower riverside",
-    "Eiffel Tower garden-side",
-    "Eiffel Tower promenade",
-    "Eiffel Tower terrace"
+    "${locationExampleCopies[0]?.title || "AI 추천"}",
+    "${locationExampleCopies[1]?.title || "추가 결과 1"}",
+    "${locationExampleCopies[2]?.title || "추가 결과 2"}",
+    "${locationExampleCopies[3]?.title || "추가 결과 3"}"
   ]
 }`;
 
@@ -3262,6 +3713,8 @@ Priority:
 
 Mode fit rules:
 - parisSnap: natural Eiffel Tower background, realistic travel-snap feeling
+- seoul_snap: natural Seoul landmark background, realistic city travel-snap feeling
+- jeju_snap: natural Jeju Island snap background, realistic island travel-snap feeling
 - disneyLive: four distinct live-action Disney-inspired results including Cinderella, Beauty and the Beast, Sleeping Beauty, and Mulan in hanbok; realistic and not cartoonish
 
 Important:
@@ -3404,7 +3857,7 @@ ${modeExample}`;
       async function generateGrokResults({ mode, imageFile }) {
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
-        const selectedLandmark = !isDisneyMode(generationMode) ? getSelectedLandmarkOption() : null;
+        const selectedLandmark = isLocationMode(generationMode) ? getSelectedLandmarkOption(generationMode) : null;
         const imagePath = await uploadImageToPrivateStorage(imageFile);
         const fileInfo = getFileDebugInfo(imageFile);
         const formData = new FormData();
@@ -3414,11 +3867,12 @@ ${modeExample}`;
         formData.append("prompt", buildGenerationPrompt(generationMode));
         formData.append("count", "4");
         if (selectedLandmark) {
+          formData.append("category", getLocationCategoryForMode(generationMode));
           formData.append("locationPreset", selectedLandmark.value);
           formData.append("generationPlace", selectedLandmark.value);
           formData.append("generationPlaceLabel", selectedLandmark.label);
         }
-        console.log("[generate] mode =", isDisneyMode(generationMode) ? "disneyLive" : "europe");
+        console.log("[generate] mode =", generationMode);
         if (selectedLandmark) {
           console.log("[generate] locationPreset =", selectedLandmark.value);
         }
@@ -3432,6 +3886,7 @@ ${modeExample}`;
           requestedMode: mode,
           generationMode,
           presetKey: config.presetKey,
+          category: getLocationCategoryForMode(generationMode),
           locationPreset: selectedLandmark?.value || "",
           generationPlace: selectedLandmark?.value || "",
           generationPlaceLabel: selectedLandmark?.label || "",
@@ -3449,6 +3904,7 @@ ${modeExample}`;
           requestedMode: mode,
           generationMode,
           presetKey: config.presetKey,
+          category: getLocationCategoryForMode(generationMode),
           locationPreset: selectedLandmark?.value || "",
           generationPlace: selectedLandmark?.value || "",
           generationPlaceLabel: selectedLandmark?.label || "",
@@ -3461,6 +3917,7 @@ ${modeExample}`;
           requestedMode: mode,
           generationMode,
           presetKey: config.presetKey,
+          category: getLocationCategoryForMode(generationMode),
           locationPreset: selectedLandmark?.value || "",
           generationPlace: selectedLandmark?.value || "",
           generationPlaceLabel: selectedLandmark?.label || "",
@@ -3523,6 +3980,7 @@ ${modeExample}`;
             requestedMode: mode,
             generationMode,
             presetKey: config.presetKey,
+            category: getLocationCategoryForMode(generationMode),
             locationPreset: selectedLandmark?.value || "",
             generationPlace: selectedLandmark?.value || "",
             generationPlaceLabel: selectedLandmark?.label || "",
@@ -3580,6 +4038,7 @@ ${modeExample}`;
           generationPlaceLabel: selectedLandmark?.label || "",
           generationMeta: {
             locationPreset: selectedLandmark?.value || "",
+            category: getLocationCategoryForMode(generationMode),
             generationPlace: selectedLandmark?.value || "",
             generationPlaceLabel: selectedLandmark?.label || "",
           },

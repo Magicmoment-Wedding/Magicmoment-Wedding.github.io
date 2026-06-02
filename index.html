@@ -510,6 +510,19 @@
         text-shadow: 0 1px 12px rgba(0, 0, 0, 0.38);
       }
 
+      .editor-option-description {
+        position: relative;
+        z-index: 1;
+        display: block;
+        max-width: 100%;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.35;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
+        word-break: keep-all;
+      }
+
       .editor-option-card:has(input:checked) {
         color: var(--rose-deep);
         background: rgba(255, 255, 255, 0.86);
@@ -575,6 +588,20 @@
         background: rgba(0, 0, 0, 0.34);
         font-size: 10px;
         font-weight: 700;
+      }
+
+      .disney-intent-note {
+        margin-top: 10px;
+        border-radius: 16px;
+        padding: 10px 12px;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.68);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1.55;
+        word-break: keep-all;
       }
 
       .editor-generate-button {
@@ -1744,14 +1771,15 @@
 
             <section class="mt-7 hidden" id="disneyOptions">
               <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">4개의 컨셉으로 자동 변환됩니다</p>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">4개의 디즈니 실사 컨셉으로 자동 변환됩니다</p>
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
                     예쁨단계 3
                   </span>
-                  <span class="beauty-stage-copy">얼굴 및 의상이 디즈니 캐릭터에 맞게 약간 예뻐져요</span>
+                  <span class="beauty-stage-copy">얼굴은 최대한 유지하고, 의상과 배경이 디즈니 실사풍으로 변환돼요</span>
                 </div>
+                <p class="disney-intent-note">얼굴과 포즈는 최대한 유지하고, 의상과 배경만 실사풍 콘셉트로 바꿔드려요.</p>
               </div>
               <div class="editor-option-grid mt-3">
                 <button
@@ -1762,6 +1790,7 @@
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">신데렐라</span>
+                  <span class="editor-option-description">블루 드레스와 궁전 배경</span>
                 </button>
                 <button
                   class="editor-option-card has-preview is-disabled"
@@ -1771,6 +1800,7 @@
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">벨</span>
+                  <span class="editor-option-description">골드 드레스와 로맨틱 서재</span>
                 </button>
                 <button
                   class="editor-option-card has-preview is-disabled"
@@ -1780,6 +1810,7 @@
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">오로라</span>
+                  <span class="editor-option-description">핑크 드레스와 장미 정원</span>
                 </button>
                 <button
                   class="editor-option-card has-preview is-disabled"
@@ -1789,6 +1820,7 @@
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">뮬란</span>
+                  <span class="editor-option-description">한복 스타일과 한옥 정원</span>
                 </button>
               </div>
             </section>
@@ -2245,10 +2277,10 @@ Important:
         [GENERATION_MODES.DISNEY_LIVE]: {
           presetKey: "fairytale_royal_wedding",
           fallbackLabels: [
-            "Cinderella Royal — Cinderella",
-            "Belle Romantic — Beauty and the Beast",
-            "Aurora Enchanted — Sleeping Beauty",
-            "Mulan Oriental Hanbok — Mulan",
+            "신데렐라 로얄",
+            "벨 로맨틱",
+            "오로라 인챈티드",
+            "뮬란 한복",
           ],
           basePrompt: `Edit the uploaded photo into a subtle Disney-inspired live-action wedding styling while keeping the original subject(s), face, pose, expression, and composition intact.
 
@@ -2359,6 +2391,12 @@ Important balance:
 - Generate four clearly different Disney-inspired concepts, but keep all four recognizable as edits of the original wedding photo.`,
         },
       };
+      const DISNEY_DISPLAY_LABELS = [
+        "신데렐라 로얄",
+        "벨 로맨틱",
+        "오로라 인챈티드",
+        "뮬란 한복",
+      ];
       const LANDMARK_OPTIONS = {
         eiffel: {
           category: "europe",
@@ -3118,6 +3156,25 @@ Important balance:
         return !isDisneyMode(mode) && Boolean(getLocationCategoryForMode(mode));
       }
 
+      function getDisneyDisplayLabel(label = "", index = 0) {
+        const normalizedLabel = String(label || "").toLowerCase();
+        if (/cinderella|신데렐라/.test(normalizedLabel)) return DISNEY_DISPLAY_LABELS[0];
+        if (/aurora|sleeping|오로라/.test(normalizedLabel)) return DISNEY_DISPLAY_LABELS[2];
+        if (/belle|beauty and the beast|벨/.test(normalizedLabel)) return DISNEY_DISPLAY_LABELS[1];
+        if (/mulan|hanbok|뮬란|한복/.test(normalizedLabel)) return DISNEY_DISPLAY_LABELS[3];
+        return DISNEY_DISPLAY_LABELS[index] || `결과 ${index + 1}`;
+      }
+
+      function normalizeVariantLabelsForMode(labels, mode = activeGenerationMode, imageCount = 4) {
+        const safeLabels = Array.isArray(labels) ? labels : [];
+        const count = Math.max(imageCount, safeLabels.length, 0);
+        if (!isDisneyMode(mode)) {
+          return Array.from({ length: count }, (_, index) => safeLabels[index] || `결과 ${index + 1}`);
+        }
+
+        return Array.from({ length: count }, (_, index) => getDisneyDisplayLabel(safeLabels[index], index));
+      }
+
       function syncGenerationModeUi() {
         const mode = getGenerationMode();
         if (isLocationMode(mode)) {
@@ -3360,6 +3417,7 @@ Important balance:
           : buildDefaultResultOrder(imageUrls.length, recommendedIndex);
         recommendationReason = storedState.recommendationReason || RECOMMENDATION_DESCRIPTION;
         activeGenerationMode = normalizeGenerationMode(storedState.activeGenerationMode);
+        variantLabels = normalizeVariantLabelsForMode(variantLabels, activeGenerationMode, imageUrls.length);
         const storedSelectablePreset = normalizeSelectableLocationPreset(storedState.selectedLocationPreset);
         selectedLocationPreset = storedSelectablePreset
           ? storedSelectablePreset
@@ -4405,9 +4463,9 @@ ${modeExample}`;
             : rankedSelectionOrder;
           selectedIndex = recommendedIndex;
           recommendationReason = normalized.reason || RECOMMENDATION_DESCRIPTION;
-          variantLabels = variantLabels.length
+          variantLabels = normalizeVariantLabelsForMode(variantLabels.length
             ? Array.from({ length: imageUrls.length }, (_, index) => variantLabels[index] || normalized.labels[index] || `결과 ${index + 1}`)
-            : normalized.labels;
+            : normalized.labels, activeGenerationMode, imageUrls.length);
 
           logDisneyRecommendationDiagnostics("final-selection", diagnostics);
           console.log("[client][recommendation]", {
@@ -4442,9 +4500,9 @@ ${modeExample}`;
           : rankedSelectionOrder;
         selectedIndex = recommendedIndex;
         recommendationReason = normalized.reason || RECOMMENDATION_DESCRIPTION;
-        variantLabels = isDisneyMode(activeGenerationMode) && variantLabels.length
+        variantLabels = normalizeVariantLabelsForMode(isDisneyMode(activeGenerationMode) && variantLabels.length
           ? Array.from({ length: imageUrls.length }, (_, index) => variantLabels[index] || normalized.labels[index] || `결과 ${index + 1}`)
-          : normalized.labels;
+          : normalized.labels, activeGenerationMode, imageUrls.length);
         console.log("[client][recommendation]", {
           successCount: imageUrls.length,
           selectedByVision: normalized.recommendedIndex,
@@ -5276,9 +5334,9 @@ ${modeExample}`;
           locationPreset: resultLocationPreset,
         };
         imageMetadata = indexImageMetadata(data.imageMetadata);
-        variantLabels = data.variantLabels.length
+        variantLabels = normalizeVariantLabelsForMode(data.variantLabels.length
           ? data.variantLabels
-          : imageUrls.map((_, index) => getFallbackLabels(activeGenerationMode)[index] || `결과 ${index + 1}`);
+          : imageUrls.map((_, index) => getFallbackLabels(activeGenerationMode)[index] || `결과 ${index + 1}`), activeGenerationMode, imageUrls.length);
         recommendedIndex = imageUrls.length ? 0 : null;
         resultDisplayOrder = imageUrls.length ? buildDefaultResultOrder(imageUrls.length, recommendedIndex) : [];
         selectedIndex = recommendedIndex ?? 0;

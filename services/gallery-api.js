@@ -55,7 +55,8 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
       presetLabel: metadata.presetLabel || "",
       resultLabel: metadata.resultLabel || metadata.title || "Uploaded Result",
       isRecommended: Boolean(metadata.isRecommended),
-      originalImageUrl: metadata.originalImageUrl,
+      originalImageUrl: metadata.originalImageUrl ?? null,
+      originalThumbnailUrl: metadata.originalThumbnailUrl ?? null,
     };
 
     const response = await fetch(getApiUrl("/api/gallery/upload"), {

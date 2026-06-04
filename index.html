@@ -680,6 +680,37 @@
         display: none;
       }
 
+      .image-modal-image-frame {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        max-height: 100%;
+      }
+
+      .image-modal-original-thumb {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        width: clamp(56px, 20%, 96px);
+        aspect-ratio: 1 / 1;
+        border-radius: 13px;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+        pointer-events: none;
+      }
+
+      .image-modal-original-thumb img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+      }
+
       @media (max-width: 768px) {
         #imageModal {
           align-items: stretch;
@@ -767,6 +798,18 @@
           box-shadow: none;
           user-select: none;
           -webkit-user-drag: none;
+        }
+
+        .image-modal-image-frame {
+          max-width: 100vw;
+          max-height: 100svh;
+          max-height: 100dvh;
+        }
+
+        .image-modal-original-thumb {
+          right: 8px;
+          bottom: 8px;
+          width: clamp(56px, 19%, 88px);
         }
 
         .image-modal-pager {
@@ -2603,7 +2646,12 @@
           <button class="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 text-white items-center justify-center transition-colors" id="imageModalPrev" type="button" aria-label="이전 이미지">
             <span class="material-symbols-outlined">chevron_left</span>
           </button>
-          <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
+          <div class="image-modal-image-frame">
+            <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
+            <span class="image-modal-original-thumb hidden" id="imageModalOriginalThumb" aria-hidden="true">
+              <img alt="" decoding="async" draggable="false" loading="lazy" id="imageModalOriginalThumbImg" />
+            </span>
+          </div>
           <button class="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 text-white items-center justify-center transition-colors" id="imageModalNext" type="button" aria-label="다음 이미지">
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
@@ -3335,6 +3383,8 @@ Important balance:
       const imageModal = document.getElementById("imageModal");
       const imageModalShell = document.getElementById("imageModalShell");
       const imageModalImg = document.getElementById("imageModalImg");
+      const imageModalOriginalThumb = document.getElementById("imageModalOriginalThumb");
+      const imageModalOriginalThumbImg = document.getElementById("imageModalOriginalThumbImg");
       const imageModalLabel = document.getElementById("imageModalLabel");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
@@ -3364,6 +3414,8 @@ Important balance:
       let selectedFile = null;
       let selectedImageDataUrl = "";
       let originalImageUrl = "";
+      let originalThumbnailUrl = "";
+      let originalImagePath = "";
       let imageUrls = [];
       let imageScores = [];
       let variantLabels = [];
@@ -3969,6 +4021,8 @@ Important balance:
       function clearResults() {
         imageUrls = [];
         originalImageUrl = "";
+        originalThumbnailUrl = "";
+        originalImagePath = "";
         imageScores = [];
         variantLabels = [];
         failedImages = [];
@@ -4021,6 +4075,8 @@ Important balance:
           window.sessionStorage.setItem(RESULT_STATE_STORAGE_KEY, JSON.stringify({
             imageUrls,
             originalImageUrl,
+            originalThumbnailUrl,
+            originalImagePath,
             imageScores,
             variantLabels,
             failedImages,
@@ -4057,6 +4113,8 @@ Important balance:
 
         imageUrls = storedState.imageUrls;
         originalImageUrl = storedState.originalImageUrl || "";
+        originalThumbnailUrl = storedState.originalThumbnailUrl || "";
+        originalImagePath = storedState.originalImagePath || "";
         imageScores = Array.isArray(storedState.imageScores) ? storedState.imageScores : [];
         variantLabels = Array.isArray(storedState.variantLabels) ? storedState.variantLabels : [];
         failedImages = Array.isArray(storedState.failedImages) ? storedState.failedImages : [];
@@ -4881,7 +4939,19 @@ ${modeExample}`;
         return {
           results: resultItems,
           generationId,
-          originalImageUrl: typeof data.originalImageUrl === "string" ? data.originalImageUrl : "",
+          originalImageUrl: typeof data.originalImageUrl === "string"
+            ? data.originalImageUrl
+            : typeof data.original_image_url === "string"
+              ? data.original_image_url
+              : typeof data.originalImage === "string"
+                ? data.originalImage
+                : "",
+          originalThumbnailUrl: typeof data.originalThumbnailUrl === "string"
+            ? data.originalThumbnailUrl
+            : typeof data.original_thumbnail_url === "string"
+              ? data.original_thumbnail_url
+              : "",
+          originalImagePath: imagePath,
           imageUrls,
           scores: [],
           variantLabels: labelsFromResults,
@@ -5212,6 +5282,24 @@ ${modeExample}`;
 
       function setImageModalStatus(message = "") {
         imageModalStatus.textContent = message;
+      }
+
+      function hideImageModalOriginalThumbnail() {
+        imageModalOriginalThumb?.classList.add("hidden");
+        imageModalOriginalThumbImg?.removeAttribute("src");
+      }
+
+      function syncImageModalOriginalThumbnail(item) {
+        if (!imageModalOriginalThumb || !imageModalOriginalThumbImg) return;
+
+        const originalThumbSrc = item?.gallerySource ? getGalleryOriginalThumbnailUrl(item) : "";
+        if (!originalThumbSrc) {
+          hideImageModalOriginalThumbnail();
+          return;
+        }
+
+        imageModalOriginalThumbImg.src = toDisplayUrl(originalThumbSrc);
+        imageModalOriginalThumb.classList.remove("hidden");
       }
 
       function getSavePlatform() {
@@ -6011,6 +6099,8 @@ ${modeExample}`;
           url: toDisplayUrl(item.imageUrl),
           imageUrl: item.imageUrl,
           imagePath: item.imagePath || "",
+          originalImageUrl: item.originalImageUrl || "",
+          originalThumbnailUrl: item.originalThumbnailUrl || "",
           label: item.resultLabel || item.title || `갤러리 사진 ${itemIndex + 1}`,
           isRecommended: false,
           index: itemIndex,
@@ -6059,6 +6149,8 @@ ${modeExample}`;
         const presetLabel = getPresetDisplayLabel(presetKey);
         const resultLabel = item.label || variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`;
         const generationId = ensureCurrentGenerationId();
+        const uploadOriginalImageUrl = originalImageUrl || originalImagePath || null;
+        const uploadOriginalThumbnailUrl = originalThumbnailUrl || null;
 
         imageModalGalleryUpload.disabled = true;
         const buttonLabel = imageModalGalleryUpload.querySelector("span:last-child");
@@ -6077,7 +6169,8 @@ ${modeExample}`;
             presetLabel,
             resultLabel,
             isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
-            originalImageUrl: originalImageUrl || undefined,
+            originalImageUrl: uploadOriginalImageUrl,
+            originalThumbnailUrl: uploadOriginalThumbnailUrl,
           };
           const response = await fetch(getGalleryUploadUrl(), {
             method: "POST",
@@ -6144,13 +6237,16 @@ ${modeExample}`;
               presetLabel,
               resultLabel,
               isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
-              originalImageUrl: originalImageUrl || "",
               ...(uploaded || {}),
+              originalImageUrl: uploaded?.originalImageUrl || uploaded?.original_image_url || uploadOriginalImageUrl || "",
+              originalThumbnailUrl: uploaded?.originalThumbnailUrl || uploaded?.original_thumbnail_url || uploadOriginalThumbnailUrl || "",
             }) || {
               imageUrl,
               imagePath,
               presetLabel,
               resultLabel,
+              originalImageUrl: uploadOriginalImageUrl || "",
+              originalThumbnailUrl: uploadOriginalThumbnailUrl || "",
               url: imageUrl,
             },
             ...galleryImages,
@@ -6208,6 +6304,7 @@ ${modeExample}`;
         imageModalImg.src = item.url;
         imageModalImg.draggable = !isGallerySource;
         imageModalImg.dataset.source = isGallerySource ? "gallery" : "result";
+        syncImageModalOriginalThumbnail(item);
         imageModalLabel.textContent = item.label;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
@@ -6325,6 +6422,7 @@ ${modeExample}`;
         imageModal.classList.remove("flex");
         closePhotoSaveModal();
         imageModalImg.removeAttribute("src");
+        hideImageModalOriginalThumbnail();
         setImageModalActionsVisible(false);
         setImageModalStatus("");
         modalItemsOverride = null;
@@ -6488,6 +6586,8 @@ ${modeExample}`;
           ? (data.locationPreset || data.generationMeta?.locationPreset || selectedLocationPreset || "eiffel")
           : "eiffel";
         originalImageUrl = data.originalImageUrl || "";
+        originalThumbnailUrl = data.originalThumbnailUrl || "";
+        originalImagePath = data.originalImagePath || "";
         imageUrls = data.imageUrls;
         imageScores = data.scores;
         failedImages = data.failedImages;
@@ -7049,6 +7149,9 @@ ${modeExample}`;
         if (isCurrentModalGallerySource()) {
           event.preventDefault();
         }
+      });
+      imageModalOriginalThumbImg?.addEventListener("error", () => {
+        hideImageModalOriginalThumbnail();
       });
       imageSaveModalClose?.addEventListener("click", closePhotoSaveModal);
       imageSaveModal?.addEventListener("click", (event) => {

@@ -25,6 +25,26 @@ function getAnonymousId() {
   return nextId;
 }
 
+function normalizeGalleryItem(item) {
+  if (!item) return null;
+
+  const originalImageUrl = item.originalImageUrl || item.original_image_url || null;
+  const originalThumbnailUrl =
+    item.originalThumbnailUrl ||
+    item.originalImageUrl ||
+    item.original_thumbnail_url ||
+    item.original_image_url ||
+    null;
+
+  return {
+    ...item,
+    originalImageUrl,
+    originalThumbnailUrl,
+    original_image_url: originalImageUrl,
+    original_thumbnail_url: originalThumbnailUrl,
+  };
+}
+
 export async function fetchGalleryImages() {
   try {
     const response = await fetch(getApiUrl("/api/gallery"), {
@@ -36,7 +56,8 @@ export async function fetchGalleryImages() {
       throw new Error(`Gallery fetch failed: ${response.status}`);
     }
     const data = await response.json();
-    return Array.isArray(data) ? data : data.items || data.images || data.data || [];
+    const items = Array.isArray(data) ? data : data.items || data.images || data.data || [];
+    return items.map(normalizeGalleryItem).filter(Boolean);
   } catch (error) {
     console.error("[gallery-api] fetch failed:", error);
     return [];

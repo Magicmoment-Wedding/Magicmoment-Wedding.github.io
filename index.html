@@ -1320,7 +1320,7 @@
       }
 
       #galleryScreen {
-        padding: 10px 10px 112px;
+        padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 112px);
       }
 
       #galleryScreen .app-topbar {
@@ -1329,35 +1329,44 @@
 
       #galleryContent {
         margin-top: 10px;
+        width: 100%;
       }
 
       .gallery-collage {
-        column-count: 2;
-        column-gap: 10px;
-        padding-bottom: 96px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+        align-items: start;
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 108px);
       }
 
       .gallery-collage-single {
-        column-count: 1;
-        max-width: min(100%, 430px);
+        grid-template-columns: minmax(0, 1fr);
+        max-width: min(100%, 440px);
         margin: 0 auto;
       }
 
       .gallery-collage-item {
         display: block;
         width: 100%;
-        margin: 0 0 10px;
+        min-width: 0;
         padding: 0;
         border: 0;
         border-radius: 18px;
         overflow: hidden;
-        break-inside: avoid;
-        -webkit-column-break-inside: avoid;
-        background: transparent;
+        aspect-ratio: var(--gallery-item-ratio, 4 / 5);
+        background: rgba(255, 255, 255, 0.48);
         box-shadow: 0 10px 26px rgba(129, 80, 92, 0.13);
         cursor: zoom-in;
         appearance: none;
         -webkit-appearance: none;
+      }
+
+      .gallery-collage-item.is-featured {
+        grid-column: 1 / -1;
+        aspect-ratio: var(--gallery-item-ratio, 4 / 3);
+        border-radius: 22px;
       }
 
       .gallery-collage-item:focus-visible {
@@ -1368,14 +1377,120 @@
       .gallery-collage-item img {
         display: block;
         width: 100%;
-        height: auto;
+        height: 100%;
+        object-fit: cover;
         object-position: center top;
         background: rgba(255, 255, 255, 0.42);
-        transition: transform 420ms ease;
+        opacity: 0;
+        transition: opacity 260ms ease, transform 420ms ease;
+      }
+
+      .gallery-collage-item.is-loaded img {
+        opacity: 1;
       }
 
       .gallery-collage-item:hover img {
         transform: scale(1.025);
+      }
+
+      .gallery-loading-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 108px);
+      }
+
+      .gallery-skeleton-card {
+        min-height: 170px;
+        border-radius: 18px;
+        background: linear-gradient(110deg, rgba(255,255,255,0.42) 8%, rgba(255,255,255,0.78) 18%, rgba(255,255,255,0.42) 33%);
+        background-size: 200% 100%;
+        box-shadow: 0 10px 26px rgba(129, 80, 92, 0.08);
+        animation: gallerySkeletonPulse 1.25s ease-in-out infinite;
+      }
+
+      .gallery-skeleton-card:first-child {
+        grid-column: 1 / -1;
+        min-height: 230px;
+        border-radius: 22px;
+      }
+
+      .gallery-skeleton-card:nth-child(3n) {
+        min-height: 210px;
+      }
+
+      @keyframes gallerySkeletonPulse {
+        0% {
+          background-position: 200% 0;
+        }
+
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      .generating-layout {
+        display: grid;
+        place-items: center;
+        padding: 18px 0 24px;
+      }
+
+      .generating-gallery-preview {
+        width: min(100%, 330px);
+        border-radius: 24px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        box-shadow: 0 18px 46px rgba(129, 80, 92, 0.12);
+        pointer-events: none;
+      }
+
+      .generating-gallery-slider {
+        position: relative;
+        aspect-ratio: 4 / 5;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.58);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+      }
+
+      .generating-gallery-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transform: scale(1.018);
+        transition: opacity 520ms ease, transform 720ms ease;
+      }
+
+      .generating-gallery-slide.is-active {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .generating-gallery-slide img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      @media (max-height: 700px) {
+        .generating-layout {
+          padding: 8px 0 16px;
+        }
+
+        .generating-gallery-preview {
+          width: min(100%, 280px);
+          padding: 10px;
+        }
+
+        .generating-gallery-slider {
+          aspect-ratio: 1 / 1;
+          border-radius: 18px;
+        }
       }
 
       .result-grid {
@@ -2171,17 +2286,28 @@
             </button>
           </section>
 
-          <section class="screen-panel app-screen hidden place-items-center" id="generatingScreen">
-            <div class="min-h-full grid place-items-center text-center">
-              <div class="flex flex-col items-center gap-6">
+          <section class="screen-panel app-screen hidden" id="generatingScreen">
+            <div class="generating-layout min-h-full text-center">
+              <div class="flex flex-col items-center gap-5">
                 <div class="loading-orbit">
                   <span class="material-symbols-outlined text-[34px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
                 </div>
                 <div>
                   <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
                   <h2 class="mt-2 font-display text-[34px] leading-tight text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
-                  <p class="mt-3 text-xs leading-5 text-on-surface-variant" id="generatingStatusText">잠시만 기다려 주세요.</p>
+                  <p class="mt-3 text-xs leading-5 text-on-surface-variant" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
                 </div>
+                <section class="generating-gallery-preview hidden" id="generatingGalleryPreview" aria-label="완성 갤러리 미리보기">
+                  <div class="flex items-center justify-between gap-3 px-1">
+                    <div class="text-left">
+                      <p class="font-label-caps text-label-caps uppercase text-primary/80">Gallery Preview</p>
+                      <p class="mt-1 text-sm font-semibold text-on-surface">기다리는 동안 다른 완성 사진을 둘러보세요.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-[20px] text-primary/70" aria-hidden="true">photo_library</span>
+                  </div>
+                  <div class="generating-gallery-slider mt-3" id="generatingGallerySlider"></div>
+                  <p class="mt-2 text-[11px] leading-5 text-on-surface-variant">곧 4장의 결과가 완성됩니다.</p>
+                </section>
               </div>
             </div>
           </section>
@@ -2469,7 +2595,7 @@
         KOREA_STYLE: "korea_style",
         DISNEY_LIVE: "disneyLive",
       };
-      const GENERATING_STATUS_TEXT = "잠시만 기다려 주세요.";
+      const GENERATING_STATUS_TEXT = "완성까지 잠시만 기다려 주세요.";
       const CREDIT_SHORTAGE_MESSAGE = "크레딧이 부족합니다. 충전 후 이용해 주세요.";
       const GENERAL_GENERATION_FAILURE_MESSAGE = "이미지를 생성하지 못했어요. 어시스턴트에게 문의하세요.";
       const GENERATION_MODE_ALIASES = {
@@ -3069,6 +3195,8 @@ Important balance:
       const galleryScreen = document.getElementById("galleryScreen");
       const creditsScreen = document.getElementById("creditsScreen");
       const galleryContent = document.getElementById("galleryContent");
+      const generatingGalleryPreview = document.getElementById("generatingGalleryPreview");
+      const generatingGallerySlider = document.getElementById("generatingGallerySlider");
       const creditBalanceText = document.getElementById("creditBalanceText");
       const creditStatusText = document.getElementById("creditStatusText");
       const creditChargeButtons = Array.from(document.querySelectorAll("[data-credit-charge-amount]"));
@@ -3160,6 +3288,9 @@ Important balance:
       let isGenerating = false;
       let galleryImages = [];
       const uploadedGalleryImageUrls = new Set();
+      let generatingGallerySlides = [];
+      let generatingGallerySlideIndex = 0;
+      let generatingGalleryIntervalId = null;
       let comparisonSliderPosition = 50;
       let isComparisonDragging = false;
       let modalItemsOverride = null;
@@ -3370,6 +3501,12 @@ Important balance:
 
         if (screen === "gallery") {
           void refreshGalleryScreen();
+        }
+
+        if (screen === "generating") {
+          void loadGeneratingGalleryPreview();
+        } else {
+          hideGeneratingGalleryPreview();
         }
 
         syncBottomNavUi();
@@ -5130,6 +5267,7 @@ ${modeExample}`;
 
       function openPhotoSaveModal() {
         const item = getCurrentModalImageItem();
+        if (item?.gallerySource) return;
         if (!item?.url || !imageSaveModal || !imageSaveModalImg) return;
 
         imageSaveModalImg.src = item.url;
@@ -5271,8 +5409,16 @@ ${modeExample}`;
         return items[activeImageModalIndex] || items[0] || null;
       }
 
+      function isCurrentModalGallerySource() {
+        return Boolean(getCurrentModalImageItem()?.gallerySource);
+      }
+
       function getGalleryListUrl() {
         return `${FRONT_API_BASE_URL}/api/gallery`;
+      }
+
+      function getGalleryPreviewUrl(limit = 10) {
+        return `${FRONT_API_BASE_URL}/api/gallery?limit=${encodeURIComponent(String(limit))}`;
       }
 
       function getGalleryUploadUrl() {
@@ -5342,19 +5488,27 @@ ${modeExample}`;
 
       function normalizeGalleryItem(rawItem, fallbackIndex = 0) {
         if (!rawItem) return null;
-        const imageUrl = String(rawItem.imageUrl || rawItem.url || rawItem.publicUrl || rawItem.src || "").trim();
-        if (!imageUrl) return null;
+        const imageUrl = String(rawItem.imageUrl || rawItem.image_url || rawItem.url || rawItem.publicUrl || rawItem.public_url || rawItem.src || "").trim();
+        const thumbnailUrl = String(rawItem.thumbnailUrl || rawItem.thumbnail_url || rawItem.thumbnail || rawItem.thumbUrl || rawItem.thumb_url || "").trim();
+        const displayUrl = thumbnailUrl || imageUrl;
+        if (!displayUrl) return null;
 
         const presetLabel = rawItem.presetLabel || rawItem.locationLabel || rawItem.generationPlaceLabel || "";
         const resultLabel = rawItem.resultLabel || rawItem.title || rawItem.label || `갤러리 사진 ${fallbackIndex + 1}`;
+        const imageWidth = Number(rawItem.width || rawItem.imageWidth || rawItem.image_width || rawItem.metadata?.width || rawItem.metadata?.imageWidth);
+        const imageHeight = Number(rawItem.height || rawItem.imageHeight || rawItem.image_height || rawItem.metadata?.height || rawItem.metadata?.imageHeight);
         return {
           ...rawItem,
-          imageUrl,
+          imageUrl: imageUrl || displayUrl,
+          thumbnailUrl,
+          displayUrl,
           imagePath: rawItem.imagePath || rawItem.path || rawItem.storagePath || "",
+          imageWidth: Number.isFinite(imageWidth) && imageWidth > 0 ? imageWidth : null,
+          imageHeight: Number.isFinite(imageHeight) && imageHeight > 0 ? imageHeight : null,
           presetLabel,
           resultLabel,
           label: resultLabel,
-          url: imageUrl,
+          url: imageUrl || displayUrl,
         };
       }
 
@@ -5369,6 +5523,115 @@ ${modeExample}`;
                 ? payload.data
                 : [];
         return rawItems.map(normalizeGalleryItem).filter(Boolean);
+      }
+
+      function stopGeneratingGallerySlideshow() {
+        if (generatingGalleryIntervalId) {
+          window.clearInterval(generatingGalleryIntervalId);
+          generatingGalleryIntervalId = null;
+        }
+      }
+
+      function hideGeneratingGalleryPreview() {
+        stopGeneratingGallerySlideshow();
+        generatingGallerySlides = [];
+        generatingGallerySlideIndex = 0;
+        generatingGalleryPreview?.classList.add("hidden");
+        if (generatingGallerySlider) {
+          generatingGallerySlider.innerHTML = "";
+        }
+      }
+
+      function setGeneratingGallerySlide(index) {
+        if (!generatingGallerySlides.length || !generatingGallerySlider) return;
+
+        generatingGallerySlideIndex = (index + generatingGallerySlides.length) % generatingGallerySlides.length;
+        Array.from(generatingGallerySlider.querySelectorAll(".generating-gallery-slide")).forEach((slide, slideIndex) => {
+          slide.classList.toggle("is-active", slideIndex === generatingGallerySlideIndex);
+        });
+      }
+
+      function startGeneratingGallerySlideshow(items) {
+        if (!generatingGalleryPreview || !generatingGallerySlider) return;
+
+        const slides = (Array.isArray(items) ? items : [])
+          .map((item) => ({
+            url: item.thumbnailUrl || item.displayUrl || item.imageUrl,
+            label: item.resultLabel || item.presetLabel || "완성 갤러리 사진",
+          }))
+          .filter((item) => item.url)
+          .slice(0, 10);
+
+        if (!slides.length) {
+          hideGeneratingGalleryPreview();
+          return;
+        }
+
+        stopGeneratingGallerySlideshow();
+        generatingGallerySlides = slides;
+        generatingGallerySlideIndex = 0;
+        generatingGallerySlider.innerHTML = slides.map((item, index) => `
+          <div class="generating-gallery-slide ${index === 0 ? "is-active" : ""}">
+            <img alt="${escapeHtml(item.label)}" ${index === 0 ? "" : "loading=\"lazy\""} decoding="async" src="${escapeHtml(toDisplayUrl(item.url))}" />
+          </div>
+        `).join("");
+        generatingGalleryPreview.classList.remove("hidden");
+
+        if (slides.length > 1) {
+          generatingGalleryIntervalId = window.setInterval(() => {
+            setGeneratingGallerySlide(generatingGallerySlideIndex + 1);
+          }, 2600);
+        }
+      }
+
+      async function loadGeneratingGalleryPreview() {
+        if (!generatingGalleryPreview || !generatingGallerySlider) return;
+
+        hideGeneratingGalleryPreview();
+        if (appScreen !== "generating") return;
+
+        try {
+          ensureApiBaseUrlConfigured();
+          const response = await fetch(getGalleryPreviewUrl(10), {
+            method: "GET",
+            headers: {
+              "X-Anonymous-Id": getAnonymousId(),
+            },
+          });
+
+          if (!response.ok) return;
+          if (appScreen !== "generating") return;
+
+          const payload = await response.json().catch(() => ({}));
+          if (appScreen !== "generating") return;
+
+          const items = normalizeGalleryItems(payload);
+          startGeneratingGallerySlideshow(items);
+        } catch (error) {
+          hideGeneratingGalleryPreview();
+        }
+      }
+
+      function getGalleryItemAspectRatio(item, index) {
+        const width = Number(item?.imageWidth);
+        const height = Number(item?.imageHeight);
+        if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+          const ratio = Math.min(1.7, Math.max(0.62, width / height));
+          return `${Math.round(ratio * 1000)} / 1000`;
+        }
+
+        const fallbackRatios = ["4 / 3", "3 / 4", "1 / 1", "4 / 5", "5 / 4", "3 / 5"];
+        return fallbackRatios[index % fallbackRatios.length];
+      }
+
+      function renderGallerySkeleton() {
+        if (!galleryContent) return;
+
+        galleryContent.innerHTML = `
+          <div class="gallery-loading-grid" aria-hidden="true">
+            ${Array.from({ length: 6 }, () => `<div class="gallery-skeleton-card"></div>`).join("")}
+          </div>
+        `;
       }
 
       function renderGalleryScreen() {
@@ -5388,22 +5651,30 @@ ${modeExample}`;
         galleryContent.innerHTML = `
           <div class="gallery-collage ${galleryImages.length === 1 ? "gallery-collage-single" : ""}">
             ${galleryImages.map((item, index) => `
-              <button class="gallery-collage-item" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(item.resultLabel || item.presetLabel || "갤러리 사진")} 크게보기">
-                <img alt="${escapeHtml(item.resultLabel || item.presetLabel || "갤러리 사진")}" loading="lazy" src="${escapeHtml(toDisplayUrl(item.imageUrl))}" />
+              <button class="gallery-collage-item ${index === 0 && galleryImages.length > 1 ? "is-featured" : ""}" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(item.resultLabel || item.presetLabel || "갤러리 사진")} 크게보기" style="--gallery-item-ratio: ${escapeHtml(getGalleryItemAspectRatio(item, index))};">
+                <img alt="${escapeHtml(item.resultLabel || item.presetLabel || "갤러리 사진")}" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(item.displayUrl || item.imageUrl))}" />
               </button>
             `).join("")}
           </div>
         `;
+
+        window.requestAnimationFrame(() => {
+          galleryContent.querySelectorAll(".gallery-collage-item img").forEach((image) => {
+            if (image.complete) {
+              image.closest(".gallery-collage-item")?.classList.add("is-loaded");
+            }
+          });
+        });
       }
 
       async function refreshGalleryScreen() {
         if (!galleryContent) return;
 
-        galleryContent.innerHTML = `
-          <div class="rounded-[24px] border border-white/75 bg-white/65 px-5 py-8 text-center text-sm font-semibold text-on-surface-variant shadow-[0_16px_40px_rgba(129,80,92,0.10)]">
-            갤러리를 불러오는 중...
-          </div>
-        `;
+        if (galleryImages.length) {
+          renderGalleryScreen();
+        } else {
+          renderGallerySkeleton();
+        }
 
         try {
           ensureApiBaseUrlConfigured();
@@ -5427,13 +5698,14 @@ ${modeExample}`;
           });
           renderGalleryScreen();
         } catch (error) {
-          console.error("[client][gallery] fetch failed:", error);
-          galleryContent.innerHTML = `
-            <div class="rounded-[24px] border border-white/75 bg-white/65 px-5 py-8 text-center shadow-[0_16px_40px_rgba(129,80,92,0.10)]">
-              <p class="text-sm font-bold text-on-surface">갤러리를 불러오지 못했어요.</p>
-              <p class="mt-2 text-xs leading-5 text-on-surface-variant">잠시 후 다시 시도해 주세요.</p>
-            </div>
-          `;
+          if (DEBUG_MODE) {
+            console.warn("[client][gallery] fetch failed:", error);
+          }
+          if (galleryImages.length) {
+            renderGalleryScreen();
+          } else {
+            renderGallerySkeleton();
+          }
         }
       }
 
@@ -5585,18 +5857,22 @@ ${modeExample}`;
 
         if (!item) return;
 
+        const isGallerySource = Boolean(item.gallerySource);
         imageModalImg.src = item.url;
+        imageModalImg.draggable = !isGallerySource;
+        imageModalImg.dataset.source = isGallerySource ? "gallery" : "result";
         imageModalLabel.textContent = item.label;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
         imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
-        setImageModalActionsVisible(Boolean(item.url));
+        setImageModalActionsVisible(Boolean(item.url) && !isGallerySource);
         if (imageModalGalleryUpload) {
-          const showGalleryUpload = Boolean(item.url) && !item.gallerySource;
+          const showGalleryUpload = Boolean(item.url) && !isGallerySource;
           imageModalGalleryUpload.classList.toggle("hidden", !showGalleryUpload);
           imageModalGalleryUpload.classList.toggle("flex", showGalleryUpload);
         }
-        imageModalActionsGrid?.classList.toggle("gallery-source-actions", Boolean(item.gallerySource));
+        imageModalActionsGrid?.classList.toggle("hidden", isGallerySource);
+        imageModalActionsGrid?.classList.toggle("gallery-source-actions", isGallerySource);
         setImageModalStatus("");
         syncSaveCopy();
         syncGalleryUploadButtonState(item);
@@ -6044,6 +6320,24 @@ ${modeExample}`;
         openGalleryItemModal(Number.isInteger(index) ? index : 0);
       });
 
+      galleryContent?.addEventListener("load", (event) => {
+        const image = event.target;
+        if (!(image instanceof HTMLImageElement)) return;
+        image.closest(".gallery-collage-item")?.classList.add("is-loaded");
+      }, true);
+
+      galleryContent?.addEventListener("dragstart", (event) => {
+        if (event.target instanceof HTMLImageElement) {
+          event.preventDefault();
+        }
+      });
+
+      galleryContent?.addEventListener("contextmenu", (event) => {
+        if (event.target instanceof HTMLImageElement) {
+          event.preventDefault();
+        }
+      });
+
       presetJumpButtons.forEach((button) => {
         button.addEventListener("click", () => {
           const preset = button.dataset.preset;
@@ -6375,6 +6669,16 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         uploadCurrentModalImageToGallery();
+      });
+      imageModalImg?.addEventListener("dragstart", (event) => {
+        if (isCurrentModalGallerySource()) {
+          event.preventDefault();
+        }
+      });
+      imageModalImg?.addEventListener("contextmenu", (event) => {
+        if (isCurrentModalGallerySource()) {
+          event.preventDefault();
+        }
       });
       imageSaveModalClose?.addEventListener("click", closePhotoSaveModal);
       imageSaveModal?.addEventListener("click", (event) => {

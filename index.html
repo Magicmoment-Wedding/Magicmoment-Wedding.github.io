@@ -881,6 +881,11 @@
           font-size: 12px;
         }
 
+        #imageModalActionsGrid.gallery-source-actions {
+          grid-template-columns: minmax(0, 1fr);
+          max-width: 320px;
+        }
+
         #imageModalStatus {
           position: fixed;
           left: 12px;
@@ -1314,6 +1319,65 @@
         background: linear-gradient(180deg, #fff8f7 0%, #fffafa 52%, #fcf1f2 100%);
       }
 
+      #galleryScreen {
+        padding: 10px 10px 112px;
+      }
+
+      #galleryScreen .app-topbar {
+        height: 40px;
+      }
+
+      #galleryContent {
+        margin-top: 10px;
+      }
+
+      .gallery-collage {
+        column-count: 2;
+        column-gap: 10px;
+        padding-bottom: 96px;
+      }
+
+      .gallery-collage-single {
+        column-count: 1;
+        max-width: min(100%, 430px);
+        margin: 0 auto;
+      }
+
+      .gallery-collage-item {
+        display: block;
+        width: 100%;
+        margin: 0 0 10px;
+        padding: 0;
+        border: 0;
+        border-radius: 18px;
+        overflow: hidden;
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        background: transparent;
+        box-shadow: 0 10px 26px rgba(129, 80, 92, 0.13);
+        cursor: zoom-in;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+
+      .gallery-collage-item:focus-visible {
+        outline: 3px solid rgba(112, 30, 52, 0.36);
+        outline-offset: 3px;
+      }
+
+      .gallery-collage-item img {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-position: center top;
+        background: rgba(255, 255, 255, 0.42);
+        transition: transform 420ms ease;
+      }
+
+      .gallery-collage-item:hover img {
+        transform: scale(1.025);
+      }
+
       .result-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1363,6 +1427,38 @@
         align-items: center;
         justify-content: center;
         gap: 2px;
+      }
+
+      .app-bottom-nav .bottom-nav-item {
+        color: #9c727b;
+        transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+      }
+
+      .app-bottom-nav .bottom-nav-item.is-active {
+        color: var(--rose-deep);
+        background: rgba(129, 80, 92, 0.08);
+      }
+
+      .bottom-nav-main {
+        color: var(--rose-deep);
+      }
+
+      .bottom-nav-main-button {
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .bottom-nav-main.is-active .bottom-nav-main-button {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(112, 30, 52, 0.28);
+      }
+
+      .bottom-nav-main-label {
+        color: #9c727b;
+        transition: color 160ms ease;
+      }
+
+      .bottom-nav-main.is-active .bottom-nav-main-label {
+        color: var(--rose-deep);
       }
 
       .feed-card {
@@ -2250,19 +2346,19 @@
           </section>
 
           <nav class="app-bottom-nav fixed left-0 right-0 bottom-3 mx-4 flex items-center justify-between px-4 py-2 bg-transparent z-40">
-            <button class="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] text-on-surface-variant" data-screen-target="editor" type="button">
-              <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-              <span>사진편집</span>
+            <button class="bottom-nav-item flex-1 flex flex-col items-center justify-center gap-1 text-[11px]" data-bottom-nav="gallery" data-screen-target="gallery" type="button">
+              <span class="material-symbols-outlined text-[20px]">photo_library</span>
+              <span>갤러리</span>
             </button>
 
-            <div class="relative flex-1 flex flex-col items-center justify-center">
-              <button class="-mt-6 w-16 h-16 rounded-full bg-primary text-on-primary shadow-lg flex items-center justify-center" data-screen-target="home" type="button" aria-label="홈">
-                <span class="material-symbols-outlined text-[24px]">home</span>
+            <div class="bottom-nav-main relative flex-1 flex flex-col items-center justify-center" data-bottom-nav="editor">
+              <button class="bottom-nav-main-button -mt-6 w-16 h-16 rounded-full bg-primary text-on-primary shadow-lg flex items-center justify-center" data-screen-target="editor" type="button" aria-label="사진편집">
+                <span class="material-symbols-outlined text-[24px]">add_photo_alternate</span>
               </button>
-              <span class="mt-1 text-[11px] uppercase tracking-[0.2em] text-on-surface-variant">홈</span>
+              <span class="bottom-nav-main-label mt-1 text-[11px] font-semibold">사진편집</span>
             </div>
 
-            <button class="flex-1 flex flex-col items-center justify-center gap-1 text-[11px] text-on-surface-variant" id="bottomAssistantButton" type="button">
+            <button class="bottom-nav-item flex-1 flex flex-col items-center justify-center gap-1 text-[11px]" data-bottom-nav="assistant" id="bottomAssistantButton" type="button">
               <span class="material-symbols-outlined text-[20px]">smart_toy</span>
               <span>어시스턴트</span>
             </button>
@@ -3019,6 +3115,7 @@ Important balance:
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
       const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
+      const imageModalActionsGrid = document.getElementById("imageModalActionsGrid");
       const imageModalStatus = document.getElementById("imageModalStatus");
       const imageModalClose = document.getElementById("imageModalClose");
       const imageModalPrev = document.getElementById("imageModalPrev");
@@ -3215,6 +3312,27 @@ Important balance:
         history.replaceState({ screen, modal, modalIndex }, "", "");
       }
 
+      function getBottomNavKeyForScreen(screen) {
+        if (screen === "gallery") return "gallery";
+        if (screen === "editor" || screen === "generating" || screen === "result") return "editor";
+        return "";
+      }
+
+      function syncBottomNavUi(activeKey = getBottomNavKeyForScreen(appScreen)) {
+        bottomNavItems.forEach((item) => {
+          const isActive = item.dataset.bottomNav === activeKey;
+          item.classList.toggle("is-active", isActive);
+          if (item.tagName === "BUTTON") {
+            item.setAttribute("aria-current", isActive ? "page" : "false");
+          }
+
+          const button = item.tagName === "BUTTON" ? item : item.querySelector("button");
+          if (button) {
+            button.setAttribute("aria-current", isActive ? "page" : "false");
+          }
+        });
+      }
+
       function setAppScreen(screen, options = {}) {
         const { pushHistory = true, replaceHistory = false } = options;
         appScreen = screen;
@@ -3253,6 +3371,8 @@ Important balance:
         if (screen === "gallery") {
           void refreshGalleryScreen();
         }
+
+        syncBottomNavUi();
 
         if (replaceHistory) {
           replaceAppHistoryState(screen, imageModal.classList.contains("hidden") ? null : "image", activeImageModalIndex);
@@ -5266,16 +5386,10 @@ ${modeExample}`;
         }
 
         galleryContent.innerHTML = `
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div class="gallery-collage ${galleryImages.length === 1 ? "gallery-collage-single" : ""}">
             ${galleryImages.map((item, index) => `
-              <button class="group overflow-hidden rounded-[22px] border border-white/75 bg-white text-left shadow-[0_14px_34px_rgba(129,80,92,0.12)]" data-gallery-modal-index="${index}" type="button">
-                <span class="relative block aspect-[4/5] overflow-hidden bg-white/70">
-                  <img alt="${escapeHtml(item.resultLabel || "갤러리 사진")}" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" src="${escapeHtml(toDisplayUrl(item.imageUrl))}" />
-                </span>
-                <span class="block px-3 pb-3 pt-2">
-                  <span class="block truncate text-sm font-bold text-on-surface">${escapeHtml(item.resultLabel || "갤러리 사진")}</span>
-                  ${item.presetLabel ? `<span class="mt-0.5 block truncate text-[11px] font-semibold text-on-surface-variant">${escapeHtml(item.presetLabel)}</span>` : ""}
-                </span>
+              <button class="gallery-collage-item" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(item.resultLabel || item.presetLabel || "갤러리 사진")} 크게보기">
+                <img alt="${escapeHtml(item.resultLabel || item.presetLabel || "갤러리 사진")}" loading="lazy" src="${escapeHtml(toDisplayUrl(item.imageUrl))}" />
               </button>
             `).join("")}
           </div>
@@ -5477,6 +5591,12 @@ ${modeExample}`;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
         imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
         setImageModalActionsVisible(Boolean(item.url));
+        if (imageModalGalleryUpload) {
+          const showGalleryUpload = Boolean(item.url) && !item.gallerySource;
+          imageModalGalleryUpload.classList.toggle("hidden", !showGalleryUpload);
+          imageModalGalleryUpload.classList.toggle("flex", showGalleryUpload);
+        }
+        imageModalActionsGrid?.classList.toggle("gallery-source-actions", Boolean(item.gallerySource));
         setImageModalStatus("");
         syncSaveCopy();
         syncGalleryUploadButtonState(item);
@@ -5845,6 +5965,7 @@ ${modeExample}`;
       const topCreditButton = document.getElementById("topCreditButton");
       const topSettingsButton = document.getElementById("topSettingsButton");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
+      const bottomNavItems = Array.from(document.querySelectorAll("[data-bottom-nav]"));
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
       const ASSISTANT_CHAT_URL = "https://pf.kakao.com/_xeNSts/chat";
       const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
@@ -5938,6 +6059,7 @@ ${modeExample}`;
 
       if (bottomAssistantButton) {
         bottomAssistantButton.addEventListener("click", () => {
+          syncBottomNavUi("assistant");
           openAssistantChat();
         });
       }

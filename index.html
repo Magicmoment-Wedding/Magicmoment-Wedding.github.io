@@ -700,6 +700,7 @@
         border: 2px solid rgba(255, 255, 255, 0.92);
         background: rgba(255, 255, 255, 0.78);
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+        z-index: 3;
         pointer-events: none;
       }
 
@@ -1404,6 +1405,7 @@
       }
 
       .gallery-collage-item {
+        position: relative;
         display: block;
         width: 100%;
         min-width: 0;
@@ -1465,6 +1467,7 @@
         border: 2px solid rgba(255, 255, 255, 0.92);
         background: rgba(255, 255, 255, 0.72);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        z-index: 2;
         pointer-events: none;
       }
 
@@ -5333,6 +5336,10 @@ ${modeExample}`;
         if (!imageModalOriginalThumb || !imageModalOriginalThumbImg) return;
 
         const originalThumbSrc = item?.gallerySource ? getGalleryOriginalThumbnailUrl(item) : "";
+        if (DEBUG_MODE && item?.gallerySource) {
+          console.log("[gallery-modal] has original image:", Boolean(item.originalImageUrl || item.original_image_url));
+          console.log("[gallery-modal] original thumb src resolved:", Boolean(originalThumbSrc));
+        }
         if (!originalThumbSrc) {
           hideImageModalOriginalThumbnail();
           return;
@@ -5907,7 +5914,17 @@ ${modeExample}`;
       }
 
       function getGalleryOriginalThumbnailUrl(item) {
-        return String(item?.originalThumbnailUrl || item?.originalImageUrl || "").trim();
+        return String(
+          item?.originalThumbnailUrl ||
+          item?.originalImageUrl ||
+          item?.original_thumbnail_url ||
+          item?.original_image_url ||
+          item?.metadata?.originalThumbnailUrl ||
+          item?.metadata?.originalImageUrl ||
+          item?.metadata?.original_thumbnail_url ||
+          item?.metadata?.original_image_url ||
+          ""
+        ).trim();
       }
 
       function getGalleryCardAspectRatioStyle(item) {
@@ -6071,6 +6088,10 @@ ${modeExample}`;
             ${galleryImages.map((item, index) => {
               const label = item.resultLabel || item.presetLabel || "갤러리 사진";
               const originalThumbUrl = getGalleryOriginalThumbnailUrl(item);
+              if (DEBUG_MODE) {
+                console.log("[gallery] has original image:", Boolean(item.originalImageUrl || item.original_image_url));
+                console.log("[gallery] original thumb src resolved:", Boolean(originalThumbUrl));
+              }
               return `
                 <button class="gallery-collage-item ${galleryImages.length > 1 ? getGalleryCollagePatternClass(item, index) : ""} ${getGalleryItemLayoutClass(item)}" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(label)} 크게보기"${getGalleryCardAspectRatioStyle(item)}>
                   <img class="gallery-main-image" alt="${escapeHtml(label)}" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(item.displayUrl || item.imageUrl))}" />

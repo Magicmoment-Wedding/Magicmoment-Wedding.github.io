@@ -970,6 +970,7 @@
         width: min(920px, 100%);
         justify-items: center;
         text-align: center;
+        gap: clamp(18px, 4vw, 32px);
       }
 
       .landing-hero-copy {
@@ -1051,9 +1052,9 @@
         position: relative;
         overflow: hidden;
         border-radius: 30px;
-        width: 100%;
-        max-width: 760px;
-        aspect-ratio: 16 / 9;
+        width: min(90vw, 520px);
+        max-width: 520px;
+        aspect-ratio: 1 / 1;
         min-height: 0;
         background:
           linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(246, 235, 236, 0.72)),
@@ -1069,17 +1070,19 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center 48%;
+        object-position: center 35%;
         user-select: none;
         -webkit-user-drag: none;
       }
 
       .before-after-before {
         clip-path: inset(0 calc(100% - var(--split)) 0 0);
+        object-position: var(--before-position, center 35%);
         background: #fff;
       }
 
       .before-after-after {
+        object-position: var(--after-position, center 35%);
         background: linear-gradient(180deg, #fff8f7, #f6ebec);
       }
 
@@ -1502,17 +1505,40 @@
           align-items: stretch;
         }
 
+        .landing-hero-section {
+          padding: 18px 0 34px;
+        }
+
         .landing-section-inner {
           gap: 28px;
+        }
+
+        .landing-hero-section .landing-section-inner {
+          gap: 18px;
         }
 
         .landing-title {
           font-size: 34px;
         }
 
+        .landing-hero-copy {
+          gap: 12px;
+        }
+
+        .landing-hero-copy .landing-title {
+          font-size: 32px;
+        }
+
+        .landing-hero-copy .landing-copy {
+          margin-top: 0;
+          line-height: 1.62;
+        }
+
         .before-after-compare {
           border-radius: 18px;
-          aspect-ratio: 1.72 / 1;
+          width: 90vw;
+          max-width: 360px;
+          aspect-ratio: 1 / 1;
         }
 
         .landing-gallery-grid {
@@ -1922,7 +1948,7 @@
 
             <section class="mt-7 hidden" id="koreaOptions">
               <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 Korea Style 배경을 선택해 주세요</p>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 한국 스타일 배경을 선택해 주세요</p>
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
@@ -1934,12 +1960,12 @@
               <div class="editor-option-grid mt-3">
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/presets/korea-seoul-forest.jpg'), url('public/images/presets/korea-seoul-forest.jpg'); --preset-fallback: linear-gradient(135deg, #2d5334 0%, #d9c992 48%, #102417 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/presets/korea-gyeongbokgung.png'), url('public/images/presets/korea-gyeongbokgung.png'); --preset-fallback: linear-gradient(135deg, #6c2f24 0%, #d7b17a 48%, #243b2e 100%); --preset-position: center;"
                 >
-                  <input class="sr-only" name="generationPlace" type="radio" value="seoul_forest" />
+                  <input class="sr-only" name="generationPlace" type="radio" value="gyeongbokgung" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">서울숲</span>
-                  <span class="editor-option-description">잔디와 나무 배경의 자연스러운 숲 감성</span>
+                  <span class="editor-option-title font-semibold">경복궁</span>
+                  <span class="editor-option-description">한옥과 궁궐의 고전미를 담은 전통 스냅</span>
                 </label>
                 <label
                   class="editor-option-card has-preview"
@@ -1952,21 +1978,21 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/presets/korea-jeju-saebyeol-oreum.jpg'), url('public/images/presets/korea-jeju-saebyeol-oreum.jpg'); --preset-fallback: linear-gradient(135deg, #7fae5d 0%, #dceeb9 48%, #4b7f3b 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/presets/korea-jeju-saebyeol-oreum-stone-wall.png'), url('public/images/presets/korea-jeju-saebyeol-oreum-stone-wall.png'); --preset-fallback: linear-gradient(135deg, #7fae5d 0%, #dceeb9 48%, #4b7f3b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="jeju_saebyeol_oreum" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">제주 새별오름</span>
-                  <span class="editor-option-description">넓은 초원과 오름이 어우러진 제주 감성</span>
+                  <span class="editor-option-description">돌담과 초원이 어우러진 제주 오름 스냅</span>
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/presets/korea-jeju-gimnyeong-beach.jpg'), url('public/images/presets/korea-jeju-gimnyeong-beach.jpg'); --preset-fallback: linear-gradient(135deg, #ed9b69 0%, #f8d3a0 48%, #4c87a5 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/presets/korea-jeju-gimnyeong-beach-basalt.png'), url('public/images/presets/korea-jeju-gimnyeong-beach-basalt.png'); --preset-fallback: linear-gradient(135deg, #ed9b69 0%, #f8d3a0 48%, #4c87a5 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="jeju_gimnyeong_beach" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">제주 김녕해변</span>
-                  <span class="editor-option-description">노을빛 해변과 물가의 웨딩스냅</span>
+                  <span class="editor-option-description">현무암과 해변이 어우러진 제주 감성 스냅</span>
                 </label>
               </div>
             </section>
@@ -2440,7 +2466,7 @@ Important:
         [GENERATION_MODES.KOREA_STYLE]: {
           presetKey: "korea_style",
           fallbackLabels: [
-            "서울숲 스냅",
+            "경복궁 전통 스냅",
             "핑크뮬리 들판 스냅",
             "제주 새별오름 스냅",
             "제주 김녕해변 노을 스냅",
@@ -2597,9 +2623,9 @@ Important balance:
         "뮬란 한복",
       ];
       const KOREA_DISPLAY_LABEL_MAP = {
-        "seoul forest": "서울숲",
-        "seoul forest garden snap": "서울숲",
-        "seoul forest lawn": "서울숲",
+        "gyeongbokgung": "경복궁",
+        "gyeongbokgung palace": "경복궁",
+        "gyeongbokgung traditional snap": "경복궁",
         "pink muhly": "핑크뮬리",
         "pink muhly field snap": "핑크뮬리",
         "jeju saebyeol oreum": "제주 새별오름",
@@ -2628,10 +2654,10 @@ Important balance:
           label: "아말피 코스트 절벽",
           prompt: "Amalfi Coast cliffside landmark snap background",
         },
-        seoul_forest: {
+        gyeongbokgung: {
           category: "korea",
-          label: "Seoul Forest",
-          prompt: "Seoul Forest park wedding snap background with green lawn in the foreground and a long leafy tree line behind the couple, natural relaxed outdoor mood, no water reflection, no pond, no lake, not too wide-angle",
+          label: "Gyeongbokgung",
+          prompt: "Gyeongbokgung Palace traditional Korean royal courtyard wedding snap background with hanok palace architecture, dancheong painted eaves, stone courtyard, elegant Korean heritage mood, natural daylight, not a European castle, not Chinese palace styling",
         },
         pink_muhly: {
           category: "korea",
@@ -2651,12 +2677,13 @@ Important balance:
       };
       const DEFAULT_LOCATION_PRESET_BY_MODE = {
         [GENERATION_MODES.PARIS_SNAP]: "eiffel",
-        [GENERATION_MODES.KOREA_STYLE]: "seoul_forest",
+        [GENERATION_MODES.KOREA_STYLE]: "gyeongbokgung",
       };
       const LEGACY_LOCATION_PRESET_FALLBACKS = {
-        namsan_tower: "seoul_forest",
-        lotte_tower: "seoul_forest",
-        dongjak_bridge_night: "seoul_forest",
+        seoul_forest: "gyeongbokgung",
+        namsan_tower: "gyeongbokgung",
+        lotte_tower: "gyeongbokgung",
+        dongjak_bridge_night: "gyeongbokgung",
         hangang_sunset: "pink_muhly",
         saryeoni_forest: "jeju_saebyeol_oreum",
         jeju_saryeoni_forest: "jeju_saebyeol_oreum",
@@ -2737,22 +2764,22 @@ Important balance:
             description: "햇빛이 내려앉은 테라스 느낌의 결과입니다.",
           },
         ],
-        seoul_forest: [
+        gyeongbokgung: [
           {
-            title: "서울숲 잔디 스냅",
-            description: "잔디와 나무 배경의 자연스러운 숲 감성입니다.",
+            title: "경복궁 전통 스냅",
+            description: "한옥과 궁궐의 고전미를 담은 전통 웨딩 스냅입니다.",
           },
           {
-            title: "서울숲 나무길 무드",
-            description: "나무가 이어진 배경의 자연스러운 야외 웨딩 스냅입니다.",
+            title: "궁궐 한복 웨딩",
+            description: "궁궐 배경과 한복 무드가 단정하게 어우러진 결과입니다.",
           },
           {
-            title: "서울숲 그린 파크",
-            description: "연못이나 반사 연출 없이 초록 공원 분위기를 담았습니다.",
+            title: "경복궁 고전미",
+            description: "전통 건축의 선과 은은한 색감을 자연스럽게 담았습니다.",
           },
           {
-            title: "잔디와 나무 스냅",
-            description: "잔디 앞 구도와 나무 배경이 안정적으로 어우러진 결과입니다.",
+            title: "한옥 궁궐 스냅",
+            description: "한옥 처마와 궁궐 마당의 차분한 분위기를 살렸습니다.",
           },
         ],
         dongjak_bridge_night: [
@@ -2812,37 +2839,37 @@ Important balance:
         jeju_saebyeol_oreum: [
           {
             title: "제주 새별오름 스냅",
-            description: "넓은 초원과 오름이 어우러진 제주 감성입니다.",
+            description: "돌담과 초원이 어우러진 제주 오름 스냅입니다.",
           },
           {
             title: "오름 초원 산책",
-            description: "넓은 제주 초원 위의 자연스러운 웨딩 스냅 무드입니다.",
+            description: "제주 돌담 곁에서 오름과 초원이 자연스럽게 이어지는 무드입니다.",
           },
           {
             title: "제주 오픈 필드",
-            description: "부드러운 구름과 초록 오름이 시원하게 이어지는 배경입니다.",
+            description: "넓은 하늘, 초록 오름, 돌담의 질감을 함께 담은 배경입니다.",
           },
           {
             title: "새별오름 자연광",
-            description: "밝은 제주 햇살과 열린 오름 풍경을 담은 결과입니다.",
+            description: "밝은 제주 햇살 아래 돌담과 열린 오름 풍경을 담은 결과입니다.",
           },
         ],
         jeju_gimnyeong_beach: [
           {
             title: "제주 김녕해변 스냅",
-            description: "노을빛 해변과 물가의 웨딩스냅입니다.",
+            description: "현무암과 해변이 어우러진 제주 감성 스냅입니다.",
           },
           {
             title: "해변 노을 산책",
-            description: "따뜻한 노을빛과 물가가 어우러진 로맨틱한 스냅입니다.",
+            description: "백사장과 바다 가까이 현무암 바위가 어우러진 로맨틱한 스냅입니다.",
           },
           {
             title: "김녕 물가 라인",
-            description: "바다와 잔잔한 파도, 젖은 모래의 질감을 살렸습니다.",
+            description: "김녕해변의 맑은 물빛과 검은 현무암 질감을 살렸습니다.",
           },
           {
             title: "골든 비치 스냅",
-            description: "해안선을 중심으로 부드러운 해변 노을 무드를 담았습니다.",
+            description: "해안선과 현무암 돌 주변의 제주 해변 무드를 담았습니다.",
           },
         ],
         songaksan: [
@@ -3028,7 +3055,7 @@ Important balance:
       let selectedLocationPreset = "eiffel";
       const selectedLocationPresets = {
         europe: "eiffel",
-        korea: "seoul_forest",
+        korea: "gyeongbokgung",
       };
       let resultLocationPreset = "eiffel";
       let selectedIndex = 0;
@@ -3221,6 +3248,10 @@ Important balance:
 
         if (screen === "credits") {
           void refreshCredits({ clearStatus: true });
+        }
+
+        if (screen === "gallery") {
+          void refreshGalleryScreen();
         }
 
         if (replaceHistory) {
@@ -5120,8 +5151,191 @@ ${modeExample}`;
         return items[activeImageModalIndex] || items[0] || null;
       }
 
-      function getGalleryUploadUrl() {
+      function getGalleryListUrl() {
         return `${FRONT_API_BASE_URL}/api/gallery`;
+      }
+
+      function getGalleryUploadUrl() {
+        return `${FRONT_API_BASE_URL}/api/gallery/upload`;
+      }
+
+      function getModalResultIndex(item) {
+        if (Number.isInteger(item?.index)) return item.index;
+        return Number.isInteger(activeImageModalIndex) ? activeImageModalIndex : 0;
+      }
+
+      function getUploadableImageUrl(item) {
+        const resultIndex = getModalResultIndex(item);
+        const candidates = [
+          item?.imageUrl,
+          imageUrls[resultIndex],
+          imageUrls[activeImageModalIndex],
+          item?.url,
+        ]
+          .map((value) => String(value || "").trim())
+          .filter(Boolean);
+        return candidates.find((url) => !url.startsWith("data:image/")) || candidates[0] || "";
+      }
+
+      function getResultImagePath(index) {
+        const metadata = imageMetadata[index] || {};
+        return metadata.imagePath || metadata.path || metadata.storagePath || metadata.publicPath || "";
+      }
+
+      function getGalleryItemKey(item) {
+        if (item?.gallerySource) {
+          return item.imagePath || item.imageUrl || item.url || "";
+        }
+        const resultIndex = getModalResultIndex(item);
+        return item?.imagePath || getResultImagePath(resultIndex) || item?.imageUrl || getUploadableImageUrl(item);
+      }
+
+      function getCurrentPresetKey() {
+        if (isDisneyMode(activeGenerationMode)) {
+          return getModeConfig(activeGenerationMode).presetKey;
+        }
+
+        return normalizeSelectableLocationPreset(resultLocationPreset || generationMeta?.locationPreset || selectedLocationPreset)
+          || getSelectedLandmarkOption(activeGenerationMode)?.value
+          || getModeConfig(activeGenerationMode).presetKey
+          || "";
+      }
+
+      function getPresetDisplayLabel(presetKey = getCurrentPresetKey()) {
+        const koreaLabel = KOREA_DISPLAY_LABEL_MAP[String(presetKey || "").replace(/_/g, " ").toLowerCase()];
+        if (koreaLabel) return koreaLabel;
+        if (LANDMARK_OPTIONS[presetKey]?.label) return LANDMARK_OPTIONS[presetKey].label;
+        if (generationMeta?.generationPlaceLabel) return generationMeta.generationPlaceLabel;
+        if (isDisneyMode(activeGenerationMode)) return "Disney Style";
+        return presetKey || "";
+      }
+
+      function syncGalleryUploadButtonState(item = getCurrentModalImageItem()) {
+        if (!imageModalGalleryUpload) return;
+        const label = imageModalGalleryUpload.querySelector("span:last-child");
+        const isUploaded = item && uploadedGalleryImageUrls.has(getGalleryItemKey(item));
+        if (label) {
+          label.textContent = isUploaded ? "등록됨" : "갤러리";
+        }
+        imageModalGalleryUpload.title = isUploaded ? "갤러리 등록됨" : "갤러리 올리기";
+      }
+
+      function normalizeGalleryItem(rawItem, fallbackIndex = 0) {
+        if (!rawItem) return null;
+        const imageUrl = String(rawItem.imageUrl || rawItem.url || rawItem.publicUrl || rawItem.src || "").trim();
+        if (!imageUrl) return null;
+
+        const presetLabel = rawItem.presetLabel || rawItem.locationLabel || rawItem.generationPlaceLabel || "";
+        const resultLabel = rawItem.resultLabel || rawItem.title || rawItem.label || `갤러리 사진 ${fallbackIndex + 1}`;
+        return {
+          ...rawItem,
+          imageUrl,
+          imagePath: rawItem.imagePath || rawItem.path || rawItem.storagePath || "",
+          presetLabel,
+          resultLabel,
+          label: resultLabel,
+          url: imageUrl,
+        };
+      }
+
+      function normalizeGalleryItems(payload) {
+        const rawItems = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : Array.isArray(payload?.images)
+              ? payload.images
+              : Array.isArray(payload?.data)
+                ? payload.data
+                : [];
+        return rawItems.map(normalizeGalleryItem).filter(Boolean);
+      }
+
+      function renderGalleryScreen() {
+        if (!galleryContent) return;
+
+        if (!galleryImages.length) {
+          galleryContent.innerHTML = `
+            <div class="rounded-[24px] border border-white/75 bg-white/65 px-5 py-10 text-center shadow-[0_16px_40px_rgba(129,80,92,0.10)]">
+              <span class="material-symbols-outlined text-[34px] text-outline" style="font-variation-settings: 'wght' 300;">photo_library</span>
+              <p class="mt-3 font-display text-[22px] leading-tight text-on-surface">아직 갤러리에 등록된 사진이 없어요.</p>
+              <p class="mt-2 text-sm leading-6 text-on-surface-variant">완성된 사진을 갤러리에 올려보세요.</p>
+            </div>
+          `;
+          return;
+        }
+
+        galleryContent.innerHTML = `
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            ${galleryImages.map((item, index) => `
+              <button class="group overflow-hidden rounded-[22px] border border-white/75 bg-white text-left shadow-[0_14px_34px_rgba(129,80,92,0.12)]" data-gallery-modal-index="${index}" type="button">
+                <span class="relative block aspect-[4/5] overflow-hidden bg-white/70">
+                  <img alt="${escapeHtml(item.resultLabel || "갤러리 사진")}" class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" src="${escapeHtml(toDisplayUrl(item.imageUrl))}" />
+                </span>
+                <span class="block px-3 pb-3 pt-2">
+                  <span class="block truncate text-sm font-bold text-on-surface">${escapeHtml(item.resultLabel || "갤러리 사진")}</span>
+                  ${item.presetLabel ? `<span class="mt-0.5 block truncate text-[11px] font-semibold text-on-surface-variant">${escapeHtml(item.presetLabel)}</span>` : ""}
+                </span>
+              </button>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      async function refreshGalleryScreen() {
+        if (!galleryContent) return;
+
+        galleryContent.innerHTML = `
+          <div class="rounded-[24px] border border-white/75 bg-white/65 px-5 py-8 text-center text-sm font-semibold text-on-surface-variant shadow-[0_16px_40px_rgba(129,80,92,0.10)]">
+            갤러리를 불러오는 중...
+          </div>
+        `;
+
+        try {
+          ensureApiBaseUrlConfigured();
+          const response = await fetch(getGalleryListUrl(), {
+            method: "GET",
+            headers: {
+              "X-Anonymous-Id": getAnonymousId(),
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Gallery fetch failed: ${response.status}`);
+          }
+
+          const payload = await response.json().catch(() => ({}));
+          galleryImages = normalizeGalleryItems(payload);
+          galleryImages.forEach((item) => {
+            const key = item.imagePath || item.imageUrl;
+            if (key) uploadedGalleryImageUrls.add(key);
+          });
+          renderGalleryScreen();
+        } catch (error) {
+          console.error("[client][gallery] fetch failed:", error);
+          galleryContent.innerHTML = `
+            <div class="rounded-[24px] border border-white/75 bg-white/65 px-5 py-8 text-center shadow-[0_16px_40px_rgba(129,80,92,0.10)]">
+              <p class="text-sm font-bold text-on-surface">갤러리를 불러오지 못했어요.</p>
+              <p class="mt-2 text-xs leading-5 text-on-surface-variant">잠시 후 다시 시도해 주세요.</p>
+            </div>
+          `;
+        }
+      }
+
+      function openGalleryItemModal(index) {
+        const items = galleryImages.map((item, itemIndex) => ({
+          url: toDisplayUrl(item.imageUrl),
+          imageUrl: item.imageUrl,
+          imagePath: item.imagePath || "",
+          label: item.resultLabel || item.title || `갤러리 사진 ${itemIndex + 1}`,
+          isRecommended: false,
+          index: itemIndex,
+          gallerySource: true,
+        }));
+
+        if (!items.length) return;
+        openModalWithItems(items, Math.min(Math.max(0, index), items.length - 1));
       }
 
       async function uploadCurrentModalImageToGallery() {
@@ -5129,24 +5343,43 @@ ${modeExample}`;
 
         if (!item?.url) return;
 
-        if (uploadedGalleryImageUrls.has(item.url)) {
-          setImageModalStatus("이미 갤러리에 업로드된 이미지입니다.");
+        const duplicateKey = getGalleryItemKey(item);
+        if (item.gallerySource) {
+          if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
+          setImageModalStatus("이미 갤러리에 업로드된 사진이에요.");
+          syncGalleryUploadButtonState(item);
           return;
         }
 
+        if (duplicateKey && uploadedGalleryImageUrls.has(duplicateKey)) {
+          setImageModalStatus("이미 갤러리에 업로드된 사진이에요.");
+          syncGalleryUploadButtonState(item);
+          return;
+        }
+
+        const resultIndex = getModalResultIndex(item);
+        const imageUrl = getUploadableImageUrl(item);
+        const imagePath = getResultImagePath(resultIndex);
+        const presetKey = getCurrentPresetKey();
+        const presetLabel = getPresetDisplayLabel(presetKey);
+        const resultLabel = item.label || variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`;
+
         imageModalGalleryUpload.disabled = true;
-        setImageModalStatus("갤러리에 업로드하는 중...");
+        const buttonLabel = imageModalGalleryUpload.querySelector("span:last-child");
+        if (buttonLabel) buttonLabel.textContent = "올리는 중";
+        setImageModalStatus("갤러리에 올리는 중…");
 
         try {
           ensureApiBaseUrlConfigured();
           const payload = {
-            imageUrl: item.url,
-            title: item.label || `Magic Ai Studio 결과 ${activeImageModalIndex + 1}`,
-            style: activeGenerationMode || "",
-            mode: activeGenerationMode || "",
-            locationPreset: resultLocationPreset || generationMeta?.locationPreset || "",
-            selectedIndex: activeImageModalIndex,
-            createdAt: new Date().toISOString(),
+            imageUrl,
+            imagePath: imagePath || undefined,
+            styleCategory: activeGenerationMode || "",
+            presetKey,
+            presetLabel,
+            resultLabel,
+            isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
+            originalImageUrl: originalImageUrl || undefined,
           };
           const response = await fetch(getGalleryUploadUrl(), {
             method: "POST",
@@ -5161,8 +5394,9 @@ ${modeExample}`;
             const errorData = await response.json().catch(() => ({}));
             const duplicateCode = String(errorData.code || errorData.error || "").toUpperCase();
             if (response.status === 409 || duplicateCode.includes("DUPLICATE") || duplicateCode.includes("ALREADY")) {
-              uploadedGalleryImageUrls.add(item.url);
-              setImageModalStatus("이미 갤러리에 업로드된 이미지입니다.");
+              if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
+              setImageModalStatus("이미 갤러리에 업로드된 사진이에요.");
+              syncGalleryUploadButtonState(item);
               return;
             }
 
@@ -5170,21 +5404,35 @@ ${modeExample}`;
           }
 
           const uploaded = await response.json().catch(() => ({}));
-          uploadedGalleryImageUrls.add(item.url);
+          if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
           galleryImages = [
-            {
-              imageUrl: item.url,
-              title: item.label || "Magic Ai Studio 결과",
+            normalizeGalleryItem({
+              imageUrl,
+              imagePath,
+              styleCategory: activeGenerationMode || "",
+              presetKey,
+              presetLabel,
+              resultLabel,
+              isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
+              originalImageUrl: originalImageUrl || "",
               ...(uploaded || {}),
+            }) || {
+              imageUrl,
+              imagePath,
+              presetLabel,
+              resultLabel,
+              url: imageUrl,
             },
             ...galleryImages,
           ];
-          setImageModalStatus("갤러리에 업로드되었습니다.");
+          setImageModalStatus("갤러리에 업로드했어요.");
+          syncGalleryUploadButtonState(item);
         } catch (error) {
           console.error("[client][gallery-upload] failed:", error);
-          setImageModalStatus("갤러리 업로드에 실패했습니다. 어시스턴트에게 문의하세요.");
+          setImageModalStatus("갤러리에 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.");
         } finally {
           imageModalGalleryUpload.disabled = false;
+          syncGalleryUploadButtonState(item);
         }
       }
 
@@ -5231,6 +5479,7 @@ ${modeExample}`;
         setImageModalActionsVisible(Boolean(item.url));
         setImageModalStatus("");
         syncSaveCopy();
+        syncGalleryUploadButtonState(item);
       }
 
       function openModalWithItems(items, startIndex = 0, options = {}) {
@@ -5256,6 +5505,7 @@ ${modeExample}`;
             url: toDisplayUrl(result),
             label: `AI 생성 결과 ${fallbackIndex + 1}`,
             isRecommended: fallbackIndex === recommendedIndex,
+            index: fallbackIndex,
           };
         }
 
@@ -5270,6 +5520,7 @@ ${modeExample}`;
           isRecommended: typeof result?.isRecommended === "boolean"
             ? result.isRecommended
             : resultIndex === recommendedIndex,
+          index: resultIndex,
         };
       }
 
@@ -5651,7 +5902,7 @@ ${modeExample}`;
             openAssistantChat();
           }
           if (action === "gallery-placeholder") {
-            alert("갤러리는 준비 중입니다.");
+            navigateToScreen("gallery");
           }
           if (action === "community-placeholder") {
             alert("커뮤니티 기능은 준비 중입니다.");
@@ -5660,6 +5911,16 @@ ${modeExample}`;
             alert("설정 기능은 준비 중입니다.");
           }
         });
+      });
+
+      galleryContent?.addEventListener("click", (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest("[data-gallery-modal-index]")
+          : null;
+        if (!target) return;
+
+        const index = Number(target.dataset.galleryModalIndex);
+        openGalleryItemModal(Number.isInteger(index) ? index : 0);
       });
 
       presetJumpButtons.forEach((button) => {

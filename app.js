@@ -34,7 +34,7 @@ function isMobileSaveEnvironment() {
 }
 
 function getImageSaveLabel() {
-  return isMobileSaveEnvironment() ? "사진/갤러리에 저장" : "이미지 다운로드";
+  return "사진으로 저장";
 }
 
 function getShareCancelError(error) {
@@ -194,6 +194,16 @@ function closeModal() {
   updateState({ activeModal: null });
 }
 
+function openPhotoSaveGuideModal(imageUrl, label = "저장할 이미지") {
+  updateState({
+    activeModal: {
+      type: "photoSaveGuide",
+      imageUrl,
+      label,
+    },
+  });
+}
+
 function openCreditsModal(reason = "header", extra = {}) {
   updateState({
     activeModal: {
@@ -272,9 +282,7 @@ function openImageModal(imageUrl, label) {
       index,
       items,
       saveLabel: getImageSaveLabel(),
-      saveHelp: isMobileSaveEnvironment()
-        ? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요."
-        : "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.",
+      saveHelp: "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.",
     },
   });
 }
@@ -301,9 +309,7 @@ function moveImageModal(direction) {
       index: nextIndex,
       items,
       saveLabel: getImageSaveLabel(),
-      saveHelp: isMobileSaveEnvironment()
-        ? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요."
-        : "다운로드한 이미지는 브라우저의 다운로드 폴더에 저장됩니다.",
+      saveHelp: "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.",
     },
   });
 }
@@ -612,7 +618,7 @@ async function handleAction(action, target) {
   if (action === "save-image-modal") {
     const modal = getState().activeImageModal;
     if (modal?.url) {
-      await saveImageForDevice(modal.url, `${modal.label || "magic-ai-studio-result"}.jpg`);
+      openPhotoSaveGuideModal(modal.url, modal.label || "저장할 이미지");
     }
     return;
   }

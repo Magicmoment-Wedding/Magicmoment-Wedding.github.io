@@ -847,17 +847,15 @@
         }
 
         #imageModalActionsGrid {
-          width: min(100%, 430px);
+          width: min(100%, 390px);
           max-width: calc(100vw - 20px);
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 56px 56px 72px;
+          grid-template-columns: minmax(0, 1fr) 84px;
           gap: 7px;
           pointer-events: auto;
         }
 
         #imageModalPhotoSave,
-        #imageModalDownload,
-        #imageModalShare,
         #imageModalGalleryUpload {
           grid-column: auto;
           height: 48px;
@@ -872,8 +870,6 @@
           background: rgba(255, 255, 255, 0.92);
         }
 
-        #imageModalDownload,
-        #imageModalShare,
         #imageModalGalleryUpload {
           background: rgba(18, 16, 17, 0.5);
           border: 1px solid rgba(255, 255, 255, 0.16);
@@ -881,20 +877,11 @@
           -webkit-backdrop-filter: blur(14px);
         }
 
-        #imageModalDownload span:last-child,
-        #imageModalShare span:last-child {
-          display: none;
-        }
-
         #imageModalGalleryUpload span:last-child {
           font-size: 12px;
         }
 
-        #imageModalDownloadHelp {
-          display: none;
-        }
-
-        #imageModalDownloadStatus {
+        #imageModalStatus {
           position: fixed;
           left: 12px;
           right: 12px;
@@ -920,13 +907,11 @@
 
       @media (max-width: 360px) {
         #imageModalActionsGrid {
-          grid-template-columns: minmax(0, 1fr) 48px 48px 62px;
+          grid-template-columns: minmax(0, 1fr) 70px;
           gap: 6px;
         }
 
         #imageModalPhotoSave,
-        #imageModalDownload,
-        #imageModalShare,
         #imageModalGalleryUpload {
           height: 46px;
           padding: 0 8px;
@@ -1890,13 +1875,13 @@
 
             <section class="mt-7" id="europeOptions">
               <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">Choose your Europe Style background</p>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 Europe Style 배경을 선택해 주세요</p>
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
-                    Beauty Level 1
+                    예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">Faces stay almost unchanged</span>
+                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
@@ -1937,13 +1922,13 @@
 
             <section class="mt-7 hidden" id="koreaOptions">
               <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">Choose your preferred Korea-style background</p>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 Korea Style 배경을 선택해 주세요</p>
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
-                    Beauty Level 1
+                    예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">Faces stay almost unchanged</span>
+                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
@@ -1953,8 +1938,8 @@
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="seoul_forest" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">Seoul Forest</span>
-                  <span class="editor-option-description">Green lawn and tree-lined forest mood</span>
+                  <span class="editor-option-title font-semibold">서울숲</span>
+                  <span class="editor-option-description">잔디와 나무 배경의 자연스러운 숲 감성</span>
                 </label>
                 <label
                   class="editor-option-card has-preview"
@@ -1962,8 +1947,8 @@
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="pink_muhly" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">Pink Muhly</span>
-                  <span class="editor-option-description">Romantic pink field atmosphere</span>
+                  <span class="editor-option-title font-semibold">핑크뮬리</span>
+                  <span class="editor-option-description">분홍빛 들판의 로맨틱한 분위기</span>
                 </label>
                 <label
                   class="editor-option-card has-preview"
@@ -1971,8 +1956,8 @@
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="jeju_saebyeol_oreum" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">Jeju Saebyeol Oreum</span>
-                  <span class="editor-option-description">Open meadow and oreum scenery in Jeju</span>
+                  <span class="editor-option-title font-semibold">제주 새별오름</span>
+                  <span class="editor-option-description">넓은 초원과 오름이 어우러진 제주 감성</span>
                 </label>
                 <label
                   class="editor-option-card has-preview"
@@ -1980,23 +1965,23 @@
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="jeju_gimnyeong_beach" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">Jeju Gimnyeong Beach</span>
-                  <span class="editor-option-description">Golden sunset beach snap by the shoreline</span>
+                  <span class="editor-option-title font-semibold">제주 김녕해변</span>
+                  <span class="editor-option-description">노을빛 해변과 물가의 웨딩스냅</span>
                 </label>
               </div>
             </section>
 
             <section class="mt-7 hidden" id="disneyOptions">
               <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">4 Disney Style concepts are generated automatically</p>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">4개의 Disney Style 컨셉으로 자동 변환됩니다</p>
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-                    Beauty Level 3
+                    예쁨단계 3
                   </span>
-                  <span class="beauty-stage-copy">Faces stay preserved while outfits and backgrounds shift into Disney Style</span>
+                  <span class="beauty-stage-copy">얼굴은 최대한 유지하고, 의상과 배경이 디즈니 실사풍으로 변환돼요</span>
                 </div>
-                <p class="disney-intent-note">Face and pose stay as close as possible while only outfits and backgrounds shift into a live-action concept.</p>
+                <p class="disney-intent-note">얼굴과 포즈는 최대한 유지하고, 의상과 배경만 디즈니 실사풍 컨셉으로 바뀝니다.</p>
               </div>
               <div class="editor-option-grid mt-3">
                 <button
@@ -2155,7 +2140,7 @@
                   </span>
                   <p class="text-sm leading-6 text-on-surface">
                     사진이 완성되었습니다.<br />
-                    크게보기에서 사진 저장, 다운로드, 공유를 선택할 수 있어요.<br />
+                    크게보기에서 사진 저장과 갤러리 업로드를 선택할 수 있어요.<br />
                     4장 중 한 장은 갤러리에 업로드할 수 있어요.
                   </p>
                 </div>
@@ -2290,26 +2275,17 @@
           </button>
         </div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
-          <div class="grid w-full max-w-md grid-cols-3 gap-2" id="imageModalActionsGrid">
-            <button class="hidden col-span-3 h-14 min-w-0 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalPhotoSave" type="button">
+          <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
+            <button class="hidden h-14 min-w-0 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalPhotoSave" type="button">
               <span class="material-symbols-outlined text-[21px]">photo_library</span>
               <span>사진으로 저장</span>
-            </button>
-            <button class="hidden h-12 min-w-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:text-sm" id="imageModalDownload" type="button">
-              <span class="material-symbols-outlined text-[21px]">download</span>
-              <span id="imageModalDownloadLabel">다운로드</span>
-            </button>
-            <button class="hidden h-12 min-w-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:text-sm" id="imageModalShare" type="button">
-              <span class="material-symbols-outlined text-[19px]">ios_share</span>
-              <span>공유하기</span>
             </button>
             <button class="hidden h-12 min-w-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:text-sm" id="imageModalGalleryUpload" type="button" aria-label="현재 이미지 갤러리에 올리기" title="갤러리 올리기">
               <span class="material-symbols-outlined text-[19px]">cloud_upload</span>
               <span>갤러리</span>
             </button>
           </div>
-          <p class="max-w-sm text-center text-xs leading-5 text-white/70" id="imageModalDownloadHelp">사진앱 저장은 사진으로 저장하기를 누른 뒤 이미지를 길게 눌러 주세요.</p>
-          <p class="image-modal-status min-h-5 text-sm text-white/80" id="imageModalDownloadStatus"></p>
+          <p class="image-modal-status min-h-5 text-sm text-white/80" id="imageModalStatus"></p>
         </div>
       </div>
     </div>
@@ -2334,10 +2310,10 @@
             <summary class="cursor-pointer font-bold text-[#701e34]">앱별 저장 안내</summary>
             <div class="mt-2 space-y-2 text-[#6f5b60]">
               <p><strong>iPhone Safari / Chrome</strong>: 이미지를 길게 누른 뒤 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.</p>
-              <p><strong>Android Chrome</strong>: 이미지를 길게 누른 뒤 ‘이미지 다운로드’ 또는 ‘이미지 저장’을 선택해 주세요. 저장 후 갤러리 또는 다운로드 앱에서 확인할 수 있어요.</p>
-              <p><strong>Samsung Internet</strong>: 이미지를 길게 누른 뒤 ‘이미지 저장’을 선택해 주세요. 갤러리 또는 다운로드 폴더에서 확인할 수 있어요.</p>
-              <p><strong>KakaoTalk</strong>: 저장 메뉴가 보이지 않으면 오른쪽 위 메뉴에서 ‘다른 브라우저로 열기’를 선택한 뒤 다시 저장해 주세요.</p>
-              <p><strong>Naver</strong>: 저장 메뉴가 보이지 않으면 브라우저로 열기를 선택해 주세요.</p>
+              <p><strong>Android Chrome</strong>: 이미지를 길게 누른 뒤 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.</p>
+              <p><strong>Samsung Internet</strong>: 이미지를 길게 누른 뒤 ‘이미지 저장’을 선택해 주세요.</p>
+              <p><strong>KakaoTalk</strong>: 저장 메뉴가 보이지 않으면 외부 브라우저로 열어 다시 시도해 주세요.</p>
+              <p><strong>Naver</strong>: 저장 메뉴가 보이지 않으면 외부 브라우저로 열어 다시 시도해 주세요.</p>
               <p><strong>Instagram</strong>: 앱 안에서는 저장 메뉴가 제한될 수 있어요. 외부 브라우저로 열고 이미지를 길게 눌러 저장해 주세요.</p>
             </div>
           </details>
@@ -2464,10 +2440,10 @@ Important:
         [GENERATION_MODES.KOREA_STYLE]: {
           presetKey: "korea_style",
           fallbackLabels: [
-            "Seoul Forest garden snap",
-            "Pink muhly field snap",
-            "Jeju Saebyeol Oreum snap",
-            "Jeju Gimnyeong Beach sunset snap",
+            "서울숲 스냅",
+            "핑크뮬리 들판 스냅",
+            "제주 새별오름 스냅",
+            "제주 김녕해변 노을 스냅",
           ],
           basePrompt: `Edit this photo into a natural Korea Style wedding travel snap.
 
@@ -2620,6 +2596,17 @@ Important balance:
         "오로라 인챈티드",
         "뮬란 한복",
       ];
+      const KOREA_DISPLAY_LABEL_MAP = {
+        "seoul forest": "서울숲",
+        "seoul forest garden snap": "서울숲",
+        "seoul forest lawn": "서울숲",
+        "pink muhly": "핑크뮬리",
+        "pink muhly field snap": "핑크뮬리",
+        "jeju saebyeol oreum": "제주 새별오름",
+        "jeju saebyeol oreum snap": "제주 새별오름",
+        "jeju gimnyeong beach": "제주 김녕해변",
+        "jeju gimnyeong beach sunset snap": "제주 김녕해변",
+      };
       const LANDMARK_OPTIONS = {
         eiffel: {
           category: "europe",
@@ -2752,20 +2739,20 @@ Important balance:
         ],
         seoul_forest: [
           {
-            title: "Seoul Forest Lawn",
-            description: "Green lawn and a calm tree-lined Seoul Forest background.",
+            title: "서울숲 잔디 스냅",
+            description: "잔디와 나무 배경의 자연스러운 숲 감성입니다.",
           },
           {
-            title: "Tree-Lined Wedding Mood",
-            description: "A natural outdoor wedding snap with leafy trees behind.",
+            title: "서울숲 나무길 무드",
+            description: "나무가 이어진 배경의 자연스러운 야외 웨딩 스냅입니다.",
           },
           {
-            title: "Green Seoul Park",
-            description: "Relaxed Seoul park greenery without pond or reflection styling.",
+            title: "서울숲 그린 파크",
+            description: "연못이나 반사 연출 없이 초록 공원 분위기를 담았습니다.",
           },
           {
-            title: "Lawn and Trees Snap",
-            description: "A stable lawn-front composition with a prominent tree line.",
+            title: "잔디와 나무 스냅",
+            description: "잔디 앞 구도와 나무 배경이 안정적으로 어우러진 결과입니다.",
           },
         ],
         dongjak_bridge_night: [
@@ -2824,38 +2811,38 @@ Important balance:
         ],
         jeju_saebyeol_oreum: [
           {
-            title: "Jeju Saebyeol Oreum",
-            description: "Open meadow, big sky, and gentle oreum scenery in Jeju.",
+            title: "제주 새별오름 스냅",
+            description: "넓은 초원과 오름이 어우러진 제주 감성입니다.",
           },
           {
-            title: "Oreum Meadow Walk",
-            description: "A natural wedding snap mood across a wide Jeju grass field.",
+            title: "오름 초원 산책",
+            description: "넓은 제주 초원 위의 자연스러운 웨딩 스냅 무드입니다.",
           },
           {
-            title: "Open Jeju Field",
-            description: "Soft clouds and a calm green hill keep the background airy.",
+            title: "제주 오픈 필드",
+            description: "부드러운 구름과 초록 오름이 시원하게 이어지는 배경입니다.",
           },
           {
-            title: "Saebyeol Natural Light",
-            description: "Bright Jeju sunlight with an open oreum wedding-snap feeling.",
+            title: "새별오름 자연광",
+            description: "밝은 제주 햇살과 열린 오름 풍경을 담은 결과입니다.",
           },
         ],
         jeju_gimnyeong_beach: [
           {
-            title: "Jeju Gimnyeong Beach",
-            description: "Golden sunset shoreline mood with shallow waves and wet sand.",
+            title: "제주 김녕해변 스냅",
+            description: "노을빛 해변과 물가의 웨딩스냅입니다.",
           },
           {
-            title: "Shoreline Sunset Walk",
-            description: "A romantic water-edge wedding snap in warm peach-orange light.",
+            title: "해변 노을 산책",
+            description: "따뜻한 노을빛과 물가가 어우러진 로맨틱한 스냅입니다.",
           },
           {
-            title: "Gimnyeong Waterline",
-            description: "The sea, waves, and reflective sand are kept close and present.",
+            title: "김녕 물가 라인",
+            description: "바다와 잔잔한 파도, 젖은 모래의 질감을 살렸습니다.",
           },
           {
-            title: "Golden Beach Snap",
-            description: "A soft beach sunset mood built around the shoreline.",
+            title: "골든 비치 스냅",
+            description: "해안선을 중심으로 부드러운 해변 노을 무드를 담았습니다.",
           },
         ],
         songaksan: [
@@ -3004,12 +2991,8 @@ Important balance:
       const imageModalLabel = document.getElementById("imageModalLabel");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
-      const imageModalDownload = document.getElementById("imageModalDownload");
-      const imageModalShare = document.getElementById("imageModalShare");
       const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
-      const imageModalDownloadLabel = document.getElementById("imageModalDownloadLabel");
-      const imageModalDownloadHelp = document.getElementById("imageModalDownloadHelp");
-      const imageModalDownloadStatus = document.getElementById("imageModalDownloadStatus");
+      const imageModalStatus = document.getElementById("imageModalStatus");
       const imageModalClose = document.getElementById("imageModalClose");
       const imageModalPrev = document.getElementById("imageModalPrev");
       const imageModalNext = document.getElementById("imageModalNext");
@@ -3378,9 +3361,17 @@ Important balance:
         return DISNEY_DISPLAY_LABELS[index] || `결과 ${index + 1}`;
       }
 
+      function getKoreaDisplayLabel(label = "", index = 0) {
+        const normalizedLabel = String(label || "").trim().toLowerCase().replace(/\s+/g, " ");
+        return KOREA_DISPLAY_LABEL_MAP[normalizedLabel] || label || getModeConfig(GENERATION_MODES.KOREA_STYLE).fallbackLabels[index] || `결과 ${index + 1}`;
+      }
+
       function normalizeVariantLabelsForMode(labels, mode = activeGenerationMode, imageCount = 4) {
         const safeLabels = Array.isArray(labels) ? labels : [];
         const count = Math.max(imageCount, safeLabels.length, 0);
+        if (mode === GENERATION_MODES.KOREA_STYLE) {
+          return Array.from({ length: count }, (_, index) => getKoreaDisplayLabel(safeLabels[index], index));
+        }
         if (!isDisneyMode(mode)) {
           return Array.from({ length: count }, (_, index) => safeLabels[index] || `결과 ${index + 1}`);
         }
@@ -4754,19 +4745,15 @@ ${modeExample}`;
         }));
       }
 
-      function setImageModalDownloadVisible(isVisible) {
+      function setImageModalActionsVisible(isVisible) {
         imageModalPhotoSave?.classList.toggle("hidden", !isVisible);
         imageModalPhotoSave?.classList.toggle("flex", isVisible);
-        imageModalDownload?.classList.toggle("hidden", !isVisible);
-        imageModalDownload?.classList.toggle("flex", isVisible);
-        imageModalShare?.classList.toggle("hidden", !isVisible);
-        imageModalShare?.classList.toggle("flex", isVisible);
         imageModalGalleryUpload?.classList.toggle("hidden", !isVisible);
         imageModalGalleryUpload?.classList.toggle("flex", isVisible);
       }
 
-      function setImageModalDownloadStatus(message = "") {
-        imageModalDownloadStatus.textContent = message;
+      function setImageModalStatus(message = "") {
+        imageModalStatus.textContent = message;
       }
 
       function getSavePlatform() {
@@ -4783,12 +4770,6 @@ ${modeExample}`;
 
       function isMobileSaveEnvironment() {
         return getSavePlatform() !== "desktop";
-      }
-
-      function getShareOpenedMessage() {
-        const platform = getSavePlatform();
-        if (platform === "desktop") return "공유 링크를 준비했습니다.";
-        return "공유할 앱을 선택해 주세요.";
       }
 
       function getDownloadStartedMessage() {
@@ -4823,16 +4804,16 @@ ${modeExample}`;
           return "이미지를 길게 누른 뒤 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.";
         }
         if (platform === "android") {
-          return "이미지를 길게 누른 뒤 ‘이미지 다운로드’ 또는 ‘이미지 저장’을 선택해 주세요. 저장 후 갤러리 또는 다운로드 앱에서 확인할 수 있어요.";
+          return "이미지를 길게 누른 뒤 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.";
         }
         if (platform === "samsung") {
-          return "이미지를 길게 누른 뒤 ‘이미지 저장’을 선택해 주세요. 갤러리 또는 다운로드 폴더에서 확인할 수 있어요.";
+          return "이미지를 길게 누른 뒤 ‘이미지 저장’을 선택해 주세요.";
         }
         if (platform === "kakao") {
-          return "저장 메뉴가 보이지 않으면 오른쪽 위 메뉴에서 ‘다른 브라우저로 열기’를 선택한 뒤 다시 저장해 주세요.";
+          return "저장 메뉴가 보이지 않으면 외부 브라우저로 열어 다시 시도해 주세요.";
         }
         if (platform === "naver") {
-          return "이미지를 길게 눌러 저장 메뉴를 선택해 주세요. 메뉴가 보이지 않으면 브라우저로 열기를 선택해 주세요.";
+          return "이미지를 길게 눌러 저장 메뉴를 선택해 주세요. 저장 메뉴가 보이지 않으면 외부 브라우저로 열어 다시 시도해 주세요.";
         }
         if (platform === "instagram") {
           return "인스타그램 앱 안에서는 저장 메뉴가 제한될 수 있어요. 외부 브라우저로 열고 이미지를 길게 눌러 저장해 주세요.";
@@ -4852,12 +4833,6 @@ ${modeExample}`;
         }
         if (resultSaveHelp) {
           resultSaveHelp.textContent = helpText;
-        }
-        if (imageModalDownloadLabel) {
-          imageModalDownloadLabel.textContent = label;
-        }
-        if (imageModalDownloadHelp) {
-          imageModalDownloadHelp.textContent = helpText;
         }
       }
 
@@ -4970,14 +4945,6 @@ ${modeExample}`;
         ctx.restore();
       }
 
-      function getShareCancelError(error) {
-        const name = error?.name || "";
-        const message = error?.message || "";
-
-        return name === "AbortError" ||
-          /abort|cancel|canceled|cancelled|share canceled|사용자가 취소/i.test(message);
-      }
-
       function getBlobExtension(blobType = "") {
         if (/png/i.test(blobType)) return "png";
         if (/webp/i.test(blobType)) return "webp";
@@ -5023,7 +4990,7 @@ ${modeExample}`;
         if (imageSaveModalPlatformGuide) {
           imageSaveModalPlatformGuide.textContent = getPhotoSavePlatformGuide();
         }
-        setImageModalDownloadStatus("이미지를 길게 눌러 저장할 수 있는 화면을 열었습니다.");
+        setImageModalStatus("이미지를 길게 눌러 저장할 수 있는 화면을 열었습니다.");
         imageSaveModal.classList.remove("hidden");
         imageSaveModal.classList.add("flex");
       }
@@ -5047,67 +5014,6 @@ ${modeExample}`;
 
         URL.revokeObjectURL(objectUrl);
         return false;
-      }
-
-      async function tryShareUrl(imageUrl, statusSetter = () => {}) {
-        if (typeof navigator.share !== "function" || !imageUrl || imageUrl.startsWith("data:")) {
-          return false;
-        }
-
-        try {
-          statusSetter("공유창을 여는 중...");
-          await navigator.share({
-            url: imageUrl,
-            title: "Magic Ai Studio 결과 이미지",
-            text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
-          });
-          statusSetter(getShareOpenedMessage());
-          return true;
-        } catch (error) {
-          if (getShareCancelError(error)) {
-            statusSetter("공유창이 닫혔습니다. 저장 버튼을 다시 누르면 다시 열 수 있어요.");
-            return true;
-          }
-
-          console.warn("[client][save] url share failed, using fallback", error);
-          return false;
-        }
-      }
-
-      async function shareCurrentModalImage() {
-        const item = getCurrentModalImageItem();
-        if (!item?.url || !imageModalShare) return;
-
-        imageModalShare.disabled = true;
-        setImageModalDownloadStatus("");
-
-        try {
-          if (await tryShareUrl(item.url, setImageModalDownloadStatus)) {
-            return;
-          }
-
-          if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(item.url);
-            setImageModalDownloadStatus("공유 링크를 복사했습니다.");
-            return;
-          }
-
-          if (fallbackOpenImage(item.url)) {
-            setImageModalDownloadStatus("이미지가 새 탭에서 열렸습니다. 공유할 앱을 선택하거나 링크를 복사해 주세요.");
-            return;
-          }
-
-          setImageModalDownloadStatus("공유에 실패했습니다. 어시스턴트에게 문의하세요.");
-        } catch (error) {
-          if (getShareCancelError(error)) {
-            setImageModalDownloadStatus("공유창이 닫혔습니다.");
-          } else {
-            console.warn("[client][share] failed", error);
-            setImageModalDownloadStatus("공유에 실패했습니다. 어시스턴트에게 문의하세요.");
-          }
-        } finally {
-          imageModalShare.disabled = false;
-        }
       }
 
       function openImageFallback(imageUrl, statusSetter = () => {}) {
@@ -5214,32 +5120,6 @@ ${modeExample}`;
         return items[activeImageModalIndex] || items[0] || null;
       }
 
-      async function downloadCurrentModalImage() {
-        const item = getCurrentModalImageItem();
-
-        if (!item?.url) return;
-
-        imageModalDownload.disabled = true;
-        setImageModalDownloadStatus("");
-        try {
-          const policy = getDownloadPolicy();
-          const downloadIndex = Math.max(0, activeImageModalIndex);
-          await saveImageForDevice({
-            imageUrl: item.url,
-            filename: `magic-ai-studio-wedding-${downloadIndex + 1}.jpg`,
-            statusSetter: setImageModalDownloadStatus,
-            watermarkText: WATERMARK_TEXT,
-            shouldWatermark: policy.shouldWatermark,
-            maxSize: policy.maxSize,
-          });
-        } catch (error) {
-          console.error("[client][save] failed:", error);
-          setImageModalDownloadStatus("이미지 저장에 실패했습니다. 어시스턴트에게 문의하세요.");
-        } finally {
-          imageModalDownload.disabled = false;
-        }
-      }
-
       function getGalleryUploadUrl() {
         return `${FRONT_API_BASE_URL}/api/gallery`;
       }
@@ -5250,12 +5130,12 @@ ${modeExample}`;
         if (!item?.url) return;
 
         if (uploadedGalleryImageUrls.has(item.url)) {
-          setImageModalDownloadStatus("이미 갤러리에 업로드된 이미지입니다.");
+          setImageModalStatus("이미 갤러리에 업로드된 이미지입니다.");
           return;
         }
 
         imageModalGalleryUpload.disabled = true;
-        setImageModalDownloadStatus("갤러리에 업로드하는 중...");
+        setImageModalStatus("갤러리에 업로드하는 중...");
 
         try {
           ensureApiBaseUrlConfigured();
@@ -5282,7 +5162,7 @@ ${modeExample}`;
             const duplicateCode = String(errorData.code || errorData.error || "").toUpperCase();
             if (response.status === 409 || duplicateCode.includes("DUPLICATE") || duplicateCode.includes("ALREADY")) {
               uploadedGalleryImageUrls.add(item.url);
-              setImageModalDownloadStatus("이미 갤러리에 업로드된 이미지입니다.");
+              setImageModalStatus("이미 갤러리에 업로드된 이미지입니다.");
               return;
             }
 
@@ -5299,10 +5179,10 @@ ${modeExample}`;
             },
             ...galleryImages,
           ];
-          setImageModalDownloadStatus("갤러리에 업로드되었습니다.");
+          setImageModalStatus("갤러리에 업로드되었습니다.");
         } catch (error) {
           console.error("[client][gallery-upload] failed:", error);
-          setImageModalDownloadStatus("갤러리 업로드에 실패했습니다. 어시스턴트에게 문의하세요.");
+          setImageModalStatus("갤러리 업로드에 실패했습니다. 어시스턴트에게 문의하세요.");
         } finally {
           imageModalGalleryUpload.disabled = false;
         }
@@ -5348,8 +5228,8 @@ ${modeExample}`;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
         imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
-        setImageModalDownloadVisible(Boolean(item.url));
-        setImageModalDownloadStatus("");
+        setImageModalActionsVisible(Boolean(item.url));
+        setImageModalStatus("");
         syncSaveCopy();
       }
 
@@ -5451,8 +5331,8 @@ ${modeExample}`;
         imageModal.classList.remove("flex");
         closePhotoSaveModal();
         imageModalImg.removeAttribute("src");
-        setImageModalDownloadVisible(false);
-        setImageModalDownloadStatus("");
+        setImageModalActionsVisible(false);
+        setImageModalStatus("");
         modalItemsOverride = null;
         document.body.style.overflow = "";
       }
@@ -6107,16 +5987,6 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         openPhotoSaveModal();
-      });
-      imageModalDownload.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        downloadCurrentModalImage();
-      });
-      imageModalShare?.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        shareCurrentModalImage();
       });
       imageModalGalleryUpload?.addEventListener("click", (event) => {
         event.preventDefault();

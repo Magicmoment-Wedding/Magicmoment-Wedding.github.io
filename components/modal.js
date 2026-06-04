@@ -152,6 +152,30 @@ function renderSuccessModal(modal) {
   `);
 }
 
+function renderPhotoSaveGuideModal(modal) {
+  return `
+    <div class="fixed inset-0 z-[100] bg-[#171113]/95 px-4 py-5 sm:p-8">
+      <div class="mx-auto flex h-full w-full max-w-3xl flex-col gap-4">
+        <div class="flex items-center justify-between gap-3 text-white">
+          <div class="min-w-0">
+            <p class="font-display text-[24px] leading-tight">사진으로 저장하기</p>
+            <p class="mt-1 text-xs leading-5 text-white/70">${escapeHtml(modal.label ?? "이미지 저장 안내")}</p>
+          </div>
+          <button class="h-10 shrink-0 rounded-full bg-white/15 px-4 text-sm font-bold text-white hover:bg-white/25" data-action="close-modal" type="button">돌아가기</button>
+        </div>
+        <div class="min-h-0 flex-1 overflow-auto rounded-[24px] bg-black/30 p-3">
+          <img alt="${escapeHtml(modal.label ?? "저장할 이미지")}" class="mx-auto block max-h-[70vh] max-w-full rounded-[18px] object-contain shadow-2xl" src="${escapeHtml(modal.imageUrl ?? "")}" />
+        </div>
+        <div class="rounded-[22px] bg-white px-4 py-4 text-[#3a2a2e] shadow-2xl">
+          <p class="text-base font-bold">이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.</p>
+          <p class="mt-1 text-sm leading-6 text-[#6f5b60]">앱에 따라 메뉴 이름이 다를 수 있어요.</p>
+          <p class="mt-3 rounded-[16px] bg-[#f8eef1] px-3 py-2 text-sm leading-6 text-[#701e34]">저장 메뉴가 보이지 않으면 외부 브라우저로 열어 다시 시도해 주세요.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderCustomPresetModal(state) {
   return renderShell(`
     <div class="flex flex-col gap-5">
@@ -217,10 +241,10 @@ function renderImageModal(imageModal) {
         ` : ""}
         <div class="flex flex-col items-center gap-2">
           <button class="h-12 min-w-52 rounded-full bg-white/90 px-6 text-primary font-button flex items-center justify-center gap-2" data-action="save-image-modal">
-            <span class="material-symbols-outlined text-[20px]">download</span>
-            <span>${escapeHtml(imageModal.saveLabel ?? "이미지 다운로드")}</span>
+            <span class="material-symbols-outlined text-[20px]">photo_library</span>
+            <span>${escapeHtml(imageModal.saveLabel ?? "사진으로 저장")}</span>
           </button>
-          <p class="max-w-sm text-center text-xs leading-5 text-white/70">${escapeHtml(imageModal.saveHelp ?? "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요.")}</p>
+          <p class="max-w-sm text-center text-xs leading-5 text-white/70">${escapeHtml(imageModal.saveHelp ?? "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.")}</p>
         </div>
       </div>
     </div>
@@ -257,6 +281,11 @@ export function renderModal(state) {
 
   if (modal.type === "success") {
     modalHtml.push(renderSuccessModal(modal));
+    return modalHtml.join("");
+  }
+
+  if (modal.type === "photoSaveGuide") {
+    modalHtml.push(renderPhotoSaveGuideModal(modal));
     return modalHtml.join("");
   }
 

@@ -48,6 +48,8 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
     const payload = {
       imageUrl,
       imagePath: metadata.imagePath,
+      generationId: metadata.generationId || metadata.jobId || "",
+      resultIndex: metadata.resultIndex,
       styleCategory: metadata.styleCategory || metadata.style || "",
       presetKey: metadata.presetKey || metadata.locationPreset || "",
       presetLabel: metadata.presetLabel || "",

@@ -57,7 +57,7 @@ export function renderHomePage() {
         </button>
         <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-route="gallery">
           <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">photo_library</span>
-          <span class="text-[11px] font-medium">갤러리</span>
+          <span class="text-[10px] font-medium leading-tight">스타일 갤러리</span>
         </button>
         <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-route="more">
           <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">forum</span>

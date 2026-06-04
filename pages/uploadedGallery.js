@@ -4,7 +4,7 @@ export function renderUploadedGalleryPage(galleryImages = []) {
       <section class="w-full flex flex-col items-center justify-center gap-3 py-12 text-center">
         <span class="material-symbols-outlined text-[48px] text-on-surface-variant">image_not_supported</span>
         <p class="font-display text-[22px] text-on-surface">아직 업로드된 결과물이 없어요.</p>
-        <p class="text-sm text-on-surface-variant">AI 생성 결과를 갤러리에 업로드해보세요!</p>
+        <p class="text-sm text-on-surface-variant">AI 생성 결과를 스타일 갤러리에 업로드해보세요!</p>
       </section>
     `;
   }

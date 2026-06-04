@@ -8,8 +8,8 @@ export function renderGalleryPage(state) {
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">STYLE GALLERY</span>
         <span class="font-label-caps text-label-caps text-primary">${STYLE_GALLERY.length} STYLES</span>
       </div>
-      <h1 class="font-display text-[32px] leading-none text-on-surface">웨딩 스타일을 먼저 탐색해보세요</h1>
-      <p class="text-sm text-on-surface-variant">사용자 결과 기반 mock 카드로 구성된 갤러리입니다. 마음에 드는 무드를 고르면 바로 생성 플로우로 이어집니다.</p>
+      <h1 class="font-display text-[32px] leading-none text-on-surface">스타일 갤러리</h1>
+      <p class="text-sm text-on-surface-variant">다양한 AI 스타일 사진을 둘러보세요.</p>
     </section>
 
     <section class="grid grid-cols-1 gap-4">

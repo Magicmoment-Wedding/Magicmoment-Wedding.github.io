@@ -25,7 +25,7 @@ export function renderSettingsPage(state) {
           </div>
         </button>
 
-        <button class="rounded-DEFAULT p-4 glass-panel flex items-center justify-between" data-action="show-alert" data-message="갤러리는 준비 중입니다.">
+        <button class="rounded-DEFAULT p-4 glass-panel flex items-center justify-between" data-action="show-alert" data-message="스타일 갤러리는 준비 중입니다.">
           <div>
             <p class="font-display">생성된 이미지</p>
             <p class="text-sm text-on-surface-variant mt-1">저장된 결과물을 확인하세요</p>

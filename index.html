@@ -1871,14 +1871,14 @@
             </div>
           </section>
 
-          <section class="landing-section" aria-label="갤러리 프리뷰">
+          <section class="landing-section" aria-label="스타일 갤러리 프리뷰">
             <div class="landing-section-inner">
               <div class="flex flex-col gap-4">
                 <p class="landing-eyebrow">Gallery Preview</p>
                 <h2 class="landing-title">당신이 원하는<br />스타일을 골라보세요</h2>
                 <p class="landing-copy">다양한 AI 웨딩 샘플을 보고 나에게 어울리는 분위기를 찾아보세요.</p>
                 <button class="landing-secondary-button w-full sm:w-fit" data-screen-target="gallery" type="button">
-                  <span>갤러리 바로가기</span>
+                  <span>스타일 갤러리 바로가기</span>
                   <span class="material-symbols-outlined text-[19px]">collections</span>
                 </button>
               </div>
@@ -2047,7 +2047,7 @@
                   </button>
                   <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-action="gallery-placeholder" type="button">
                     <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">photo_library</span>
-                    <span class="text-[11px] font-medium">갤러리</span>
+                    <span class="text-[10px] font-medium leading-tight">스타일 갤러리</span>
                   </button>
                   <button class="min-h-[82px] rounded-[18px] bg-white/75 p-3 text-center shadow-sm border border-white/80 flex flex-col items-center justify-center gap-2 text-on-surface-variant" data-action="community-placeholder" type="button">
                     <span class="material-symbols-outlined text-[22px] text-outline" style="font-variation-settings: 'wght' 300;">forum</span>
@@ -2297,7 +2297,7 @@
                   <h2 class="mt-2 font-display text-[34px] leading-tight text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
                   <p class="mt-3 text-xs leading-5 text-on-surface-variant" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
                 </div>
-                <section class="generating-gallery-preview hidden" id="generatingGalleryPreview" aria-label="완성 갤러리 미리보기">
+                <section class="generating-gallery-preview hidden" id="generatingGalleryPreview" aria-label="스타일 갤러리 미리보기">
                   <div class="flex items-center justify-between gap-3 px-1">
                     <div class="text-left">
                       <p class="font-label-caps text-label-caps uppercase text-primary/80">Gallery Preview</p>
@@ -2388,8 +2388,8 @@
                   </span>
                   <p class="text-sm leading-6 text-on-surface">
                     사진이 완성되었습니다.<br />
-                    크게보기에서 사진 저장과 갤러리 업로드를 선택할 수 있어요.<br />
-                    4장 중 한 장은 갤러리에 업로드할 수 있어요.
+                    크게보기에서 사진 저장과 스타일 갤러리 업로드를 선택할 수 있어요.<br />
+                    4장 중 1장만 올릴 수 있어요 · 업로드 시 5크레딧 지급
                   </p>
                 </div>
               </div>
@@ -2401,7 +2401,7 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">결과 갤러리</p>
+              <p class="font-display text-[19px] text-primary">스타일 갤러리</p>
               <span class="w-9"></span>
             </div>
             <div id="galleryContent" class="mt-4"></div>
@@ -2472,9 +2472,9 @@
           </section>
 
           <nav class="app-bottom-nav fixed left-0 right-0 bottom-3 mx-4 flex items-center justify-between px-4 py-2 bg-transparent z-40">
-            <button class="bottom-nav-item flex-1 flex flex-col items-center justify-center gap-1 text-[11px]" data-bottom-nav="gallery" data-screen-target="gallery" type="button">
+            <button class="bottom-nav-item flex-1 flex flex-col items-center justify-center gap-1 text-[10px]" data-bottom-nav="gallery" data-screen-target="gallery" type="button">
               <span class="material-symbols-outlined text-[20px]">photo_library</span>
-              <span>갤러리</span>
+              <span class="whitespace-nowrap">스타일 갤러리</span>
             </button>
 
             <div class="bottom-nav-main relative flex-1 flex flex-col items-center justify-center" data-bottom-nav="editor">
@@ -2533,6 +2533,7 @@
               <span>갤러리</span>
             </button>
           </div>
+          <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalGalleryPolicy">4장 중 1장만 올릴 수 있어요 · 업로드 시 5크레딧 지급</p>
           <p class="image-modal-status min-h-5 text-sm text-white/80" id="imageModalStatus"></p>
         </div>
       </div>
@@ -3244,6 +3245,7 @@ Important balance:
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
       const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
       const imageModalActionsGrid = document.getElementById("imageModalActionsGrid");
+      const imageModalGalleryPolicy = document.getElementById("imageModalGalleryPolicy");
       const imageModalStatus = document.getElementById("imageModalStatus");
       const imageModalClose = document.getElementById("imageModalClose");
       const imageModalPrev = document.getElementById("imageModalPrev");
@@ -3288,6 +3290,9 @@ Important balance:
       let isGenerating = false;
       let galleryImages = [];
       const uploadedGalleryImageUrls = new Set();
+      let currentGenerationId = "";
+      let currentGenerationGalleryUploadIndex = null;
+      let galleryUploadLimitReached = false;
       let generatingGallerySlides = [];
       let generatingGallerySlideIndex = 0;
       let generatingGalleryIntervalId = null;
@@ -3311,6 +3316,37 @@ Important balance:
         const nextId = createAnonymousId();
         localStorage.setItem(ANONYMOUS_ID_STORAGE_KEY, nextId);
         return nextId;
+      }
+
+      function createClientGenerationId() {
+        const randomString = Math.random().toString(36).slice(2, 8);
+        return `${getAnonymousId()}-${Date.now()}-${randomString}`;
+      }
+
+      function resolveGenerationIdFromPayload(payload = {}) {
+        return String(
+          payload.generationId ||
+          payload.jobId ||
+          payload.id ||
+          payload.generation_id ||
+          payload.job_id ||
+          payload.generationMeta?.generationId ||
+          payload.generationMeta?.jobId ||
+          "",
+        ).trim();
+      }
+
+      function ensureCurrentGenerationId() {
+        if (!currentGenerationId) {
+          currentGenerationId = generationMeta?.generationId || createClientGenerationId();
+          if (generationMeta) {
+            generationMeta = {
+              ...generationMeta,
+              generationId: currentGenerationId,
+            };
+          }
+        }
+        return currentGenerationId;
       }
 
       function getCreditApiUrl(path) {
@@ -3338,6 +3374,29 @@ Important balance:
           button.disabled = Boolean(chargingCreditAmount);
           button.textContent = isCharging ? "충전 중..." : "테스트 충전";
         });
+      }
+
+      function normalizeCreditValue(value) {
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+      }
+
+      function applyGalleryUploadCreditReward(payload = {}) {
+        const rewardCredits = normalizeCreditValue(
+          payload.rewardCredits ?? payload.reward_credits ?? payload.creditsRewarded ?? payload.creditReward,
+        ) || 0;
+        const nextBalance = normalizeCreditValue(
+          payload.remainingCredits ?? payload.remaining_credits ?? payload.balance ?? payload.credits ?? payload.currentCredits,
+        );
+
+        if (nextBalance !== null) {
+          creditBalance = nextBalance;
+          updateCreditUi();
+        } else if (rewardCredits > 0) {
+          void refreshCredits({ clearStatus: false });
+        }
+
+        return rewardCredits;
       }
 
       function showCreditStatus(message, type = "success") {
@@ -3818,6 +3877,8 @@ Important balance:
         failedImages = [];
         generationMeta = null;
         imageMetadata = [];
+        currentGenerationId = "";
+        currentGenerationGalleryUploadIndex = null;
         recommendedIndex = null;
         resultDisplayOrder = [];
         recommendationReason = RECOMMENDATION_DESCRIPTION;
@@ -3868,6 +3929,8 @@ Important balance:
             failedImages,
             generationMeta,
             imageMetadata,
+            currentGenerationId,
+            currentGenerationGalleryUploadIndex,
             recommendedIndex,
             resultDisplayOrder,
             recommendationReason,
@@ -3902,6 +3965,10 @@ Important balance:
         failedImages = Array.isArray(storedState.failedImages) ? storedState.failedImages : [];
         generationMeta = storedState.generationMeta || null;
         imageMetadata = Array.isArray(storedState.imageMetadata) ? storedState.imageMetadata : [];
+        currentGenerationId = storedState.currentGenerationId || generationMeta?.generationId || "";
+        currentGenerationGalleryUploadIndex = Number.isInteger(storedState.currentGenerationGalleryUploadIndex)
+          ? storedState.currentGenerationGalleryUploadIndex
+          : null;
         recommendedIndex = Number.isInteger(storedState.recommendedIndex) ? storedState.recommendedIndex : 0;
         resultDisplayOrder = Array.isArray(storedState.resultDisplayOrder)
           ? normalizeRankedIndices(storedState.resultDisplayOrder, imageUrls.length)
@@ -3935,6 +4002,7 @@ Important balance:
         if (generationMeta) {
           generationMeta = {
             ...generationMeta,
+            generationId: currentGenerationId || generationMeta.generationId,
             locationPreset: resultLocationPreset,
           };
         }
@@ -4711,8 +4779,11 @@ ${modeExample}`;
           failedResultCount: failedResults.length,
         });
 
+        const generationId = resolveGenerationIdFromPayload(data) || createClientGenerationId();
+
         return {
           results: resultItems,
+          generationId,
           originalImageUrl: typeof data.originalImageUrl === "string" ? data.originalImageUrl : "",
           imageUrls,
           scores: [],
@@ -4723,6 +4794,8 @@ ${modeExample}`;
           locationPreset: selectedLandmark?.value || "",
           generationPlaceLabel: selectedLandmark?.label || "",
           generationMeta: {
+            ...(data.generationMeta || {}),
+            generationId,
             locationPreset: selectedLandmark?.value || "",
             category: getLocationCategoryForMode(generationMode),
             generationPlace: selectedLandmark?.value || "",
@@ -5479,11 +5552,37 @@ ${modeExample}`;
       function syncGalleryUploadButtonState(item = getCurrentModalImageItem()) {
         if (!imageModalGalleryUpload) return;
         const label = imageModalGalleryUpload.querySelector("span:last-child");
+        const resultIndex = getModalResultIndex(item);
         const isUploaded = item && uploadedGalleryImageUrls.has(getGalleryItemKey(item));
+        const hasGenerationUpload = currentGenerationGalleryUploadIndex !== null;
+        const isCurrentGenerationUploadedImage = hasGenerationUpload && currentGenerationGalleryUploadIndex === resultIndex;
+        const isBlockedByGenerationLimit = hasGenerationUpload && !isCurrentGenerationUploadedImage && !isUploaded;
+        const isBlockedByUserLimit = galleryUploadLimitReached && !isUploaded;
+
         if (label) {
-          label.textContent = isUploaded ? "등록됨" : "갤러리";
+          if (isUploaded || isCurrentGenerationUploadedImage) {
+            label.textContent = "갤러리 등록됨";
+          } else if (isBlockedByUserLimit) {
+            label.textContent = "업로드 제한";
+          } else if (isBlockedByGenerationLimit) {
+            label.textContent = "1장 등록됨";
+          } else {
+            label.textContent = "갤러리";
+          }
         }
-        imageModalGalleryUpload.title = isUploaded ? "갤러리 등록됨" : "갤러리 올리기";
+        imageModalGalleryUpload.disabled = Boolean(isBlockedByUserLimit || isBlockedByGenerationLimit);
+        imageModalGalleryUpload.title = isUploaded || isCurrentGenerationUploadedImage
+          ? "스타일 갤러리 등록됨"
+          : "스타일 갤러리 올리기";
+
+        if (imageModalGalleryPolicy) {
+          imageModalGalleryPolicy.classList.toggle("hidden", item?.gallerySource || !item?.url);
+          imageModalGalleryPolicy.textContent = galleryUploadLimitReached
+            ? "스타일 갤러리는 1인당 최대 10장까지 업로드할 수 있어요."
+            : hasGenerationUpload
+              ? "이미 1장을 등록했어요 · 한 번의 생성 결과에서는 1장만 올릴 수 있어요."
+              : "4장 중 1장만 올릴 수 있어요 · 업로드 시 5크레딧 지급";
+        }
       }
 
       function normalizeGalleryItem(rawItem, fallbackIndex = 0) {
@@ -5729,35 +5828,50 @@ ${modeExample}`;
 
         if (!item?.url) return;
 
+        const resultIndex = getModalResultIndex(item);
         const duplicateKey = getGalleryItemKey(item);
         if (item.gallerySource) {
           if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
-          setImageModalStatus("이미 갤러리에 업로드된 사진이에요.");
+          setImageModalStatus("이미 스타일 갤러리에 업로드된 사진이에요.");
           syncGalleryUploadButtonState(item);
           return;
         }
 
         if (duplicateKey && uploadedGalleryImageUrls.has(duplicateKey)) {
-          setImageModalStatus("이미 갤러리에 업로드된 사진이에요.");
+          setImageModalStatus("이미 스타일 갤러리에 업로드된 사진이에요.");
           syncGalleryUploadButtonState(item);
           return;
         }
 
-        const resultIndex = getModalResultIndex(item);
+        if (galleryUploadLimitReached) {
+          setImageModalStatus("스타일 갤러리는 1인당 최대 10장까지 업로드할 수 있어요.");
+          syncGalleryUploadButtonState(item);
+          return;
+        }
+
+        if (currentGenerationGalleryUploadIndex !== null && currentGenerationGalleryUploadIndex !== resultIndex) {
+          setImageModalStatus("한 번의 생성 결과에서는 1장만 스타일 갤러리에 올릴 수 있어요.");
+          syncGalleryUploadButtonState(item);
+          return;
+        }
+
         const imageUrl = getUploadableImageUrl(item);
         const imagePath = getResultImagePath(resultIndex);
         const presetKey = getCurrentPresetKey();
         const presetLabel = getPresetDisplayLabel(presetKey);
         const resultLabel = item.label || variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`;
+        const generationId = ensureCurrentGenerationId();
 
         imageModalGalleryUpload.disabled = true;
         const buttonLabel = imageModalGalleryUpload.querySelector("span:last-child");
         if (buttonLabel) buttonLabel.textContent = "올리는 중";
-        setImageModalStatus("갤러리에 올리는 중…");
+        setImageModalStatus("스타일 갤러리에 올리는 중…");
 
         try {
           ensureApiBaseUrlConfigured();
           const payload = {
+            generationId,
+            resultIndex,
             imageUrl,
             imagePath: imagePath || undefined,
             styleCategory: activeGenerationMode || "",
@@ -5779,9 +5893,28 @@ ${modeExample}`;
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             const duplicateCode = String(errorData.code || errorData.error || "").toUpperCase();
+            const policyCode = duplicateCode || String(errorData.message || "").toUpperCase();
+            if (policyCode.includes("GALLERY_UPLOAD_LIMIT")) {
+              galleryUploadLimitReached = true;
+              setImageModalStatus("스타일 갤러리는 1인당 최대 10장까지 업로드할 수 있어요.");
+              syncGalleryUploadButtonState(item);
+              return;
+            }
+
+            if (policyCode.includes("GALLERY_GENERATION_LIMIT")) {
+              const uploadedResultIndex = Number(errorData.uploadedResultIndex ?? errorData.registeredResultIndex ?? errorData.resultIndex);
+              currentGenerationGalleryUploadIndex = Number.isInteger(uploadedResultIndex) ? uploadedResultIndex : -1;
+              persistResultState();
+              setImageModalStatus("한 번의 생성 결과에서는 1장만 스타일 갤러리에 올릴 수 있어요.");
+              syncGalleryUploadButtonState(item);
+              return;
+            }
+
             if (response.status === 409 || duplicateCode.includes("DUPLICATE") || duplicateCode.includes("ALREADY")) {
               if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
-              setImageModalStatus("이미 갤러리에 업로드된 사진이에요.");
+              currentGenerationGalleryUploadIndex = resultIndex;
+              persistResultState();
+              setImageModalStatus("이미 스타일 갤러리에 업로드된 사진이에요.");
               syncGalleryUploadButtonState(item);
               return;
             }
@@ -5790,9 +5923,22 @@ ${modeExample}`;
           }
 
           const uploaded = await response.json().catch(() => ({}));
+          if (uploaded?.duplicated === true) {
+            if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
+            currentGenerationGalleryUploadIndex = resultIndex;
+            persistResultState();
+            setImageModalStatus("이미 스타일 갤러리에 업로드된 사진이에요.");
+            syncGalleryUploadButtonState(item);
+            return;
+          }
+
+          const rewardCredits = applyGalleryUploadCreditReward(uploaded);
           if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
+          currentGenerationGalleryUploadIndex = resultIndex;
           galleryImages = [
             normalizeGalleryItem({
+              generationId,
+              resultIndex,
               imageUrl,
               imagePath,
               styleCategory: activeGenerationMode || "",
@@ -5811,11 +5957,14 @@ ${modeExample}`;
             },
             ...galleryImages,
           ];
-          setImageModalStatus("갤러리에 업로드했어요.");
+          persistResultState();
+          setImageModalStatus(rewardCredits > 0
+            ? `스타일 갤러리에 업로드했어요. ${formatCreditNumber(rewardCredits)}크레딧이 지급되었습니다.`
+            : "스타일 갤러리에 업로드했어요.");
           syncGalleryUploadButtonState(item);
         } catch (error) {
           console.error("[client][gallery-upload] failed:", error);
-          setImageModalStatus("갤러리에 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.");
+          setImageModalStatus("스타일 갤러리에 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.");
         } finally {
           imageModalGalleryUpload.disabled = false;
           syncGalleryUploadButtonState(item);
@@ -6144,8 +6293,11 @@ ${modeExample}`;
         imageUrls = data.imageUrls;
         imageScores = data.scores;
         failedImages = data.failedImages;
+        currentGenerationId = data.generationId || data.generationMeta?.generationId || createClientGenerationId();
+        currentGenerationGalleryUploadIndex = null;
         generationMeta = {
           ...(data.generationMeta || {}),
+          generationId: currentGenerationId,
           locationPreset: resultLocationPreset,
         };
         imageMetadata = indexImageMetadata(data.imageMetadata);

@@ -56,6 +56,7 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
       resultLabel: metadata.resultLabel || metadata.title || "Uploaded Result",
       isRecommended: Boolean(metadata.isRecommended),
       originalImageUrl: metadata.originalImageUrl ?? null,
+      originalImagePath: metadata.originalImagePath ?? null,
       originalThumbnailUrl: metadata.originalThumbnailUrl ?? null,
     };
 

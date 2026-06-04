@@ -4378,6 +4378,22 @@ Important balance:
         return data;
       }
 
+      function getUploadPublicImageUrl(signedUpload) {
+        return String(
+          signedUpload?.publicUrl ||
+          signedUpload?.publicURL ||
+          signedUpload?.public_url ||
+          signedUpload?.imageUrl ||
+          signedUpload?.image_url ||
+          signedUpload?.fileUrl ||
+          signedUpload?.file_url ||
+          signedUpload?.downloadUrl ||
+          signedUpload?.download_url ||
+          signedUpload?.url ||
+          ""
+        ).trim();
+      }
+
       async function uploadFileToSignedUrl(file, signedUpload) {
         const uploadFile = createUploadFile(file);
         const fileInfo = getFileDebugInfo(uploadFile);
@@ -4456,7 +4472,12 @@ Important balance:
           sizeMB: toSizeMB(uploadFile.size),
         });
 
-        return signedUpload.path;
+        return {
+          path: signedUpload.path,
+          imagePath: signedUpload.path,
+          imageUrl: getUploadPublicImageUrl(signedUpload),
+          originalResponse: signedUpload,
+        };
       }
 
       async function uploadImageToPrivateStorage(file) {
@@ -4767,7 +4788,9 @@ ${modeExample}`;
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
         const selectedLandmark = isLocationMode(generationMode) ? getSelectedLandmarkOption(generationMode) : null;
-        const imagePath = await uploadImageToPrivateStorage(imageFile);
+        const originalUpload = await uploadImageToPrivateStorage(imageFile);
+        const imagePath = originalUpload.imagePath || originalUpload.path || "";
+        const uploadedOriginalImageUrl = originalUpload.imageUrl || "";
         const fileInfo = getFileDebugInfo(imageFile);
         const formData = new FormData();
         formData.append("imagePath", imagePath);
@@ -4916,9 +4939,22 @@ ${modeExample}`;
         }
 
         const resultItems = Array.isArray(data.results) ? data.results : [];
-        const successfulResults = resultItems.filter((item) => item?.ok && item.imageBase64);
+        const getGeneratedResultImageUrl = (item) => {
+          const candidates = [
+            item?.imageUrl,
+            item?.image_url,
+            item?.publicUrl,
+            item?.public_url,
+            item?.url,
+            item?.displayUrl,
+            item?.display_url,
+            item?.imageBase64,
+          ];
+          return candidates.map((value) => String(value || "").trim()).find(Boolean) || "";
+        };
+        const successfulResults = resultItems.filter((item) => item?.ok && getGeneratedResultImageUrl(item));
         const failedResults = resultItems.filter((item) => item && !item.ok);
-        const imageUrlsFromResults = successfulResults.map((item) => item.imageBase64);
+        const imageUrlsFromResults = successfulResults.map(getGeneratedResultImageUrl);
         const labelsFromResults = successfulResults.map((item) => item.label || `결과 ${item.index + 1}`);
         const imageUrls = imageUrlsFromResults
           .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index);
@@ -4945,7 +4981,7 @@ ${modeExample}`;
               ? data.original_image_url
               : typeof data.originalImage === "string"
                 ? data.originalImage
-                : "",
+                : uploadedOriginalImageUrl,
           originalThumbnailUrl: typeof data.originalThumbnailUrl === "string"
             ? data.originalThumbnailUrl
             : typeof data.original_thumbnail_url === "string"
@@ -4968,7 +5004,11 @@ ${modeExample}`;
             generationPlace: selectedLandmark?.value || "",
             generationPlaceLabel: selectedLandmark?.label || "",
           },
-          imageMetadata: [],
+          imageMetadata: successfulResults.map((item, fallbackIndex) => ({
+            ...item,
+            index: Number.isInteger(item.index) ? item.index : fallbackIndex,
+            imagePath: item.imagePath || item.image_path || item.path || item.storagePath || item.storage_path || "",
+          })),
         };
       }
 
@@ -5796,6 +5836,7 @@ ${modeExample}`;
         const aspectRatio = parseGalleryAspectRatio(rawItem.aspectRatio || rawItem.aspect_ratio || rawItem.metadata?.aspectRatio || rawItem.metadata?.aspect_ratio);
         const originalThumbnailUrl = String(rawItem.originalThumbnailUrl || rawItem.original_thumbnail_url || rawItem.originalThumbUrl || rawItem.original_thumb_url || rawItem.metadata?.originalThumbnailUrl || rawItem.metadata?.original_thumbnail_url || "").trim();
         const originalImageUrl = String(rawItem.originalImageUrl || rawItem.original_image_url || rawItem.originalUrl || rawItem.original_url || rawItem.sourceImageUrl || rawItem.source_image_url || rawItem.metadata?.originalImageUrl || rawItem.metadata?.original_image_url || "").trim();
+        const originalImagePath = String(rawItem.originalImagePath || rawItem.original_image_path || rawItem.originalPath || rawItem.original_path || rawItem.metadata?.originalImagePath || rawItem.metadata?.original_image_path || "").trim();
         return {
           ...rawItem,
           imageUrl: imageUrl || displayUrl,
@@ -5807,6 +5848,7 @@ ${modeExample}`;
           imageHeight: Number.isFinite(imageHeight) && imageHeight > 0 ? imageHeight : null,
           originalThumbnailUrl,
           originalImageUrl,
+          originalImagePath,
           presetLabel,
           resultLabel,
           label: resultLabel,
@@ -6100,6 +6142,7 @@ ${modeExample}`;
           imageUrl: item.imageUrl,
           imagePath: item.imagePath || "",
           originalImageUrl: item.originalImageUrl || "",
+          originalImagePath: item.originalImagePath || "",
           originalThumbnailUrl: item.originalThumbnailUrl || "",
           label: item.resultLabel || item.title || `갤러리 사진 ${itemIndex + 1}`,
           isRecommended: false,
@@ -6150,7 +6193,8 @@ ${modeExample}`;
         const resultLabel = item.label || variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`;
         const generationId = ensureCurrentGenerationId();
         const uploadOriginalImageUrl = originalImageUrl || originalImagePath || null;
-        const uploadOriginalThumbnailUrl = originalThumbnailUrl || null;
+        const uploadOriginalImagePath = originalImagePath || null;
+        const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || null;
 
         imageModalGalleryUpload.disabled = true;
         const buttonLabel = imageModalGalleryUpload.querySelector("span:last-child");
@@ -6170,8 +6214,15 @@ ${modeExample}`;
             resultLabel,
             isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
             originalImageUrl: uploadOriginalImageUrl,
+            originalImagePath: uploadOriginalImagePath,
             originalThumbnailUrl: uploadOriginalThumbnailUrl,
           };
+          console.log("[gallery-upload] has originalImageUrl:", Boolean(payload.originalImageUrl));
+          console.log("[gallery-upload] has originalImagePath:", Boolean(payload.originalImagePath));
+          console.log("[gallery-upload] has originalThumbnailUrl:", Boolean(payload.originalThumbnailUrl));
+          if (!payload.originalImageUrl) {
+            console.warn("[gallery-upload] originalImageUrl missing");
+          }
           const response = await fetch(getGalleryUploadUrl(), {
             method: "POST",
             headers: {
@@ -6239,6 +6290,7 @@ ${modeExample}`;
               isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
               ...(uploaded || {}),
               originalImageUrl: uploaded?.originalImageUrl || uploaded?.original_image_url || uploadOriginalImageUrl || "",
+              originalImagePath: uploaded?.originalImagePath || uploaded?.original_image_path || uploadOriginalImagePath || "",
               originalThumbnailUrl: uploaded?.originalThumbnailUrl || uploaded?.original_thumbnail_url || uploadOriginalThumbnailUrl || "",
             }) || {
               imageUrl,
@@ -6246,6 +6298,7 @@ ${modeExample}`;
               presetLabel,
               resultLabel,
               originalImageUrl: uploadOriginalImageUrl || "",
+              originalImagePath: uploadOriginalImagePath || "",
               originalThumbnailUrl: uploadOriginalThumbnailUrl || "",
               url: imageUrl,
             },

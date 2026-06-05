@@ -37,14 +37,26 @@ function firstUrlValue(...values) {
   return values.map(normalizeUrlValue).find(Boolean) || null;
 }
 
+function normalizeBrowserImageUrlValue(value) {
+  const url = normalizeUrlValue(value);
+  if (!url) return "";
+  if (/^(https?:|data:image\/|blob:)/i.test(url) || url.startsWith("/")) return url;
+  if (/^uploads\//i.test(url)) return "";
+  return url;
+}
+
+function firstBrowserImageUrlValue(...values) {
+  return values.map(normalizeBrowserImageUrlValue).find(Boolean) || null;
+}
+
 function normalizeGalleryItem(item) {
   if (!item) return null;
 
-  const originalImageUrl = firstUrlValue(item.originalImageUrl, item.original_image_url);
-  const originalThumbnailUrl = firstUrlValue(
+  const originalImageUrl = firstBrowserImageUrlValue(item.originalImageUrl, item.original_image_url);
+  const originalThumbnailUrl = firstBrowserImageUrlValue(
     item.originalThumbnailUrl,
-    item.original_thumbnail_url,
     item.originalImageUrl,
+    item.original_thumbnail_url,
     item.original_image_url
   );
 

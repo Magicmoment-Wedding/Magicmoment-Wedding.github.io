@@ -3904,6 +3904,18 @@ Important balance:
         return values.map(normalizeUrlValue).find(Boolean) || "";
       }
 
+      function normalizeBrowserImageUrlValue(value) {
+        const url = normalizeUrlValue(value);
+        if (!url) return "";
+        if (/^(https?:|data:image\/|blob:)/i.test(url) || url.startsWith("/")) return url;
+        if (/^uploads\//i.test(url)) return "";
+        return url;
+      }
+
+      function firstBrowserImageUrlValue(...values) {
+        return values.map(normalizeBrowserImageUrlValue).find(Boolean) || "";
+      }
+
       function toDisplayUrl(url) {
         const normalizedUrl = normalizeUrlValue(url);
         if (!normalizedUrl) return "";
@@ -5853,8 +5865,8 @@ ${modeExample}`;
         const imageWidth = Number(rawItem.width || rawItem.imageWidth || rawItem.image_width || rawItem.metadata?.width || rawItem.metadata?.imageWidth);
         const imageHeight = Number(rawItem.height || rawItem.imageHeight || rawItem.image_height || rawItem.metadata?.height || rawItem.metadata?.imageHeight);
         const aspectRatio = parseGalleryAspectRatio(rawItem.aspectRatio || rawItem.aspect_ratio || rawItem.metadata?.aspectRatio || rawItem.metadata?.aspect_ratio);
-        const originalImageUrl = firstUrlValue(rawItem.originalImageUrl, rawItem.original_image_url, rawItem.originalUrl, rawItem.original_url, rawItem.sourceImageUrl, rawItem.source_image_url, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_image_url);
-        const originalThumbnailUrl = firstUrlValue(rawItem.originalThumbnailUrl, rawItem.original_thumbnail_url, rawItem.originalImageUrl, rawItem.original_image_url, rawItem.originalThumbUrl, rawItem.original_thumb_url, rawItem.metadata?.originalThumbnailUrl, rawItem.metadata?.original_thumbnail_url, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_image_url);
+        const originalImageUrl = firstBrowserImageUrlValue(rawItem.originalImageUrl, rawItem.original_image_url, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_image_url);
+        const originalThumbnailUrl = firstBrowserImageUrlValue(rawItem.originalThumbnailUrl, rawItem.originalImageUrl, rawItem.original_thumbnail_url, rawItem.original_image_url, rawItem.metadata?.originalThumbnailUrl, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_thumbnail_url, rawItem.metadata?.original_image_url);
         const originalImagePath = normalizeUrlValue(rawItem.originalImagePath || rawItem.original_image_path || rawItem.originalPath || rawItem.original_path || rawItem.metadata?.originalImagePath || rawItem.metadata?.original_image_path);
         return {
           ...rawItem,
@@ -5928,20 +5940,20 @@ ${modeExample}`;
       }
 
       function getGalleryOriginalThumbnailUrl(item) {
-        return firstUrlValue(
+        return firstBrowserImageUrlValue(
           item?.originalThumbnailUrl,
-          item?.original_thumbnail_url,
           item?.originalImageUrl,
+          item?.original_thumbnail_url,
           item?.original_image_url,
           item?.metadata?.originalThumbnailUrl,
-          item?.metadata?.original_thumbnail_url,
           item?.metadata?.originalImageUrl,
+          item?.metadata?.original_thumbnail_url,
           item?.metadata?.original_image_url
         );
       }
 
       function hasGalleryOriginalImage(item) {
-        return Boolean(firstUrlValue(
+        return Boolean(firstBrowserImageUrlValue(
           item?.originalImageUrl,
           item?.original_image_url,
           item?.metadata?.originalImageUrl,
@@ -5950,7 +5962,7 @@ ${modeExample}`;
       }
 
       function hasGalleryOriginalThumbnail(item) {
-        return Boolean(firstUrlValue(
+        return Boolean(firstBrowserImageUrlValue(
           item?.originalThumbnailUrl,
           item?.original_thumbnail_url,
           item?.metadata?.originalThumbnailUrl,
@@ -6192,7 +6204,7 @@ ${modeExample}`;
       function openGalleryItemModal(index) {
         const items = galleryImages.map((item, itemIndex) => {
           const originalThumbSrc = getGalleryOriginalThumbnailUrl(item);
-          const originalImageSrc = firstUrlValue(item.originalImageUrl, item.original_image_url);
+          const originalImageSrc = firstBrowserImageUrlValue(item.originalImageUrl, item.original_image_url);
           return {
             url: toDisplayUrl(item.imageUrl),
             imageUrl: item.imageUrl,

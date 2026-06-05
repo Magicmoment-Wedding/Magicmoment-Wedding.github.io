@@ -691,17 +691,34 @@
 
       .image-modal-original-thumb {
         position: absolute;
-        right: 10px;
-        bottom: 10px;
-        width: clamp(56px, 20%, 96px);
+        right: 12px;
+        bottom: 12px;
+        width: clamp(72px, 18%, 140px);
         aspect-ratio: 1 / 1;
-        border-radius: 13px;
+        border-radius: 15px;
         overflow: hidden;
         border: 2px solid rgba(255, 255, 255, 0.92);
-        background: rgba(255, 255, 255, 0.78);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         z-index: 8;
         pointer-events: none;
+      }
+
+      .image-modal-original-thumb::before {
+        content: "원본";
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        z-index: 2;
+        border-radius: 9999px;
+        padding: 2px 6px;
+        color: rgba(255, 255, 255, 0.96);
+        background: rgba(18, 16, 17, 0.52);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.2;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
 
       .image-modal-original-thumb img {
@@ -808,9 +825,8 @@
         }
 
         .image-modal-original-thumb {
-          right: 8px;
-          bottom: 8px;
-          width: clamp(56px, 19%, 88px);
+          right: 10px;
+          bottom: 10px;
         }
 
         .image-modal-pager {
@@ -951,6 +967,12 @@
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
           pointer-events: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .image-modal-original-thumb {
+          width: clamp(86px, 28%, 118px);
         }
       }
 
@@ -1458,17 +1480,34 @@
 
       .gallery-original-thumb {
         position: absolute;
-        right: 8px;
-        bottom: 8px;
-        width: clamp(48px, 22%, 88px);
+        right: 10px;
+        bottom: 10px;
+        width: clamp(56px, 28%, 96px);
         aspect-ratio: 1 / 1;
-        border-radius: 12px;
+        border-radius: 14px;
         overflow: hidden;
         border: 2px solid rgba(255, 255, 255, 0.92);
-        background: rgba(255, 255, 255, 0.72);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         z-index: 5;
         pointer-events: none;
+      }
+
+      .gallery-original-thumb::before {
+        content: "원본";
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        z-index: 2;
+        border-radius: 9999px;
+        padding: 2px 5px;
+        color: rgba(255, 255, 255, 0.96);
+        background: rgba(18, 16, 17, 0.48);
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 1.2;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
 
       .gallery-original-thumb img {
@@ -1483,6 +1522,22 @@
       .gallery-collage-item.is-pattern-wide .gallery-original-thumb {
         right: 10px;
         bottom: 10px;
+        width: clamp(80px, 24%, 96px);
+      }
+
+      @media (max-width: 639px) {
+        .gallery-original-thumb {
+          right: 8px;
+          bottom: 8px;
+          width: clamp(56px, 24%, 72px);
+        }
+
+        .gallery-collage-item.is-featured .gallery-original-thumb,
+        .gallery-collage-item.is-pattern-wide .gallery-original-thumb {
+          right: 10px;
+          bottom: 10px;
+          width: clamp(80px, 28%, 96px);
+        }
       }
 
       .gallery-loading-grid {

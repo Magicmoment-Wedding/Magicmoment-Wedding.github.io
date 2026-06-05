@@ -3892,12 +3892,27 @@ Important balance:
         return FEATURED_BADGE_TEXT;
       }
 
+      function normalizeUrlValue(value) {
+        if (value === null || typeof value === "undefined") return "";
+
+        const url = String(value).trim();
+        if (!url || url.toLowerCase() === "null" || url.toLowerCase() === "undefined") return "";
+        return url;
+      }
+
+      function firstUrlValue(...values) {
+        return values.map(normalizeUrlValue).find(Boolean) || "";
+      }
+
       function toDisplayUrl(url) {
-        if (url.startsWith("data:image/")) {
-          return url;
+        const normalizedUrl = normalizeUrlValue(url);
+        if (!normalizedUrl) return "";
+
+        if (normalizedUrl.startsWith("data:image/")) {
+          return normalizedUrl;
         }
 
-        const absoluteUrl = url.startsWith("/") ? `${FRONT_API_BASE_URL}${url}` : url;
+        const absoluteUrl = normalizedUrl.startsWith("/") ? `${FRONT_API_BASE_URL}${normalizedUrl}` : normalizedUrl;
         return `${absoluteUrl}${absoluteUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
       }
 
@@ -4114,10 +4129,13 @@ Important balance:
           return false;
         }
 
-        imageUrls = storedState.imageUrls;
-        originalImageUrl = storedState.originalImageUrl || "";
-        originalThumbnailUrl = storedState.originalThumbnailUrl || "";
-        originalImagePath = storedState.originalImagePath || "";
+        imageUrls = storedState.imageUrls.map(normalizeUrlValue).filter(Boolean);
+        if (!imageUrls.length) {
+          return false;
+        }
+        originalImageUrl = normalizeUrlValue(storedState.originalImageUrl);
+        originalThumbnailUrl = firstUrlValue(storedState.originalThumbnailUrl, originalImageUrl);
+        originalImagePath = normalizeUrlValue(storedState.originalImagePath);
         imageScores = Array.isArray(storedState.imageScores) ? storedState.imageScores : [];
         variantLabels = Array.isArray(storedState.variantLabels) ? storedState.variantLabels : [];
         failedImages = Array.isArray(storedState.failedImages) ? storedState.failedImages : [];
@@ -4953,7 +4971,7 @@ ${modeExample}`;
             item?.display_url,
             item?.imageBase64,
           ];
-          return candidates.map((value) => String(value || "").trim()).find(Boolean) || "";
+          return candidates.map(normalizeUrlValue).find(Boolean) || "";
         };
         const successfulResults = resultItems.filter((item) => item?.ok && getGeneratedResultImageUrl(item));
         const failedResults = resultItems.filter((item) => item && !item.ok);
@@ -4975,21 +4993,14 @@ ${modeExample}`;
 
         const generationId = resolveGenerationIdFromPayload(data) || createClientGenerationId();
 
+        const responseOriginalImageUrl = firstUrlValue(data.originalImageUrl, data.original_image_url, data.originalImage, uploadedOriginalImageUrl);
+        const responseOriginalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, data.original_thumbnail_url, responseOriginalImageUrl);
+
         return {
           results: resultItems,
           generationId,
-          originalImageUrl: typeof data.originalImageUrl === "string"
-            ? data.originalImageUrl
-            : typeof data.original_image_url === "string"
-              ? data.original_image_url
-              : typeof data.originalImage === "string"
-                ? data.originalImage
-                : uploadedOriginalImageUrl,
-          originalThumbnailUrl: typeof data.originalThumbnailUrl === "string"
-            ? data.originalThumbnailUrl
-            : typeof data.original_thumbnail_url === "string"
-              ? data.original_thumbnail_url
-              : "",
+          originalImageUrl: responseOriginalImageUrl,
+          originalThumbnailUrl: responseOriginalThumbnailUrl,
           originalImagePath: imagePath,
           imageUrls,
           scores: [],
@@ -5337,8 +5348,9 @@ ${modeExample}`;
 
         const originalThumbSrc = item?.gallerySource ? getGalleryOriginalThumbnailUrl(item) : "";
         if (DEBUG_MODE && item?.gallerySource) {
-          console.log("[gallery-modal] has original image:", hasGalleryOriginalImage(item));
-          console.log("[gallery-modal] original thumb src resolved:", Boolean(originalThumbSrc));
+          console.log("[gallery-modal] originalThumbnailUrl exists:", hasGalleryOriginalThumbnail(item));
+          console.log("[gallery-modal] originalImageUrl exists:", hasGalleryOriginalImage(item));
+          console.log("[gallery-modal] originalThumbSrc resolved:", Boolean(originalThumbSrc));
         }
         if (!originalThumbSrc) {
           hideImageModalOriginalThumbnail();
@@ -5743,7 +5755,7 @@ ${modeExample}`;
           imageUrls[activeImageModalIndex],
           item?.url,
         ]
-          .map((value) => String(value || "").trim())
+          .map(normalizeUrlValue)
           .filter(Boolean);
         return candidates.find((url) => !url.startsWith("data:image/")) || candidates[0] || "";
       }
@@ -5831,8 +5843,8 @@ ${modeExample}`;
 
       function normalizeGalleryItem(rawItem, fallbackIndex = 0) {
         if (!rawItem) return null;
-        const imageUrl = String(rawItem.imageUrl || rawItem.image_url || rawItem.url || rawItem.publicUrl || rawItem.public_url || rawItem.src || "").trim();
-        const thumbnailUrl = String(rawItem.thumbnailUrl || rawItem.thumbnail_url || rawItem.thumbnail || rawItem.thumbUrl || rawItem.thumb_url || "").trim();
+        const imageUrl = firstUrlValue(rawItem.imageUrl, rawItem.image_url, rawItem.url, rawItem.publicUrl, rawItem.public_url, rawItem.src);
+        const thumbnailUrl = firstUrlValue(rawItem.thumbnailUrl, rawItem.thumbnail_url, rawItem.thumbnail, rawItem.thumbUrl, rawItem.thumb_url);
         const displayUrl = thumbnailUrl || imageUrl;
         if (!displayUrl) return null;
 
@@ -5841,9 +5853,9 @@ ${modeExample}`;
         const imageWidth = Number(rawItem.width || rawItem.imageWidth || rawItem.image_width || rawItem.metadata?.width || rawItem.metadata?.imageWidth);
         const imageHeight = Number(rawItem.height || rawItem.imageHeight || rawItem.image_height || rawItem.metadata?.height || rawItem.metadata?.imageHeight);
         const aspectRatio = parseGalleryAspectRatio(rawItem.aspectRatio || rawItem.aspect_ratio || rawItem.metadata?.aspectRatio || rawItem.metadata?.aspect_ratio);
-        const originalImageUrl = String(rawItem.originalImageUrl || rawItem.original_image_url || rawItem.originalUrl || rawItem.original_url || rawItem.sourceImageUrl || rawItem.source_image_url || rawItem.metadata?.originalImageUrl || rawItem.metadata?.original_image_url || "").trim();
-        const originalThumbnailUrl = String(rawItem.originalThumbnailUrl || rawItem.originalImageUrl || rawItem.original_thumbnail_url || rawItem.original_image_url || rawItem.originalThumbUrl || rawItem.original_thumb_url || rawItem.metadata?.originalThumbnailUrl || rawItem.metadata?.originalImageUrl || rawItem.metadata?.original_thumbnail_url || rawItem.metadata?.original_image_url || originalImageUrl || "").trim();
-        const originalImagePath = String(rawItem.originalImagePath || rawItem.original_image_path || rawItem.originalPath || rawItem.original_path || rawItem.metadata?.originalImagePath || rawItem.metadata?.original_image_path || "").trim();
+        const originalImageUrl = firstUrlValue(rawItem.originalImageUrl, rawItem.original_image_url, rawItem.originalUrl, rawItem.original_url, rawItem.sourceImageUrl, rawItem.source_image_url, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_image_url);
+        const originalThumbnailUrl = firstUrlValue(rawItem.originalThumbnailUrl, rawItem.original_thumbnail_url, rawItem.originalImageUrl, rawItem.original_image_url, rawItem.originalThumbUrl, rawItem.original_thumb_url, rawItem.metadata?.originalThumbnailUrl, rawItem.metadata?.original_thumbnail_url, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_image_url);
+        const originalImagePath = normalizeUrlValue(rawItem.originalImagePath || rawItem.original_image_path || rawItem.originalPath || rawItem.original_path || rawItem.metadata?.originalImagePath || rawItem.metadata?.original_image_path);
         return {
           ...rawItem,
           imageUrl: imageUrl || displayUrl,
@@ -5916,27 +5928,34 @@ ${modeExample}`;
       }
 
       function getGalleryOriginalThumbnailUrl(item) {
-        return String(
-          item?.originalThumbnailUrl ||
-          item?.originalImageUrl ||
-          item?.original_thumbnail_url ||
-          item?.original_image_url ||
-          item?.metadata?.originalThumbnailUrl ||
-          item?.metadata?.originalImageUrl ||
-          item?.metadata?.original_thumbnail_url ||
-          item?.metadata?.original_image_url ||
-          ""
-        ).trim();
+        return firstUrlValue(
+          item?.originalThumbnailUrl,
+          item?.original_thumbnail_url,
+          item?.originalImageUrl,
+          item?.original_image_url,
+          item?.metadata?.originalThumbnailUrl,
+          item?.metadata?.original_thumbnail_url,
+          item?.metadata?.originalImageUrl,
+          item?.metadata?.original_image_url
+        );
       }
 
       function hasGalleryOriginalImage(item) {
-        return Boolean(String(
-          item?.originalImageUrl ||
-          item?.original_image_url ||
-          item?.metadata?.originalImageUrl ||
-          item?.metadata?.original_image_url ||
-          ""
-        ).trim());
+        return Boolean(firstUrlValue(
+          item?.originalImageUrl,
+          item?.original_image_url,
+          item?.metadata?.originalImageUrl,
+          item?.metadata?.original_image_url
+        ));
+      }
+
+      function hasGalleryOriginalThumbnail(item) {
+        return Boolean(firstUrlValue(
+          item?.originalThumbnailUrl,
+          item?.original_thumbnail_url,
+          item?.metadata?.originalThumbnailUrl,
+          item?.metadata?.original_thumbnail_url
+        ));
       }
 
       function getGalleryCardAspectRatioStyle(item) {
@@ -6101,8 +6120,9 @@ ${modeExample}`;
               const label = item.resultLabel || item.presetLabel || "갤러리 사진";
               const originalThumbSrc = getGalleryOriginalThumbnailUrl(item);
               if (DEBUG_MODE) {
-                console.log("[gallery] has original image:", hasGalleryOriginalImage(item));
-                console.log("[gallery] original thumb src resolved:", Boolean(originalThumbSrc));
+                console.log("[gallery] originalThumbnailUrl exists:", hasGalleryOriginalThumbnail(item));
+                console.log("[gallery] originalImageUrl exists:", hasGalleryOriginalImage(item));
+                console.log("[gallery] originalThumbSrc resolved:", Boolean(originalThumbSrc));
               }
               return `
                 <button class="gallery-collage-item ${galleryImages.length > 1 ? getGalleryCollagePatternClass(item, index) : ""} ${getGalleryItemLayoutClass(item)}" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(label)} 크게보기"${getGalleryCardAspectRatioStyle(item)}>
@@ -6172,7 +6192,7 @@ ${modeExample}`;
       function openGalleryItemModal(index) {
         const items = galleryImages.map((item, itemIndex) => {
           const originalThumbSrc = getGalleryOriginalThumbnailUrl(item);
-          const originalImageSrc = item.originalImageUrl || item.original_image_url || "";
+          const originalImageSrc = firstUrlValue(item.originalImageUrl, item.original_image_url);
           return {
             url: toDisplayUrl(item.imageUrl),
             imageUrl: item.imageUrl,
@@ -6328,17 +6348,17 @@ ${modeExample}`;
               resultLabel,
               isRecommended: resultIndex === selectedIndex || item.isRecommended === true,
               ...(uploaded || {}),
-              originalImageUrl: uploaded?.originalImageUrl || uploaded?.original_image_url || uploadOriginalImageUrl || "",
-              originalImagePath: uploaded?.originalImagePath || uploaded?.original_image_path || uploadOriginalImagePath || "",
-              originalThumbnailUrl: uploaded?.originalThumbnailUrl || uploaded?.original_thumbnail_url || uploadOriginalThumbnailUrl || "",
+              originalImageUrl: firstUrlValue(uploaded?.originalImageUrl, uploaded?.original_image_url, uploadOriginalImageUrl),
+              originalImagePath: normalizeUrlValue(uploaded?.originalImagePath || uploaded?.original_image_path || uploadOriginalImagePath),
+              originalThumbnailUrl: firstUrlValue(uploaded?.originalThumbnailUrl, uploaded?.original_thumbnail_url, uploadOriginalThumbnailUrl, uploaded?.originalImageUrl, uploaded?.original_image_url, uploadOriginalImageUrl),
             }) || {
               imageUrl,
               imagePath,
               presetLabel,
               resultLabel,
-              originalImageUrl: uploadOriginalImageUrl || "",
-              originalImagePath: uploadOriginalImagePath || "",
-              originalThumbnailUrl: uploadOriginalThumbnailUrl || "",
+              originalImageUrl: uploadOriginalImageUrl,
+              originalImagePath: uploadOriginalImagePath,
+              originalThumbnailUrl: firstUrlValue(uploadOriginalThumbnailUrl, uploadOriginalImageUrl),
               url: imageUrl,
             },
             ...galleryImages,
@@ -6677,10 +6697,10 @@ ${modeExample}`;
         resultLocationPreset = !isDisneyMode(activeGenerationMode)
           ? (data.locationPreset || data.generationMeta?.locationPreset || selectedLocationPreset || "eiffel")
           : "eiffel";
-        originalImageUrl = data.originalImageUrl || "";
-        originalThumbnailUrl = data.originalThumbnailUrl || "";
-        originalImagePath = data.originalImagePath || "";
-        imageUrls = data.imageUrls;
+        originalImageUrl = normalizeUrlValue(data.originalImageUrl);
+        originalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, originalImageUrl);
+        originalImagePath = normalizeUrlValue(data.originalImagePath);
+        imageUrls = data.imageUrls.map(normalizeUrlValue).filter(Boolean);
         imageScores = data.scores;
         failedImages = data.failedImages;
         currentGenerationId = data.generationId || data.generationMeta?.generationId || createClientGenerationId();

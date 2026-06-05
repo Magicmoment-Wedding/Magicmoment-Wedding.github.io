@@ -25,16 +25,28 @@ function getAnonymousId() {
   return nextId;
 }
 
+function normalizeUrlValue(value) {
+  if (value === null || typeof value === "undefined") return "";
+
+  const url = String(value).trim();
+  if (!url || url.toLowerCase() === "null" || url.toLowerCase() === "undefined") return "";
+  return url;
+}
+
+function firstUrlValue(...values) {
+  return values.map(normalizeUrlValue).find(Boolean) || null;
+}
+
 function normalizeGalleryItem(item) {
   if (!item) return null;
 
-  const originalImageUrl = item.originalImageUrl || item.original_image_url || null;
-  const originalThumbnailUrl =
-    item.originalThumbnailUrl ||
-    item.originalImageUrl ||
-    item.original_thumbnail_url ||
-    item.original_image_url ||
-    null;
+  const originalImageUrl = firstUrlValue(item.originalImageUrl, item.original_image_url);
+  const originalThumbnailUrl = firstUrlValue(
+    item.originalThumbnailUrl,
+    item.original_thumbnail_url,
+    item.originalImageUrl,
+    item.original_image_url
+  );
 
   return {
     ...item,
@@ -76,9 +88,9 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
       presetLabel: metadata.presetLabel || "",
       resultLabel: metadata.resultLabel || metadata.title || "Uploaded Result",
       isRecommended: Boolean(metadata.isRecommended),
-      originalImageUrl: metadata.originalImageUrl ?? null,
+      originalImageUrl: firstUrlValue(metadata.originalImageUrl),
       originalImagePath: metadata.originalImagePath ?? null,
-      originalThumbnailUrl: metadata.originalThumbnailUrl ?? null,
+      originalThumbnailUrl: firstUrlValue(metadata.originalThumbnailUrl, metadata.originalImageUrl),
     };
 
     const response = await fetch(getApiUrl("/api/gallery/upload"), {

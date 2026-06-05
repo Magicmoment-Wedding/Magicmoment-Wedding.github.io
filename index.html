@@ -693,7 +693,7 @@
         position: absolute;
         right: 12px;
         bottom: 12px;
-        width: clamp(72px, 18%, 140px);
+        width: clamp(100px, 16vw, 150px);
         aspect-ratio: 1 / 1;
         border-radius: 15px;
         overflow: hidden;
@@ -702,23 +702,6 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         z-index: 8;
         pointer-events: none;
-      }
-
-      .image-modal-original-thumb::before {
-        content: "원본";
-        position: absolute;
-        top: 6px;
-        left: 6px;
-        z-index: 2;
-        border-radius: 9999px;
-        padding: 2px 6px;
-        color: rgba(255, 255, 255, 0.96);
-        background: rgba(18, 16, 17, 0.52);
-        font-size: 10px;
-        font-weight: 700;
-        line-height: 1.2;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
       }
 
       .image-modal-original-thumb img {
@@ -972,7 +955,7 @@
 
       @media (max-width: 640px) {
         .image-modal-original-thumb {
-          width: clamp(86px, 28%, 118px);
+          width: clamp(90px, 28vw, 120px);
         }
       }
 
@@ -1476,68 +1459,6 @@
 
       .gallery-collage-item.is-loaded .gallery-main-image {
         opacity: 1;
-      }
-
-      .gallery-original-thumb {
-        position: absolute;
-        right: 10px;
-        bottom: 10px;
-        width: clamp(56px, 28%, 96px);
-        aspect-ratio: 1 / 1;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 2px solid rgba(255, 255, 255, 0.92);
-        background: rgba(255, 255, 255, 0.85);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-        z-index: 5;
-        pointer-events: none;
-      }
-
-      .gallery-original-thumb::before {
-        content: "원본";
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        z-index: 2;
-        border-radius: 9999px;
-        padding: 2px 5px;
-        color: rgba(255, 255, 255, 0.96);
-        background: rgba(18, 16, 17, 0.48);
-        font-size: 9px;
-        font-weight: 700;
-        line-height: 1.2;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-      }
-
-      .gallery-original-thumb img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center center;
-      }
-
-      .gallery-collage-item.is-featured .gallery-original-thumb,
-      .gallery-collage-item.is-pattern-wide .gallery-original-thumb {
-        right: 10px;
-        bottom: 10px;
-        width: clamp(80px, 24%, 96px);
-      }
-
-      @media (max-width: 639px) {
-        .gallery-original-thumb {
-          right: 8px;
-          bottom: 8px;
-          width: clamp(56px, 24%, 72px);
-        }
-
-        .gallery-collage-item.is-featured .gallery-original-thumb,
-        .gallery-collage-item.is-pattern-wide .gallery-original-thumb {
-          right: 10px;
-          bottom: 10px;
-          width: clamp(80px, 28%, 96px);
-        }
       }
 
       .gallery-loading-grid {
@@ -6185,20 +6106,9 @@ ${modeExample}`;
           <div class="gallery-collage ${galleryImages.length === 1 ? "gallery-collage-single" : ""}">
             ${galleryImages.map((item, index) => {
               const label = item.resultLabel || item.presetLabel || "갤러리 사진";
-              const originalThumbSrc = getGalleryOriginalThumbnailUrl(item);
-              if (DEBUG_MODE) {
-                console.log("[gallery] originalThumbnailUrl exists:", hasGalleryOriginalThumbnail(item));
-                console.log("[gallery] originalImageUrl exists:", hasGalleryOriginalImage(item));
-                console.log("[gallery] originalThumbSrc resolved:", Boolean(originalThumbSrc));
-              }
               return `
                 <button class="gallery-collage-item ${galleryImages.length > 1 ? getGalleryCollagePatternClass(item, index) : ""} ${getGalleryItemLayoutClass(item)}" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(label)} 크게보기"${getGalleryCardAspectRatioStyle(item)}>
                   <img class="gallery-main-image" alt="${escapeHtml(label)}" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(item.displayUrl || item.imageUrl))}" />
-                  ${originalThumbSrc ? `
-                    <span class="gallery-original-thumb" aria-hidden="true">
-                      <img class="gallery-original-thumb-image" alt="" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(originalThumbSrc))}" />
-                    </span>
-                  ` : ""}
                 </button>
               `;
             }).join("")}
@@ -6954,13 +6864,6 @@ ${modeExample}`;
         if (!(image instanceof HTMLImageElement)) return;
         if (!image.classList.contains("gallery-main-image")) return;
         updateGalleryImageLayout(image);
-      }, true);
-
-      galleryContent?.addEventListener("error", (event) => {
-        const image = event.target;
-        if (!(image instanceof HTMLImageElement)) return;
-        if (!image.classList.contains("gallery-original-thumb-image")) return;
-        image.closest(".gallery-original-thumb")?.remove();
       }, true);
 
       galleryContent?.addEventListener("dragstart", (event) => {

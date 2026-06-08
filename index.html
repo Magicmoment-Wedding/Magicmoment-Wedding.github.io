@@ -220,6 +220,657 @@
         border: 1px solid rgba(255, 255, 255, 0.76);
       }
 
+      .account-menu-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(53, 47, 48, 0.2);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .account-menu-overlay.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .account-menu-panel {
+        width: min(100%, 390px);
+        border-radius: 30px 30px 24px 24px;
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 249, 0.96));
+        box-shadow:
+          0 24px 70px rgba(129, 80, 92, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.86);
+        transform: translateY(18px) scale(0.98);
+        transition: transform 180ms ease;
+        overflow: hidden;
+      }
+
+      .account-menu-overlay.is-open .account-menu-panel {
+        transform: translateY(0) scale(1);
+      }
+
+      .account-menu-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 18px 10px;
+      }
+
+      .account-menu-title {
+        color: #4f2630;
+        font-size: 16px;
+        font-weight: 750;
+      }
+
+      .account-menu-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #81505c;
+        background: rgba(129, 80, 92, 0.08);
+        transition: background 160ms ease, transform 160ms ease;
+      }
+
+      .account-menu-close:active {
+        transform: scale(0.96);
+      }
+
+      .account-menu-list {
+        display: grid;
+        gap: 8px;
+        padding: 8px 14px 18px;
+      }
+
+      .account-menu-item {
+        min-height: 54px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 14px;
+        color: #5b3942;
+        font-size: 15px;
+        font-weight: 700;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.56);
+        border: 1px solid rgba(129, 80, 92, 0.08);
+        transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+      }
+
+      .account-menu-item:hover,
+      .account-menu-item:focus-visible {
+        background: rgba(244, 182, 195, 0.2);
+        border-color: rgba(129, 80, 92, 0.15);
+      }
+
+      .account-menu-item:active {
+        transform: translateY(1px);
+      }
+
+      .account-menu-item-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        color: #81505c;
+        background: rgba(244, 182, 195, 0.18);
+        font-size: 20px;
+      }
+
+      .account-menu-toast {
+        position: fixed;
+        left: 50%;
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        z-index: 120;
+        max-width: min(88vw, 360px);
+        border-radius: 9999px;
+        padding: 12px 16px;
+        color: #fff;
+        background: rgba(79, 38, 48, 0.92);
+        box-shadow: 0 16px 42px rgba(79, 38, 48, 0.24);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.35;
+        text-align: center;
+        transform: translate(-50%, 10px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .account-menu-toast.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      .login-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 85;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(53, 47, 48, 0.34);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      .login-modal-overlay.is-open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .login-modal-panel {
+        width: min(100%, 420px);
+        max-height: calc(100dvh - 32px);
+        overflow: auto;
+        border-radius: 32px 32px 24px 24px;
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        background:
+          radial-gradient(120% 80% at 50% -20%, rgba(244, 182, 195, 0.24), transparent 56%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(255, 248, 250, 0.97));
+        box-shadow:
+          0 28px 82px rgba(79, 38, 48, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        transform: translateY(18px) scale(0.98);
+        transition: transform 180ms ease;
+      }
+
+      .login-modal-overlay.is-open .login-modal-panel {
+        transform: translateY(0) scale(1);
+      }
+
+      .login-modal-header {
+        display: flex;
+        justify-content: flex-end;
+        padding: 14px 14px 0;
+      }
+
+      .login-modal-close {
+        width: 38px;
+        height: 38px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #81505c;
+        background: rgba(129, 80, 92, 0.08);
+        transition: background 160ms ease, transform 160ms ease;
+      }
+
+      .login-modal-close:hover,
+      .login-modal-close:focus-visible {
+        background: rgba(129, 80, 92, 0.12);
+      }
+
+      .login-modal-close:active {
+        transform: scale(0.96);
+      }
+
+      .login-modal-body {
+        padding: 2px 22px 24px;
+      }
+
+      .login-modal-title {
+        color: #4f2630;
+        font-size: 30px;
+        line-height: 1.08;
+        font-weight: 700;
+      }
+
+      .login-modal-lead {
+        margin-top: 12px;
+        color: #5b3942;
+        font-size: 16px;
+        line-height: 1.55;
+        font-weight: 750;
+      }
+
+      .login-modal-copy {
+        margin-top: 7px;
+        color: #705e61;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .social-login-list {
+        display: grid;
+        gap: 11px;
+        margin-top: 22px;
+      }
+
+      .social-login-button {
+        position: relative;
+        min-height: 54px;
+        width: 100%;
+        border-radius: 18px;
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) 38px;
+        align-items: center;
+        gap: 8px;
+        padding: 0 12px;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.15;
+        text-align: center;
+        box-shadow:
+          0 9px 22px rgba(129, 80, 92, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+      }
+
+      .social-login-button:hover,
+      .social-login-button:focus-visible {
+        box-shadow:
+          0 12px 26px rgba(129, 80, 92, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      }
+
+      .social-login-button:active {
+        transform: translateY(1px);
+        filter: saturate(0.96);
+      }
+
+      .social-login-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .social-login-button.is-kakao {
+        color: #3a2a1d;
+        background: linear-gradient(180deg, #fee86b, #f7d94c);
+        border: 1px solid rgba(116, 84, 18, 0.08);
+      }
+
+      .social-login-button.is-kakao .social-login-icon {
+        color: #3a2a1d;
+        background: rgba(255, 255, 255, 0.38);
+      }
+
+      .social-login-button.is-naver {
+        color: #ffffff;
+        background: linear-gradient(180deg, #1fc369, #17a95b);
+        border: 1px solid rgba(23, 126, 72, 0.14);
+      }
+
+      .social-login-button.is-naver .social-login-icon {
+        color: #18a85b;
+        background: rgba(255, 255, 255, 0.94);
+      }
+
+      .social-login-button.is-google {
+        color: #4f2630;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(129, 80, 92, 0.16);
+      }
+
+      .social-login-button.is-google .social-login-icon {
+        color: #81505c;
+        background: rgba(244, 182, 195, 0.16);
+      }
+
+      .social-login-button.is-apple {
+        color: #ffffff;
+        background: linear-gradient(180deg, #211b1d, #0f0d0e);
+        border: 1px solid rgba(0, 0, 0, 0.16);
+      }
+
+      .social-login-button.is-apple .social-login-icon {
+        color: #151113;
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      .login-modal-terms {
+        margin-top: 18px;
+        color: #837376;
+        font-size: 11px;
+        line-height: 1.6;
+        text-align: center;
+      }
+
+      .my-photo-hero {
+        border-radius: 28px;
+        padding: 18px;
+        color: #4f2630;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 242, 246, 0.66));
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        box-shadow:
+          0 16px 42px rgba(129, 80, 92, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.76);
+      }
+
+      .my-photo-state-card {
+        border-radius: 28px;
+        padding: 24px 18px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.68);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 18px 48px rgba(129, 80, 92, 0.12);
+      }
+
+      .my-photo-icon {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #81505c;
+        background: rgba(244, 182, 195, 0.2);
+        border: 1px solid rgba(129, 80, 92, 0.08);
+      }
+
+      .my-photo-filter-list {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 2px 1px 8px;
+      }
+
+      .my-photo-filter-button {
+        min-height: 38px;
+        border-radius: 9999px;
+        padding: 0 14px;
+        flex: 0 0 auto;
+        color: #705e61;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        font-size: 12px;
+        font-weight: 800;
+        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .my-photo-filter-button.is-active {
+        color: #fff;
+        background: #81505c;
+        box-shadow: 0 10px 22px rgba(129, 80, 92, 0.18);
+      }
+
+      .my-photo-filter-button:active {
+        transform: translateY(1px);
+      }
+
+      .my-photo-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .my-photo-card {
+        overflow: hidden;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 16px 42px rgba(129, 80, 92, 0.12);
+      }
+
+      .my-photo-thumb {
+        position: relative;
+        aspect-ratio: 4 / 5;
+        overflow: hidden;
+        background: rgba(242, 218, 221, 0.44);
+      }
+
+      .my-photo-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .my-photo-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        border-radius: 9999px;
+        padding: 6px 10px;
+        color: #fff;
+        background: rgba(129, 80, 92, 0.9);
+        font-size: 11px;
+        font-weight: 800;
+        box-shadow: 0 8px 20px rgba(79, 38, 48, 0.16);
+      }
+
+      .my-photo-card-body {
+        padding: 14px;
+      }
+
+      @media (min-width: 720px) {
+        .my-photo-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .site-guide-hero,
+      .site-guide-card {
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(255, 242, 246, 0.68));
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow:
+          0 16px 42px rgba(129, 80, 92, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.74);
+      }
+
+      .site-guide-hero {
+        padding: 18px;
+      }
+
+      .site-guide-steps {
+        display: grid;
+        gap: 14px;
+      }
+
+      .site-guide-step {
+        overflow: hidden;
+        border-radius: 26px;
+        background: rgba(255, 255, 255, 0.74);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.1);
+      }
+
+      .site-guide-illustration {
+        min-height: 128px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(90% 90% at 50% 15%, rgba(244, 182, 195, 0.24), transparent 60%),
+          linear-gradient(135deg, rgba(255, 248, 250, 0.92), rgba(246, 235, 236, 0.72));
+      }
+
+      .site-guide-illustration img {
+        max-width: 100%;
+        max-height: 160px;
+        border-radius: 18px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .site-guide-placeholder {
+        width: min(100%, 210px);
+        min-height: 96px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #81505c;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      }
+
+      .site-guide-step-body {
+        padding: 16px;
+      }
+
+      .site-guide-step-number {
+        width: 34px;
+        height: 34px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: #81505c;
+        font-size: 13px;
+        font-weight: 900;
+        box-shadow: 0 10px 22px rgba(129, 80, 92, 0.18);
+      }
+
+      .site-guide-note-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .site-guide-note {
+        border-radius: 16px;
+        padding: 9px 11px;
+        color: #705e61;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(129, 80, 92, 0.08);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .site-guide-info-card {
+        padding: 18px;
+      }
+
+      .site-guide-faq-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .site-guide-faq {
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        overflow: hidden;
+      }
+
+      .site-guide-faq summary {
+        min-height: 54px;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 14px;
+        color: #4f2630;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .site-guide-faq summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .site-guide-faq summary::after {
+        content: "expand_more";
+        font-family: "Material Symbols Outlined";
+        color: #81505c;
+        font-size: 20px;
+        transition: transform 160ms ease;
+      }
+
+      .site-guide-faq[open] summary::after {
+        transform: rotate(180deg);
+      }
+
+      .site-guide-faq-answer {
+        padding: 0 14px 14px;
+        color: #705e61;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      @media (min-width: 720px) {
+        .site-guide-steps {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .site-guide-step:last-child:nth-child(odd) {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (min-width: 720px) {
+        .account-menu-overlay {
+          align-items: flex-start;
+          justify-content: flex-start;
+          padding: 0;
+          background: transparent;
+        }
+
+        .account-menu-panel {
+          position: absolute;
+          top: var(--account-menu-top, 76px);
+          left: var(--account-menu-left, auto);
+          right: var(--account-menu-right, 24px);
+          width: 244px;
+          border-radius: 24px;
+          transform: translateY(-8px) scale(0.98);
+        }
+
+        .account-menu-header {
+          padding: 16px 16px 8px;
+        }
+
+        .account-menu-list {
+          padding: 8px 12px 14px;
+        }
+
+        .account-menu-item {
+          min-height: 50px;
+        }
+
+        .login-modal-overlay {
+          align-items: center;
+          padding: 24px;
+        }
+
+        .login-modal-panel {
+          width: 404px;
+          border-radius: 28px;
+          transform: translateY(10px) scale(0.98);
+        }
+
+        .login-modal-body {
+          padding: 2px 28px 28px;
+        }
+      }
+
       .mode-card {
         position: relative;
         min-width: 0;
@@ -2109,7 +2760,7 @@
                 <span class="font-semibold">크레딧</span>
               </button>
               <p class="font-display text-[20px] tracking-[0.18em] text-center text-primary">Magic Ai Studio</p>
-              <button id="topSettingsButton" class="w-10 h-10 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-sm">
+              <button id="topSettingsButton" class="w-10 h-10 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-sm" type="button" aria-label="계정 메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="accountMenuPanel">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
               </button>
             </div>
@@ -2181,7 +2832,7 @@
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
               <p class="font-display text-[19px] text-primary">Magic Ai Studio</p>
-              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-action="settings-placeholder" type="button">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-action="account-menu" type="button" aria-label="계정 메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="accountMenuPanel">
                 <span class="material-symbols-outlined text-[19px]">settings</span>
               </button>
             </div>
@@ -2524,6 +3175,142 @@
             <div id="galleryContent" class="mt-4"></div>
           </section>
 
+          <section class="screen-panel app-screen hidden" id="myPhotoBoxScreen">
+            <div class="app-topbar">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button" aria-label="뒤로가기">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <p class="font-display text-[19px] text-primary">마이포토박스</p>
+              <span class="w-9"></span>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-4">
+              <section class="my-photo-hero">
+                <p class="font-label-caps text-label-caps uppercase text-primary/80">Private Album</p>
+                <h1 class="mt-2 font-display text-[30px] leading-tight text-on-surface">마이포토박스</h1>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">내가 만든 AI 웨딩사진을 모아볼 수 있어요.</p>
+              </section>
+
+              <section class="my-photo-state-card" id="myPhotoBoxLoginRequired">
+                <div class="my-photo-icon" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[26px]">lock</span>
+                </div>
+                <h2 class="mt-4 font-display text-[28px] leading-tight text-on-surface">로그인이 필요해요</h2>
+                <p class="mt-3 text-sm leading-6 text-on-surface-variant">마이포토박스는 로그인 후 이용할 수 있어요.<br />로그인하면 만든 사진을 안전하게 보관하고 다시 확인할 수 있습니다.</p>
+                <button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="myPhotoBoxLoginButton" type="button">
+                  로그인하기
+                </button>
+              </section>
+
+              <section class="hidden flex-col gap-4" id="myPhotoBoxAuthedContent">
+                <div class="my-photo-hero">
+                  <h2 class="font-display text-[26px] leading-tight text-on-surface">내가 만든 사진을 다시 확인하고 저장할 수 있어요.</h2>
+                  <p class="mt-2 text-sm leading-6 text-on-surface-variant">생성 결과와 갤러리 업로드 이력을 한 곳에서 관리할 수 있도록 준비 중입니다.</p>
+                </div>
+
+                <div class="my-photo-filter-list" role="tablist" aria-label="마이포토박스 필터">
+                  <button class="my-photo-filter-button is-active" data-my-photo-filter="all" type="button" role="tab" aria-selected="true">전체</button>
+                  <button class="my-photo-filter-button" data-my-photo-filter="recommended" type="button" role="tab" aria-selected="false">AI 추천</button>
+                  <button class="my-photo-filter-button" data-my-photo-filter="gallery" type="button" role="tab" aria-selected="false">갤러리 업로드</button>
+                </div>
+
+                <div class="my-photo-grid" id="myPhotoBoxGrid"></div>
+
+                <section class="my-photo-state-card hidden" id="myPhotoBoxEmptyState">
+                  <div class="my-photo-icon" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[26px]">photo_library</span>
+                  </div>
+                  <h2 class="mt-4 font-display text-[27px] leading-tight text-on-surface">아직 저장된 사진이 없어요</h2>
+                  <p class="mt-3 text-sm leading-6 text-on-surface-variant">AI 웨딩사진을 만들면 이곳에서 다시 확인할 수 있어요.</p>
+                  <button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="myPhotoBoxCreateButton" type="button">
+                    사진 만들러 가기
+                  </button>
+                </section>
+              </section>
+            </div>
+          </section>
+
+          <section class="screen-panel app-screen hidden" id="siteGuideScreen">
+            <div class="app-topbar">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button" aria-label="뒤로가기">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <p class="font-display text-[19px] text-primary">사이트 이용안내</p>
+              <span class="w-9"></span>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-4">
+              <section class="site-guide-hero">
+                <p class="font-label-caps text-label-caps uppercase text-primary/80">Guide</p>
+                <h1 class="mt-2 font-display text-[30px] leading-tight text-on-surface">사이트 이용안내</h1>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">처음 오신 분도 쉽게 따라 할 수 있도록 사진 만들기부터 저장, 갤러리 업로드, 크레딧 충전까지 차례대로 안내해드려요.</p>
+              </section>
+
+              <section>
+                <h2 class="mb-3 text-[17px] font-bold text-on-surface">이용 방법</h2>
+                <div class="site-guide-steps" id="siteGuideSteps"></div>
+              </section>
+
+              <section class="site-guide-card site-guide-info-card">
+                <div class="flex items-start gap-3">
+                  <div class="my-photo-icon shrink-0 m-0" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[25px]">verified_user</span>
+                  </div>
+                  <div class="min-w-0">
+                    <h2 class="font-display text-[25px] leading-tight text-on-surface">사진 보관 안내</h2>
+                    <div class="mt-3 space-y-2 text-sm leading-6 text-on-surface-variant">
+                      <p>고객님의 원본 사진은 AI 사진 생성에만 사용되며, 생성 후 바로 삭제되는 정책으로 운영됩니다.</p>
+                      <p>생성된 결과 사진은 다운로드 편의를 위해 최대 7일간 보관된 뒤 삭제됩니다.</p>
+                      <p>스타일 갤러리에 직접 업로드한 사진은 공개 갤러리에 표시되며, 삭제를 원하실 경우 문의하기를 통해 요청하실 수 있습니다.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="site-guide-card site-guide-info-card">
+                <div class="flex items-start gap-3">
+                  <div class="my-photo-icon shrink-0 m-0" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[25px]">account_balance_wallet</span>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h2 class="font-display text-[25px] leading-tight text-on-surface">크레딧 안내</h2>
+                    <div class="mt-3 space-y-2 text-sm leading-6 text-on-surface-variant">
+                      <p>AI 웨딩사진 만들기 1회에는 25크레딧이 사용됩니다.</p>
+                      <p>크레딧이 부족하면 크레딧 관리 화면에서 충전할 수 있습니다.</p>
+                      <p>스타일 갤러리에 결과 사진을 업로드하면 5크레딧이 지급됩니다.</p>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                      <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
+                        <p class="text-xs text-on-surface-variant">200크레딧</p>
+                        <p class="mt-1 text-sm font-bold text-primary">19,800원</p>
+                      </div>
+                      <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
+                        <p class="text-xs text-on-surface-variant">500크레딧</p>
+                        <p class="mt-1 text-sm font-bold text-primary">39,800원</p>
+                      </div>
+                    </div>
+                    <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="siteGuideCreditButton" type="button">
+                      크레딧 관리로 이동
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h2 class="mb-3 text-[17px] font-bold text-on-surface">자주 묻는 질문</h2>
+                <div class="site-guide-faq-list" id="siteGuideFaqList"></div>
+              </section>
+
+              <section class="site-guide-card site-guide-info-card text-center">
+                <h2 class="font-display text-[25px] leading-tight text-on-surface">더 궁금한 점이 있으신가요?</h2>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">어시스턴트에게 문의하면 원하는 스타일과 사용 방법을 함께 안내해드릴게요.</p>
+                <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="siteGuideContactButton" type="button">
+                  더 궁금한 점 문의하기
+                </button>
+              </section>
+            </div>
+          </section>
+
           <section class="screen-panel app-screen hidden" id="creditsScreen">
             <div class="app-topbar">
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
@@ -2609,6 +3396,73 @@
         </div>
       </section>
     </main>
+
+    <div class="account-menu-overlay" id="accountMenuOverlay" aria-hidden="true">
+      <section class="account-menu-panel" id="accountMenuPanel" role="dialog" aria-modal="true" aria-labelledby="accountMenuTitle">
+        <div class="account-menu-header">
+          <p class="account-menu-title" id="accountMenuTitle">계정 메뉴</p>
+          <button class="account-menu-close" id="accountMenuClose" type="button" aria-label="계정 메뉴 닫기">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+        <div class="account-menu-list">
+          <button class="account-menu-item" data-account-menu-action="login" type="button">
+            <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">person</span>
+            <span>로그인</span>
+          </button>
+          <button class="account-menu-item" data-account-menu-action="my-photo-box" type="button">
+            <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">photo_library</span>
+            <span>마이포토박스</span>
+          </button>
+          <button class="account-menu-item" data-account-menu-action="site-guide" type="button">
+            <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">menu_book</span>
+            <span>사이트 이용안내</span>
+          </button>
+          <button class="account-menu-item" data-account-menu-action="credits" type="button">
+            <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">account_balance_wallet</span>
+            <span>크레딧 관리</span>
+          </button>
+          <button class="account-menu-item" data-account-menu-action="contact" type="button">
+            <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">support_agent</span>
+            <span>문의하기</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <div class="account-menu-toast" id="accountMenuToast" role="status" aria-live="polite"></div>
+
+    <div class="login-modal-overlay" id="loginModalOverlay" aria-hidden="true">
+      <section class="login-modal-panel" id="loginModalPanel" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" aria-describedby="loginModalDescription">
+        <div class="login-modal-header">
+          <button class="login-modal-close" id="loginModalClose" type="button" aria-label="로그인 화면 닫기">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+        <div class="login-modal-body">
+          <h2 class="login-modal-title font-display" id="loginModalTitle">로그인</h2>
+          <p class="login-modal-lead" id="loginModalDescription">사진 보관과 크레딧 관리를 위해 로그인해 주세요.</p>
+          <p class="login-modal-copy">로그인하면 생성한 사진을 마이포토박스에 보관하고, 크레딧을 안전하게 관리할 수 있어요.</p>
+          <div class="social-login-list" aria-label="소셜 로그인">
+            <button class="social-login-button is-naver" data-social-login-provider="naver" type="button">
+              <span class="social-login-icon" aria-hidden="true">N</span>
+              <span>네이버로 계속하기</span>
+              <span aria-hidden="true"></span>
+            </button>
+            <button class="social-login-button is-google" data-social-login-provider="google" type="button">
+              <span class="social-login-icon" aria-hidden="true">G</span>
+              <span>Google로 계속하기</span>
+              <span aria-hidden="true"></span>
+            </button>
+            <button class="social-login-button is-kakao" data-social-login-provider="kakao" type="button">
+              <span class="social-login-icon" aria-hidden="true">K</span>
+              <span>카카오로 계속하기</span>
+              <span aria-hidden="true"></span>
+            </button>
+          </div>
+          <p class="login-modal-terms">로그인하면 이용약관 및 개인정보 처리방침에 동의하게 됩니다.</p>
+        </div>
+      </section>
+    </div>
 
     <div class="fixed inset-0 z-[90] hidden modal-glass backdrop-blur-md items-center justify-center px-3 py-5 sm:p-8" id="imageModal">
       <div class="relative w-full h-full max-w-6xl flex flex-col gap-4" id="imageModalShell">
@@ -3316,8 +4170,21 @@ Important balance:
       const generatingScreen = document.getElementById("generatingScreen");
       const resultScreen = document.getElementById("resultScreen");
       const galleryScreen = document.getElementById("galleryScreen");
+      const myPhotoBoxScreen = document.getElementById("myPhotoBoxScreen");
+      const siteGuideScreen = document.getElementById("siteGuideScreen");
       const creditsScreen = document.getElementById("creditsScreen");
       const galleryContent = document.getElementById("galleryContent");
+      const myPhotoBoxLoginRequired = document.getElementById("myPhotoBoxLoginRequired");
+      const myPhotoBoxAuthedContent = document.getElementById("myPhotoBoxAuthedContent");
+      const myPhotoBoxGrid = document.getElementById("myPhotoBoxGrid");
+      const myPhotoBoxEmptyState = document.getElementById("myPhotoBoxEmptyState");
+      const myPhotoBoxLoginButton = document.getElementById("myPhotoBoxLoginButton");
+      const myPhotoBoxCreateButton = document.getElementById("myPhotoBoxCreateButton");
+      const myPhotoBoxFilterButtons = Array.from(document.querySelectorAll("[data-my-photo-filter]"));
+      const siteGuideStepsContainer = document.getElementById("siteGuideSteps");
+      const siteGuideFaqList = document.getElementById("siteGuideFaqList");
+      const siteGuideCreditButton = document.getElementById("siteGuideCreditButton");
+      const siteGuideContactButton = document.getElementById("siteGuideContactButton");
       const generatingGalleryPreview = document.getElementById("generatingGalleryPreview");
       const generatingGallerySlider = document.getElementById("generatingGallerySlider");
       const creditBalanceText = document.getElementById("creditBalanceText");
@@ -3427,9 +4294,111 @@ Important balance:
       let isComparisonDragging = false;
       let modalItemsOverride = null;
       let appScreen = "landing";
+      let isMyPhotoBoxLoggedIn = false;
+      let currentUser = null;
+      let myPhotos = [];
+      let isLoadingMyPhotos = false;
+      let selectedMyPhoto = null;
+      let selectedMyPhotoFilter = "all";
       let creditBalance = 0;
       let isCreditsLoading = false;
       let chargingCreditAmount = null;
+      const guideSteps = [
+        {
+          title: "사진 올리기",
+          description: "편집 화면에서 사진 영역을 눌러 웨딩사진을 올려주세요. 얼굴이 잘 보이고, 너무 어둡지 않은 사진일수록 결과가 더 자연스럽습니다.",
+          icon: "add_a_photo",
+          image: null,
+          notes: [],
+        },
+        {
+          title: "스타일 선택하기",
+          description: "Europe Style, Korea Style, Disney Style 중 원하는 분위기를 선택하고, 하위 배경 카드를 골라주세요.",
+          icon: "style",
+          image: null,
+          notes: ["스타일 카드와 배경 프리셋은 나중에 실제 안내 이미지로 교체할 수 있게 구성했습니다."],
+        },
+        {
+          title: "AI 웨딩사진 만들기",
+          description: "AI 웨딩사진 만들기 버튼을 누르면 크레딧이 사용되고, AI가 사진을 생성합니다. 생성이 완료될 때까지 잠시 기다려주세요.",
+          icon: "auto_awesome",
+          image: null,
+          notes: ["기본 생성은 25크레딧이 사용됩니다.", "이미지 생성에 실패한 경우 크레딧이 차감되지 않도록 안내하고 있습니다."],
+        },
+        {
+          title: "결과 확인하기",
+          description: "생성된 결과 4장을 확인하고, 크게보기를 눌러 마음에 드는 사진을 자세히 확인하세요. AI 추천 사진도 함께 표시됩니다.",
+          icon: "grid_view",
+          image: null,
+          notes: ["4장 중 가장 자연스러운 결과를 AI 추천 배지로 확인할 수 있어요."],
+        },
+        {
+          title: "사진 저장하기",
+          description: "크게보기 화면에서 사진을 길게 눌러 휴대폰 사진 앱에 저장해 주세요. 다운로드 폴더보다 사진 앱에 바로 저장하는 방식을 권장합니다.",
+          icon: "touch_app",
+          image: null,
+          notes: [
+            "iPhone Safari: 사진을 길게 누른 뒤 사진 앱에 저장을 선택해 주세요.",
+            "Android Chrome / 삼성인터넷 / 카카오톡 / 네이버 / 인스타 인앱브라우저: 사진을 길게 누른 뒤 이미지 저장을 선택해 주세요.",
+          ],
+        },
+        {
+          title: "스타일 갤러리에 올리기",
+          description: "마음에 드는 결과 1장을 스타일 갤러리에 올릴 수 있어요. 다른 고객들이 스타일을 참고할 수 있는 공개 갤러리에 표시됩니다.",
+          icon: "cloud_upload",
+          image: null,
+          notes: ["4장 중 1장만 업로드 가능", "1인 최대 10장까지 업로드 가능", "스타일 갤러리에 업로드하면 5크레딧 지급", "공개해도 괜찮은 사진만 올려주세요."],
+        },
+        {
+          title: "크레딧 충전하기",
+          description: "크레딧이 부족하면 크레딧 관리 화면에서 충전할 수 있어요. 충전한 크레딧으로 AI 웨딩사진을 만들 수 있습니다.",
+          icon: "account_balance_wallet",
+          image: null,
+          notes: ["200크레딧: 19,800원", "500크레딧: 39,800원", "사진 1회 생성 시 25크레딧 사용", "현재 결제 기능은 준비 중인 상태로 표시됩니다."],
+        },
+      ];
+      const guideFaqItems = [
+        {
+          question: "원본 사진은 안전하게 보관되나요?",
+          answer: "고객님의 원본 사진은 AI 사진 생성에만 사용되며, 생성 작업이 끝난 뒤 바로 삭제되는 정책으로 안내하고 있습니다. 실제 운영 정책과 삭제 자동화 구현 상태는 운영 전 확인이 필요합니다.",
+        },
+        {
+          question: "생성된 사진은 언제까지 보관되나요?",
+          answer: "생성된 사진은 고객님이 다운로드할 수 있도록 생성 후 최대 7일간 보관 후 삭제되는 것으로 안내합니다. 실제 서버 삭제 자동화 구현 여부는 확인이 필요합니다.",
+        },
+        {
+          question: "사진 생성에는 크레딧이 얼마나 필요한가요?",
+          answer: "기본 AI 웨딩사진 생성 1회에는 25크레딧이 사용됩니다.",
+        },
+        {
+          question: "생성에 실패해도 크레딧이 차감되나요?",
+          answer: "이미지 생성에 실패한 경우 크레딧이 차감되지 않도록 안내하고 있습니다. 실제 백엔드 정책이 다르면 운영 정책에 맞춰 문구를 조정해야 합니다.",
+        },
+        {
+          question: "스타일 갤러리에 사진을 올리면 어떻게 되나요?",
+          answer: "선택한 결과 사진 1장이 스타일 갤러리에 공개됩니다. 다른 고객들이 스타일 예시로 볼 수 있으며, 업로드 시 5크레딧이 지급됩니다.",
+        },
+        {
+          question: "스타일 갤러리에 올린 사진은 삭제할 수 있나요?",
+          answer: "로그인/회원 기능과 마이포토박스가 완성되면 직접 관리할 수 있도록 준비 중입니다. 현재는 문의하기를 통해 삭제 요청할 수 있습니다.",
+        },
+        {
+          question: "얼굴이 많이 바뀌나요?",
+          answer: "Magic Ai Studio는 얼굴과 포즈를 최대한 유지하고, 배경과 분위기를 자연스럽게 바꾸는 것을 목표로 합니다. 다만 AI 생성 특성상 일부 결과에서 차이가 생길 수 있으니 4장 중 가장 자연스러운 사진을 선택해 주세요.",
+        },
+        {
+          question: "어떤 사진을 올리면 결과가 잘 나오나요?",
+          answer: "얼굴이 선명하고, 너무 어둡지 않고, 인물이 과하게 잘리지 않은 사진이 좋습니다. 손이나 얼굴이 가려진 사진, 너무 작은 얼굴, 단체사진은 결과가 불안정할 수 있습니다.",
+        },
+        {
+          question: "다운로드한 사진은 어디에 저장되나요?",
+          answer: "기기와 브라우저마다 다릅니다. 그래서 다운로드 버튼보다 사진을 길게 눌러 사진 앱 또는 갤러리에 저장하는 방식을 권장합니다.",
+        },
+        {
+          question: "문의는 어디서 하나요?",
+          answer: "톱니바퀴 메뉴의 문의하기 또는 하단 어시스턴트 메뉴를 통해 문의할 수 있습니다.",
+        },
+      ];
 
       function createAnonymousId() {
         const randomString = Math.random().toString(36).slice(2, 10);
@@ -3650,6 +4619,176 @@ Important balance:
         });
       }
 
+      function renderSiteGuideScreen() {
+        if (siteGuideStepsContainer && !siteGuideStepsContainer.dataset.rendered) {
+          siteGuideStepsContainer.innerHTML = guideSteps.map((step, index) => {
+            const notes = Array.isArray(step.notes) ? step.notes : [];
+            return `
+              <article class="site-guide-step">
+                <div class="site-guide-illustration">
+                  ${step.image ? `
+                    <img src="${escapeHtml(step.image)}" alt="${escapeHtml(step.title)} 안내 이미지" loading="lazy" decoding="async" />
+                  ` : `
+                    <div class="site-guide-placeholder" aria-hidden="true">
+                      <span class="material-symbols-outlined text-[34px]">${escapeHtml(step.icon || "info")}</span>
+                      <span class="text-xs font-bold text-primary/80">이미지 준비 중</span>
+                    </div>
+                  `}
+                </div>
+                <div class="site-guide-step-body">
+                  <div class="flex items-center gap-3">
+                    <span class="site-guide-step-number">${index + 1}</span>
+                    <h3 class="text-[18px] font-bold leading-6 text-on-surface">${escapeHtml(step.title)}</h3>
+                  </div>
+                  <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(step.description)}</p>
+                  ${notes.length ? `
+                    <div class="site-guide-note-list">
+                      ${notes.map((note) => `<p class="site-guide-note">${escapeHtml(note)}</p>`).join("")}
+                    </div>
+                  ` : ""}
+                </div>
+              </article>
+            `;
+          }).join("");
+          siteGuideStepsContainer.dataset.rendered = "true";
+        }
+
+        if (siteGuideFaqList && !siteGuideFaqList.dataset.rendered) {
+          siteGuideFaqList.innerHTML = guideFaqItems.map((item, index) => `
+            <details class="site-guide-faq" ${index === 0 ? "open" : ""}>
+              <summary>${escapeHtml(item.question)}</summary>
+              <div class="site-guide-faq-answer">${escapeHtml(item.answer)}</div>
+            </details>
+          `).join("");
+          siteGuideFaqList.dataset.rendered = "true";
+        }
+      }
+
+      async function fetchMyPhotos() {
+        // TODO: connect to /api/my-photos after login and member storage are ready.
+        return [];
+      }
+
+      function getFilteredMyPhotos() {
+        if (selectedMyPhotoFilter === "recommended") {
+          return myPhotos.filter((photo) => photo.isRecommended);
+        }
+
+        if (selectedMyPhotoFilter === "gallery") {
+          return myPhotos.filter((photo) => photo.galleryUploaded || photo.source === "gallery");
+        }
+
+        return myPhotos;
+      }
+
+      function syncMyPhotoFilters() {
+        myPhotoBoxFilterButtons.forEach((button) => {
+          const isActive = button.dataset.myPhotoFilter === selectedMyPhotoFilter;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+      }
+
+      function renderMyPhotoCards(photos) {
+        if (!myPhotoBoxGrid) return;
+
+        myPhotoBoxGrid.innerHTML = photos.map((photo, index) => {
+          const imageUrl = photo.thumbnailUrl || photo.imageUrl || "";
+          const styleLabel = photo.styleLabel || "AI Wedding";
+          const presetLabel = photo.presetLabel || "웨딩사진";
+          const createdAtLabel = photo.createdAtLabel || "생성일 준비 중";
+          const title = `${styleLabel} · ${presetLabel}`;
+
+          return `
+            <article class="my-photo-card">
+              <button class="block w-full text-left" data-my-photo-index="${index}" type="button" aria-label="${escapeHtml(title)} 크게보기">
+                <div class="my-photo-thumb">
+                  ${imageUrl ? `<img src="${escapeHtml(toDisplayUrl(imageUrl))}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" />` : `
+                    <div class="absolute inset-0 flex items-center justify-center text-primary/70">
+                      <span class="material-symbols-outlined text-[34px]">photo</span>
+                    </div>
+                  `}
+                  ${photo.isRecommended ? `<span class="my-photo-badge">AI 추천</span>` : ""}
+                </div>
+                <div class="my-photo-card-body">
+                  <p class="text-xs font-bold uppercase tracking-wide text-on-surface-variant">${escapeHtml(styleLabel)}</p>
+                  <h3 class="mt-1 text-[16px] font-bold leading-6 text-on-surface">${escapeHtml(presetLabel)}</h3>
+                  <p class="mt-1 text-xs leading-5 text-on-surface-variant">${escapeHtml(createdAtLabel)}</p>
+                  <div class="mt-3 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">크게보기</div>
+                </div>
+              </button>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function renderMyPhotoBoxScreen() {
+        const isLoggedIn = Boolean(isMyPhotoBoxLoggedIn && currentUser);
+        myPhotoBoxLoginRequired?.classList.toggle("hidden", isLoggedIn);
+        myPhotoBoxAuthedContent?.classList.toggle("hidden", !isLoggedIn);
+        myPhotoBoxAuthedContent?.classList.toggle("flex", isLoggedIn);
+
+        if (!isLoggedIn) {
+          if (myPhotoBoxGrid) myPhotoBoxGrid.innerHTML = "";
+          myPhotoBoxEmptyState?.classList.add("hidden");
+          return;
+        }
+
+        syncMyPhotoFilters();
+        const filteredPhotos = getFilteredMyPhotos();
+        const hasPhotos = filteredPhotos.length > 0;
+        myPhotoBoxGrid?.classList.toggle("hidden", !hasPhotos);
+        myPhotoBoxEmptyState?.classList.toggle("hidden", hasPhotos || isLoadingMyPhotos);
+        renderMyPhotoCards(filteredPhotos);
+      }
+
+      async function refreshMyPhotoBoxScreen() {
+        if (!isMyPhotoBoxLoggedIn || !currentUser) {
+          renderMyPhotoBoxScreen();
+          return;
+        }
+
+        isLoadingMyPhotos = true;
+        renderMyPhotoBoxScreen();
+
+        try {
+          myPhotos = await fetchMyPhotos();
+        } catch (error) {
+          if (DEBUG_MODE) {
+            console.warn("[client][my-photo-box] fetch placeholder failed:", error);
+          }
+          myPhotos = [];
+        } finally {
+          isLoadingMyPhotos = false;
+          renderMyPhotoBoxScreen();
+        }
+      }
+
+      function goToPhotoEditor() {
+        navigateToScreen("editor");
+      }
+
+      function closeMyPhotoBox() {
+        navigateToScreen("editor");
+      }
+
+      function openMyPhotoDetail(photo) {
+        selectedMyPhoto = photo || null;
+        const visiblePhotos = getFilteredMyPhotos();
+        const items = visiblePhotos
+          .map((item, index) => ({
+            url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
+            label: item.resultLabel || item.presetLabel || `마이포토박스 사진 ${index + 1}`,
+            isRecommended: Boolean(item.isRecommended),
+            index,
+            myPhotoSource: true,
+          }))
+          .filter((item) => item.url);
+
+        const startIndex = Math.max(0, visiblePhotos.indexOf(photo));
+        openModalWithItems(items, startIndex);
+      }
+
       function setAppScreen(screen, options = {}) {
         const { pushHistory = true, replaceHistory = false } = options;
         appScreen = screen;
@@ -3666,6 +4805,8 @@ Important balance:
           { name: "generating", element: generatingScreen, activeClass: "" },
           { name: "result", element: resultScreen, activeClass: "" },
           { name: "gallery", element: galleryScreen, activeClass: "" },
+          { name: "myPhotoBox", element: myPhotoBoxScreen, activeClass: "" },
+          { name: "siteGuide", element: siteGuideScreen, activeClass: "" },
           { name: "credits", element: creditsScreen, activeClass: "" },
         ];
 
@@ -3688,6 +4829,14 @@ Important balance:
 
         if (screen === "gallery") {
           void refreshGalleryScreen();
+        }
+
+        if (screen === "myPhotoBox") {
+          void refreshMyPhotoBoxScreen();
+        }
+
+        if (screen === "siteGuide") {
+          renderSiteGuideScreen();
         }
 
         if (screen === "generating") {
@@ -6779,11 +7928,27 @@ ${modeExample}`;
 
       const topCreditButton = document.getElementById("topCreditButton");
       const topSettingsButton = document.getElementById("topSettingsButton");
+      const accountMenuOverlay = document.getElementById("accountMenuOverlay");
+      const accountMenuPanel = document.getElementById("accountMenuPanel");
+      const accountMenuClose = document.getElementById("accountMenuClose");
+      const accountMenuToast = document.getElementById("accountMenuToast");
+      const loginModalOverlay = document.getElementById("loginModalOverlay");
+      const loginModalPanel = document.getElementById("loginModalPanel");
+      const loginModalClose = document.getElementById("loginModalClose");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
       const bottomNavItems = Array.from(document.querySelectorAll("[data-bottom-nav]"));
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
+      const accountMenuTriggerButtons = [
+        topSettingsButton,
+        ...document.querySelectorAll('[data-action="account-menu"]'),
+      ].filter(Boolean);
+      const accountMenuItems = Array.from(document.querySelectorAll("[data-account-menu-action]"));
+      const socialLoginButtons = Array.from(document.querySelectorAll("[data-social-login-provider]"));
       const ASSISTANT_CHAT_URL = "https://pf.kakao.com/_xeNSts/chat";
       const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
+      let activeAccountMenuTrigger = null;
+      let activeLoginModalTrigger = null;
+      let accountMenuToastTimerId = null;
 
       if (topCreditButton) {
         topCreditButton.addEventListener("click", () => {
@@ -6814,10 +7979,192 @@ ${modeExample}`;
         });
       });
 
-      if (topSettingsButton) {
-        topSettingsButton.addEventListener("click", () => {
-          alert("설정 기능은 준비 중입니다.");
+      function isAccountMenuOpen() {
+        return Boolean(accountMenuOverlay?.classList.contains("is-open"));
+      }
+
+      function isLoginModalOpen() {
+        return Boolean(loginModalOverlay?.classList.contains("is-open"));
+      }
+
+      function setAccountMenuExpanded(isExpanded) {
+        accountMenuTriggerButtons.forEach((button) => {
+          button.setAttribute("aria-expanded", isExpanded ? "true" : "false");
         });
+      }
+
+      function positionAccountMenu(trigger) {
+        if (!accountMenuOverlay || !trigger || !window.matchMedia("(min-width: 720px)").matches) {
+          accountMenuOverlay?.style.removeProperty("--account-menu-top");
+          accountMenuOverlay?.style.removeProperty("--account-menu-left");
+          accountMenuOverlay?.style.removeProperty("--account-menu-right");
+          return;
+        }
+
+        const rect = trigger.getBoundingClientRect();
+        const menuWidth = 244;
+        const viewportPadding = 12;
+        const left = Math.max(
+          viewportPadding,
+          Math.min(window.innerWidth - menuWidth - viewportPadding, rect.right - menuWidth),
+        );
+        accountMenuOverlay.style.setProperty("--account-menu-top", `${Math.round(rect.bottom + 10)}px`);
+        accountMenuOverlay.style.setProperty("--account-menu-left", `${Math.round(left)}px`);
+        accountMenuOverlay.style.setProperty("--account-menu-right", "auto");
+      }
+
+      function openAccountMenu(trigger) {
+        if (!accountMenuOverlay || !accountMenuPanel) return;
+
+        activeAccountMenuTrigger = trigger || activeAccountMenuTrigger;
+        positionAccountMenu(activeAccountMenuTrigger);
+        accountMenuOverlay.classList.add("is-open");
+        accountMenuOverlay.setAttribute("aria-hidden", "false");
+        setAccountMenuExpanded(true);
+
+        window.requestAnimationFrame(() => {
+          accountMenuPanel.querySelector("button")?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeAccountMenu(options = {}) {
+        if (!accountMenuOverlay) return;
+
+        accountMenuOverlay.classList.remove("is-open");
+        accountMenuOverlay.setAttribute("aria-hidden", "true");
+        setAccountMenuExpanded(false);
+
+        if (options.restoreFocus && activeAccountMenuTrigger instanceof HTMLElement) {
+          activeAccountMenuTrigger.focus({ preventScroll: true });
+        }
+      }
+
+      function toggleAccountMenu(trigger) {
+        if (isAccountMenuOpen() && activeAccountMenuTrigger === trigger) {
+          closeAccountMenu();
+          return;
+        }
+
+        openAccountMenu(trigger);
+      }
+
+      function showAccountMenuToast(message) {
+        if (!accountMenuToast) return;
+
+        accountMenuToast.textContent = message;
+        accountMenuToast.classList.add("is-visible");
+
+        if (accountMenuToastTimerId) {
+          window.clearTimeout(accountMenuToastTimerId);
+        }
+
+        accountMenuToastTimerId = window.setTimeout(() => {
+          accountMenuToast.classList.remove("is-visible");
+        }, 2200);
+      }
+
+      function openLoginModal(trigger) {
+        if (!loginModalOverlay || !loginModalPanel) return;
+
+        activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
+        loginModalOverlay.classList.add("is-open");
+        loginModalOverlay.setAttribute("aria-hidden", "false");
+
+        window.requestAnimationFrame(() => {
+          loginModalPanel.querySelector("button")?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeLoginModal(options = {}) {
+        if (!loginModalOverlay) return;
+
+        loginModalOverlay.classList.remove("is-open");
+        loginModalOverlay.setAttribute("aria-hidden", "true");
+
+        if (options.restoreFocus && activeLoginModalTrigger instanceof HTMLElement) {
+          activeLoginModalTrigger.focus({ preventScroll: true });
+        }
+      }
+
+      function handleLoginClick() {
+        closeAccountMenu();
+        openLoginModal(activeAccountMenuTrigger);
+      }
+
+      function handleMyPhotoBoxClick() {
+        closeAccountMenu();
+        navigateToScreen("myPhotoBox");
+      }
+
+      function handleSiteGuideClick() {
+        closeAccountMenu();
+        navigateToScreen("siteGuide");
+      }
+
+      function handleCreditManageClick() {
+        closeAccountMenu();
+        navigateToScreen("credits");
+      }
+
+      function handleContactClick() {
+        closeAccountMenu();
+        openAssistantChat();
+      }
+
+      function handleKakaoLogin() {
+        showAccountMenuToast("카카오 로그인 연동을 준비 중입니다.");
+      }
+
+      function handleNaverLogin() {
+        showAccountMenuToast("네이버 로그인 연동을 준비 중입니다.");
+      }
+
+      function handleGoogleLogin() {
+        showAccountMenuToast("Google 로그인 연동을 준비 중입니다.");
+      }
+
+      function handleAppleLogin() {
+        showAccountMenuToast("소셜 로그인 연동을 준비 중입니다.");
+      }
+
+      function handleSocialLogin(provider) {
+        if (provider === "kakao") {
+          handleKakaoLogin();
+          return;
+        }
+        if (provider === "naver") {
+          handleNaverLogin();
+          return;
+        }
+        if (provider === "google") {
+          handleGoogleLogin();
+          return;
+        }
+        if (provider === "apple") {
+          handleAppleLogin();
+        }
+      }
+
+      function handleAccountMenuAction(action) {
+        if (action === "login") {
+          handleLoginClick();
+          return;
+        }
+        if (action === "my-photo-box") {
+          handleMyPhotoBoxClick();
+          return;
+        }
+        if (action === "site-guide") {
+          handleSiteGuideClick();
+          return;
+        }
+        if (action === "credits") {
+          handleCreditManageClick();
+          return;
+        }
+        if (action === "contact") {
+          handleContactClick();
+        }
       }
 
       function openAssistantChat() {
@@ -6834,6 +8181,9 @@ ${modeExample}`;
       featureActionButtons.forEach((button) => {
         button.addEventListener("click", () => {
           const action = button.dataset.action;
+          if (action === "account-menu") {
+            toggleAccountMenu(button);
+          }
           if (action === "open-assistant-chat") {
             openAssistantChat();
           }
@@ -6843,10 +8193,98 @@ ${modeExample}`;
           if (action === "community-placeholder") {
             alert("커뮤니티 기능은 준비 중입니다.");
           }
-          if (action === "settings-placeholder") {
-            alert("설정 기능은 준비 중입니다.");
-          }
         });
+      });
+
+      if (topSettingsButton) {
+        topSettingsButton.addEventListener("click", () => {
+          toggleAccountMenu(topSettingsButton);
+        });
+      }
+
+      accountMenuClose?.addEventListener("click", () => {
+        closeAccountMenu({ restoreFocus: true });
+      });
+
+      accountMenuOverlay?.addEventListener("click", (event) => {
+        if (event.target === accountMenuOverlay) {
+          closeAccountMenu({ restoreFocus: true });
+        }
+      });
+
+      accountMenuItems.forEach((button) => {
+        button.addEventListener("click", () => {
+          handleAccountMenuAction(button.dataset.accountMenuAction);
+        });
+      });
+
+      loginModalClose?.addEventListener("click", () => {
+        closeLoginModal({ restoreFocus: true });
+      });
+
+      loginModalOverlay?.addEventListener("click", (event) => {
+        if (event.target === loginModalOverlay) {
+          closeLoginModal({ restoreFocus: true });
+        }
+      });
+
+      socialLoginButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          handleSocialLogin(button.dataset.socialLoginProvider);
+        });
+      });
+
+      myPhotoBoxLoginButton?.addEventListener("click", () => {
+        openLoginModal(myPhotoBoxLoginButton);
+      });
+
+      myPhotoBoxCreateButton?.addEventListener("click", () => {
+        goToPhotoEditor();
+      });
+
+      myPhotoBoxFilterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedMyPhotoFilter = button.dataset.myPhotoFilter || "all";
+          renderMyPhotoBoxScreen();
+        });
+      });
+
+      myPhotoBoxGrid?.addEventListener("click", (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest("[data-my-photo-index]")
+          : null;
+        if (!target) return;
+
+        const index = Number(target.dataset.myPhotoIndex);
+        const photo = getFilteredMyPhotos()[Number.isInteger(index) ? index : 0];
+        if (photo) {
+          openMyPhotoDetail(photo);
+        }
+      });
+
+      siteGuideCreditButton?.addEventListener("click", () => {
+        navigateToScreen("credits");
+      });
+
+      siteGuideContactButton?.addEventListener("click", () => {
+        openAssistantChat();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && isLoginModalOpen()) {
+          closeLoginModal({ restoreFocus: true });
+          return;
+        }
+
+        if (event.key === "Escape" && isAccountMenuOpen()) {
+          closeAccountMenu({ restoreFocus: true });
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        if (isAccountMenuOpen()) {
+          positionAccountMenu(activeAccountMenuTrigger);
+        }
       });
 
       galleryContent?.addEventListener("click", (event) => {

@@ -247,7 +247,7 @@
       }
 
       .brand-logo-hero img {
-        width: clamp(88px, 12vw, 150px);
+        width: clamp(140px, 18vw, 240px);
         height: auto;
         object-fit: contain;
       }
@@ -428,6 +428,87 @@
         font-size: 20px;
       }
 
+      .account-user-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-radius: 20px;
+        padding: 14px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 217, 224, 0.42));
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        box-shadow: 0 14px 34px rgba(129, 80, 92, 0.12);
+      }
+
+      .account-user-card.hidden,
+      .account-menu-item.hidden {
+        display: none;
+      }
+
+      .account-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        overflow: hidden;
+        color: #81505c;
+        background: rgba(244, 182, 195, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+      }
+
+      .account-user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .account-user-name {
+        color: #3f2930;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .account-user-credit {
+        margin-top: 2px;
+        color: #81505c;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+
+      .account-user-logout {
+        min-height: 34px;
+        border-radius: 9999px;
+        padding: 0 12px;
+        flex: 0 0 auto;
+        color: #81505c;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.12);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .account-user-actions {
+        display: grid;
+        gap: 6px;
+        flex: 0 0 auto;
+      }
+
+      .account-user-detail {
+        min-height: 34px;
+        border-radius: 9999px;
+        padding: 0 12px;
+        color: #ffffff;
+        background: #81505c;
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
       .account-menu-toast {
         position: fixed;
         left: 50%;
@@ -543,6 +624,77 @@
         margin-top: 7px;
         color: #705e61;
         font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .customer-info-profile {
+        margin-top: 18px;
+        border-radius: 22px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+      }
+
+      .customer-info-photo {
+        width: 64px;
+        height: 64px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        overflow: hidden;
+        color: #81505c;
+        background: rgba(244, 182, 195, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.84);
+      }
+
+      .customer-info-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .customer-info-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .customer-info-row {
+        border-radius: 18px;
+        padding: 13px 14px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(129, 80, 92, 0.08);
+      }
+
+      .customer-info-label {
+        color: #81505c;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .customer-info-value {
+        margin-top: 4px;
+        color: #3f2930;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.45;
+        word-break: break-word;
+      }
+
+      .customer-info-note {
+        margin-top: 16px;
+        border-radius: 18px;
+        padding: 13px 14px;
+        color: #705e61;
+        background: rgba(248, 238, 241, 0.82);
+        border: 1px solid rgba(129, 80, 92, 0.08);
+        font-size: 12px;
         line-height: 1.65;
       }
 
@@ -2764,8 +2916,8 @@
                 <div class="landing-brand-row">
                   <div class="flex items-center gap-3">
                     <div>
-                      <span class="brand-logo brand-logo-vertical brand-logo-hero" aria-label="Magic Ai Studio">
-                        <img src="public/branding/ai-studio-logo-vertical.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                      <span class="brand-logo brand-logo-horizontal brand-logo-hero" aria-label="Magic Ai Studio">
+                        <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                         <span class="brand-logo-fallback">Magic Ai Studio</span>
                       </span>
                       <p class="landing-brand-subtitle">premium wedding AI atelier</p>
@@ -2919,8 +3071,8 @@
                 <span class="material-symbols-outlined text-[17px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
                 <span class="font-semibold">크레딧</span>
               </button>
-              <span class="brand-logo brand-logo-vertical brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-vertical.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                 <span class="brand-logo-fallback">Magic Ai Studio</span>
               </span>
               <button id="topSettingsButton" class="w-10 h-10 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-sm" type="button" aria-label="계정 메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="accountMenuPanel">
@@ -2994,8 +3146,8 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <span class="brand-logo brand-logo-vertical brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-vertical.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                 <span class="brand-logo-fallback">Magic Ai Studio</span>
               </span>
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-action="account-menu" type="button" aria-label="계정 메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="accountMenuPanel">
@@ -3251,8 +3403,8 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <span class="brand-logo brand-logo-vertical brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-vertical.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                 <span class="brand-logo-fallback">Magic Ai Studio</span>
               </span>
               <span class="w-9"></span>
@@ -3396,8 +3548,8 @@
                   <div class="my-photo-icon" aria-hidden="true">
                     <span class="material-symbols-outlined text-[26px]">photo_library</span>
                   </div>
-                  <h2 class="mt-4 font-display text-[27px] leading-tight text-on-surface">아직 저장된 사진이 없어요</h2>
-                  <p class="mt-3 text-sm leading-6 text-on-surface-variant">AI 웨딩사진을 만들면 이곳에서 다시 확인할 수 있어요.</p>
+                  <h2 class="mt-4 font-display text-[27px] leading-tight text-on-surface">아직 보관된 사진이 없어요</h2>
+                  <p class="mt-3 text-sm leading-6 text-on-surface-variant">최근 7일 내 만든 AI 웨딩사진이 이곳에 표시됩니다.</p>
                   <button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="myPhotoBoxCreateButton" type="button">
                     사진 만들러 가기
                   </button>
@@ -3598,10 +3750,23 @@
           </button>
         </div>
         <div class="account-menu-list">
-          <button class="account-menu-item" data-account-menu-action="login" type="button">
+          <button class="account-menu-item" data-account-menu-action="login" id="accountMenuLoginItem" type="button">
             <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">person</span>
             <span>로그인</span>
           </button>
+          <section class="account-user-card hidden" id="accountMenuUserCard" aria-label="로그인 사용자 정보">
+            <span class="account-user-avatar" id="accountMenuUserAvatar" aria-hidden="true">
+              <span class="material-symbols-outlined text-[22px]">person</span>
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="account-user-name truncate" id="accountMenuUserName">사용자님</p>
+              <p class="account-user-credit" id="accountMenuUserCredit">보유 크레딧 0</p>
+            </div>
+            <div class="account-user-actions">
+              <button class="account-user-detail" id="accountMenuCustomerInfoButton" type="button">고객정보</button>
+              <button class="account-user-logout" id="accountMenuLogoutButton" type="button">로그아웃</button>
+            </div>
+          </section>
           <button class="account-menu-item" data-account-menu-action="my-photo-box" type="button">
             <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">photo_library</span>
             <span>마이포토박스</span>
@@ -3632,8 +3797,8 @@
         </div>
         <div class="login-modal-body">
           <div class="login-modal-brand mb-4">
-            <span class="brand-logo brand-logo-vertical brand-logo-md" aria-label="Magic Ai Studio">
-              <img src="public/branding/ai-studio-logo-vertical.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+            <span class="brand-logo brand-logo-horizontal brand-logo-md" aria-label="Magic Ai Studio">
+              <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
               <span class="brand-logo-fallback">Magic Ai Studio</span>
             </span>
           </div>
@@ -3647,6 +3812,12 @@
                 <p class="truncate text-sm font-bold text-on-surface" id="loginUserName">로그인된 사용자</p>
                 <p class="truncate text-xs leading-5 text-on-surface-variant" id="loginUserEmail"></p>
               </div>
+            </div>
+            <div class="mt-3 flex items-center justify-between gap-3">
+              <p class="text-xs font-bold text-primary" id="loginUserCredit">보유 크레딧 0</p>
+              <button class="h-8 rounded-full bg-primary/10 px-3 text-xs font-bold text-primary" id="loginModalLogoutButton" type="button">
+                로그아웃
+              </button>
             </div>
           </div>
           <div class="social-login-list" aria-label="소셜 로그인">
@@ -3667,6 +3838,62 @@
             </button>
           </div>
           <p class="login-modal-terms">로그인하면 이용약관 및 개인정보 처리방침에 동의하게 됩니다.</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="login-modal-overlay" id="customerInfoModalOverlay" aria-hidden="true">
+      <section class="login-modal-panel" id="customerInfoModalPanel" role="dialog" aria-modal="true" aria-labelledby="customerInfoTitle" aria-describedby="customerInfoDescription">
+        <div class="login-modal-header">
+          <button class="login-modal-close" id="customerInfoClose" type="button" aria-label="고객정보 닫기">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+        <div class="login-modal-body">
+          <h2 class="login-modal-title font-display" id="customerInfoTitle">고객정보</h2>
+          <p class="login-modal-lead" id="customerInfoDescription">네이버 로그인으로 제공받은 회원 정보입니다.</p>
+          <section class="customer-info-profile" aria-label="프로필 사진">
+            <span class="customer-info-photo" id="customerInfoPhoto" aria-hidden="true">
+              <span class="material-symbols-outlined text-[28px]">person</span>
+            </span>
+            <div class="min-w-0">
+              <p class="customer-info-label">프로필 사진</p>
+              <p class="customer-info-value" id="customerInfoProfileStatus">제공되지 않음</p>
+            </div>
+          </section>
+          <div class="customer-info-list">
+            <section class="customer-info-row">
+              <p class="customer-info-label">회원이름</p>
+              <p class="customer-info-value" id="customerInfoName">제공되지 않음</p>
+            </section>
+            <section class="customer-info-row">
+              <p class="customer-info-label">이메일 주소</p>
+              <p class="customer-info-value" id="customerInfoEmail">제공되지 않음</p>
+            </section>
+            <section class="customer-info-row">
+              <p class="customer-info-label">생일</p>
+              <p class="customer-info-value" id="customerInfoBirthday">제공되지 않음</p>
+            </section>
+            <section class="customer-info-row">
+              <p class="customer-info-label">휴대전화번호</p>
+              <p class="customer-info-value" id="customerInfoMobile">제공되지 않음</p>
+            </section>
+            <section class="customer-info-row">
+              <p class="customer-info-label">닉네임</p>
+              <p class="customer-info-value" id="customerInfoNickname">제공되지 않음</p>
+            </section>
+            <section class="customer-info-row">
+              <p class="customer-info-label">프로필 사진</p>
+              <p class="customer-info-value" id="customerInfoProfileValue">제공되지 않음</p>
+            </section>
+          </div>
+          <div class="customer-info-note">
+            <p>고객정보는 네이버 로그인으로 제공받은 정보이며, 회원 확인과 서비스 이용을 위해 사용됩니다.</p>
+            <p class="mt-2">표시되지 않는 항목은 네이버에서 제공되지 않았거나 사용자가 제공에 동의하지 않은 정보입니다.</p>
+          </div>
+          <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="customerInfoDoneButton" type="button">
+            닫기
+          </button>
         </div>
       </section>
     </div>
@@ -4401,6 +4628,8 @@ Important balance:
       const loginUserAvatar = document.getElementById("loginUserAvatar");
       const loginUserName = document.getElementById("loginUserName");
       const loginUserEmail = document.getElementById("loginUserEmail");
+      const loginUserCredit = document.getElementById("loginUserCredit");
+      const loginModalLogoutButton = document.getElementById("loginModalLogoutButton");
       const generatingGalleryPreview = document.getElementById("generatingGalleryPreview");
       const generatingGallerySlider = document.getElementById("generatingGallerySlider");
       const creditBalanceText = document.getElementById("creditBalanceText");
@@ -4518,6 +4747,7 @@ Important balance:
       let imageSaveModalObjectUrl = "";
       let myPhotos = [];
       let isLoadingMyPhotos = false;
+      let myPhotosError = "";
       let selectedMyPhoto = null;
       let selectedMyPhotoFilter = "all";
       let creditBalance = 0;
@@ -4679,7 +4909,7 @@ Important balance:
       }
 
       function getAuthUserName(user) {
-        return String(user?.name || user?.nickname || user?.displayName || user?.email || "로그인된 사용자").trim();
+        return String(user?.displayName || user?.display_name || user?.nickname || user?.name || "사용자").trim();
       }
 
       function getAuthUserEmail(user) {
@@ -4687,7 +4917,102 @@ Important balance:
       }
 
       function getAuthUserAvatar(user) {
-        return String(user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || user?.picture || "").trim();
+        return String(user?.profileImageUrl || user?.profile_image_url || user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || user?.picture || "").trim();
+      }
+
+      function normalizeAuthCreditBalance(payload = {}) {
+        const value = payload?.credits?.balance
+          ?? payload?.credits?.credits
+          ?? payload?.credits?.currentCredits
+          ?? payload?.data?.credits?.balance
+          ?? payload?.data?.credits?.credits
+          ?? payload?.balance
+          ?? payload?.creditBalance;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+      }
+
+      function renderAccountAvatar(target, user) {
+        if (!target) return;
+
+        const avatar = getAuthUserAvatar(user);
+        if (avatar) {
+          target.innerHTML = `<img src="${escapeHtml(avatar)}" alt="" decoding="async" />`;
+          return;
+        }
+
+        target.innerHTML = `<span class="material-symbols-outlined text-[22px]">person</span>`;
+      }
+
+      function getProvidedText(value) {
+        const text = String(value ?? "").trim();
+        return text ? text : "제공되지 않음";
+      }
+
+      function formatCustomerBirthday(user = {}) {
+        const birthyear = String(user?.birthyear || user?.birthYear || "").trim();
+        const birthday = String(user?.birthday || user?.birthDay || "").trim();
+        if (!birthyear && !birthday) return "제공되지 않음";
+
+        const normalizedBirthday = birthday
+          ? birthday.includes("-")
+            ? birthday
+            : birthday.length === 4
+              ? `${birthday.slice(0, 2)}-${birthday.slice(2)}`
+              : birthday
+          : "";
+
+        if (birthyear && normalizedBirthday) {
+          return `${birthyear}-${normalizedBirthday}`;
+        }
+        return normalizedBirthday || "제공되지 않음";
+      }
+
+      function getCustomerInfoValues(user = {}) {
+        const profileImageUrl = getAuthUserAvatar(user);
+        return {
+          name: getProvidedText(user?.name || user?.displayName || user?.display_name),
+          email: getProvidedText(user?.email),
+          birthday: formatCustomerBirthday(user),
+          mobile: getProvidedText(user?.mobile || user?.mobileE164 || user?.mobile_e164),
+          nickname: getProvidedText(user?.nickname),
+          profileImageUrl,
+          profileStatus: profileImageUrl ? "등록됨" : "제공되지 않음",
+        };
+      }
+
+      function syncCustomerInfoModal() {
+        const info = getCustomerInfoValues(currentUser || {});
+        if (customerInfoName) customerInfoName.textContent = info.name;
+        if (customerInfoEmail) customerInfoEmail.textContent = info.email;
+        if (customerInfoBirthday) customerInfoBirthday.textContent = info.birthday;
+        if (customerInfoMobile) customerInfoMobile.textContent = info.mobile;
+        if (customerInfoNickname) customerInfoNickname.textContent = info.nickname;
+        if (customerInfoProfileStatus) customerInfoProfileStatus.textContent = info.profileStatus;
+        if (customerInfoProfileValue) customerInfoProfileValue.textContent = info.profileStatus;
+
+        if (customerInfoPhoto) {
+          customerInfoPhoto.innerHTML = info.profileImageUrl
+            ? `<img src="${escapeHtml(info.profileImageUrl)}" alt="" decoding="async" />`
+            : `<span class="material-symbols-outlined text-[28px]">person</span>`;
+        }
+      }
+
+      function syncAccountMenuUi() {
+        const hasUser = Boolean(currentUser);
+        accountMenuLoginItem?.classList.toggle("hidden", hasUser);
+        accountMenuUserCard?.classList.toggle("hidden", !hasUser);
+        accountMenuCustomerInfoButton?.classList.toggle("hidden", !hasUser);
+
+        if (!hasUser) return;
+
+        if (accountMenuUserName) {
+          accountMenuUserName.textContent = `${getAuthUserName(currentUser)}님`;
+        }
+        if (accountMenuUserCredit) {
+          accountMenuUserCredit.textContent = `보유 크레딧 ${formatCreditNumber(creditBalance)}`;
+        }
+        renderAccountAvatar(accountMenuUserAvatar, currentUser);
       }
 
       function syncAuthUi() {
@@ -4695,13 +5020,17 @@ Important balance:
         loginUserSummary?.classList.toggle("hidden", !hasUser);
 
         if (loginUserName) {
-          loginUserName.textContent = hasUser ? getAuthUserName(currentUser) : "로그인된 사용자";
+          loginUserName.textContent = hasUser ? `${getAuthUserName(currentUser)}님` : "로그인된 사용자";
         }
 
         if (loginUserEmail) {
           const email = hasUser ? getAuthUserEmail(currentUser) : "";
           loginUserEmail.textContent = email || "네이버 계정으로 로그인되었습니다.";
           loginUserEmail.classList.toggle("hidden", !hasUser);
+        }
+
+        if (loginUserCredit) {
+          loginUserCredit.textContent = `보유 크레딧 ${formatCreditNumber(creditBalance)}`;
         }
 
         if (loginUserAvatar) {
@@ -4714,17 +5043,31 @@ Important balance:
             loginUserAvatar.classList.add("hidden");
           }
         }
+
+        syncAccountMenuUi();
       }
 
-      function applyAuthUser(user) {
+      function applyAuthSession(payload = {}) {
+        const user = normalizeAuthUser(payload);
+        const authCreditBalance = normalizeAuthCreditBalance(payload);
         currentUser = user || null;
         isLoggedIn = Boolean(currentUser);
         isMyPhotoBoxLoggedIn = isLoggedIn;
+
+        if (isLoggedIn && authCreditBalance !== null) {
+          creditBalance = authCreditBalance;
+          updateCreditUi();
+        }
+
         syncAuthUi();
 
         if (appScreen === "myPhotoBox") {
           renderMyPhotoBoxScreen();
         }
+      }
+
+      function applyAuthUser(user) {
+        applyAuthSession({ ok: Boolean(user), user });
       }
 
       async function fetchCurrentUser() {
@@ -4738,7 +5081,7 @@ Important balance:
           throw new Error(payload?.message || `Auth me request failed: ${response.status}`);
         }
 
-        return normalizeAuthUser(payload);
+        return payload;
       }
 
       async function refreshAuthState(options = {}) {
@@ -4746,9 +5089,9 @@ Important balance:
         isAuthLoading = true;
 
         try {
-          const user = await fetchCurrentUser();
-          applyAuthUser(user);
-          return user;
+          const payload = await fetchCurrentUser();
+          applyAuthSession(payload);
+          return currentUser;
         } catch (error) {
           if (DEBUG_MODE) {
             console.warn("[client][auth] /api/auth/me failed:", error);
@@ -4774,6 +5117,10 @@ Important balance:
             throw new Error(payload?.message || `Logout request failed: ${response.status}`);
           }
           applyAuthUser(null);
+          myPhotos = [];
+          myPhotosError = "";
+          closeAccountMenu();
+          closeLoginModal();
           showAccountMenuToast("로그아웃되었습니다.");
         } catch (error) {
           if (DEBUG_MODE) {
@@ -4804,6 +5151,11 @@ Important balance:
           button.disabled = Boolean(chargingCreditAmount);
           button.textContent = isCharging ? "충전 중..." : "테스트 충전";
         });
+
+        syncAccountMenuUi();
+        if (loginUserCredit) {
+          loginUserCredit.textContent = `보유 크레딧 ${formatCreditNumber(creditBalance)}`;
+        }
       }
 
       function normalizeCreditValue(value) {
@@ -4859,6 +5211,7 @@ Important balance:
 
       async function getCredits() {
         const response = await fetch(getCreditApiUrl("/api/credits"), {
+          credentials: "include",
           headers: {
             "X-Anonymous-Id": getAnonymousId(),
           },
@@ -4870,6 +5223,7 @@ Important balance:
       async function testChargeCredits(amount) {
         const response = await fetch(getCreditApiUrl("/api/credits/test-charge"), {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "X-Anonymous-Id": getAnonymousId(),
@@ -5027,9 +5381,136 @@ Important balance:
         }
       }
 
-      async function fetchMyPhotos() {
-        // TODO: connect to /api/my-photos after login and member storage are ready.
+      function getMyPhotosApiUrl() {
+        return getAuthApiUrl("/api/my-photos");
+      }
+
+      function extractMyPhotoItems(payload = {}) {
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload.photos)) return payload.photos;
+        if (Array.isArray(payload.myPhotos)) return payload.myPhotos;
+        if (Array.isArray(payload.my_photos)) return payload.my_photos;
+        if (Array.isArray(payload.items)) return payload.items;
+        if (Array.isArray(payload.data?.photos)) return payload.data.photos;
+        if (Array.isArray(payload.data?.myPhotos)) return payload.data.myPhotos;
+        if (Array.isArray(payload.data?.items)) return payload.data.items;
         return [];
+      }
+
+      function getMyPhotoCreatedAtValue(photo = {}) {
+        return photo.createdAt
+          ?? photo.created_at
+          ?? photo.generatedAt
+          ?? photo.generated_at
+          ?? photo.createdDate
+          ?? photo.created_date
+          ?? photo.insertedAt
+          ?? photo.inserted_at
+          ?? "";
+      }
+
+      function isRecentSevenDayPhoto(photo = {}) {
+        const createdAtValue = getMyPhotoCreatedAtValue(photo);
+        if (!createdAtValue) return true;
+
+        const createdAtTime = new Date(createdAtValue).getTime();
+        if (!Number.isFinite(createdAtTime)) return true;
+
+        const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+        return Date.now() - createdAtTime <= sevenDaysMs;
+      }
+
+      function formatMyPhotoDate(value) {
+        if (!value) return "최근 7일 내 생성";
+
+        const date = new Date(value);
+        if (!Number.isFinite(date.getTime())) return "최근 7일 내 생성";
+
+        return new Intl.DateTimeFormat("ko-KR", {
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function normalizeMyPhotoItem(rawItem = {}, index = 0) {
+        if (!rawItem || typeof rawItem !== "object") return null;
+
+        const imageUrl = firstUrlValue(
+          rawItem.imageUrl,
+          rawItem.image_url,
+          rawItem.resultUrl,
+          rawItem.result_url,
+          rawItem.url,
+          rawItem.publicUrl,
+          rawItem.public_url,
+          rawItem.downloadUrl,
+          rawItem.download_url,
+          rawItem.imagePath,
+          rawItem.image_path,
+        );
+        const thumbnailUrl = firstUrlValue(
+          rawItem.thumbnailUrl,
+          rawItem.thumbnail_url,
+          rawItem.thumbnail,
+          rawItem.thumbUrl,
+          rawItem.thumb_url,
+          imageUrl,
+        );
+        const createdAt = getMyPhotoCreatedAtValue(rawItem);
+        const styleLabel = String(
+          rawItem.styleLabel
+            || rawItem.style_label
+            || rawItem.styleName
+            || rawItem.style_name
+            || rawItem.styleCategory
+            || rawItem.style_category
+            || rawItem.mode
+            || "AI Wedding",
+        ).trim();
+        const presetLabel = String(
+          rawItem.presetLabel
+            || rawItem.preset_label
+            || rawItem.presetName
+            || rawItem.preset_name
+            || rawItem.locationLabel
+            || rawItem.location_label
+            || rawItem.placeLabel
+            || rawItem.place_label
+            || "웨딩사진",
+        ).trim();
+
+        return {
+          id: rawItem.id || rawItem.photoId || rawItem.photo_id || `${createdAt || "photo"}-${index}`,
+          imageUrl,
+          thumbnailUrl,
+          styleLabel,
+          presetLabel,
+          resultLabel: rawItem.resultLabel || rawItem.result_label || `${styleLabel} · ${presetLabel}`,
+          createdAt,
+          createdAtLabel: formatMyPhotoDate(createdAt),
+          isRecommended: Boolean(rawItem.isRecommended ?? rawItem.is_recommended ?? rawItem.recommended),
+          galleryUploaded: Boolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded),
+          source: rawItem.source || rawItem.origin || "",
+        };
+      }
+
+      async function fetchMyPhotos() {
+        const response = await fetch(getMyPhotosApiUrl(), {
+          method: "GET",
+          credentials: "include",
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok || payload?.ok === false) {
+          throw new Error(payload?.message || `My photos request failed: ${response.status}`);
+        }
+
+        return extractMyPhotoItems(payload)
+          .filter(isRecentSevenDayPhoto)
+          .map(normalizeMyPhotoItem)
+          .filter((photo) => photo && (photo.imageUrl || photo.thumbnailUrl));
       }
 
       function getFilteredMyPhotos() {
@@ -5098,10 +5579,45 @@ Important balance:
         }
 
         syncMyPhotoFilters();
+
+        if (isLoadingMyPhotos) {
+          myPhotoBoxGrid?.classList.remove("hidden");
+          myPhotoBoxEmptyState?.classList.add("hidden");
+          if (myPhotoBoxGrid) {
+            myPhotoBoxGrid.innerHTML = `
+              <section class="my-photo-state-card col-span-full">
+                <div class="my-photo-icon" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[26px]">hourglass_top</span>
+                </div>
+                <h2 class="mt-4 font-display text-[25px] leading-tight text-on-surface">마이포토박스를 불러오는 중이에요...</h2>
+                <p class="mt-3 text-sm leading-6 text-on-surface-variant">최근 7일 내 만든 사진을 확인하고 있습니다.</p>
+              </section>
+            `;
+          }
+          return;
+        }
+
+        if (myPhotosError) {
+          myPhotoBoxGrid?.classList.remove("hidden");
+          myPhotoBoxEmptyState?.classList.add("hidden");
+          if (myPhotoBoxGrid) {
+            myPhotoBoxGrid.innerHTML = `
+              <section class="my-photo-state-card col-span-full">
+                <div class="my-photo-icon" aria-hidden="true">
+                  <span class="material-symbols-outlined text-[26px]">priority_high</span>
+                </div>
+                <h2 class="mt-4 font-display text-[25px] leading-tight text-on-surface">사진을 불러오지 못했어요</h2>
+                <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(myPhotosError)}</p>
+              </section>
+            `;
+          }
+          return;
+        }
+
         const filteredPhotos = getFilteredMyPhotos();
         const hasPhotos = filteredPhotos.length > 0;
         myPhotoBoxGrid?.classList.toggle("hidden", !hasPhotos);
-        myPhotoBoxEmptyState?.classList.toggle("hidden", hasPhotos || isLoadingMyPhotos);
+        myPhotoBoxEmptyState?.classList.toggle("hidden", hasPhotos);
         renderMyPhotoCards(filteredPhotos);
       }
 
@@ -5112,14 +5628,16 @@ Important balance:
         }
 
         isLoadingMyPhotos = true;
+        myPhotosError = "";
         renderMyPhotoBoxScreen();
 
         try {
           myPhotos = await fetchMyPhotos();
         } catch (error) {
           if (DEBUG_MODE) {
-            console.warn("[client][my-photo-box] fetch placeholder failed:", error);
+            console.warn("[client][my-photo-box] fetch failed:", error);
           }
+          myPhotosError = "마이포토박스를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
           myPhotos = [];
         } finally {
           isLoadingMyPhotos = false;
@@ -8306,9 +8824,28 @@ ${modeExample}`;
       const accountMenuPanel = document.getElementById("accountMenuPanel");
       const accountMenuClose = document.getElementById("accountMenuClose");
       const accountMenuToast = document.getElementById("accountMenuToast");
+      const accountMenuLoginItem = document.getElementById("accountMenuLoginItem");
+      const accountMenuUserCard = document.getElementById("accountMenuUserCard");
+      const accountMenuUserAvatar = document.getElementById("accountMenuUserAvatar");
+      const accountMenuUserName = document.getElementById("accountMenuUserName");
+      const accountMenuUserCredit = document.getElementById("accountMenuUserCredit");
+      const accountMenuCustomerInfoButton = document.getElementById("accountMenuCustomerInfoButton");
+      const accountMenuLogoutButton = document.getElementById("accountMenuLogoutButton");
       const loginModalOverlay = document.getElementById("loginModalOverlay");
       const loginModalPanel = document.getElementById("loginModalPanel");
       const loginModalClose = document.getElementById("loginModalClose");
+      const customerInfoModalOverlay = document.getElementById("customerInfoModalOverlay");
+      const customerInfoModalPanel = document.getElementById("customerInfoModalPanel");
+      const customerInfoClose = document.getElementById("customerInfoClose");
+      const customerInfoDoneButton = document.getElementById("customerInfoDoneButton");
+      const customerInfoPhoto = document.getElementById("customerInfoPhoto");
+      const customerInfoProfileStatus = document.getElementById("customerInfoProfileStatus");
+      const customerInfoName = document.getElementById("customerInfoName");
+      const customerInfoEmail = document.getElementById("customerInfoEmail");
+      const customerInfoBirthday = document.getElementById("customerInfoBirthday");
+      const customerInfoMobile = document.getElementById("customerInfoMobile");
+      const customerInfoNickname = document.getElementById("customerInfoNickname");
+      const customerInfoProfileValue = document.getElementById("customerInfoProfileValue");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
       const bottomNavItems = Array.from(document.querySelectorAll("[data-bottom-nav]"));
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
@@ -8361,6 +8898,10 @@ ${modeExample}`;
         return Boolean(loginModalOverlay?.classList.contains("is-open"));
       }
 
+      function isCustomerInfoModalOpen() {
+        return Boolean(customerInfoModalOverlay?.classList.contains("is-open"));
+      }
+
       function setAccountMenuExpanded(isExpanded) {
         accountMenuTriggerButtons.forEach((button) => {
           button.setAttribute("aria-expanded", isExpanded ? "true" : "false");
@@ -8397,7 +8938,9 @@ ${modeExample}`;
         setAccountMenuExpanded(true);
 
         window.requestAnimationFrame(() => {
-          accountMenuPanel.querySelector("button")?.focus({ preventScroll: true });
+          const focusTarget = Array.from(accountMenuPanel.querySelectorAll("button"))
+            .find((button) => !button.classList.contains("hidden") && button.offsetParent !== null);
+          focusTarget?.focus({ preventScroll: true });
         });
       }
 
@@ -8454,6 +8997,31 @@ ${modeExample}`;
 
         loginModalOverlay.classList.remove("is-open");
         loginModalOverlay.setAttribute("aria-hidden", "true");
+
+        if (options.restoreFocus && activeLoginModalTrigger instanceof HTMLElement) {
+          activeLoginModalTrigger.focus({ preventScroll: true });
+        }
+      }
+
+      function openCustomerInfoModal(trigger) {
+        if (!customerInfoModalOverlay || !customerInfoModalPanel || !currentUser) return;
+
+        activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
+        syncCustomerInfoModal();
+        customerInfoModalOverlay.classList.add("is-open");
+        customerInfoModalOverlay.setAttribute("aria-hidden", "false");
+        closeAccountMenu();
+
+        window.requestAnimationFrame(() => {
+          customerInfoModalPanel.querySelector("button")?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeCustomerInfoModal(options = {}) {
+        if (!customerInfoModalOverlay) return;
+
+        customerInfoModalOverlay.classList.remove("is-open");
+        customerInfoModalOverlay.setAttribute("aria-hidden", "true");
 
         if (options.restoreFocus && activeLoginModalTrigger instanceof HTMLElement) {
           activeLoginModalTrigger.focus({ preventScroll: true });
@@ -8623,10 +9191,50 @@ ${modeExample}`;
         }
       });
 
+      customerInfoClose?.addEventListener("click", () => {
+        closeCustomerInfoModal({ restoreFocus: true });
+      });
+
+      customerInfoDoneButton?.addEventListener("click", () => {
+        closeCustomerInfoModal({ restoreFocus: true });
+      });
+
+      customerInfoModalOverlay?.addEventListener("click", (event) => {
+        if (event.target === customerInfoModalOverlay) {
+          closeCustomerInfoModal({ restoreFocus: true });
+        }
+      });
+
       socialLoginButtons.forEach((button) => {
         button.addEventListener("click", () => {
           handleSocialLogin(button.dataset.socialLoginProvider, button);
         });
+      });
+
+      accountMenuCustomerInfoButton?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openCustomerInfoModal(accountMenuCustomerInfoButton);
+      });
+
+      accountMenuLogoutButton?.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await logoutCurrentUser();
+        if (appScreen === "myPhotoBox") {
+          myPhotos = [];
+          renderMyPhotoBoxScreen();
+        }
+      });
+
+      loginModalLogoutButton?.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await logoutCurrentUser();
+        if (appScreen === "myPhotoBox") {
+          myPhotos = [];
+          renderMyPhotoBoxScreen();
+        }
       });
 
       myPhotoBoxLoginButton?.addEventListener("click", () => {
@@ -8666,6 +9274,11 @@ ${modeExample}`;
       });
 
       document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && isCustomerInfoModalOpen()) {
+          closeCustomerInfoModal({ restoreFocus: true });
+          return;
+        }
+
         if (event.key === "Escape" && isLoginModalOpen()) {
           closeLoginModal({ restoreFocus: true });
           return;

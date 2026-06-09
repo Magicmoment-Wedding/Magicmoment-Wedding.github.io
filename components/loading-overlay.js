@@ -6,7 +6,7 @@ export function renderLoadingOverlay() {
       <div class="w-full max-w-sm glass-panel glow-shadow rounded-xl p-6 flex flex-col items-center gap-4 text-center">
         <div class="w-14 h-14 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin"></div>
         <div class="space-y-1">
-          ${renderBrandLogo({ variant: "vertical", size: "md" })}
+          ${renderBrandLogo({ variant: "horizontal", size: "md" })}
           <p class="text-sm text-on-surface">4개의 결과를 생성하고 있어요.</p>
         </div>
         <div class="w-full rounded-full bg-white/60 h-2 overflow-hidden">

@@ -17,7 +17,7 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script id="tailwind-config">
@@ -247,7 +247,7 @@
       }
 
       .brand-logo-hero img {
-        width: clamp(140px, 18vw, 240px);
+        width: clamp(148px, 17vw, 238px);
         height: auto;
         object-fit: contain;
       }
@@ -1985,28 +1985,39 @@
       .landing-brand-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        justify-content: center;
+        width: 100%;
       }
 
-      .landing-brand-row > .flex {
+      .landing-brand-stack {
+        display: inline-flex;
         flex-direction: column;
+        align-items: center;
         justify-content: center;
-        gap: 8px;
+      }
+
+      .landing-brand-lockup {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(10px, 1.3vw, 16px);
+        flex-wrap: nowrap;
+        max-width: min(100%, 440px);
       }
 
       .landing-brand-magic {
-        margin: 0 0 4px;
-        color: #6f4a53;
+        color: #81505c;
         font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-        font-size: clamp(26px, 3vw, 40px);
-        font-weight: 500;
-        line-height: 0.95;
-        letter-spacing: 0.05em;
+        font-size: clamp(31px, 3.2vw, 46px);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        transform: translateY(-1px);
       }
 
       .landing-brand-subtitle {
-        margin-top: 7px;
+        margin-top: 10px;
         color: var(--rose-deep);
         font-size: clamp(12px, 1.25vw, 14px);
         line-height: 1.35;
@@ -2187,8 +2198,9 @@
 
       .landing-gallery-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 14px;
+        align-items: start;
       }
 
       .landing-gallery-grid .landing-photo-card {
@@ -2208,19 +2220,21 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: var(--landing-gallery-position, center center);
         display: block;
       }
 
-      .landing-photo-tall {
-        margin-top: 0;
+      .landing-gallery-grid .landing-photo-card.landing-photo-landscape {
+        grid-column: span 2;
+        aspect-ratio: 16 / 10;
       }
 
-      .landing-photo-wide {
-        margin-top: 0;
-      }
-
-      .landing-gallery-grid .landing-photo-card:nth-child(even) {
+      .landing-photo-offset {
         margin-top: 28px;
+      }
+
+      .landing-photo-card.position-top {
+        --landing-gallery-position: center top;
       }
 
       .landing-custom-image {
@@ -2768,12 +2782,28 @@
         }
 
         .landing-gallery-grid {
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 18px;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: 16px;
         }
 
-        .landing-gallery-grid .landing-photo-card:nth-child(even) {
-          margin-top: 48px;
+        .landing-gallery-grid .landing-photo-card {
+          grid-column: span 2;
+        }
+
+        .landing-gallery-grid .landing-photo-card.landing-photo-landscape {
+          grid-column: span 4;
+        }
+
+        .landing-gallery-grid .landing-photo-card:nth-child(2) {
+          margin-top: 34px;
+        }
+
+        .landing-gallery-grid .landing-photo-card:nth-child(4) {
+          margin-top: -18px;
+        }
+
+        .landing-gallery-grid .landing-photo-card:nth-child(5) {
+          margin-top: 18px;
         }
 
         .landing-pricing-grid {
@@ -2927,15 +2957,15 @@
             <div class="landing-section-inner">
               <div class="flex flex-col gap-5">
                 <div class="landing-brand-row">
-                  <div class="flex items-center gap-3">
-                    <div>
-                      <p class="landing-brand-magic">Magic</p>
+                  <div class="landing-brand-stack">
+                    <div class="landing-brand-lockup" aria-label="Magic Ai Studio">
+                      <span class="landing-brand-magic">Magic</span>
                       <span class="brand-logo brand-logo-horizontal brand-logo-hero" aria-label="Magic Ai Studio">
                         <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                         <span class="brand-logo-fallback">Magic Ai Studio</span>
                       </span>
-                      <p class="landing-brand-subtitle">premium wedding AI atelier</p>
                     </div>
+                    <p class="landing-brand-subtitle">premium wedding AI atelier</p>
                   </div>
                 </div>
               </div>
@@ -2977,17 +3007,20 @@
                 </button>
               </div>
               <div class="landing-gallery-grid">
-                <article class="landing-photo-card landing-photo-tall">
-                  <img src="mock-images/gallery/gallery_outdoor_wedding_snap_01.png" alt="야외 웨딩 스냅 샘플" />
+                <article class="landing-photo-card position-top">
+                  <img src="public/landing-gallery/landing-gallery-1.jpg" alt="AI 웨딩 갤러리 샘플 1" width="640" height="960" loading="lazy" decoding="async" />
                 </article>
-                <article class="landing-photo-card">
-                  <img src="mock-images/gallery/gallery_drama_romance_01.png" alt="드라마 로맨스 웨딩 샘플" />
+                <article class="landing-photo-card landing-photo-landscape">
+                  <img src="public/landing-gallery/landing-gallery-2.png" alt="AI 웨딩 갤러리 샘플 2" width="1000" height="553" loading="lazy" decoding="async" />
                 </article>
-                <article class="landing-photo-card">
-                  <img src="mock-images/gallery/gallery_disney_mood_01.png" alt="로맨틱 무드 웨딩 샘플" />
+                <article class="landing-photo-card landing-photo-landscape">
+                  <img src="public/landing-gallery/landing-gallery-3.jpg" alt="AI 웨딩 갤러리 샘플 3" width="1000" height="553" loading="lazy" decoding="async" />
                 </article>
-                <article class="landing-photo-card landing-photo-wide">
-                  <img src="mock-images/gallery/gallery_studio_original_01.png" alt="스튜디오 웨딩 샘플" />
+                <article class="landing-photo-card position-top">
+                  <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
+                </article>
+                <article class="landing-photo-card position-top">
+                  <img src="public/landing-gallery/landing-gallery-5.png" alt="AI 웨딩 갤러리 샘플 5" width="640" height="960" loading="lazy" decoding="async" />
                 </article>
               </div>
             </div>

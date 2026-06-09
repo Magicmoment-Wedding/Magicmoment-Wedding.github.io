@@ -17,7 +17,7 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script id="tailwind-config">
@@ -1995,8 +1995,18 @@
         gap: 8px;
       }
 
+      .landing-brand-magic {
+        margin: 0 0 4px;
+        color: #6f4a53;
+        font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+        font-size: clamp(26px, 3vw, 40px);
+        font-weight: 500;
+        line-height: 0.95;
+        letter-spacing: 0.05em;
+      }
+
       .landing-brand-subtitle {
-        margin-top: 8px;
+        margin-top: 7px;
         color: var(--rose-deep);
         font-size: clamp(12px, 1.25vw, 14px);
         line-height: 1.35;
@@ -2585,8 +2595,11 @@
 
       .app-bottom-nav {
         position: absolute;
-        inset-inline: 12px;
-        bottom: 12px;
+        left: 50%;
+        right: auto;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+        width: min(calc(100% - 24px), 430px);
+        transform: translateX(-50%);
         height: 58px;
         border-radius: 24px;
         background: rgba(255, 255, 255, 0.86);
@@ -2916,6 +2929,7 @@
                 <div class="landing-brand-row">
                   <div class="flex items-center gap-3">
                     <div>
+                      <p class="landing-brand-magic">Magic</p>
                       <span class="brand-logo brand-logo-horizontal brand-logo-hero" aria-label="Magic Ai Studio">
                         <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                         <span class="brand-logo-fallback">Magic Ai Studio</span>
@@ -3711,7 +3725,7 @@
             </div>
           </section>
 
-          <nav class="app-bottom-nav fixed left-0 right-0 bottom-3 mx-4 flex items-center justify-between px-4 py-2 bg-transparent z-40">
+          <nav class="app-bottom-nav">
             <button class="bottom-nav-item flex-1 flex flex-col items-center justify-center gap-1 text-[10px]" data-bottom-nav="gallery" data-screen-target="gallery" type="button">
               <span class="material-symbols-outlined text-[20px]">photo_library</span>
               <span class="whitespace-nowrap">스타일 갤러리</span>
@@ -5053,9 +5067,11 @@ Important balance:
         currentUser = user || null;
         isLoggedIn = Boolean(currentUser);
         isMyPhotoBoxLoggedIn = isLoggedIn;
+        console.log("[auth] currentUser updated");
 
         if (isLoggedIn && authCreditBalance !== null) {
           creditBalance = authCreditBalance;
+          console.log("[auth] credit balance updated");
           updateCreditUi();
         }
 
@@ -5071,11 +5087,15 @@ Important balance:
       }
 
       async function fetchCurrentUser() {
+        console.log("[auth] calling /api/auth/me");
         const response = await fetch(getAuthApiUrl("/api/auth/me"), {
           method: "GET",
           credentials: "include",
+          cache: "no-store",
         });
+        console.log("[auth] /api/auth/me status:", response.status);
         const payload = await response.json().catch(() => ({}));
+        console.log("[auth] /api/auth/me user exists:", Boolean(normalizeAuthUser(payload)));
 
         if (!response.ok || payload?.ok === false) {
           throw new Error(payload?.message || `Auth me request failed: ${response.status}`);
@@ -5298,21 +5318,53 @@ Important balance:
         const loginStatus = new URLSearchParams(window.location.search).get("login");
         if (!loginStatus) return false;
 
-        cleanLoginRedirectQuery();
-
         if (loginStatus === "success") {
-          showAccountMenuToast("로그인되었습니다.");
-          void refreshAuthState({ showError: true });
+          console.log("[auth] login success query detected");
           return true;
         }
 
         if (loginStatus === "failed") {
-          applyAuthUser(null);
-          showAccountMenuToast("로그인에 실패했어요. 다시 시도해 주세요.");
           return true;
         }
 
         return false;
+      }
+
+      let authStartupCheckPromise = null;
+
+      function startAuthStartupCheck() {
+        if (authStartupCheckPromise) return authStartupCheckPromise;
+
+        console.log("[auth] app mounted - checking me");
+        const loginStatus = new URLSearchParams(window.location.search).get("login");
+        const hasLoginQuery = handleLoginRedirectQuery();
+
+        authStartupCheckPromise = refreshAuthState({ showError: false })
+          .then((user) => {
+            if (loginStatus === "success") {
+              showAccountMenuToast(user ? "로그인되었습니다." : "로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+            } else if (loginStatus === "failed") {
+              applyAuthUser(null);
+              showAccountMenuToast("로그인에 실패했어요. 다시 시도해 주세요.");
+            }
+            return user;
+          })
+          .catch((error) => {
+            if (DEBUG_MODE) {
+              console.warn("[client][auth] startup check failed:", error);
+            }
+            if (loginStatus === "success") {
+              showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+            }
+            return null;
+          })
+          .finally(() => {
+            if (hasLoginQuery) {
+              cleanLoginRedirectQuery();
+            }
+          });
+
+        return authStartupCheckPromise;
       }
 
       function getBottomNavKeyForScreen(screen) {
@@ -5500,6 +5552,7 @@ Important balance:
         const response = await fetch(getMyPhotosApiUrl(), {
           method: "GET",
           credentials: "include",
+          cache: "no-store",
         });
         const payload = await response.json().catch(() => ({}));
 
@@ -8861,6 +8914,8 @@ ${modeExample}`;
       let activeLoginModalTrigger = null;
       let accountMenuToastTimerId = null;
 
+      void startAuthStartupCheck();
+
       if (topCreditButton) {
         topCreditButton.addEventListener("click", () => {
           navigateToScreen("credits");
@@ -9363,9 +9418,6 @@ ${modeExample}`;
         setAppScreen("landing", { pushHistory: false });
         replaceAppHistoryState("landing", null);
         pushAppHistoryState("landing", null);
-      }
-      if (!handleLoginRedirectQuery()) {
-        void refreshAuthState();
       }
       window.addEventListener("popstate", onPopState);
 

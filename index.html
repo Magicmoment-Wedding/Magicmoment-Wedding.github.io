@@ -17,7 +17,7 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script id="tailwind-config">
@@ -244,12 +244,6 @@
 
       .brand-logo-lg {
         --brand-logo-height: clamp(52px, 8vw, 72px);
-      }
-
-      .brand-logo-hero img {
-        width: clamp(148px, 17vw, 238px);
-        height: auto;
-        object-fit: contain;
       }
 
       .brand-logo-fallback {
@@ -1989,40 +1983,12 @@
         width: 100%;
       }
 
-      .landing-brand-stack {
-        display: inline-flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .landing-brand-lockup {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(10px, 1.3vw, 16px);
-        flex-wrap: nowrap;
-        max-width: min(100%, 440px);
-      }
-
-      .landing-brand-magic {
-        color: #81505c;
-        font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-        font-size: clamp(31px, 3.2vw, 46px);
-        font-weight: 600;
-        line-height: 1;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
-        transform: translateY(-1px);
-      }
-
-      .landing-brand-subtitle {
-        margin-top: 10px;
-        color: var(--rose-deep);
-        font-size: clamp(12px, 1.25vw, 14px);
-        line-height: 1.35;
-        letter-spacing: 0.02em;
-        font-weight: 500;
+      .landing-hero-brand-logo {
+        display: block;
+        width: clamp(260px, 34vw, 520px);
+        max-width: 88vw;
+        height: auto;
+        object-fit: contain;
       }
 
       .landing-eyebrow {
@@ -2957,16 +2923,7 @@
             <div class="landing-section-inner">
               <div class="flex flex-col gap-5">
                 <div class="landing-brand-row">
-                  <div class="landing-brand-stack">
-                    <div class="landing-brand-lockup" aria-label="Magic Ai Studio">
-                      <span class="landing-brand-magic">Magic</span>
-                      <span class="brand-logo brand-logo-horizontal brand-logo-hero" aria-label="Magic Ai Studio">
-                        <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
-                        <span class="brand-logo-fallback">Magic Ai Studio</span>
-                      </span>
-                    </div>
-                    <p class="landing-brand-subtitle">premium wedding AI atelier</p>
-                  </div>
+                  <img class="landing-hero-brand-logo" src="public/branding/magic-ai-studio-logo-hero.png" alt="Magic Ai Studio" width="1211" height="442" decoding="async" />
                 </div>
               </div>
               <div class="before-after-compare" data-before-after-slider>

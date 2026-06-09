@@ -13,10 +13,25 @@
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <script id="tailwind-config">
+      const KOREAN_SANS_FONT_STACK = [
+        "Pretendard",
+        "Apple SD Gothic Neo",
+        "Noto Sans KR",
+        "Malgun Gothic",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "sans-serif",
+      ];
+
       tailwind.config = {
         darkMode: "class",
         theme: {
@@ -83,10 +98,10 @@
               "stack-gap-sm": "0.5rem",
             },
             fontFamily: {
-              "body-large": ["Outfit"],
-              "label-caps": ["Outfit"],
-              display: ["Cormorant Garamond"],
-              button: ["Outfit"],
+              "body-large": KOREAN_SANS_FONT_STACK,
+              "label-caps": ["Outfit", ...KOREAN_SANS_FONT_STACK],
+              display: KOREAN_SANS_FONT_STACK,
+              button: KOREAN_SANS_FONT_STACK,
             },
             fontSize: {
               "body-large": [
@@ -117,6 +132,7 @@
         --glass: rgba(255, 255, 255, 0.52);
         --glass-strong: rgba(255, 255, 255, 0.72);
         --hairline: rgba(255, 255, 255, 0.68);
+        --font-sans-kr: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       }
 
       * {
@@ -126,6 +142,9 @@
       body {
         width: 100%;
         min-height: max(884px, 100dvh);
+        font-family: var(--font-sans-kr);
+        font-weight: 400;
+        letter-spacing: 0;
         background:
           radial-gradient(120% 72% at 50% -18%, rgba(244, 182, 195, 0.34), transparent 58%),
           linear-gradient(152deg, #fff8f7 0%, #fcf1f2 43%, #f6ebec 100%);
@@ -227,9 +246,15 @@
         --brand-logo-height: clamp(52px, 8vw, 72px);
       }
 
+      .brand-logo-hero img {
+        width: clamp(88px, 12vw, 150px);
+        height: auto;
+        object-fit: contain;
+      }
+
       .brand-logo-fallback {
         display: none;
-        font-family: "Cormorant Garamond", serif;
+        font-family: var(--font-sans-kr);
         font-size: 20px;
         font-weight: 700;
         letter-spacing: 0;
@@ -248,6 +273,11 @@
       .app-topbar-logo {
         flex: 0 1 auto;
         min-width: 0;
+      }
+
+      .app-topbar-logo img {
+        height: clamp(36px, 6vw, 42px);
+        width: auto;
       }
 
       .account-menu-brand,
@@ -1782,14 +1812,14 @@
       }
 
       .landing-hero-section {
-        padding-top: clamp(22px, 4vw, 44px);
+        padding-top: clamp(40px, 7vw, 80px);
       }
 
       .landing-hero-section .landing-section-inner {
         width: min(920px, 100%);
         justify-items: center;
         text-align: center;
-        gap: clamp(18px, 4vw, 32px);
+        gap: clamp(28px, 4.2vw, 40px);
       }
 
       .landing-hero-copy {
@@ -1807,6 +1837,21 @@
         gap: 12px;
       }
 
+      .landing-brand-row > .flex {
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .landing-brand-subtitle {
+        margin-top: 8px;
+        color: var(--rose-deep);
+        font-size: clamp(12px, 1.25vw, 14px);
+        line-height: 1.35;
+        letter-spacing: 0.02em;
+        font-weight: 500;
+      }
+
       .landing-eyebrow {
         color: var(--rose-deep);
         font-family: Outfit, sans-serif;
@@ -1819,11 +1864,11 @@
 
       .landing-title {
         color: var(--ink);
-        font-family: "Cormorant Garamond", serif;
+        font-family: var(--font-sans-kr);
         font-size: clamp(34px, 7vw, 56px);
-        line-height: 1.16;
-        font-weight: 600;
-        letter-spacing: 0;
+        line-height: 1.18;
+        font-weight: 800;
+        letter-spacing: -0.035em;
         word-break: keep-all;
       }
 
@@ -2075,10 +2120,11 @@
 
       .landing-plan-price {
         color: var(--rose-deep);
-        font-family: "Cormorant Garamond", serif;
+        font-family: var(--font-sans-kr);
         font-size: 30px;
         line-height: 1;
-        font-weight: 700;
+        font-weight: 800;
+        letter-spacing: -0.025em;
       }
 
       .landing-plan-copy {
@@ -2587,7 +2633,7 @@
         }
 
         .landing-hero-section {
-          padding: 18px 0 34px;
+          padding: 40px 0 36px;
         }
 
         .landing-section-inner {
@@ -2595,7 +2641,7 @@
         }
 
         .landing-hero-section .landing-section-inner {
-          gap: 18px;
+          gap: 28px;
         }
 
         .landing-title {
@@ -2718,11 +2764,11 @@
                 <div class="landing-brand-row">
                   <div class="flex items-center gap-3">
                     <div>
-                      <span class="brand-logo brand-logo-horizontal brand-logo-lg" aria-label="Magic Ai Studio">
-                        <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                      <span class="brand-logo brand-logo-vertical brand-logo-hero" aria-label="Magic Ai Studio">
+                        <img src="public/branding/ai-studio-logo-vertical.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                         <span class="brand-logo-fallback">Magic Ai Studio</span>
                       </span>
-                      <p class="mt-1 text-sm text-on-surface-variant">premium wedding AI atelier</p>
+                      <p class="landing-brand-subtitle">premium wedding AI atelier</p>
                     </div>
                   </div>
                 </div>

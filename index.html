@@ -274,6 +274,25 @@
         width: auto;
       }
 
+      .editor-screen .app-topbar {
+        height: 60px;
+      }
+
+      .editor-topbar-logo {
+        width: clamp(124px, 35vw, 148px);
+        max-width: calc(100% - 104px);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .editor-topbar-logo img {
+        width: 100%;
+        height: auto;
+        max-height: 60px;
+        object-fit: contain;
+      }
+
       .account-menu-brand,
       .login-modal-brand {
         display: flex;
@@ -2163,14 +2182,29 @@
       }
 
       .landing-gallery-grid {
+        position: relative;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
+        gap: 12px;
         align-items: start;
+        width: min(100%, 520px);
+        margin: 0 auto;
+        padding: 12px;
+        border-radius: 34px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 247, 249, 0.52)),
+          rgba(255, 255, 255, 0.42);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 24px 64px rgba(129, 80, 92, 0.14);
       }
 
       .landing-gallery-grid .landing-photo-card {
         aspect-ratio: 3 / 4;
+        position: relative;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.76);
+        box-shadow: 0 18px 42px rgba(129, 80, 92, 0.12);
       }
 
       .landing-photo-card,
@@ -2188,24 +2222,34 @@
         object-fit: cover;
         object-position: var(--landing-gallery-position, center center);
         display: block;
+        border-radius: 20px;
       }
 
-      .landing-gallery-grid .landing-photo-card.landing-photo-landscape {
-        grid-column: span 2;
-        aspect-ratio: 16 / 10;
+      .landing-gallery-grid .landing-photo-featured {
+        grid-column: 1 / -1;
+        aspect-ratio: 4 / 3;
       }
 
-      .landing-photo-offset {
-        margin-top: 28px;
+      .landing-gallery-grid .landing-photo-pair {
+        aspect-ratio: 3 / 4;
+      }
+
+      .landing-gallery-grid .landing-photo-wide {
+        grid-column: 1 / -1;
+        aspect-ratio: 16 / 9;
       }
 
       .landing-photo-card.position-top {
         --landing-gallery-position: center top;
       }
 
+      .landing-photo-card.position-soft-top {
+        --landing-gallery-position: center 32%;
+      }
+
       .landing-custom-image {
         width: 100%;
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 16 / 10;
         overflow: hidden;
         border-radius: 30px;
         background: #fff8f7;
@@ -2749,27 +2793,34 @@
 
         .landing-gallery-grid {
           grid-template-columns: repeat(6, minmax(0, 1fr));
-          gap: 16px;
+          gap: 14px;
+          max-width: 540px;
+          padding: 16px;
         }
 
-        .landing-gallery-grid .landing-photo-card {
-          grid-column: span 2;
+        .landing-gallery-grid .landing-photo-featured {
+          grid-column: 1 / span 3;
+          grid-row: span 2;
+          aspect-ratio: 3 / 4;
         }
 
-        .landing-gallery-grid .landing-photo-card.landing-photo-landscape {
-          grid-column: span 4;
+        .landing-gallery-grid .landing-photo-pair {
+          grid-column: span 3;
+          aspect-ratio: 16 / 11;
         }
 
-        .landing-gallery-grid .landing-photo-card:nth-child(2) {
-          margin-top: 34px;
+        .landing-gallery-grid .landing-photo-pair:nth-child(2) {
+          margin-top: 24px;
         }
 
-        .landing-gallery-grid .landing-photo-card:nth-child(4) {
-          margin-top: -18px;
+        .landing-gallery-grid .landing-photo-pair:nth-child(3) {
+          margin-top: 0;
         }
 
-        .landing-gallery-grid .landing-photo-card:nth-child(5) {
-          margin-top: 18px;
+        .landing-gallery-grid .landing-photo-wide {
+          grid-column: 2 / -1;
+          aspect-ratio: 16 / 9;
+          margin-top: -8px;
         }
 
         .landing-pricing-grid {
@@ -2959,25 +3010,22 @@
                 <h2 class="landing-title">당신이 원하는<br />스타일을 골라보세요</h2>
                 <p class="landing-copy">다양한 AI 웨딩 샘플을 보고 나에게 어울리는 분위기를 찾아보세요.</p>
                 <button class="landing-secondary-button w-full sm:w-fit" data-screen-target="gallery" type="button">
-                  <span>스타일 갤러리 바로가기</span>
+                  <span>갤러리 바로가기</span>
                   <span class="material-symbols-outlined text-[19px]">collections</span>
                 </button>
               </div>
-              <div class="landing-gallery-grid">
-                <article class="landing-photo-card position-top">
+              <div class="landing-gallery-grid" aria-label="프리미엄 웨딩 테이블포토 샘플">
+                <article class="landing-photo-card landing-photo-featured position-top">
                   <img src="public/landing-gallery/landing-gallery-1.jpg" alt="AI 웨딩 갤러리 샘플 1" width="640" height="960" loading="lazy" decoding="async" />
                 </article>
-                <article class="landing-photo-card landing-photo-landscape">
+                <article class="landing-photo-card landing-photo-pair">
                   <img src="public/landing-gallery/landing-gallery-2.png" alt="AI 웨딩 갤러리 샘플 2" width="1000" height="553" loading="lazy" decoding="async" />
                 </article>
-                <article class="landing-photo-card landing-photo-landscape">
-                  <img src="public/landing-gallery/landing-gallery-3.jpg" alt="AI 웨딩 갤러리 샘플 3" width="1000" height="553" loading="lazy" decoding="async" />
-                </article>
-                <article class="landing-photo-card position-top">
-                  <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
-                </article>
-                <article class="landing-photo-card position-top">
+                <article class="landing-photo-card landing-photo-pair position-top">
                   <img src="public/landing-gallery/landing-gallery-5.png" alt="AI 웨딩 갤러리 샘플 5" width="640" height="960" loading="lazy" decoding="async" />
+                </article>
+                <article class="landing-photo-card landing-photo-wide position-soft-top">
+                  <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
                 </article>
               </div>
             </div>
@@ -2986,12 +3034,12 @@
           <section class="landing-section" aria-label="어시스턴트 커스텀 콘셉트">
             <div class="landing-section-inner">
               <div class="landing-custom-image">
-                <img src="mock-images/landing/hanok_custom_concept.jpg" alt="한옥 커스텀 웨딩 콘셉트" />
+                <img src="public/landing-gallery/landing-gallery-3.jpg" alt="한옥 커스텀 웨딩 콘셉트" width="1000" height="553" loading="lazy" decoding="async" />
               </div>
               <div class="flex flex-col gap-5">
                 <p class="landing-eyebrow">Custom Concept</p>
                 <h2 class="landing-title">당신의 상상력을 더하세요</h2>
-                <p class="landing-copy">메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.<br />전통 한옥, 시네마틱 무드, 이국적인 배경까지 원하는 모든 감성을 담아드립니다.</p>
+                <p class="landing-copy">메뉴에 없는 스타일도 어시스턴트에게 문의하면 커스터마이징 서비스로 도와드릴 수 있어요.</p>
                 <button class="landing-primary-button w-full sm:w-fit" data-action="open-assistant-chat" type="button">
                   <span>어시스턴트에게 문의하기</span>
                   <span class="material-symbols-outlined text-[19px]">auto_fix_high</span>
@@ -3150,7 +3198,7 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo editor-topbar-logo" aria-label="Magic Ai Studio">
                 <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
                 <span class="brand-logo-fallback">Magic Ai Studio</span>
               </span>

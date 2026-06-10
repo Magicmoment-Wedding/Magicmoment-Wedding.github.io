@@ -2242,35 +2242,8 @@
 
       .landing-gallery-grid .landing-photo-wide {
         grid-column: 1 / -1;
-        aspect-ratio: 4 / 3;
-      }
-
-      .landing-photo-card.fit-contain {
-        --landing-gallery-fit: contain;
-      }
-
-      .landing-photo-card.fit-contain::before {
-        content: "";
-        position: absolute;
-        inset: 6px;
-        z-index: 0;
-        border-radius: 20px;
-        background-image: var(--landing-photo-bg);
-        background-size: cover;
-        background-position: center;
-        filter: blur(14px) saturate(1.08);
-        opacity: 0.18;
-        transform: scale(1.04);
-      }
-
-      .landing-photo-card.fit-contain .landing-photo-main {
-        position: relative;
-        z-index: 1;
-        background: transparent;
-      }
-
-      .landing-photo-wide.fit-contain {
-        --landing-photo-bg: url("public/landing-gallery/landing-gallery-4.png");
+        aspect-ratio: 16 / 10;
+        --landing-gallery-position: center 42%;
       }
 
 
@@ -2858,7 +2831,7 @@
 
         .landing-gallery-grid .landing-photo-wide {
           grid-column: 2 / -1;
-          aspect-ratio: 4 / 3;
+          aspect-ratio: 16 / 10;
           margin-top: 2px;
         }
 
@@ -3063,8 +3036,8 @@
                 <article class="landing-photo-card landing-photo-pair landing-photo-portrait position-top">
                   <img src="public/landing-gallery/landing-gallery-5.png" alt="AI 웨딩 갤러리 샘플 5" width="640" height="960" loading="lazy" decoding="async" />
                 </article>
-                <article class="landing-photo-card landing-photo-wide fit-contain">
-                  <img class="landing-photo-main" src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
+                <article class="landing-photo-card landing-photo-wide">
+                  <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
                 </article>
               </div>
             </div>
@@ -4084,6 +4057,19 @@
       const ANONYMOUS_ID_STORAGE_KEY = "magic_ai_anonymous_id";
       const RESULT_STATE_STORAGE_KEY = "magic_ai_last_result_state";
       const APP_SCREEN_STORAGE_KEY = "magic_ai_app_screen";
+      const LOGIN_RETURN_VIEW_STORAGE_KEY = "magic_login_return_view";
+      const LOGIN_STARTED_STORAGE_KEY = "magic_login_started";
+      const LOGIN_RETURN_VIEW_FALLBACK = "editor";
+      const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
+        "home",
+        "editor",
+        "gallery",
+        "myPhotoBox",
+        "guide",
+        "credits",
+        "assistant",
+        "admin",
+      ]);
       const IS_ONLINE_API_PLACEHOLDER = Boolean(window.MAGIC_AI_STUDIO_CONFIG?.IS_ONLINE_API_PLACEHOLDER);
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
@@ -4997,6 +4983,65 @@ Important balance:
         return `${FRONT_API_BASE_URL}${path}`;
       }
 
+      function sanitizeLoginReturnView(value) {
+        const view = String(value || "").trim();
+        return ALLOWED_LOGIN_RETURN_VIEWS.has(view) ? view : LOGIN_RETURN_VIEW_FALLBACK;
+      }
+
+      function getLoginReturnViewFromScreen(screen = appScreen) {
+        const normalizedScreen = String(screen || "").trim();
+        if (normalizedScreen === "siteGuide") return "guide";
+        if (normalizedScreen === "generating" || normalizedScreen === "result") return "editor";
+        if (normalizedScreen === "landing") return "home";
+        return sanitizeLoginReturnView(normalizedScreen || LOGIN_RETURN_VIEW_FALLBACK);
+      }
+
+      function getScreenFromLoginReturnView(view) {
+        const returnView = sanitizeLoginReturnView(view);
+        if (returnView === "guide") return "siteGuide";
+        if (returnView === "assistant" || returnView === "admin") return "home";
+        return returnView;
+      }
+
+      function rememberLoginReturnView(view = getLoginReturnViewFromScreen()) {
+        const returnView = sanitizeLoginReturnView(view);
+        try {
+          window.sessionStorage.setItem(LOGIN_RETURN_VIEW_STORAGE_KEY, returnView);
+          window.sessionStorage.setItem(LOGIN_STARTED_STORAGE_KEY, "true");
+        } catch (error) {
+          return returnView;
+        }
+        return returnView;
+      }
+
+      function getStoredLoginReturnView() {
+        try {
+          return sanitizeLoginReturnView(window.sessionStorage.getItem(LOGIN_RETURN_VIEW_STORAGE_KEY));
+        } catch (error) {
+          return LOGIN_RETURN_VIEW_FALLBACK;
+        }
+      }
+
+      function clearLoginReturnState() {
+        try {
+          window.sessionStorage.removeItem(LOGIN_RETURN_VIEW_STORAGE_KEY);
+          window.sessionStorage.removeItem(LOGIN_STARTED_STORAGE_KEY);
+        } catch (error) {
+          return;
+        }
+      }
+
+      function getLoginRedirectReturnView() {
+        const queryReturnTo = new URLSearchParams(window.location.search).get("returnTo");
+        return sanitizeLoginReturnView(queryReturnTo || getStoredLoginReturnView());
+      }
+
+      function getNaverLoginStartUrl(returnView) {
+        const url = new URL(getAuthApiUrl("/api/auth/naver/start"), window.location.origin);
+        url.searchParams.set("returnTo", sanitizeLoginReturnView(returnView));
+        return url.toString();
+      }
+
       function normalizeAuthUser(payload = {}) {
         const user = payload?.user ?? payload?.data?.user ?? null;
         return user && typeof user === "object" ? user : null;
@@ -5389,6 +5434,7 @@ Important balance:
       function cleanLoginRedirectQuery() {
         const url = new URL(window.location.href);
         url.searchParams.delete("login");
+        url.searchParams.delete("returnTo");
         const nextSearch = url.searchParams.toString();
         const nextUrl = `${url.pathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash}`;
         history.replaceState(history.state || getCurrentAppHistoryState(), "", nextUrl || url.pathname);
@@ -5410,22 +5456,45 @@ Important balance:
         return false;
       }
 
+      function navigateToLoginReturnView(returnView) {
+        const targetScreen = getScreenFromLoginReturnView(returnView);
+        if (!targetScreen) return;
+
+        if (targetScreen === appScreen) {
+          if (targetScreen === "myPhotoBox") {
+            void refreshMyPhotoBoxScreen();
+          }
+          return;
+        }
+
+        navigateToScreen(targetScreen);
+      }
+
       let authStartupCheckPromise = null;
 
       function startAuthStartupCheck() {
         if (authStartupCheckPromise) return authStartupCheckPromise;
 
         console.log("[auth] app mounted - checking me");
-        const loginStatus = new URLSearchParams(window.location.search).get("login");
+        const loginParams = new URLSearchParams(window.location.search);
+        const loginStatus = loginParams.get("login");
+        const loginReturnView = getLoginRedirectReturnView();
         const hasLoginQuery = handleLoginRedirectQuery();
 
         authStartupCheckPromise = refreshAuthState({ showError: false })
           .then((user) => {
             if (loginStatus === "success") {
-              showAccountMenuToast(user ? "로그인되었습니다." : "로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+              if (user) {
+                const displayName = getAuthUserName(user);
+                showAccountMenuToast(`${displayName}님, 로그인되었습니다.`);
+                navigateToLoginReturnView(loginReturnView);
+              } else {
+                showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+              }
             } else if (loginStatus === "failed") {
               applyAuthUser(null);
               showAccountMenuToast("로그인에 실패했어요. 다시 시도해 주세요.");
+              navigateToLoginReturnView(loginReturnView);
             }
             return user;
           })
@@ -5441,6 +5510,7 @@ Important balance:
           .finally(() => {
             if (hasLoginQuery) {
               cleanLoginRedirectQuery();
+              clearLoginReturnState();
             }
           });
 
@@ -9118,6 +9188,7 @@ ${modeExample}`;
       function openLoginModal(trigger) {
         if (!loginModalOverlay || !loginModalPanel) return;
 
+        rememberLoginReturnView();
         activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
         loginModalOverlay.classList.add("is-open");
         loginModalOverlay.setAttribute("aria-hidden", "false");
@@ -9212,9 +9283,10 @@ ${modeExample}`;
       }
 
       function handleNaverLogin(button) {
+        const returnView = rememberLoginReturnView();
         setSocialLoginButtonLoading(button, true, "네이버 로그인으로 이동 중...");
         showAccountMenuToast("네이버 로그인으로 이동 중...");
-        window.location.href = getAuthApiUrl("/api/auth/naver/start");
+        window.location.href = getNaverLoginStartUrl(returnView);
       }
 
       function handleGoogleLogin() {

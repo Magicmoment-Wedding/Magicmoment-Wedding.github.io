@@ -1330,12 +1330,14 @@
       }
 
       .beauty-stage-note {
-        display: inline-flex;
-        align-items: center;
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
         gap: 8px;
+        max-width: 560px;
         margin-top: 8px;
-        padding: 8px 10px;
-        border-radius: 9999px;
+        padding: 10px 12px;
+        border-radius: 18px;
         color: var(--rose-deep);
         background: rgba(255, 255, 255, 0.7);
         border: 1px solid rgba(129, 80, 92, 0.14);
@@ -1357,10 +1359,13 @@
       }
 
       .beauty-stage-copy {
-        min-width: 0;
-        font-size: 11px;
-        line-height: 1.45;
+        flex: 1 1 220px;
+        min-width: min(100%, 180px);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.55;
         color: #705e61;
+        word-break: keep-all;
       }
 
       .editor-option-card {
@@ -2214,13 +2219,10 @@
 
       .landing-gallery-grid {
         position: relative;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-        align-items: start;
-        width: min(100%, 560px);
+        width: min(100%, 390px);
+        aspect-ratio: 1 / 0.92;
         margin: 0 auto;
-        padding: 12px;
+        padding: 10px;
         border-radius: 34px;
         background:
           linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 247, 249, 0.52)),
@@ -2230,9 +2232,8 @@
       }
 
       .landing-gallery-grid .landing-photo-card {
-        aspect-ratio: 2 / 3;
-        position: relative;
-        padding: 4px;
+        position: absolute;
+        padding: 5px;
         background: rgba(255, 252, 250, 0.84);
         border: 1px solid rgba(255, 255, 255, 0.76);
         box-shadow: 0 18px 42px rgba(129, 80, 92, 0.12);
@@ -2250,7 +2251,7 @@
       .landing-photo-card img {
         width: 100%;
         height: 100%;
-        object-fit: var(--landing-gallery-fit, contain);
+        object-fit: var(--landing-gallery-fit, cover);
         object-position: var(--landing-gallery-position, center center);
         display: block;
         border-radius: 20px;
@@ -2259,24 +2260,40 @@
       }
 
       .landing-gallery-grid .landing-photo-featured {
-        grid-column: 1 / -1;
-        aspect-ratio: 2 / 3;
+        left: 3%;
+        top: 5%;
+        width: 47%;
+        height: 66%;
+        z-index: 2;
+        --landing-gallery-position: center top;
       }
 
       .landing-gallery-grid .landing-photo-landscape {
-        grid-column: 1 / -1;
-        aspect-ratio: 1000 / 553;
+        right: 3%;
+        top: 10%;
+        width: 50%;
+        height: 31%;
+        z-index: 3;
+        --landing-gallery-position: center center;
       }
 
       .landing-gallery-grid .landing-photo-portrait {
-        grid-column: 1 / -1;
-        aspect-ratio: 2 / 3;
+        right: 7%;
+        top: 43%;
+        width: 40%;
+        height: 48%;
+        z-index: 4;
+        --landing-gallery-position: center top;
       }
 
       .landing-gallery-grid .landing-photo-wide {
-        grid-column: 1 / -1;
-        aspect-ratio: 2 / 3;
-        padding: 0;
+        left: 15%;
+        bottom: 4%;
+        width: 40%;
+        height: 35%;
+        padding: 4px;
+        z-index: 5;
+        --landing-gallery-position: center 34%;
       }
 
 
@@ -2833,30 +2850,35 @@
         }
 
         .landing-gallery-grid {
-          grid-template-columns: repeat(6, minmax(0, 1fr));
-          gap: 14px;
-          max-width: 580px;
+          width: min(100%, 500px);
+          max-width: 500px;
+          aspect-ratio: 1 / 0.78;
           padding: 16px;
         }
 
         .landing-gallery-grid .landing-photo-featured {
-          grid-column: 1 / span 3;
-          grid-row: span 2;
-          aspect-ratio: 2 / 3;
+          left: 4%;
+          top: 7%;
+          width: 42%;
+          height: 78%;
         }
 
         .landing-gallery-grid .landing-photo-landscape {
-          grid-column: span 3;
-          aspect-ratio: 1000 / 553;
+          right: 4%;
+          top: 8%;
+          width: 52%;
+          height: 30%;
         }
 
         .landing-gallery-grid .landing-photo-portrait {
-          grid-column: span 3;
-          aspect-ratio: 2 / 3;
+          right: 8%;
+          top: 41%;
+          width: 34%;
+          height: 50%;
         }
 
         .landing-gallery-grid .landing-photo-landscape:nth-child(2) {
-          margin-top: 24px;
+          margin-top: 0;
         }
 
         .landing-gallery-grid .landing-photo-portrait:nth-child(3) {
@@ -2864,9 +2886,11 @@
         }
 
         .landing-gallery-grid .landing-photo-wide {
-          grid-column: 2 / -1;
-          aspect-ratio: 2 / 3;
-          margin-top: 2px;
+          left: 43%;
+          bottom: 8%;
+          width: 30%;
+          height: 40%;
+          margin-top: 0;
         }
 
         .landing-pricing-grid {
@@ -3310,7 +3334,7 @@
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
                     예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
+                  <span class="beauty-stage-copy">얼굴과 포즈는 유지하고, 유럽 여행 스냅 같은 분위기로 바꿔드려요.</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
@@ -3351,13 +3375,13 @@
 
             <section class="mt-7 hidden" id="koreaOptions">
               <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 한국 스타일 배경을 선택해 주세요</p>
+                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 Korea Style 배경을 선택해 주세요</p>
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
                     예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">얼굴이 거의 변하지 않아요</span>
+                  <span class="beauty-stage-copy">얼굴과 포즈는 유지하고, 한국 감성 웨딩 스냅 분위기로 바꿔드려요.</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
@@ -3408,9 +3432,8 @@
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
                     예쁨단계 3
                   </span>
-                  <span class="beauty-stage-copy">얼굴은 최대한 유지하고, 의상과 배경이 디즈니 실사풍으로 변환돼요</span>
+                  <span class="beauty-stage-copy">얼굴과 포즈는 최대한 유지하고, 의상과 배경만 디즈니 실사풍 콘셉트로 바꿔드려요.</span>
                 </div>
-                <p class="disney-intent-note">얼굴과 포즈는 최대한 유지하고, 의상과 배경만 디즈니 실사풍 컨셉으로 바뀝니다.</p>
               </div>
               <div class="editor-option-grid mt-3">
                 <button
@@ -3464,13 +3487,13 @@
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
                     예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">배경보다 인물과 포즈 중심의 자연스러운 스튜디오 샷이에요</span>
+                  <span class="beauty-stage-copy">흰배경, 소파, 꽃잎, 한복 등 대표 스튜디오 샷을 자연스럽게 만들어드려요.</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-white-bg.jpg'), url('public/images/studio-style/studio-white-bg.jpg'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_white_bg" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -3479,7 +3502,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-sofa.jpg'), url('public/images/studio-style/studio-sofa.jpg'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_sofa" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -3488,7 +3511,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-petals.jpg'), url('public/images/studio-style/studio-petals.jpg'); --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_petals" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -3497,7 +3520,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-hanbok.jpg'), url('public/images/studio-style/studio-hanbok.jpg'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_hanbok" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>

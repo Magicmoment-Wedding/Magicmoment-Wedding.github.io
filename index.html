@@ -6458,6 +6458,30 @@ Important:
         return true;
       }
 
+      async function recoverAuthenticatedLoginRequiredGeneration({ imageFile, originalImage, mode }) {
+        if (!currentUser) return false;
+
+        const refreshedUser = await refreshAuthState({ showError: false });
+        if (!refreshedUser) {
+          return false;
+        }
+
+        if (!canStartGenerationFromCurrentState()) {
+          return true;
+        }
+
+        await runGrokPipeline({
+          imageFile,
+          originalImage,
+          mode,
+        });
+        isGenerating = false;
+        generateButton.disabled = false;
+        void refreshAuthState({ showError: false });
+        setAppScreen("result", { replaceHistory: true });
+        return true;
+      }
+
       function getMyPhotosApiUrl() {
         return getAuthApiUrl("/api/my-photos");
       }
@@ -7464,6 +7488,7 @@ Important:
         try {
           response = await fetch(requestUrl, {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
             },
@@ -8022,6 +8047,7 @@ ${modeExample}`;
         try {
           response = await fetch(requestUrl, {
             method: "POST",
+            credentials: "include",
             headers: {
               "X-Anonymous-Id": anonymousId,
             },
@@ -10733,19 +10759,54 @@ ${modeExample}`;
           void refreshAuthState({ showError: false });
           setAppScreen("result", { replaceHistory: true });
         } catch (error) {
-          console.error("[client][grok-edit] generation failed:", error);
-          if (error.response) {
-            console.error("[client][grok-edit] server details:", sanitizeLogValue(error.response));
+          let effectiveError = error;
+          console.error("[client][grok-edit] generation failed:", effectiveError);
+          if (effectiveError.response) {
+            console.error("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
           }
+          const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
+          const shouldRefreshAuthBeforeLoginPrompt = currentUser && (
+            effectiveError.isLoginRequired ||
+            initialGenerationErrorCode === "LOGIN_REQUIRED" ||
+            initialGenerationErrorCode === "AUTH_REQUIRED"
+          );
+
+          if (shouldRefreshAuthBeforeLoginPrompt) {
+            try {
+              const recovered = await recoverAuthenticatedLoginRequiredGeneration({
+                imageFile: selectedFile,
+                originalImage: selectedImageDataUrl,
+                mode: activeGenerationMode,
+              });
+              if (recovered) {
+                return;
+              }
+            } catch (retryError) {
+              effectiveError = retryError;
+              console.error("[client][grok-edit] generation retry failed:", retryError);
+            }
+          }
+
           clearResults();
           setAppScreen("editor", { replaceHistory: true });
-          const generationErrorCode = String(error.code || error.response?.code || error.response?.error || "").toUpperCase();
-          const isLoginRequiredError = error.isLoginRequired || generationErrorCode === "LOGIN_REQUIRED" || generationErrorCode === "AUTH_REQUIRED";
-          const isOnboardingRequiredError = error.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";
-          const isCreditsRequiredError = error.isInsufficientCredits || generationErrorCode === "CREDITS_REQUIRED" || generationErrorCode === "INSUFFICIENT_CREDITS";
+          const generationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
+          const isLoginRequiredError = effectiveError.isLoginRequired || generationErrorCode === "LOGIN_REQUIRED" || generationErrorCode === "AUTH_REQUIRED";
+          const isOnboardingRequiredError = effectiveError.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";
+          const isCreditsRequiredError = effectiveError.isInsufficientCredits || generationErrorCode === "CREDITS_REQUIRED" || generationErrorCode === "INSUFFICIENT_CREDITS";
 
           if (isLoginRequiredError) {
             setStatus("");
+            if (currentUser) {
+              const refreshedUser = await refreshAuthState({ showError: false });
+              if (refreshedUser) {
+                if (!canStartGenerationFromCurrentState()) {
+                  return;
+                }
+                showError("로그인 상태를 확인했지만 생성 요청 인증에 실패했습니다. 잠시 후 다시 시도해 주세요.", { title: "생성 실패" });
+                showAccountMenuToast("생성 요청 인증에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+                return;
+              }
+            }
             requestLoginForGeneration();
             return;
           }
@@ -10772,7 +10833,7 @@ ${modeExample}`;
 
           setStatus("");
           showError(
-            error.publicMessage || error.response?.message || GENERAL_GENERATION_FAILURE_MESSAGE,
+            effectiveError.publicMessage || effectiveError.response?.message || GENERAL_GENERATION_FAILURE_MESSAGE,
             { showCreditButton: false },
           );
         } finally {

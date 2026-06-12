@@ -53,6 +53,7 @@ export async function generateImages(prompt, options = {}) {
   });
   const response = await fetch(requestUrl, {
     method: "POST",
+    credentials: "include",
     headers: {
       "X-Anonymous-Id": anonymousId,
     },

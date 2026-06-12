@@ -5538,7 +5538,14 @@ Important:
       }
 
       function applyUserEntitlements(payload = {}, user = currentUser) {
-        const onboardingValue = pickAuthField(payload, user, ["onboardingCompleted", "onboarding_completed"]);
+        const onboardingValue = pickAuthField(payload, user, [
+          "onboardingCompleted",
+          "onboarding_completed",
+          "isOnboardingCompleted",
+          "is_onboarding_completed",
+          "tutorialCompleted",
+          "tutorial_completed",
+        ]);
         const freeUsedValue = pickAuthField(payload, user, ["freeGenerationUsed", "free_generation_used"]);
         const freeAvailableValue = pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
         const openEventValue = pickAuthField(payload, user, ["openEventEligible", "open_event_eligible", "firstPurchaseEligible", "first_purchase_eligible"]);
@@ -6269,6 +6276,7 @@ Important:
         if (!currentUser) return;
 
         if (!onboardingCompleted) {
+          clearPendingAction();
           siteGuidePageIndex = 0;
           navigateToScreen("siteGuide");
           showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
@@ -6432,7 +6440,7 @@ Important:
           throw new Error(payload?.message || `Onboarding complete failed: ${response.status}`);
         }
 
-        await refreshAuthState({ showError: false });
+        return refreshAuthState({ showError: false });
       }
 
       async function handleSiteGuideNext() {
@@ -6451,6 +6459,11 @@ Important:
           if (!onboardingCompleted) {
             await completeOnboarding();
           }
+          if (!onboardingCompleted) {
+            showAccountMenuToast("이용안내 완료 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
+          clearPendingAction();
           showAccountMenuToast(freeGenerationAvailable ? "가입 선물로 첫 1회는 무료로 제작할 수 있어요." : "사진 제작을 시작해 주세요.");
           navigateToScreen("editor");
           if (freeGenerationAvailable) {
@@ -8225,6 +8238,9 @@ ${modeExample}`;
             error.isInsufficientCredits = true;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
+          } else if (responseCode === "WATERMARK_FAILED" || responseCode === "WATERMARK_LOGO_NOT_FOUND") {
+            error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+            error.isWatermarkFailed = true;
           } else if (data.message) {
             error.publicMessage = data.message;
           } else {
@@ -10907,6 +10923,7 @@ ${modeExample}`;
           const isLoginRequiredError = effectiveError.isLoginRequired || generationErrorCode === "LOGIN_REQUIRED" || generationErrorCode === "AUTH_REQUIRED";
           const isOnboardingRequiredError = effectiveError.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";
           const isCreditsRequiredError = effectiveError.isInsufficientCredits || generationErrorCode === "CREDITS_REQUIRED" || generationErrorCode === "INSUFFICIENT_CREDITS";
+          const isWatermarkError = effectiveError.isWatermarkFailed || generationErrorCode === "WATERMARK_FAILED" || generationErrorCode === "WATERMARK_LOGO_NOT_FOUND";
 
           if (isLoginRequiredError) {
             setStatus("");
@@ -10945,6 +10962,13 @@ ${modeExample}`;
             );
             showAccountMenuToast("두 번째 제작부터는 크레딧이 필요합니다.");
             setAppScreen("credits", { replaceHistory: true });
+            return;
+          }
+
+          if (isWatermarkError) {
+            setStatus("");
+            showError("무료 제작 워터마크 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.", { showCreditButton: false });
+            showAccountMenuToast("무료 제작 워터마크 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
             return;
           }
 

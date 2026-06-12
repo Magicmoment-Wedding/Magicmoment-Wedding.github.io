@@ -3573,8 +3573,8 @@
               id="generateButton"
               type="button"
             >
-              <span class="font-semibold">AI 웨딩사진 만들기</span>
-              <span class="text-[11px] opacity-80">AI 배경 바꾸기 · 25크레딧</span>
+              <span class="font-semibold">로그인 확인 중...</span>
+              <span class="text-[11px] opacity-80">잠시만 기다려 주세요.</span>
             </button>
           </section>
 
@@ -5203,6 +5203,7 @@ Important:
       let appScreen = "landing";
       let isLoggedIn = false;
       let isAuthLoading = false;
+      let authChecked = false;
       let isMyPhotoBoxLoggedIn = false;
       let currentUser = null;
       let isAdmin = false;
@@ -5452,6 +5453,10 @@ Important:
         return user && typeof user === "object" ? user : null;
       }
 
+      function isAuthenticatedUser(user = currentUser) {
+        return Boolean(user && (user.id || user.userId || user.user_id));
+      }
+
       function normalizeAdminStatus(payload = {}) {
         const admin = payload?.admin ?? payload?.data?.admin ?? payload?.profile?.admin ?? payload?.user?.admin ?? null;
         const role = String(
@@ -5664,8 +5669,9 @@ Important:
       function applyAuthSession(payload = {}) {
         const user = normalizeAuthUser(payload);
         const authCreditBalance = normalizeAuthCreditBalance(payload);
-        currentUser = user || null;
-        isLoggedIn = Boolean(currentUser);
+        currentUser = isAuthenticatedUser(user) ? user : null;
+        authChecked = true;
+        isLoggedIn = isAuthenticatedUser(currentUser);
         isMyPhotoBoxLoggedIn = isLoggedIn;
         isAdmin = false;
         currentAdmin = null;
@@ -5774,7 +5780,9 @@ Important:
           }
           return null;
         } finally {
+          authChecked = true;
           isAuthLoading = false;
+          syncEditorGenerationCopy();
         }
       }
 
@@ -5816,13 +5824,37 @@ Important:
         if (!generateButton) return;
         const label = generateButton.querySelector("span:first-child");
         const detail = generateButton.querySelector("span:last-child");
+        const hasUser = authChecked && isAuthenticatedUser();
+        let labelText = "로그인 확인 중...";
+        let detailText = "잠시만 기다려 주세요.";
+
+        if (authChecked && !hasUser) {
+          labelText = "로그인 후 무료 제작 시작";
+          detailText = "가입 후 첫 1회 무료";
+        } else if (hasUser && !onboardingCompleted) {
+          labelText = "사이트 이용안내 보기";
+          detailText = "이용안내 후 첫 제작 가능";
+        } else if (hasUser && freeGenerationAvailable) {
+          labelText = "무료 1회 제작 시작";
+          detailText = "가입 선물 · 워터마크 포함";
+        } else if (hasUser && Number(creditBalance) < 25) {
+          labelText = "크레딧 충전하기";
+          detailText = "두 번째 제작부터 크레딧 필요";
+        } else if (hasUser) {
+          labelText = "AI 배경 바꾸기";
+          detailText = "AI 배경 바꾸기 · 25크레딧";
+        }
+
         if (label) {
-          label.textContent = freeGenerationAvailable ? "무료 1회 제작 시작" : "AI 웨딩사진 만들기";
+          label.textContent = labelText;
         }
         if (detail) {
-          detail.textContent = freeGenerationAvailable
-            ? "가입 선물 · 워터마크 포함"
-            : "AI 배경 바꾸기 · 25크레딧";
+          detail.textContent = detailText;
+        }
+        if (!authChecked) {
+          generateButton.disabled = true;
+        } else if (selectedFile && !isGenerating) {
+          generateButton.disabled = false;
         }
       }
 
@@ -6442,7 +6474,12 @@ Important:
       }
 
       function canStartGenerationFromCurrentState() {
-        if (!currentUser) {
+        if (!authChecked) {
+          showAccountMenuToast("로그인 상태를 확인 중입니다. 잠시 후 다시 시도해 주세요.");
+          return false;
+        }
+
+        if (!isAuthenticatedUser()) {
           requestLoginForGeneration();
           return false;
         }
@@ -6468,7 +6505,7 @@ Important:
       }
 
       function assertCanStartGenerationFlow() {
-        if (!currentUser) {
+        if (!authChecked || !isAuthenticatedUser()) {
           const error = new Error("LOGIN_REQUIRED");
           error.code = "LOGIN_REQUIRED";
           error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
@@ -6494,7 +6531,7 @@ Important:
       }
 
       async function recoverAuthenticatedLoginRequiredGeneration({ imageFile, originalImage, mode }) {
-        if (!currentUser) return false;
+        if (!authChecked || !isAuthenticatedUser()) return false;
 
         const refreshedUser = await refreshAuthState({ showError: false });
         if (!refreshedUser) {
@@ -6809,10 +6846,12 @@ Important:
 
       function setAppScreen(screen, options = {}) {
         const { pushHistory = true, replaceHistory = false } = options;
-        if (screen === "result" && (!currentUser || !currentGenerationId || !imageUrls.length)) {
+        if (screen === "result" && (!authChecked || !isAuthenticatedUser() || !currentGenerationId || !imageUrls.length)) {
           clearResults();
           screen = "editor";
-          if (!currentUser) {
+          if (!authChecked) {
+            showAccountMenuToast("로그인 상태를 확인 중입니다. 잠시 후 다시 시도해 주세요.");
+          } else if (!isAuthenticatedUser()) {
             showAccountMenuToast("로그인이 필요합니다. 먼저 로그인해 주세요.");
             requestLoginForGeneration();
           } else {
@@ -7301,7 +7340,7 @@ Important:
       function restoreResultState() {
         let storedState = null;
 
-        if (!currentUser) {
+        if (!authChecked || !isAuthenticatedUser()) {
           return false;
         }
 
@@ -10750,6 +10789,7 @@ ${modeExample}`;
           }, "error");
         }
         generateButton.disabled = false;
+        syncEditorGenerationCopy();
         if (!isGenerating && !imageUrls.length) {
           resultSection.classList.add("hidden");
         }
@@ -10814,7 +10854,7 @@ ${modeExample}`;
             console.error("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
           }
           const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
-          const shouldRefreshAuthBeforeLoginPrompt = currentUser && (
+          const shouldRefreshAuthBeforeLoginPrompt = authChecked && isAuthenticatedUser() && (
             effectiveError.isLoginRequired ||
             initialGenerationErrorCode === "LOGIN_REQUIRED" ||
             initialGenerationErrorCode === "AUTH_REQUIRED"
@@ -10845,7 +10885,7 @@ ${modeExample}`;
 
           if (isLoginRequiredError) {
             setStatus("");
-            if (currentUser) {
+            if (authChecked && isAuthenticatedUser()) {
               const refreshedUser = await refreshAuthState({ showError: false });
               if (refreshedUser) {
                 if (!canStartGenerationFromCurrentState()) {

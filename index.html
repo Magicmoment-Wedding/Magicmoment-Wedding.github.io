@@ -5940,6 +5940,22 @@ Important:
           returnUrl,
           buyerName: payment.buyerName || "",
           buyerEmail: payment.buyerEmail || "",
+          fnError: function (result) {
+            if (DEBUG_MODE) {
+              console.warn("[nicepay] payment error", {
+                errorCode: result?.errorCode,
+                errorMsg: result?.errorMsg,
+              });
+            }
+
+            isPaymentLoading = false;
+            activePaymentPackageId = null;
+            updateCreditUi();
+
+            const message = result?.errorMsg || "결제창을 여는 중 문제가 발생했습니다. 다시 시도해 주세요.";
+            showCreditStatus(message, "error");
+            showAccountMenuToast(message);
+          },
         });
       }
 

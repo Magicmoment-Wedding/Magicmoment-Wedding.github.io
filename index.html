@@ -3157,19 +3157,19 @@
               <div class="landing-pricing-grid">
                 <article class="landing-plan-card">
                   <div>
-                    <p class="landing-plan-eyebrow">EXPERIENCE</p>
-                    <p class="landing-plan-title">광고 두 개 보기</p>
-                    <p class="landing-plan-price mt-3">무료</p>
-                    <p class="landing-plan-copy mt-2">워터마크 체험</p>
+                    <p class="landing-plan-eyebrow">OPEN EVENT</p>
+                    <p class="landing-plan-title">200 크레딧</p>
+                    <p class="landing-plan-price mt-3">1,000원</p>
+                    <p class="landing-plan-copy mt-2">첫 결제 1회 한정 · 정가 49,800원</p>
                   </div>
-                  <button class="landing-plan-button" data-screen-target="editor" type="button">무료 시작</button>
+                  <button class="landing-plan-button" data-screen-target="credits" type="button">이벤트 보기</button>
                 </article>
                 <article class="landing-plan-card">
                   <div>
                     <p class="landing-plan-eyebrow">STARTER</p>
                     <p class="landing-plan-title">200 크레딧</p>
-                    <p class="landing-plan-price mt-3">19,800원</p>
-                    <p class="landing-plan-copy mt-2">노워터마크 제작</p>
+                    <p class="landing-plan-price mt-3">49,800원</p>
+                    <p class="landing-plan-copy mt-2">사진 제작 8회 분량</p>
                   </div>
                   <button class="landing-plan-button" data-screen-target="credits" type="button">구매하기</button>
                 </article>
@@ -3177,8 +3177,8 @@
                   <div>
                     <p class="landing-plan-eyebrow">STANDARD</p>
                     <p class="landing-plan-title">500 크레딧</p>
-                    <p class="landing-plan-price mt-3">39,800원</p>
-                    <p class="landing-plan-copy mt-2">테이블 포토 제작</p>
+                    <p class="landing-plan-price mt-3">99,000원</p>
+                    <p class="landing-plan-copy mt-2">사진 제작 20회 분량</p>
                   </div>
                   <button class="landing-plan-button" data-screen-target="credits" type="button">구매하기</button>
                 </article>
@@ -3186,8 +3186,8 @@
                   <div>
                     <p class="landing-plan-eyebrow">ULTIMATE</p>
                     <p class="landing-plan-title">프리미엄 커스텀</p>
-                    <p class="landing-plan-price mt-3">99,000원</p>
-                    <p class="landing-plan-copy mt-2">업스케일링 + 맞춤 제작</p>
+                    <p class="landing-plan-price mt-3">199,000원</p>
+                    <p class="landing-plan-copy mt-2">커스텀 또는 스케일업 상담</p>
                   </div>
                   <button class="landing-plan-button" data-action="open-assistant-chat" type="button">문의하기</button>
                 </article>
@@ -3820,11 +3820,11 @@
                     <div class="mt-4 grid grid-cols-2 gap-2">
                       <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
                         <p class="text-xs text-on-surface-variant">200크레딧</p>
-                        <p class="mt-1 text-sm font-bold text-primary">19,800원</p>
+                        <p class="mt-1 text-sm font-bold text-primary">49,800원</p>
                       </div>
                       <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
                         <p class="text-xs text-on-surface-variant">500크레딧</p>
-                        <p class="mt-1 text-sm font-bold text-primary">39,800원</p>
+                        <p class="mt-1 text-sm font-bold text-primary">99,000원</p>
                       </div>
                     </div>
                     <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="siteGuideCreditButton" type="button">
@@ -3876,6 +3876,23 @@
 
               <p class="hidden rounded-DEFAULT border px-4 py-3 text-sm" id="creditStatusText"></p>
 
+              <article class="hidden rounded-DEFAULT p-4 glass-panel glow-shadow border border-primary/25" id="openEventCreditCard">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">첫 결제 1회 한정</p>
+                    <p class="mt-3 font-display text-[23px] leading-tight text-on-surface">오픈이벤트 200 크레딧</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">첫 번째 결제 1회 한정</p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-xs text-on-surface-variant line-through">정가 49,800원</p>
+                    <p class="font-display text-primary text-[26px] leading-none">1,000원</p>
+                  </div>
+                </div>
+                <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="credits_200_open_event" type="button">
+                  오픈이벤트 200 크레딧 구매하기
+                </button>
+              </article>
+
               <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
                 <div class="flex items-center justify-between gap-4">
                   <div>
@@ -3883,8 +3900,8 @@
                     <p class="mt-1 text-sm text-on-surface-variant">사진 제작 8회 분량</p>
                   </div>
                   <div class="text-right shrink-0">
-                    <p class="text-sm text-on-surface-variant">가격</p>
-                    <p class="font-medium text-primary text-[18px]">19,800원</p>
+                    <p class="text-sm text-on-surface-variant">정가</p>
+                    <p class="font-medium text-primary text-[18px]">49,800원</p>
                   </div>
                 </div>
                 <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="credits_200" type="button">
@@ -3899,14 +3916,40 @@
                     <p class="mt-1 text-sm text-on-surface-variant">사진 제작 20회 분량</p>
                   </div>
                   <div class="text-right shrink-0">
-                    <p class="text-sm text-on-surface-variant">가격</p>
-                    <p class="font-medium text-primary text-[18px]">39,800원</p>
+                    <p class="text-sm text-on-surface-variant">정가</p>
+                    <p class="font-medium text-primary text-[18px]">99,000원</p>
                   </div>
                 </div>
                 <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="credits_500" type="button">
                   500 크레딧 구매하기
                 </button>
               </article>
+
+              <section class="rounded-DEFAULT p-4 glass-panel">
+                <h3 class="font-display text-[21px] leading-tight text-on-surface">추가 서비스</h3>
+                <div class="mt-3 space-y-3">
+                  <div class="flex items-center justify-between gap-3 rounded-[18px] bg-white/55 px-4 py-3">
+                    <div>
+                      <p class="text-sm font-bold text-on-surface">커스텀 서비스</p>
+                      <p class="text-xs text-on-surface-variant">원하는 콘셉트를 직접 제작 상담</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-bold text-primary">199,000원</p>
+                      <button class="mt-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary" data-action="open-assistant-chat" type="button">문의하기</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between gap-3 rounded-[18px] bg-white/55 px-4 py-3">
+                    <div>
+                      <p class="text-sm font-bold text-on-surface">스케일업 & 테이블 액자제작</p>
+                      <p class="text-xs text-on-surface-variant">고해상도 보정과 액자 제작 상담</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-bold text-primary">199,000원</p>
+                      <button class="mt-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary" data-action="open-assistant-chat" type="button">문의하기</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
               <div class="rounded-DEFAULT bg-white/45 p-4 text-sm text-on-surface-variant leading-6">
                 <div class="flex items-start gap-2">
@@ -4062,17 +4105,17 @@
           <div class="social-login-list" aria-label="소셜 로그인">
             <button class="social-login-button is-kakao" data-social-login-provider="kakao" type="button">
               <span class="social-login-icon" aria-hidden="true">K</span>
-              <span>카카오로 계속하기</span>
+              <span>카카오톡으로 로그인</span>
               <span aria-hidden="true"></span>
             </button>
-            <button class="social-login-button is-naver is-pending" data-social-login-provider="naver" type="button" aria-describedby="loginModalDescription">
+            <button class="social-login-button is-naver" data-social-login-provider="naver" type="button">
               <span class="social-login-icon" aria-hidden="true">N</span>
-              <span>네이버 로그인 준비중</span>
-              <span class="social-login-status" aria-hidden="true">준비중</span>
+              <span>네이버로 로그인</span>
+              <span aria-hidden="true"></span>
             </button>
             <button class="social-login-button is-google is-pending" data-social-login-provider="google" type="button" aria-describedby="loginModalDescription">
               <span class="social-login-icon" aria-hidden="true">G</span>
-              <span>Google 로그인 승인 대기중</span>
+              <span>Google 로그인 (준비중)</span>
               <span class="social-login-status" aria-hidden="true">대기중</span>
             </button>
           </div>
@@ -4235,6 +4278,8 @@
       const NICEPAY_SDK_URL = "https://pay.nicepay.co.kr/v1/js/";
       const NICEPAY_SDK_SCRIPT_ID = "nicepay-sdk-script";
       const LAST_PAYMENT_ORDER_ID_STORAGE_KEY = "magic_last_payment_order_id";
+      const PENDING_ACTION_STORAGE_KEY = "magic_pending_action";
+      const RETURN_TO_STORAGE_KEY = "magic_return_to";
       const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
         "home",
@@ -5047,6 +5092,7 @@ Important:
       const generatingGallerySlider = document.getElementById("generatingGallerySlider");
       const creditBalanceText = document.getElementById("creditBalanceText");
       const creditStatusText = document.getElementById("creditStatusText");
+      const openEventCreditCard = document.getElementById("openEventCreditCard");
       const creditChargeButtons = Array.from(document.querySelectorAll("[data-credit-package-id]"));
       const screenStartButtons = Array.from(document.querySelectorAll("[data-screen-target]"));
       const generatingStatusText = document.getElementById("generatingStatusText");
@@ -5172,6 +5218,13 @@ Important:
       let isPaymentLoading = false;
       let activePaymentPackageId = null;
       let nicepaySdkLoadPromise = null;
+      let onboardingCompleted = true;
+      let freeGenerationUsed = false;
+      let freeGenerationAvailable = false;
+      let openEventEligible = false;
+      let isNewUser = false;
+      let siteGuidePageIndex = 0;
+      let lastGenerationUsedFreeCredit = false;
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -5185,14 +5238,14 @@ Important:
           description: "Europe Style, Korea Style, Disney Style, Studio Style 중 원하는 분위기를 선택하고, 하위 배경 또는 샷 카드를 골라주세요.",
           icon: "style",
           image: null,
-          notes: ["스타일 카드와 배경 프리셋은 나중에 실제 안내 이미지로 교체할 수 있게 구성했습니다."],
+          notes: [],
         },
         {
           title: "AI 웨딩사진 만들기",
-          description: "AI 웨딩사진 만들기 버튼을 누르면 크레딧이 사용되고, AI가 사진을 생성합니다. 생성이 완료될 때까지 잠시 기다려주세요.",
+          description: "가입 선물로 첫 1회는 무료로 제작할 수 있어요. 두 번째 제작부터는 크레딧이 필요합니다.",
           icon: "auto_awesome",
           image: null,
-          notes: ["기본 생성은 25크레딧이 사용됩니다.", "이미지 생성에 실패한 경우 크레딧이 차감되지 않도록 안내하고 있습니다."],
+          notes: ["무료 제작 결과에는 Magic Ai Studio 워터마크가 표시됩니다.", "기본 생성은 25크레딧이 사용됩니다."],
         },
         {
           title: "결과 확인하기",
@@ -5217,13 +5270,6 @@ Important:
           icon: "cloud_upload",
           image: null,
           notes: ["4장 중 1장만 업로드 가능", "1인 최대 10장까지 업로드 가능", "스타일 갤러리에 업로드하면 5크레딧 지급", "공개해도 괜찮은 사진만 올려주세요."],
-        },
-        {
-          title: "크레딧 충전하기",
-          description: "크레딧이 부족하면 크레딧 관리 화면에서 충전할 수 있어요. 충전한 크레딧으로 AI 웨딩사진을 만들 수 있습니다.",
-          icon: "account_balance_wallet",
-          image: null,
-          notes: ["200크레딧: 19,800원", "500크레딧: 39,800원", "사진 1회 생성 시 25크레딧 사용", "결제 완료 후 크레딧이 충전됩니다."],
         },
       ];
       const guideFaqItems = [
@@ -5455,9 +5501,45 @@ Important:
           ?? payload?.data?.credits?.balance
           ?? payload?.data?.credits?.credits
           ?? payload?.balance
-          ?? payload?.creditBalance;
+          ?? payload?.creditBalance
+          ?? payload?.data?.balance
+          ?? payload?.data?.creditBalance
+          ?? payload?.user?.creditBalance
+          ?? payload?.data?.user?.creditBalance;
         const numericValue = Number(value);
         return Number.isFinite(numericValue) ? numericValue : null;
+      }
+
+      function normalizeBooleanField(value, fallback = false) {
+        if (value === true || value === "true" || value === 1 || value === "1") return true;
+        if (value === false || value === "false" || value === 0 || value === "0") return false;
+        return fallback;
+      }
+
+      function pickAuthField(payload = {}, user = null, keys = []) {
+        const containers = [payload, payload.data, payload.profile, user, payload.user, payload.data?.user].filter(Boolean);
+        for (const container of containers) {
+          for (const key of keys) {
+            if (Object.prototype.hasOwnProperty.call(container, key)) {
+              return container[key];
+            }
+          }
+        }
+        return undefined;
+      }
+
+      function applyUserEntitlements(payload = {}, user = currentUser) {
+        const onboardingValue = pickAuthField(payload, user, ["onboardingCompleted", "onboarding_completed"]);
+        const freeUsedValue = pickAuthField(payload, user, ["freeGenerationUsed", "free_generation_used"]);
+        const freeAvailableValue = pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
+        const openEventValue = pickAuthField(payload, user, ["openEventEligible", "open_event_eligible", "firstPurchaseEligible", "first_purchase_eligible"]);
+        const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
+
+        onboardingCompleted = normalizeBooleanField(onboardingValue, true);
+        freeGenerationUsed = normalizeBooleanField(freeUsedValue, false);
+        freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, false);
+        openEventEligible = normalizeBooleanField(openEventValue, false);
+        isNewUser = normalizeBooleanField(isNewUserValue, !onboardingCompleted);
       }
 
       function renderAccountAvatar(target, user) {
@@ -5587,6 +5669,7 @@ Important:
         isMyPhotoBoxLoggedIn = isLoggedIn;
         isAdmin = false;
         currentAdmin = null;
+        applyUserEntitlements(payload, currentUser);
         console.log("[auth] currentUser updated");
 
         if (isLoggedIn && authCreditBalance !== null) {
@@ -5596,6 +5679,8 @@ Important:
         }
 
         syncAuthUi();
+        syncEditorGenerationCopy();
+        updateCreditUi();
 
         if (!isLoggedIn && appScreen === "admin") {
           navigateToScreen("home");
@@ -5722,10 +5807,26 @@ Important:
         return Number(value ?? 0).toLocaleString("ko-KR");
       }
 
+      function syncEditorGenerationCopy() {
+        if (!generateButton) return;
+        const label = generateButton.querySelector("span:first-child");
+        const detail = generateButton.querySelector("span:last-child");
+        if (label) {
+          label.textContent = freeGenerationAvailable ? "무료 1회 제작 시작" : "AI 웨딩사진 만들기";
+        }
+        if (detail) {
+          detail.textContent = freeGenerationAvailable
+            ? "가입 선물 · 워터마크 포함"
+            : "AI 배경 바꾸기 · 25크레딧";
+        }
+      }
+
       function updateCreditUi() {
         if (creditBalanceText) {
           creditBalanceText.textContent = isCreditsLoading ? "..." : formatCreditNumber(creditBalance);
         }
+
+        openEventCreditCard?.classList.toggle("hidden", !openEventEligible);
 
         creditChargeButtons.forEach((button) => {
           const packageId = button.dataset.creditPackageId || "";
@@ -6085,6 +6186,44 @@ Important:
         navigateToScreen(targetScreen);
       }
 
+      function getPendingAction() {
+        try {
+          return window.sessionStorage.getItem(PENDING_ACTION_STORAGE_KEY) || "";
+        } catch (error) {
+          return "";
+        }
+      }
+
+      function clearPendingAction() {
+        try {
+          window.sessionStorage.removeItem(PENDING_ACTION_STORAGE_KEY);
+          window.sessionStorage.removeItem(RETURN_TO_STORAGE_KEY);
+        } catch (error) {
+          return;
+        }
+      }
+
+      function handlePostLoginExperience(returnView) {
+        if (!currentUser) return;
+
+        if (!onboardingCompleted) {
+          siteGuidePageIndex = 0;
+          navigateToScreen("siteGuide");
+          showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
+          return;
+        }
+
+        const pendingAction = getPendingAction();
+        if (pendingAction === "start_generation") {
+          clearPendingAction();
+          navigateToLoginReturnView("editor");
+          showAccountMenuToast("로그인되었습니다. 사진 제작을 계속 진행해 주세요.");
+          return;
+        }
+
+        navigateToLoginReturnView(returnView);
+      }
+
       let authStartupCheckPromise = null;
 
       function startAuthStartupCheck() {
@@ -6104,7 +6243,7 @@ Important:
               if (user) {
                 const displayName = getAuthUserName(user);
                 showAccountMenuToast(`${displayName}님, 로그인되었습니다.`);
-                navigateToLoginReturnView(loginReturnView);
+                handlePostLoginExperience(loginReturnView);
               } else {
                 showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
               }
@@ -6174,37 +6313,50 @@ Important:
       }
 
       function renderSiteGuideScreen() {
-        if (siteGuideStepsContainer && !siteGuideStepsContainer.dataset.rendered) {
-          siteGuideStepsContainer.innerHTML = guideSteps.map((step, index) => {
-            const notes = Array.isArray(step.notes) ? step.notes : [];
-            return `
-              <article class="site-guide-step">
-                <div class="site-guide-illustration">
-                  ${step.image ? `
-                    <img src="${escapeHtml(step.image)}" alt="${escapeHtml(step.title)} 안내 이미지" loading="lazy" decoding="async" />
-                  ` : `
-                    <div class="site-guide-placeholder" aria-hidden="true">
-                      <span class="material-symbols-outlined text-[34px]">${escapeHtml(step.icon || "info")}</span>
-                      <span class="text-xs font-bold text-primary/80">이미지 준비 중</span>
+        if (siteGuideStepsContainer) {
+          const pageCount = 3;
+          const currentPage = Math.min(Math.max(siteGuidePageIndex, 0), pageCount - 1);
+          const pageSteps = guideSteps.slice(currentPage * 2, currentPage * 2 + 2);
+          const freeStartEligible = !onboardingCompleted || freeGenerationAvailable;
+          const buttonLabel = currentPage === pageCount - 1
+            ? (freeStartEligible ? "무료 1회 제작 시작하기" : "사진 제작 시작하기")
+            : "다음";
+
+          siteGuideStepsContainer.innerHTML = `
+            <div class="grid grid-cols-1 gap-3">
+              ${pageSteps.map((step, offset) => {
+                const stepNumber = currentPage * 2 + offset + 1;
+                const notes = Array.isArray(step.notes) ? step.notes : [];
+                return `
+                  <article class="site-guide-step">
+                    <div class="site-guide-illustration" aria-hidden="true">
+                      <div class="site-guide-placeholder">
+                        <span class="material-symbols-outlined text-[34px]">${escapeHtml(step.icon || "info")}</span>
+                      </div>
                     </div>
-                  `}
-                </div>
-                <div class="site-guide-step-body">
-                  <div class="flex items-center gap-3">
-                    <span class="site-guide-step-number">${index + 1}</span>
-                    <h3 class="text-[18px] font-bold leading-6 text-on-surface">${escapeHtml(step.title)}</h3>
-                  </div>
-                  <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(step.description)}</p>
-                  ${notes.length ? `
-                    <div class="site-guide-note-list">
-                      ${notes.map((note) => `<p class="site-guide-note">${escapeHtml(note)}</p>`).join("")}
+                    <div class="site-guide-step-body">
+                      <div class="flex items-center gap-3">
+                        <span class="site-guide-step-number">${stepNumber}</span>
+                        <h3 class="text-[18px] font-bold leading-6 text-on-surface">${escapeHtml(step.title)}</h3>
+                      </div>
+                      <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(step.description)}</p>
+                      ${notes.length ? `
+                        <div class="site-guide-note-list">
+                          ${notes.map((note) => `<p class="site-guide-note">${escapeHtml(note)}</p>`).join("")}
+                        </div>
+                      ` : ""}
                     </div>
-                  ` : ""}
-                </div>
-              </article>
-            `;
-          }).join("");
-          siteGuideStepsContainer.dataset.rendered = "true";
+                  </article>
+                `;
+              }).join("")}
+            </div>
+            <div class="mt-4 flex items-center justify-between gap-3">
+              <span class="text-sm font-bold text-primary">${currentPage + 1}/${pageCount}</span>
+              <button class="h-12 rounded-full bg-primary px-5 text-sm font-bold text-on-primary shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="siteGuideNextButton" type="button">
+                ${buttonLabel}
+              </button>
+            </div>
+          `;
         }
 
         if (siteGuideFaqList && !siteGuideFaqList.dataset.rendered) {
@@ -6216,6 +6368,89 @@ Important:
           `).join("");
           siteGuideFaqList.dataset.rendered = "true";
         }
+      }
+
+      async function completeOnboarding() {
+        const response = await fetch(getAuthApiUrl("/api/onboarding/complete"), {
+          method: "POST",
+          credentials: "include",
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok || payload?.ok === false) {
+          throw new Error(payload?.message || `Onboarding complete failed: ${response.status}`);
+        }
+
+        await refreshAuthState({ showError: false });
+      }
+
+      async function handleSiteGuideNext() {
+        if (siteGuidePageIndex < 2) {
+          siteGuidePageIndex += 1;
+          renderSiteGuideScreen();
+          return;
+        }
+
+        try {
+          if (!onboardingCompleted) {
+            await completeOnboarding();
+          }
+          showAccountMenuToast(freeGenerationAvailable ? "가입 선물로 첫 1회는 무료로 제작할 수 있어요." : "사진 제작을 시작해 주세요.");
+          navigateToScreen("editor");
+          if (freeGenerationAvailable) {
+            setStatus("가입 선물로 첫 1회는 무료로 제작할 수 있어요. 무료 제작 결과에는 Magic Ai Studio 워터마크가 표시됩니다.");
+          }
+        } catch (error) {
+          if (DEBUG_MODE) {
+            console.warn("[client][onboarding] complete failed:", error);
+          }
+          showAccountMenuToast("이용안내 완료 처리에 실패했어요. 잠시 후 다시 시도해 주세요.");
+        }
+      }
+
+      function requestLoginForGeneration() {
+        try {
+          window.sessionStorage.setItem(PENDING_ACTION_STORAGE_KEY, "start_generation");
+          window.sessionStorage.setItem(RETURN_TO_STORAGE_KEY, "editor");
+        } catch (error) {
+          // Login can continue without pending-action persistence.
+        }
+        rememberLoginReturnView("editor");
+        showError("로그인이 필요합니다. 먼저 로그인해 주세요.", { title: "로그인 안내" });
+        showAccountMenuToast("로그인이 필요합니다. 먼저 로그인해 주세요.");
+        openLoginModal(generateButton);
+      }
+
+      function showCreditRequiredForGeneration() {
+        const message = "두 번째 제작부터는 크레딧이 필요합니다.\n크레딧을 충전하고 계속 이용해 주세요.";
+        showError(message, { title: "크레딧 안내", showCreditButton: true });
+        showAccountMenuToast("두 번째 제작부터는 크레딧이 필요합니다.");
+      }
+
+      function canStartGenerationFromCurrentState() {
+        if (!currentUser) {
+          requestLoginForGeneration();
+          return false;
+        }
+
+        if (!onboardingCompleted) {
+          siteGuidePageIndex = 0;
+          showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
+          navigateToScreen("siteGuide");
+          return false;
+        }
+
+        if (freeGenerationAvailable) {
+          return true;
+        }
+
+        if (Number(creditBalance) < 25) {
+          showCreditRequiredForGeneration();
+          navigateToScreen("credits");
+          return false;
+        }
+
+        return true;
       }
 
       function getMyPhotosApiUrl() {
@@ -8320,7 +8555,7 @@ ${modeExample}`;
 
       function getDownloadPolicy() {
         const normalizedPlan = String(userPlan || "free").toLowerCase();
-        const shouldWatermark = normalizedPlan !== "paid";
+        const shouldWatermark = lastGenerationUsedFreeCredit || normalizedPlan !== "paid";
 
         return {
           shouldWatermark,
@@ -9905,6 +10140,7 @@ ${modeExample}`;
 
       function handleSiteGuideClick() {
         closeAccountMenu();
+        siteGuidePageIndex = 0;
         navigateToScreen("siteGuide");
       }
 
@@ -9970,12 +10206,12 @@ ${modeExample}`;
         window.location.href = loginStartUrl;
       }
 
-      function handleNaverLogin() {
-        showAccountMenuToast("네이버 로그인은 현재 준비중입니다. 카카오 로그인을 이용해 주세요.");
+      function handleNaverLogin(button) {
+        startOAuthLogin("naver", button);
       }
 
       function handleGoogleLogin() {
-        showAccountMenuToast("Google 로그인은 현재 승인 대기중입니다. 카카오 로그인을 이용해 주세요.");
+        showAccountMenuToast("Google 로그인은 현재 준비중입니다. 카카오톡 또는 네이버 로그인을 이용해 주세요.");
       }
 
       function handleAppleLogin() {
@@ -10167,6 +10403,14 @@ ${modeExample}`;
 
       siteGuideContactButton?.addEventListener("click", () => {
         openAssistantChat();
+      });
+
+      siteGuideStepsContainer?.addEventListener("click", (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest("#siteGuideNextButton")
+          : null;
+        if (!target) return;
+        void handleSiteGuideNext();
       });
 
       document.addEventListener("keydown", (event) => {
@@ -10431,8 +10675,13 @@ ${modeExample}`;
           return;
         }
 
+        if (!canStartGenerationFromCurrentState()) {
+          return;
+        }
+
         hideError();
         isGenerating = true;
+        lastGenerationUsedFreeCredit = freeGenerationAvailable;
         generateButton.disabled = true;
         activeGenerationMode = getGenerationMode();
         clearResults();
@@ -10448,6 +10697,7 @@ ${modeExample}`;
           });
           isGenerating = false;
           generateButton.disabled = false;
+          void refreshAuthState({ showError: false });
           setAppScreen("result", { replaceHistory: true });
         } catch (error) {
           console.error("[client][grok-edit] generation failed:", error);

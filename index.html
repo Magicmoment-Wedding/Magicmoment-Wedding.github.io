@@ -6135,6 +6135,7 @@ Important:
       function cleanPaymentRedirectQuery() {
         const url = new URL(window.location.href);
         url.searchParams.delete("payment");
+        url.searchParams.delete("source");
         url.searchParams.delete("orderId");
         url.searchParams.delete("order_id");
         url.searchParams.delete("resultCode");
@@ -6161,8 +6162,28 @@ Important:
       }
 
       function getPaymentRedirectStatus() {
-        const paymentStatus = new URLSearchParams(window.location.search).get("payment");
+        const params = new URLSearchParams(window.location.search);
+        const paymentStatus = params.get("payment");
         return paymentStatus === "success" || paymentStatus === "failed" ? paymentStatus : "";
+      }
+
+      function openCreditManagementForPaymentResult(paymentStatus) {
+        if (paymentStatus === "success") {
+          showAccountMenuToast("크레딧 충전이 완료되었습니다.");
+          showCreditStatus("크레딧 충전이 완료되었습니다.", "success");
+          try {
+            window.sessionStorage.removeItem(LAST_PAYMENT_ORDER_ID_STORAGE_KEY);
+          } catch (error) {
+            // Optional payment state cleanup only.
+          }
+        } else if (paymentStatus === "failed") {
+          showAccountMenuToast("결제가 완료되지 않았습니다. 다시 시도해 주세요.");
+          showCreditStatus("결제가 완료되지 않았습니다. 다시 시도해 주세요.", "error");
+        }
+
+        if (paymentStatus) {
+          navigateToScreen("credits");
+        }
       }
 
       function getLoginFailureMessage(searchParams = new URLSearchParams(window.location.search)) {
@@ -6258,20 +6279,7 @@ Important:
               navigateToLoginReturnView(loginReturnView);
             }
 
-            if (paymentStatus === "success") {
-              showAccountMenuToast("크레딧 충전이 완료되었습니다.");
-              showCreditStatus("크레딧 충전이 완료되었습니다.", "success");
-              navigateToScreen("credits");
-              try {
-                window.sessionStorage.removeItem(LAST_PAYMENT_ORDER_ID_STORAGE_KEY);
-              } catch (error) {
-                // Optional payment state cleanup only.
-              }
-            } else if (paymentStatus === "failed") {
-              showAccountMenuToast("결제가 완료되지 않았습니다. 다시 시도해 주세요.");
-              showCreditStatus("결제가 완료되지 않았습니다. 다시 시도해 주세요.", "error");
-              navigateToScreen("credits");
-            }
+            openCreditManagementForPaymentResult(paymentStatus);
             return user;
           })
           .catch((error) => {
@@ -6281,6 +6289,7 @@ Important:
             if (loginStatus === "success") {
               showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
             }
+            openCreditManagementForPaymentResult(paymentStatus);
             return null;
           })
           .finally(() => {
@@ -6456,6 +6465,32 @@ Important:
         }
 
         return true;
+      }
+
+      function assertCanStartGenerationFlow() {
+        if (!currentUser) {
+          const error = new Error("LOGIN_REQUIRED");
+          error.code = "LOGIN_REQUIRED";
+          error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
+          error.isLoginRequired = true;
+          throw error;
+        }
+
+        if (!onboardingCompleted) {
+          const error = new Error("ONBOARDING_REQUIRED");
+          error.code = "ONBOARDING_REQUIRED";
+          error.publicMessage = "사이트 이용안내를 먼저 확인해 주세요.";
+          error.isOnboardingRequired = true;
+          throw error;
+        }
+
+        if (!freeGenerationAvailable && Number(creditBalance) < 25) {
+          const error = new Error("CREDITS_REQUIRED");
+          error.code = "CREDITS_REQUIRED";
+          error.publicMessage = "두 번째 제작부터는 크레딧이 필요합니다.\n크레딧을 충전하고 계속 이용해 주세요.";
+          error.isInsufficientCredits = true;
+          throw error;
+        }
       }
 
       async function recoverAuthenticatedLoginRequiredGeneration({ imageFile, originalImage, mode }) {
@@ -7462,6 +7497,8 @@ Important:
       }
 
       async function requestSignedUploadUrl(file) {
+        assertCanStartGenerationFlow();
+
         const requestUrl = `${FRONT_API_BASE_URL}/api/storage/create-upload-url`;
         const fileInfo = getFileDebugInfo(file);
         const uploadFileName = getUploadFileName(file);
@@ -7573,6 +7610,8 @@ Important:
       }
 
       async function uploadFileToSignedUrl(file, signedUpload) {
+        assertCanStartGenerationFlow();
+
         const uploadFile = createUploadFile(file);
         const fileInfo = getFileDebugInfo(uploadFile);
         logMobileDebug("upload start", {
@@ -7659,6 +7698,8 @@ Important:
       }
 
       async function uploadImageToPrivateStorage(file) {
+        assertCanStartGenerationFlow();
+
         const signedUpload = await requestSignedUploadUrl(file);
         return uploadFileToSignedUrl(file, signedUpload);
       }
@@ -7968,6 +8009,8 @@ ${modeExample}`;
       }
 
       async function generateGrokResults({ mode, imageFile }) {
+        assertCanStartGenerationFlow();
+
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
         const selectedLandmark = isLocationMode(generationMode) ? getSelectedLandmarkOption(generationMode) : null;
@@ -9858,6 +9901,8 @@ ${modeExample}`;
       }
 
       async function runGrokPipeline({ imageFile, originalImage, mode = activeGenerationMode }) {
+        assertCanStartGenerationFlow();
+
         setStatus(GENERATING_STATUS_TEXT);
         console.log("[client][grok-edit] generation start");
 
@@ -10553,8 +10598,12 @@ ${modeExample}`;
       });
       syncGenerationModeUi();
       setupBeforeAfterSliders();
-      const shouldRestoreResultScreen = getRememberedAppScreen() === "result" && restoreResultState();
-      if (shouldRestoreResultScreen) {
+      const initialPaymentStatus = getPaymentRedirectStatus();
+      const shouldRestoreResultScreen = !initialPaymentStatus && getRememberedAppScreen() === "result" && restoreResultState();
+      if (initialPaymentStatus) {
+        setAppScreen("credits", { pushHistory: false });
+        replaceAppHistoryState("credits", null);
+      } else if (shouldRestoreResultScreen) {
         renderResults();
         setAppScreen("result", { pushHistory: false });
         replaceAppHistoryState("result", null);

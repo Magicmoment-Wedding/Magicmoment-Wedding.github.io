@@ -4200,7 +4200,7 @@
       const LOGIN_RETURN_VIEW_STORAGE_KEY = "magic_login_return_view";
       const LOGIN_STARTED_STORAGE_KEY = "magic_login_started";
       const LOGIN_RETURN_VIEW_FALLBACK = "editor";
-      const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google"]);
+      const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
         "home",
         "editor",
@@ -5355,6 +5355,7 @@ Important:
         const safeProvider = String(provider || "").trim().toLowerCase();
         if (safeProvider === "google") return "Google";
         if (safeProvider === "naver") return "네이버";
+        if (safeProvider === "kakao") return "카카오";
         return "소셜";
       }
 
@@ -5518,7 +5519,7 @@ Important:
 
         if (loginUserEmail) {
           const email = hasUser ? getAuthUserEmail(currentUser) : "";
-          loginUserEmail.textContent = email || "네이버 계정으로 로그인되었습니다.";
+          loginUserEmail.textContent = email || `${getOAuthProviderLabel(getUserAuthProvider(currentUser))} 계정으로 로그인되었습니다.`;
           loginUserEmail.classList.toggle("hidden", !hasUser);
         }
 
@@ -5859,6 +5860,9 @@ Important:
       function getLoginFailureMessage(searchParams = new URLSearchParams(window.location.search)) {
         const reason = String(searchParams.get("reason") || "").toLowerCase();
         const provider = String(searchParams.get("provider") || "").toLowerCase();
+        if (reason.includes("kakao") || provider === "kakao") {
+          return "카카오 로그인에 실패했어요. 다시 시도해 주세요.";
+        }
         if (reason.includes("google") || provider === "google") {
           return "Google 로그인에 실패했어요. 다시 시도해 주세요.";
         }
@@ -9701,8 +9705,8 @@ ${modeExample}`;
         openAssistantChat();
       }
 
-      function handleKakaoLogin() {
-        showAccountMenuToast("카카오 로그인 연동을 준비 중입니다.");
+      function handleKakaoLogin(button) {
+        startOAuthLogin("kakao", button);
       }
 
       function setSocialLoginButtonLoading(button, isLoading, label = "") {
@@ -9758,7 +9762,7 @@ ${modeExample}`;
 
       function handleSocialLogin(provider, button) {
         if (provider === "kakao") {
-          handleKakaoLogin();
+          handleKakaoLogin(button);
           return;
         }
         if (provider === "naver") {

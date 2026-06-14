@@ -1318,7 +1318,30 @@
         font-weight: 900;
       }
 
+      .admin-warning-button {
+        margin-top: 10px;
+        min-height: 42px;
+        border-radius: 9999px;
+        color: #8a4f00;
+        background: rgba(255, 246, 224, 0.92);
+        border: 1px solid rgba(190, 125, 24, 0.28);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .admin-danger-actions {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .admin-danger-action {
+        border-top: 1px solid rgba(129, 80, 92, 0.08);
+        padding-top: 10px;
+      }
+
       .admin-danger-button:disabled,
+      .admin-warning-button:disabled,
       .admin-panel-card button:disabled {
         cursor: not-allowed;
         opacity: 0.52;
@@ -4545,6 +4568,29 @@
       </section>
     </div>
 
+    <div class="login-modal-overlay" id="duplicateProviderModalOverlay" aria-hidden="true">
+      <section class="login-modal-panel" id="duplicateProviderModalPanel" role="dialog" aria-modal="true" aria-labelledby="duplicateProviderTitle" aria-describedby="duplicateProviderDescription">
+        <div class="login-modal-header">
+          <button class="login-modal-close" id="duplicateProviderClose" type="button" aria-label="동일 이메일 로그인 안내 닫기">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <div class="login-modal-body">
+          <h2 class="login-modal-title font-display" id="duplicateProviderTitle">이미 가입된 이메일입니다</h2>
+          <p class="login-modal-lead" id="duplicateProviderDescription">이 이메일은 이미 기존 로그인 계정으로 가입되어 있습니다.</p>
+          <p class="login-modal-copy" id="duplicateProviderProtectionText">크레딧과 결제 내역 보호를 위해 다른 로그인 방식으로 새 계정을 만들 수 없습니다.</p>
+          <p class="login-modal-copy font-bold text-primary" id="duplicateProviderActionText">기존 로그인으로 다시 이용해 주세요.</p>
+          <div class="mt-5 grid gap-2">
+            <button class="social-login-button is-kakao" id="duplicateProviderLoginButton" type="button">
+              <span class="social-login-icon" id="duplicateProviderLoginIcon">K</span>
+              <span id="duplicateProviderLoginLabel">기존 로그인으로 로그인하기</span>
+            </button>
+            <button class="h-12 rounded-full bg-white/75 text-primary text-sm font-bold border border-primary/10" id="duplicateProviderConfirmButton" type="button">확인</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <div class="fixed inset-0 z-[90] hidden modal-glass backdrop-blur-md items-center justify-center px-3 py-5 sm:p-8" id="imageModal">
       <div class="relative w-full h-full max-w-6xl flex flex-col gap-4" id="imageModalShell">
         <div class="image-modal-header glass-panel rounded-full px-3 py-2 flex items-center justify-between gap-3 text-white">
@@ -4645,7 +4691,7 @@
       const LAST_PAYMENT_ORDER_ID_STORAGE_KEY = "magic_last_payment_order_id";
       const PENDING_ACTION_STORAGE_KEY = "magic_pending_action";
       const RETURN_TO_STORAGE_KEY = "magic_return_to";
-      const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao"]);
+      const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao", "apple"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
         "home",
         "editor",
@@ -5604,11 +5650,12 @@ Important:
       let adminCreditSelectedUser = null;
       let adminCreditSearchTimerId = null;
       let adminCreditConfirmState = null;
-      let adminDeleteConfirmUser = null;
+      let adminDeleteConfirmState = null;
       let isAdminDeletingUser = false;
       let adminOperationStatusMessage = "";
       let adminOperationStatusType = "";
       const FRONT_ADMIN_EMAIL = "vamprub@gmail.com";
+      let duplicateProviderLoginState = null;
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -5821,10 +5868,22 @@ Important:
 
       function getOAuthProviderLabel(provider) {
         const safeProvider = String(provider || "").trim().toLowerCase();
-        if (safeProvider === "google") return "Google";
+        if (safeProvider === "google") return "구글";
         if (safeProvider === "naver") return "네이버";
         if (safeProvider === "kakao") return "카카오";
+        if (safeProvider === "apple") return "애플";
         return "소셜";
+      }
+
+      function getProviderLabel(provider) {
+        const safeProvider = String(provider || "").trim().toLowerCase();
+        const labels = {
+          kakao: "카카오",
+          naver: "네이버",
+          google: "구글",
+          apple: "애플",
+        };
+        return labels[safeProvider] || "기존 로그인";
       }
 
       function getUserAuthProvider(user = currentUser) {
@@ -6370,9 +6429,14 @@ Important:
           CANNOT_DELETE_SELF: "본인 계정은 삭제할 수 없습니다.",
           CANNOT_DELETE_LAST_ADMIN: "마지막 관리자 계정은 삭제할 수 없습니다.",
           USER_ALREADY_DELETED: "이미 삭제된 회원입니다.",
-          USER_NOT_FOUND: "회원을 찾을 수 없습니다.",
+          USER_NOT_FOUND: "이미 삭제되었거나 회원을 찾을 수 없습니다.",
           ADMIN_REQUIRED: "관리자 권한이 필요합니다.",
+          SOFT_DELETE_FAILED: "이용중지 처리에 실패했습니다.",
+          HARD_DELETE_FAILED: "완전삭제에 실패했습니다.",
         };
+        const mode = adminDeleteConfirmState?.mode || "";
+        if (!messages[getAdminErrorCode(error)] && mode === "soft") return "이용중지 처리에 실패했습니다.";
+        if (!messages[getAdminErrorCode(error)] && mode === "hard") return "완전삭제에 실패했습니다.";
         return messages[getAdminErrorCode(error)] || "회원 삭제에 실패했습니다.";
       }
 
@@ -6502,7 +6566,7 @@ Important:
         adminCreditSearchMessage = "";
         adminCreditSelectedUser = null;
         adminCreditConfirmState = null;
-        adminDeleteConfirmUser = null;
+        adminDeleteConfirmState = null;
         isAdminDeletingUser = false;
         adminOperationStatusMessage = "";
         adminOperationStatusType = "";
@@ -6550,34 +6614,59 @@ Important:
       }
 
       function renderAdminDeleteModal() {
-        if (!adminDeleteConfirmUser) return "";
-        const isTargetAdmin = isAdminUserAdmin(adminDeleteConfirmUser);
+        if (!adminDeleteConfirmState) return "";
+        const user = adminDeleteConfirmState.user;
+        const mode = adminDeleteConfirmState.mode === "hard" ? "hard" : "soft";
+        const isHardDelete = mode === "hard";
+        const isTargetAdmin = isAdminUserAdmin(user);
+        const title = isHardDelete ? "회원 완전삭제 확인" : "회원 이용중지 확인";
+        const lead = isHardDelete ? "정말 이 회원 정보를 완전히 삭제하시겠습니까?" : "이 회원을 이용중지 처리하시겠습니까?";
+        const reasonPlaceholder = isHardDelete ? "삭제 사유" : "처리 사유";
+        const confirmLabel = isHardDelete ? "완전삭제 실행" : "이용중지 실행";
+        const loadingLabel = isHardDelete ? "완전삭제 중..." : "이용중지 중...";
+        const description = isHardDelete
+          ? `
+                <div class="admin-empty">
+                  이 작업을 실행하면 해당 회원의 로그인 정보와 관련 데이터가 삭제됩니다.
+                  삭제 후 같은 소셜 계정으로 다시 로그인하면 신규 가입자처럼 다시 생성됩니다.
+                  안내카드와 무료 1회 제작 흐름을 다시 테스트할 수 있습니다.
+                  <br /><br />
+                  이 작업은 되돌릴 수 없습니다. 테스트 계정에만 사용하는 것을 권장합니다.
+                </div>
+            `
+          : `
+                <div class="admin-empty">
+                  이 작업을 실행하면 회원 정보와 결제/생성/크레딧 기록은 보존됩니다.
+                  다만 해당 회원은 로그인과 생성 이용이 차단됩니다.
+                  비활성 회원 포함 옵션을 켜면 관리자 화면에서 다시 확인할 수 있습니다.
+                </div>
+            `;
         return `
           <div class="login-modal-overlay is-open" aria-hidden="false" data-admin-modal="delete">
             <section class="login-modal-panel" role="dialog" aria-modal="true" aria-labelledby="adminDeleteConfirmTitle">
               <div class="login-modal-header">
-                <button class="login-modal-close" data-admin-modal-close type="button" aria-label="회원 삭제 확인 닫기">
+                <button class="login-modal-close" data-admin-modal-close type="button" aria-label="${escapeHtml(title)} 닫기">
                   <span class="material-symbols-outlined" aria-hidden="true">close</span>
                 </button>
               </div>
               <div class="login-modal-body">
-                <h2 class="login-modal-title font-display" id="adminDeleteConfirmTitle">회원 삭제 확인</h2>
-                <p class="login-modal-lead">정말 이 회원을 삭제하시겠습니까?</p>
+                <h2 class="login-modal-title font-display" id="adminDeleteConfirmTitle">${escapeHtml(title)}</h2>
+                <p class="login-modal-lead">${escapeHtml(lead)}</p>
                 ${isTargetAdmin ? `<p class="admin-empty">관리자 계정입니다. 삭제하면 운영 접근 권한이 사라질 수 있습니다.</p>` : ""}
                 <div class="customer-info-list mt-4">
-                  <section class="customer-info-row"><p class="customer-info-label">회원</p><p class="customer-info-value">${escapeHtml(getAdminUserDisplayName(adminDeleteConfirmUser))}</p></section>
-                  <section class="customer-info-row"><p class="customer-info-label">이메일</p><p class="customer-info-value">${escapeHtml(getAdminEmail(adminDeleteConfirmUser))}</p></section>
-                  <section class="customer-info-row"><p class="customer-info-label">보유 크레딧</p><p class="customer-info-value">${escapeHtml(String(getAdminUserCreditBalance(adminDeleteConfirmUser)))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">회원</p><p class="customer-info-value">${escapeHtml(getAdminUserDisplayName(user))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">이메일</p><p class="customer-info-value">${escapeHtml(getAdminEmail(user))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">provider</p><p class="customer-info-value">${escapeHtml(getAdminProvider(user))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">보유 크레딧</p><p class="customer-info-value">${escapeHtml(String(getAdminUserCreditBalance(user)))}</p></section>
                 </div>
-                <div class="admin-empty">
-                  삭제 후 기본 목록에서 숨겨지며 로그인/생성 이용이 차단됩니다. 결제/생성/크레딧 기록은 보존됩니다.
-                </div>
+                ${description}
                 <form class="mt-4 grid gap-3" id="adminDeleteUserForm">
-                  <textarea class="min-h-[88px] rounded-[16px] border border-primary/10 bg-white/80 px-3 py-3 text-sm" name="deleteReason" placeholder="삭제 사유" required></textarea>
-                  <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="confirmText" placeholder="DELETE" required />
+                  <textarea class="min-h-[88px] rounded-[16px] border border-primary/10 bg-white/80 px-3 py-3 text-sm" name="deleteReason" placeholder="${escapeHtml(reasonPlaceholder)}" required></textarea>
+                  <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="confirmText" placeholder="DELETE를 대문자로 입력하세요" required />
+                  <p class="text-xs font-bold text-primary" id="adminDeleteValidationMessage">${escapeHtml(getAdminDeleteValidationMessage("", ""))}</p>
                   <div class="admin-modal-actions">
                     <button class="admin-modal-cancel" data-admin-modal-close type="button">취소</button>
-                    <button class="admin-modal-confirm is-danger" id="adminDeleteSubmitButton" type="submit" ${isAdminDeletingUser ? "disabled" : "disabled"}>${isAdminDeletingUser ? "삭제 중..." : "삭제 실행"}</button>
+                    <button class="admin-modal-confirm ${isHardDelete ? "is-danger" : ""}" id="adminDeleteSubmitButton" type="submit" ${isAdminDeletingUser ? "disabled" : "disabled"}>${isAdminDeletingUser ? escapeHtml(loadingLabel) : escapeHtml(confirmLabel)}</button>
                   </div>
                 </form>
               </div>
@@ -6588,7 +6677,7 @@ Important:
 
       function closeAdminModal() {
         adminCreditConfirmState = null;
-        adminDeleteConfirmUser = null;
+        adminDeleteConfirmState = null;
         if (lastAdminDashboardRenderArgs) {
           renderAdminDashboard(lastAdminDashboardRenderArgs);
         }
@@ -6733,7 +6822,7 @@ Important:
                   <div class="admin-main-title">회원: ${escapeHtml(getAdminUserDisplayName(user))}</div>
                   <div class="admin-summary-subtext">${escapeHtml(getAdminEmail(user))}</div>
                 </div>
-                <span class="admin-status-badge">${escapeHtml(isDeleted ? "삭제됨" : getAdminProvider(user))}</span>
+                <span class="admin-status-badge">${escapeHtml(isDeleted ? "이용중지" : getAdminProvider(user))}</span>
               </div>
               <div class="admin-summary-lines mt-2">
                 <div class="admin-meta-row"><span class="admin-meta-label">보유 크레딧</span><span class="admin-meta-value">${escapeHtml(String(getAdminUserCreditBalance(user)))}</span></div>
@@ -6756,15 +6845,23 @@ Important:
               </div>
               ${isDeleted ? `
                 <div class="admin-danger-zone">
-                  <strong>삭제된 회원</strong>
+                  <strong>이용중지 회원</strong>
                   <p class="mt-1">복구 API가 연결된 경우 회원 이용을 다시 허용할 수 있습니다.</p>
                   <button class="admin-more-button mt-3" data-admin-restore-user="${escapeHtml(userId)}" type="button">회원 복구</button>
                 </div>
               ` : `
                 <div class="admin-danger-zone">
                   <strong>위험 작업</strong>
-                  <p class="mt-1">회원 삭제 시 로그인과 서비스 이용이 차단됩니다. 결제/생성/크레딧 기록은 운영 기록으로 보존됩니다.</p>
-                  <button class="admin-danger-button" data-admin-delete-user="${escapeHtml(userId)}" type="button" ${isSelf ? "disabled" : ""}>회원 삭제</button>
+                  <div class="admin-danger-actions">
+                    <div class="admin-danger-action">
+                      <p>회원 정보와 기록은 보존하고, 로그인/생성 이용만 차단합니다. 운영 고객에게 권장됩니다.</p>
+                      <button class="admin-warning-button" data-admin-delete-user="${escapeHtml(userId)}" data-admin-delete-mode="soft" type="button" ${isSelf ? "disabled" : ""}>이용중지</button>
+                    </div>
+                    <div class="admin-danger-action">
+                      <p>회원 정보와 관련 기록을 삭제합니다. 같은 소셜 계정으로 다시 로그인하면 신규 가입자로 생성됩니다. 테스트 계정 초기화에만 사용하세요.</p>
+                      <button class="admin-danger-button" data-admin-delete-user="${escapeHtml(userId)}" data-admin-delete-mode="hard" type="button" ${isSelf ? "disabled" : ""}>완전삭제</button>
+                    </div>
+                  </div>
                   ${isSelf ? `<p class="mt-2 text-xs font-bold text-primary">본인 계정은 삭제할 수 없습니다.</p>` : ""}
                 </div>
               `}
@@ -6902,7 +6999,7 @@ Important:
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">회원 관리</h2>
               <label class="admin-toggle-row">
-                <span>삭제 회원 포함</span>
+                <span>비활성 회원 포함</span>
                 <input id="adminIncludeDeletedToggle" type="checkbox" ${adminIncludeDeletedUsers ? "checked" : ""} />
               </label>
               <div class="admin-data-list">
@@ -7017,24 +7114,33 @@ Important:
         });
       }
 
-      async function refreshAdminUsersAndSummary({ deletedUserId = "" } = {}) {
+      async function refreshAdminUsersAndSummary({ deletedUserId = "", includeActivity = false } = {}) {
         if (!lastAdminDashboardRenderArgs) {
           await refreshAdminDashboard();
           return;
         }
 
-        const [summaryResult, usersResult] = await Promise.allSettled([
+        const requests = [
           fetchAdminJson("/api/admin/summary"),
           fetchAdminJson(getAdminUsersUrl()),
-        ]);
+        ];
+        if (includeActivity) {
+          requests.push(fetchAdminJson("/api/admin/payments"));
+          requests.push(fetchAdminJson("/api/admin/generations"));
+        }
+        const [summaryResult, usersResult, paymentsResult, generationsResult] = await Promise.allSettled(requests);
         const nextArgs = {
           ...lastAdminDashboardRenderArgs,
           summaryPayload: summaryResult.status === "fulfilled" ? summaryResult.value : lastAdminDashboardRenderArgs.summaryPayload,
           usersPayload: usersResult.status === "fulfilled" ? usersResult.value : lastAdminDashboardRenderArgs.usersPayload,
           usersError: usersResult.status === "rejected" ? usersResult.reason : null,
+          paymentsPayload: paymentsResult?.status === "fulfilled" ? paymentsResult.value : lastAdminDashboardRenderArgs.paymentsPayload,
+          generationsPayload: generationsResult?.status === "fulfilled" ? generationsResult.value : lastAdminDashboardRenderArgs.generationsPayload,
           errors: [
             ...(summaryResult.status === "rejected" ? ["요약"] : []),
             ...(usersResult.status === "rejected" ? ["회원 관리"] : []),
+            ...(paymentsResult?.status === "rejected" ? ["결제 내역"] : []),
+            ...(generationsResult?.status === "rejected" ? ["생성 내역"] : []),
           ],
         };
 
@@ -7141,24 +7247,55 @@ Important:
         return users.find((user) => String(getAdminUserId(user) || "").trim() === targetId) || null;
       }
 
+      function getAdminDeleteModeConfig(mode = adminDeleteConfirmState?.mode) {
+        const isHardDelete = mode === "hard";
+        return {
+          endpoint: isHardDelete ? "/api/admin/users/hard-delete" : "/api/admin/users/soft-delete",
+          successMessage: isHardDelete
+            ? "회원이 완전히 삭제되었습니다. 같은 소셜 계정으로 다시 로그인하면 신규 가입자로 생성됩니다."
+            : "회원이 이용중지 처리되었습니다.",
+          submitLabel: isHardDelete ? "완전삭제 실행" : "이용중지 실행",
+          loadingLabel: isHardDelete ? "완전삭제 중..." : "이용중지 중...",
+        };
+      }
+
+      function getAdminDeleteValidationMessage(reason = "", confirmText = "") {
+        const trimmedReason = String(reason || "").trim();
+        const trimmedConfirmText = String(confirmText || "").trim();
+        if (!trimmedReason) return "사유를 입력해 주세요.";
+        if (!trimmedConfirmText) return "확인 문구 DELETE를 입력해 주세요.";
+        if (trimmedConfirmText !== "DELETE") return "DELETE를 대문자로 정확히 입력해 주세요.";
+        return "";
+      }
+
       function syncAdminDeleteSubmitButton(form) {
         const button = document.getElementById("adminDeleteSubmitButton");
+        const message = document.getElementById("adminDeleteValidationMessage");
         if (!button || !form) return;
         const reason = String(form.elements.deleteReason?.value || "").trim();
         const confirmText = String(form.elements.confirmText?.value || "").trim();
-        button.disabled = isAdminDeletingUser || !reason || confirmText !== "DELETE";
-        button.textContent = isAdminDeletingUser ? "삭제 중..." : "삭제 실행";
+        const config = getAdminDeleteModeConfig();
+        const validationMessage = getAdminDeleteValidationMessage(reason, confirmText);
+        button.disabled = isAdminDeletingUser || Boolean(validationMessage);
+        button.textContent = isAdminDeletingUser ? config.loadingLabel : config.submitLabel;
+        if (message) {
+          message.textContent = validationMessage;
+          message.classList.toggle("hidden", !validationMessage);
+        }
       }
 
       async function handleAdminDeleteUserSubmit(form) {
-        if (!adminDeleteConfirmUser || isAdminDeletingUser) return;
+        if (!adminDeleteConfirmState || isAdminDeletingUser) return;
         const formData = new FormData(form);
         const reason = String(formData.get("deleteReason") || "").trim();
         const confirmText = String(formData.get("confirmText") || "").trim();
-        const selectedUser = adminDeleteConfirmUser;
+        const selectedUser = adminDeleteConfirmState.user;
         const userId = getAdminUserId(selectedUser);
+        const config = getAdminDeleteModeConfig(adminDeleteConfirmState.mode);
+        const validationMessage = getAdminDeleteValidationMessage(reason, confirmText);
 
-        if (!reason || confirmText !== "DELETE") {
+        if (validationMessage) {
+          syncAdminDeleteSubmitButton(form);
           return;
         }
 
@@ -7168,7 +7305,7 @@ Important:
         }
 
         try {
-          const response = await fetch(getAuthApiUrl("/api/admin/users/delete"), {
+          const response = await fetch(getAuthApiUrl(config.endpoint), {
             method: "POST",
             credentials: "include",
             cache: "no-store",
@@ -7185,11 +7322,11 @@ Important:
           }
 
           isAdminDeletingUser = false;
-          adminDeleteConfirmUser = null;
+          adminDeleteConfirmState = null;
           removeAdminUserFromCurrentState(userId);
-          const isRefreshClean = await refreshAdminUsersAndSummary({ deletedUserId: userId });
+          const isRefreshClean = await refreshAdminUsersAndSummary({ deletedUserId: userId, includeActivity: config.endpoint.includes("hard-delete") });
           if (isRefreshClean !== false) {
-            setAdminOperationStatus("회원이 삭제되었습니다.", "success");
+            setAdminOperationStatus(config.successMessage, "success");
           }
         } catch (error) {
           isAdminDeletingUser = false;
@@ -7234,7 +7371,11 @@ Important:
         console.log("[auth] /api/auth/me user exists:", Boolean(normalizeAuthUser(payload)));
 
         if (!response.ok || payload?.ok === false) {
-          throw new Error(payload?.message || `Auth me request failed: ${response.status}`);
+          const error = new Error(payload?.message || payload?.error || `Auth me request failed: ${response.status}`);
+          error.statusCode = response.status;
+          error.code = payload?.code || payload?.errorCode || payload?.error || "";
+          error.response = payload;
+          throw error;
         }
 
         return payload;
@@ -7262,6 +7403,12 @@ Important:
         } catch (error) {
           if (DEBUG_MODE) {
             console.warn("[client][auth] /api/auth/me failed:", error);
+          }
+          const duplicateProviderError = getDuplicateProviderErrorFromPayload(error.response || error);
+          if (duplicateProviderError) {
+            applyAuthUser(null);
+            showDuplicateProviderModal(duplicateProviderError);
+            return null;
           }
           applyAuthUser(null);
           if (showError) {
@@ -7653,9 +7800,64 @@ Important:
         url.searchParams.delete("returnTo");
         url.searchParams.delete("reason");
         url.searchParams.delete("provider");
+        url.searchParams.delete("auth_error");
+        url.searchParams.delete("code");
+        url.searchParams.delete("existing_provider");
+        url.searchParams.delete("existingProvider");
+        url.searchParams.delete("existing_provider_label");
+        url.searchParams.delete("existingProviderLabel");
+        url.searchParams.delete("attempted_provider");
+        url.searchParams.delete("attemptedProvider");
+        url.searchParams.delete("attempted_provider_label");
+        url.searchParams.delete("attemptedProviderLabel");
         const nextSearch = url.searchParams.toString();
         const nextUrl = `${url.pathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash}`;
         history.replaceState(history.state || getCurrentAppHistoryState(), "", nextUrl || url.pathname);
+      }
+
+      function getDuplicateProviderErrorFromParams(searchParams = new URLSearchParams(window.location.search)) {
+        const authError = String(searchParams.get("auth_error") || searchParams.get("code") || "").trim();
+        if (authError !== "duplicate_provider" && authError !== "DUPLICATE_EMAIL_DIFFERENT_PROVIDER") {
+          return null;
+        }
+        return {
+          existingProvider: searchParams.get("existing_provider") || searchParams.get("existingProvider") || "unknown",
+          existingProviderLabel: searchParams.get("existing_provider_label") || searchParams.get("existingProviderLabel") || "",
+          attemptedProvider: searchParams.get("attempted_provider") || searchParams.get("attemptedProvider") || "unknown",
+          attemptedProviderLabel: searchParams.get("attempted_provider_label") || searchParams.get("attemptedProviderLabel") || "",
+        };
+      }
+
+      function isDuplicateProviderAuthError(errorOrPayload = {}) {
+        const code = String(
+          errorOrPayload?.code
+          || errorOrPayload?.errorCode
+          || errorOrPayload?.response?.code
+          || errorOrPayload?.response?.errorCode
+          || errorOrPayload?.response?.error
+          || errorOrPayload?.error
+          || "",
+        ).trim();
+        return code === "DUPLICATE_EMAIL_DIFFERENT_PROVIDER";
+      }
+
+      function getDuplicateProviderErrorFromPayload(payload = {}) {
+        if (!isDuplicateProviderAuthError(payload)) return null;
+        return {
+          existingProvider: payload.existingProvider || payload.existing_provider || payload.response?.existingProvider || payload.response?.existing_provider || "unknown",
+          existingProviderLabel: payload.existingProviderLabel || payload.existing_provider_label || payload.response?.existingProviderLabel || payload.response?.existing_provider_label || "",
+          attemptedProvider: payload.attemptedProvider || payload.attempted_provider || payload.response?.attemptedProvider || payload.response?.attempted_provider || "unknown",
+          attemptedProviderLabel: payload.attemptedProviderLabel || payload.attempted_provider_label || payload.response?.attemptedProviderLabel || payload.response?.attempted_provider_label || "",
+        };
+      }
+
+      function handleDuplicateProviderRedirectQuery(searchParams = new URLSearchParams(window.location.search)) {
+        const duplicateProviderError = getDuplicateProviderErrorFromParams(searchParams);
+        if (!duplicateProviderError) return false;
+        applyAuthUser(null);
+        showDuplicateProviderModal(duplicateProviderError);
+        cleanLoginRedirectQuery();
+        return true;
       }
 
       function cleanPaymentRedirectQuery() {
@@ -7787,6 +7989,14 @@ Important:
         const loginStatus = loginParams.get("login");
         const paymentStatus = getPaymentRedirectStatus();
         const loginReturnView = getLoginRedirectReturnView();
+        const hasDuplicateProviderQuery = getDuplicateProviderErrorFromParams(loginParams);
+        if (hasDuplicateProviderQuery) {
+          authStartupCheckPromise = Promise.resolve().then(() => {
+            handleDuplicateProviderRedirectQuery(loginParams);
+            return null;
+          });
+          return authStartupCheckPromise;
+        }
         const hasLoginQuery = handleLoginRedirectQuery();
         const hasPaymentQuery = Boolean(paymentStatus);
 
@@ -11682,6 +11892,16 @@ ${modeExample}`;
       const loginModalOverlay = document.getElementById("loginModalOverlay");
       const loginModalPanel = document.getElementById("loginModalPanel");
       const loginModalClose = document.getElementById("loginModalClose");
+      const duplicateProviderModalOverlay = document.getElementById("duplicateProviderModalOverlay");
+      const duplicateProviderModalPanel = document.getElementById("duplicateProviderModalPanel");
+      const duplicateProviderClose = document.getElementById("duplicateProviderClose");
+      const duplicateProviderConfirmButton = document.getElementById("duplicateProviderConfirmButton");
+      const duplicateProviderDescription = document.getElementById("duplicateProviderDescription");
+      const duplicateProviderProtectionText = document.getElementById("duplicateProviderProtectionText");
+      const duplicateProviderActionText = document.getElementById("duplicateProviderActionText");
+      const duplicateProviderLoginButton = document.getElementById("duplicateProviderLoginButton");
+      const duplicateProviderLoginIcon = document.getElementById("duplicateProviderLoginIcon");
+      const duplicateProviderLoginLabel = document.getElementById("duplicateProviderLoginLabel");
       const customerInfoModalOverlay = document.getElementById("customerInfoModalOverlay");
       const customerInfoModalPanel = document.getElementById("customerInfoModalPanel");
       const customerInfoClose = document.getElementById("customerInfoClose");
@@ -11747,6 +11967,10 @@ ${modeExample}`;
 
       function isLoginModalOpen() {
         return Boolean(loginModalOverlay?.classList.contains("is-open"));
+      }
+
+      function isDuplicateProviderModalOpen() {
+        return Boolean(duplicateProviderModalOverlay?.classList.contains("is-open"));
       }
 
       function isCustomerInfoModalOpen() {
@@ -11853,6 +12077,63 @@ ${modeExample}`;
         if (options.restoreFocus && activeLoginModalTrigger instanceof HTMLElement) {
           activeLoginModalTrigger.focus({ preventScroll: true });
         }
+      }
+
+      function showDuplicateProviderModal(payload = {}) {
+        if (!duplicateProviderModalOverlay || !duplicateProviderModalPanel) return;
+
+        const existingProvider = sanitizeOAuthProvider(payload.existingProvider) || "unknown";
+        const attemptedProvider = sanitizeOAuthProvider(payload.attemptedProvider) || "unknown";
+        const existingLabel = payload.existingProviderLabel || getProviderLabel(existingProvider);
+        const attemptedLabel = payload.attemptedProviderLabel || getProviderLabel(attemptedProvider);
+        duplicateProviderLoginState = {
+          existingProvider,
+          attemptedProvider,
+        };
+
+        if (duplicateProviderDescription) {
+          duplicateProviderDescription.textContent = `이 이메일은 이미 ${existingLabel} 계정으로 가입되어 있습니다.`;
+        }
+        if (duplicateProviderProtectionText) {
+          duplicateProviderProtectionText.textContent = `크레딧과 결제 내역 보호를 위해 ${attemptedLabel}로 새 계정을 만들 수 없습니다.`;
+        }
+        if (duplicateProviderActionText) {
+          duplicateProviderActionText.textContent = `${existingLabel} 로그인으로 다시 이용해 주세요.`;
+        }
+        if (duplicateProviderLoginLabel) {
+          duplicateProviderLoginLabel.textContent = `${existingLabel}로 로그인하기`;
+        }
+        if (duplicateProviderLoginIcon) {
+          duplicateProviderLoginIcon.textContent = existingProvider === "naver" ? "N" : existingProvider === "google" ? "G" : existingProvider === "apple" ? "A" : "K";
+        }
+        if (duplicateProviderLoginButton) {
+          duplicateProviderLoginButton.className = `social-login-button is-${existingProvider === "unknown" ? "kakao" : existingProvider}`;
+        }
+
+        closeLoginModal();
+        closeAccountMenu();
+        duplicateProviderModalOverlay.classList.add("is-open");
+        duplicateProviderModalOverlay.setAttribute("aria-hidden", "false");
+
+        window.requestAnimationFrame(() => {
+          duplicateProviderModalPanel.querySelector("button")?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeDuplicateProviderModal() {
+        if (!duplicateProviderModalOverlay) return;
+        duplicateProviderModalOverlay.classList.remove("is-open");
+        duplicateProviderModalOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      function startProviderLogin(provider, button = null) {
+        const safeProvider = sanitizeOAuthProvider(provider);
+        if (!safeProvider) {
+          closeDuplicateProviderModal();
+          openLoginModal(button || activeAccountMenuTrigger);
+          return;
+        }
+        startOAuthLogin(safeProvider, button || duplicateProviderLoginButton);
       }
 
       function openCustomerInfoModal(trigger) {
@@ -12086,7 +12367,10 @@ ${modeExample}`;
             setAdminOperationStatus("본인 계정은 삭제할 수 없습니다.");
             return;
           }
-          adminDeleteConfirmUser = user;
+          adminDeleteConfirmState = {
+            user,
+            mode: deleteUserButton.dataset.adminDeleteMode === "hard" ? "hard" : "soft",
+          };
           if (lastAdminDashboardRenderArgs) {
             renderAdminDashboard(lastAdminDashboardRenderArgs);
           }
@@ -12165,6 +12449,26 @@ ${modeExample}`;
       loginModalOverlay?.addEventListener("click", (event) => {
         if (event.target === loginModalOverlay) {
           closeLoginModal({ restoreFocus: true });
+        }
+      });
+
+      duplicateProviderClose?.addEventListener("click", () => {
+        closeDuplicateProviderModal();
+      });
+
+      duplicateProviderConfirmButton?.addEventListener("click", () => {
+        closeDuplicateProviderModal();
+      });
+
+      duplicateProviderLoginButton?.addEventListener("click", () => {
+        const provider = duplicateProviderLoginState?.existingProvider || "";
+        closeDuplicateProviderModal();
+        startProviderLogin(provider, duplicateProviderLoginButton);
+      });
+
+      duplicateProviderModalOverlay?.addEventListener("click", (event) => {
+        if (event.target === duplicateProviderModalOverlay) {
+          closeDuplicateProviderModal();
         }
       });
 

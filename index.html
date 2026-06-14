@@ -5957,7 +5957,22 @@ Important:
       }
 
       function getAuthUserName(user) {
-        return String(user?.displayName || user?.display_name || user?.nickname || user?.name || "사용자").trim();
+        const email = String(user?.email || user?.userEmail || user?.user_email || user?.mail || "").trim();
+        const normalizedEmail = email.toLowerCase();
+        const candidates = [
+          user?.displayName,
+          user?.display_name,
+          user?.userName,
+          user?.user_name,
+          user?.name,
+          user?.nickname,
+        ];
+        const value = candidates
+          .map((candidate) => String(candidate || "").trim())
+          .find((candidate) => candidate && candidate.toLowerCase() !== normalizedEmail);
+        if (value) return value;
+        if (email.includes("@")) return email.split("@")[0] || "회원";
+        return "회원";
       }
 
       function getAuthUserEmail(user) {
@@ -7797,10 +7812,13 @@ Important:
       function cleanLoginRedirectQuery() {
         const url = new URL(window.location.href);
         url.searchParams.delete("login");
+        url.searchParams.delete("auth");
+        url.searchParams.delete("auth_success");
         url.searchParams.delete("returnTo");
         url.searchParams.delete("reason");
         url.searchParams.delete("provider");
         url.searchParams.delete("auth_error");
+        url.searchParams.delete("error");
         url.searchParams.delete("code");
         url.searchParams.delete("existing_provider");
         url.searchParams.delete("existingProvider");
@@ -7874,19 +7892,33 @@ Important:
       }
 
       function handleLoginRedirectQuery() {
-        const loginStatus = new URLSearchParams(window.location.search).get("login");
-        if (!loginStatus) return false;
+        const params = new URLSearchParams(window.location.search);
+        return hasAuthSuccessQuery(params) || hasAuthErrorQuery(params);
+      }
 
-        if (loginStatus === "success") {
-          console.log("[auth] login success query detected");
-          return true;
-        }
+      function hasAuthSuccessQuery(searchParams = new URLSearchParams(window.location.search)) {
+        if (hasAuthErrorQuery(searchParams) || getDuplicateProviderErrorFromParams(searchParams)) return false;
+        const loginStatus = String(searchParams.get("login") || "").toLowerCase();
+        const authStatus = String(searchParams.get("auth") || "").toLowerCase();
+        const authSuccess = String(searchParams.get("auth_success") || "").toLowerCase();
+        const provider = sanitizeOAuthProvider(searchParams.get("provider"));
+        return loginStatus === "success" || authStatus === "success" || authSuccess === "1" || authSuccess === "true" || Boolean(provider);
+      }
 
-        if (loginStatus === "failed") {
-          return true;
-        }
-
-        return false;
+      function hasAuthErrorQuery(searchParams = new URLSearchParams(window.location.search)) {
+        const loginStatus = String(searchParams.get("login") || "").toLowerCase();
+        const authStatus = String(searchParams.get("auth") || "").toLowerCase();
+        const authError = String(searchParams.get("auth_error") || searchParams.get("error") || searchParams.get("code") || "").trim();
+        const blockedCodes = new Set([
+          "ACCOUNT_DISABLED",
+          "USER_DELETED",
+          "ACCOUNT_DELETED",
+          "ADMIN_REQUIRED",
+          "LOGIN_REQUIRED",
+          "DUPLICATE_EMAIL_DIFFERENT_PROVIDER",
+          "duplicate_provider",
+        ]);
+        return loginStatus === "failed" || authStatus === "failed" || Boolean(authError && blockedCodes.has(authError));
       }
 
       function getPaymentRedirectStatus() {
@@ -7917,6 +7949,13 @@ Important:
       function getLoginFailureMessage(searchParams = new URLSearchParams(window.location.search)) {
         const reason = String(searchParams.get("reason") || "").toLowerCase();
         const provider = String(searchParams.get("provider") || "").toLowerCase();
+        const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
+        if (code === "ACCOUNT_DISABLED" || code === "USER_DELETED" || code === "ACCOUNT_DELETED") {
+          return "이용이 중지된 계정입니다.";
+        }
+        if (code === "ADMIN_REQUIRED" || code === "LOGIN_REQUIRED") {
+          return "로그인 정보를 확인하지 못했어요.";
+        }
         if (reason.includes("kakao") || provider === "kakao") {
           return "카카오 로그인에 실패했어요. 다시 시도해 주세요.";
         }
@@ -7959,6 +7998,7 @@ Important:
 
       function handlePostLoginExperience(returnView) {
         if (!currentUser) return;
+        console.log("[auth] route after login:", { returnView, screen: appScreen, onboardingCompleted, freeGenerationEligible });
 
         if (shouldShowOnboardingCards()) {
           clearPendingAction();
@@ -7979,6 +8019,31 @@ Important:
         navigateToLoginReturnView(returnView);
       }
 
+      async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
+        console.log("[auth] login success query detected");
+        console.log("[auth] fetching current user after login success");
+        try {
+          const user = await refreshAuthState({ showError: false });
+          if (!user) {
+            showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+            return null;
+          }
+
+          closeLoginModal();
+          closeAccountMenu();
+          const displayName = getAuthUserName(user);
+          console.log("[auth] current user:", { hasUser: Boolean(user), id: getAuthenticatedUserId(user), provider: getUserAuthProvider(user), isAdmin: user?.isAdmin === true });
+          console.log("[auth] display login success toast:", displayName);
+          showAccountMenuToast(`${displayName}님 로그인되었습니다.`);
+          handlePostLoginExperience(returnView);
+          return user;
+        } finally {
+          cleanLoginRedirectQuery();
+          clearLoginReturnState();
+          console.log("[auth] cleaned auth query:", window.location.search);
+        }
+      }
+
       let authStartupCheckPromise = null;
 
       function startAuthStartupCheck() {
@@ -7986,7 +8051,6 @@ Important:
 
         console.log("[auth] app mounted - checking me");
         const loginParams = new URLSearchParams(window.location.search);
-        const loginStatus = loginParams.get("login");
         const paymentStatus = getPaymentRedirectStatus();
         const loginReturnView = getLoginRedirectReturnView();
         const hasDuplicateProviderQuery = getDuplicateProviderErrorFromParams(loginParams);
@@ -7997,34 +8061,60 @@ Important:
           });
           return authStartupCheckPromise;
         }
+        const hasAuthSuccess = hasAuthSuccessQuery(loginParams);
+        const hasAuthError = hasAuthErrorQuery(loginParams);
         const hasLoginQuery = handleLoginRedirectQuery();
         const hasPaymentQuery = Boolean(paymentStatus);
 
-        authStartupCheckPromise = refreshAuthState({ showError: false })
-          .then((user) => {
-            if (loginStatus === "success") {
-              if (user) {
-                const displayName = getAuthUserName(user);
-                showAccountMenuToast(`${displayName}님, 로그인되었습니다.`);
-                handlePostLoginExperience(loginReturnView);
-              } else {
-                showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
-              }
-            } else if (loginStatus === "failed") {
+        if (hasAuthError) {
+          authStartupCheckPromise = Promise.resolve()
+            .then(() => {
               applyAuthUser(null);
               showAccountMenuToast(getLoginFailureMessage(loginParams));
               navigateToLoginReturnView(loginReturnView);
-            }
+              openCreditManagementForPaymentResult(paymentStatus);
+              return null;
+            })
+            .finally(() => {
+              cleanLoginRedirectQuery();
+              clearLoginReturnState();
+              console.log("[auth] cleaned auth query:", window.location.search);
+              if (hasPaymentQuery) {
+                cleanPaymentRedirectQuery();
+              }
+            });
+          return authStartupCheckPromise;
+        }
 
+        if (hasAuthSuccess) {
+          authStartupCheckPromise = handleAuthSuccessRedirect(loginParams, loginReturnView)
+            .then((user) => {
+              openCreditManagementForPaymentResult(paymentStatus);
+              return user;
+            })
+            .catch((error) => {
+              if (DEBUG_MODE) {
+                console.warn("[client][auth] login success handling failed:", error);
+              }
+              showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+              return null;
+            })
+            .finally(() => {
+              if (hasPaymentQuery) {
+                cleanPaymentRedirectQuery();
+              }
+            });
+          return authStartupCheckPromise;
+        }
+
+        authStartupCheckPromise = refreshAuthState({ showError: false })
+          .then((user) => {
             openCreditManagementForPaymentResult(paymentStatus);
             return user;
           })
           .catch((error) => {
             if (DEBUG_MODE) {
               console.warn("[client][auth] startup check failed:", error);
-            }
-            if (loginStatus === "success") {
-              showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
             }
             openCreditManagementForPaymentResult(paymentStatus);
             return null;

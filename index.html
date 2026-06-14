@@ -1011,6 +1011,76 @@
         word-break: keep-all;
       }
 
+      .admin-dashboard {
+        display: grid;
+        gap: 14px;
+        padding-bottom: 72px;
+      }
+
+      .admin-dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .admin-panel-card {
+        border-radius: 24px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.76);
+        border: 1px solid rgba(255, 255, 255, 0.84);
+        box-shadow: 0 14px 34px rgba(129, 80, 92, 0.1);
+      }
+
+      .admin-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .admin-stat-card {
+        border-radius: 18px;
+        padding: 12px;
+        color: #4f2630;
+        background: rgba(255, 248, 250, 0.78);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+      }
+
+      .admin-data-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .admin-data-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        border-radius: 16px;
+        padding: 10px 12px;
+        color: #705e61;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(129, 80, 92, 0.08);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .admin-data-row strong {
+        color: #4f2630;
+        font-weight: 800;
+      }
+
+      .admin-empty {
+        margin-top: 10px;
+        border-radius: 16px;
+        padding: 12px;
+        color: #705e61;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px dashed rgba(129, 80, 92, 0.18);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
       .site-guide-step {
         overflow: hidden;
         border-radius: 26px;
@@ -1141,6 +1211,10 @@
 
       @media (min-width: 720px) {
         .onboarding-cards-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .admin-dashboard-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
@@ -4008,18 +4082,7 @@
               <span class="w-9"></span>
             </div>
 
-            <div class="mt-4 flex flex-col gap-4">
-              <section class="site-guide-card site-guide-info-card text-center">
-                <div class="my-photo-icon mx-auto" aria-hidden="true">
-                  <span class="material-symbols-outlined text-[26px]">admin_panel_settings</span>
-                </div>
-                <h1 class="mt-4 font-display text-[28px] leading-tight text-on-surface">관리자 페이지 준비중입니다</h1>
-                <p class="mt-3 text-sm leading-6 text-on-surface-variant">관리자 권한이 확인된 계정에서만 이 화면에 접근할 수 있어요.</p>
-                <button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" data-screen-target="home" type="button">
-                  홈으로 돌아가기
-                </button>
-              </section>
-            </div>
+            <div class="mt-4 admin-dashboard" id="adminContent"></div>
           </section>
 
           <nav class="app-bottom-nav">
@@ -5102,6 +5165,7 @@ Important:
       const siteGuideScreen = document.getElementById("siteGuideScreen");
       const creditsScreen = document.getElementById("creditsScreen");
       const adminScreen = document.getElementById("adminScreen");
+      const adminContent = document.getElementById("adminContent");
       const galleryContent = document.getElementById("galleryContent");
       const myPhotoBoxLoginRequired = document.getElementById("myPhotoBoxLoginRequired");
       const myPhotoBoxAuthedContent = document.getElementById("myPhotoBoxAuthedContent");
@@ -5745,10 +5809,6 @@ Important:
         syncEditorGenerationCopy();
         updateCreditUi();
 
-        if (!isLoggedIn && appScreen === "admin") {
-          navigateToScreen("home");
-        }
-
         if (!isLoggedIn && appScreen === "result") {
           clearResults();
           navigateToScreen("editor");
@@ -5765,10 +5825,6 @@ Important:
         currentAdmin = isAdmin ? adminStatus.admin : null;
         syncAuthUi();
 
-        if (appScreen === "admin" && !isAdmin) {
-          navigateToScreen("home");
-          showAccountMenuToast("관리자 권한이 필요합니다.");
-        }
       }
 
       function applyAuthUser(user) {
@@ -5784,10 +5840,267 @@ Important:
         const payload = await response.json().catch(() => ({}));
 
         if (!response.ok || payload?.ok === false) {
-          throw new Error(payload?.message || payload?.error || `Admin me request failed: ${response.status}`);
+          const error = new Error(payload?.message || payload?.error || `Admin me request failed: ${response.status}`);
+          error.statusCode = response.status;
+          error.response = payload;
+          throw error;
         }
 
         return payload;
+      }
+
+      async function fetchAdminJson(path, options = {}) {
+        const response = await fetch(getAuthApiUrl(path), {
+          credentials: "include",
+          cache: "no-store",
+          ...options,
+          headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {}),
+          },
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload?.ok === false) {
+          const error = new Error(payload?.message || payload?.error || `Admin request failed: ${response.status}`);
+          error.statusCode = response.status;
+          error.response = payload;
+          throw error;
+        }
+        return payload;
+      }
+
+      function getAdminPayloadArray(payload = {}, keys = []) {
+        for (const key of keys) {
+          const value = payload?.[key] ?? payload?.data?.[key];
+          if (Array.isArray(value)) return value;
+        }
+        if (Array.isArray(payload?.data)) return payload.data;
+        if (Array.isArray(payload?.items)) return payload.items;
+        if (Array.isArray(payload?.rows)) return payload.rows;
+        return [];
+      }
+
+      function getAdminPayloadObject(payload = {}, keys = []) {
+        for (const key of keys) {
+          const value = payload?.[key] ?? payload?.data?.[key];
+          if (value && typeof value === "object" && !Array.isArray(value)) return value;
+        }
+        if (payload?.data && typeof payload.data === "object" && !Array.isArray(payload.data)) return payload.data;
+        return payload && typeof payload === "object" ? payload : {};
+      }
+
+      function getAdminValue(item = {}, keys = [], fallback = "제공되지 않음") {
+        for (const key of keys) {
+          const value = item?.[key];
+          if (value !== undefined && value !== null && String(value).trim() !== "") {
+            return String(value);
+          }
+        }
+        return fallback;
+      }
+
+      function formatAdminDate(value) {
+        if (!value) return "일시 없음";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString("ko-KR");
+      }
+
+      function formatAdminCurrency(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return "0원";
+        return `${number.toLocaleString("ko-KR")}원`;
+      }
+
+      function renderAdminState({ icon = "admin_panel_settings", title, message, action = "" } = {}) {
+        if (!adminContent) return;
+        adminContent.innerHTML = `
+          <section class="site-guide-card site-guide-info-card text-center">
+            <div class="my-photo-icon mx-auto" aria-hidden="true">
+              <span class="material-symbols-outlined text-[26px]">${escapeHtml(icon)}</span>
+            </div>
+            <h1 class="mt-4 font-display text-[28px] leading-tight text-on-surface">${escapeHtml(title || "관리자")}</h1>
+            <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(message || "")}</p>
+            ${action}
+          </section>
+        `;
+      }
+
+      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, paymentsPayload = {}, generationsPayload = {}, errors = [] } = {}) {
+        if (!adminContent) return;
+        const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
+        const users = getAdminPayloadArray(usersPayload, ["users"]).slice(0, 5);
+        const payments = getAdminPayloadArray(paymentsPayload, ["payments"]).slice(0, 5);
+        const generations = getAdminPayloadArray(generationsPayload, ["generations"]).slice(0, 5);
+        const totalUsers = summary.totalUsers ?? summary.users ?? summary.userCount ?? usersPayload.total ?? users.length;
+        const totalPayments = summary.totalPayments ?? summary.payments ?? summary.paymentCount ?? paymentsPayload.total ?? payments.length;
+        const totalRevenue = summary.totalRevenue ?? summary.revenue ?? summary.paymentAmount ?? summary.amount ?? 0;
+        const totalGenerations = summary.totalGenerations ?? summary.generations ?? summary.generationCount ?? generationsPayload.total ?? generations.length;
+        const errorNotice = errors.length
+          ? `<div class="admin-empty">관리자 데이터를 불러오지 못했습니다. 실패한 항목: ${escapeHtml(errors.join(", "))}</div>`
+          : "";
+
+        adminContent.innerHTML = `
+          <section class="site-guide-hero">
+            <span class="brand-logo brand-logo-horizontal brand-logo-sm" aria-label="Magic Ai Studio">
+              <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+              <span class="brand-logo-fallback">Magic Ai Studio</span>
+            </span>
+            <p class="font-label-caps text-label-caps uppercase text-primary/80">Admin</p>
+            <h1 class="mt-2 font-display text-[30px] leading-tight text-on-surface">관리자 대시보드</h1>
+            <p class="mt-2 text-sm leading-6 text-on-surface-variant">회원, 결제, 크레딧, 생성 내역을 확인하고 운영 작업을 처리합니다.</p>
+            ${errorNotice}
+          </section>
+
+          <section class="admin-panel-card">
+            <h2 class="font-display text-[23px] leading-tight text-on-surface">요약</h2>
+            <div class="admin-stat-grid mt-3">
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">회원</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalUsers ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">결제</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalPayments ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">매출</p><p class="mt-1 text-xl font-black">${escapeHtml(formatAdminCurrency(totalRevenue))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">생성</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalGenerations ?? 0))}</p></div>
+            </div>
+          </section>
+
+          <div class="admin-dashboard-grid">
+            <section class="admin-panel-card">
+              <h2 class="font-display text-[22px] leading-tight text-on-surface">회원 관리</h2>
+              <div class="admin-data-list">
+                ${users.length ? users.map((user) => `
+                  <div class="admin-data-row">
+                    <div><strong>${escapeHtml(getAdminValue(user, ["name", "displayName", "nickname", "email"], "회원"))}</strong><br>${escapeHtml(getAdminValue(user, ["email", "provider"], ""))}</div>
+                    <span>${escapeHtml(getAdminValue(user, ["createdAt", "created_at"], ""))}</span>
+                  </div>
+                `).join("") : `<div class="admin-empty">회원 데이터가 없습니다.</div>`}
+              </div>
+            </section>
+
+            <section class="admin-panel-card">
+              <h2 class="font-display text-[22px] leading-tight text-on-surface">결제 내역</h2>
+              <div class="admin-data-list">
+                ${payments.length ? payments.map((payment) => `
+                  <div class="admin-data-row">
+                    <div><strong>${escapeHtml(getAdminValue(payment, ["orderId", "order_id", "id"], "주문"))}</strong><br>${escapeHtml(getAdminValue(payment, ["packageId", "package_id", "goodsName", "goods_name"], ""))}</div>
+                    <span>${escapeHtml(formatAdminCurrency(payment.amount ?? payment.price))}</span>
+                  </div>
+                `).join("") : `<div class="admin-empty">결제 데이터가 없습니다.</div>`}
+              </div>
+            </section>
+
+            <section class="admin-panel-card">
+              <h2 class="font-display text-[22px] leading-tight text-on-surface">크레딧 조정</h2>
+              <form class="mt-3 grid gap-3" id="adminCreditAdjustForm">
+                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="userId" placeholder="회원 ID 또는 이메일" required />
+                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="amount" placeholder="조정 크레딧 예: 25 또는 -25" required type="number" />
+                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="reason" placeholder="조정 사유" />
+                <button class="h-11 rounded-full bg-primary text-sm font-bold text-on-primary" type="submit">크레딧 조정</button>
+              </form>
+              <p class="admin-empty hidden" id="adminCreditAdjustStatus"></p>
+            </section>
+
+            <section class="admin-panel-card">
+              <h2 class="font-display text-[22px] leading-tight text-on-surface">생성 내역</h2>
+              <div class="admin-data-list">
+                ${generations.length ? generations.map((generation) => `
+                  <div class="admin-data-row">
+                    <div><strong>${escapeHtml(getAdminValue(generation, ["id", "generationId", "generation_id"], "생성"))}</strong><br>${escapeHtml(getAdminValue(generation, ["mode", "presetKey", "preset_key", "status"], ""))}</div>
+                    <span>${escapeHtml(formatAdminDate(generation.createdAt ?? generation.created_at))}</span>
+                  </div>
+                `).join("") : `<div class="admin-empty">생성 데이터가 없습니다.</div>`}
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      async function refreshAdminDashboard() {
+        if (!adminContent) return;
+        renderAdminState({ icon: "progress_activity", title: "관리자 데이터를 불러오는 중입니다", message: "권한과 운영 데이터를 확인하고 있어요." });
+
+        try {
+          const adminPayload = await fetchAdminStatus();
+          applyAdminSession(adminPayload);
+        } catch (error) {
+          if (error.statusCode === 401) {
+            renderAdminState({
+              icon: "login",
+              title: "로그인이 필요합니다",
+              message: "관리자 화면을 보려면 먼저 로그인해 주세요.",
+              action: `<button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" data-action="open-login" type="button">로그인하기</button>`,
+            });
+            return;
+          }
+          if (error.statusCode === 403) {
+            renderAdminState({ icon: "lock", title: "관리자 권한이 없습니다", message: "관리자 권한이 확인된 계정에서만 접근할 수 있습니다." });
+            return;
+          }
+          renderAdminState({ icon: "error", title: "관리자 데이터를 불러오지 못했습니다", message: "잠시 후 다시 시도해 주세요." });
+          return;
+        }
+
+        if (!isAdmin) {
+          renderAdminState({ icon: "lock", title: "관리자 권한이 없습니다", message: "관리자 권한이 확인된 계정에서만 접근할 수 있습니다." });
+          return;
+        }
+
+        const requests = [
+          ["요약", fetchAdminJson("/api/admin/summary")],
+          ["회원 관리", fetchAdminJson("/api/admin/users")],
+          ["결제 내역", fetchAdminJson("/api/admin/payments")],
+          ["생성 내역", fetchAdminJson("/api/admin/generations")],
+        ];
+        const results = await Promise.allSettled(requests.map(([, request]) => request));
+        const errors = results
+          .map((result, index) => result.status === "rejected" ? requests[index][0] : "")
+          .filter(Boolean);
+
+        renderAdminDashboard({
+          summaryPayload: results[0].status === "fulfilled" ? results[0].value : {},
+          usersPayload: results[1].status === "fulfilled" ? results[1].value : {},
+          paymentsPayload: results[2].status === "fulfilled" ? results[2].value : {},
+          generationsPayload: results[3].status === "fulfilled" ? results[3].value : {},
+          errors,
+        });
+      }
+
+      async function handleAdminCreditAdjustSubmit(form) {
+        const status = document.getElementById("adminCreditAdjustStatus");
+        const formData = new FormData(form);
+        const userId = String(formData.get("userId") || "").trim();
+        const amount = Number(formData.get("amount") || 0);
+        const reason = String(formData.get("reason") || "").trim();
+
+        if (!userId || !Number.isFinite(amount) || amount === 0) {
+          if (status) {
+            status.textContent = "회원 ID와 0이 아닌 조정 크레딧을 입력해 주세요.";
+            status.classList.remove("hidden");
+          }
+          return;
+        }
+
+        if (status) {
+          status.textContent = "크레딧을 조정하는 중입니다.";
+          status.classList.remove("hidden");
+        }
+
+        try {
+          await fetchAdminJson("/api/admin/credits/adjust", {
+            method: "POST",
+            cache: "no-store",
+            body: JSON.stringify({ userId, amount, reason }),
+          });
+          if (status) {
+            status.textContent = "크레딧 조정이 완료되었습니다.";
+          }
+          form.reset();
+          void refreshAdminDashboard();
+        } catch (error) {
+          if (status) {
+            status.textContent = error.statusCode === 403
+              ? "관리자 권한이 없습니다."
+              : "관리자 데이터를 불러오지 못했습니다";
+          }
+        }
       }
 
       async function fetchCurrentUser() {
@@ -6985,11 +7298,6 @@ Important:
           }
         }
 
-        if (screen === "admin" && (!currentUser || !isAdmin)) {
-          screen = "home";
-          showAccountMenuToast("관리자 권한이 필요합니다.");
-        }
-
         appScreen = screen;
         rememberAppScreen(screen);
         const isLanding = screen === "landing";
@@ -7037,6 +7345,10 @@ Important:
 
         if (screen === "siteGuide") {
           renderSiteGuideScreen();
+        }
+
+        if (screen === "admin") {
+          void refreshAdminDashboard();
         }
 
         if (screen === "generating") {
@@ -10170,6 +10482,11 @@ ${modeExample}`;
       document.addEventListener("submit", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        const adminCreditForm = event.target?.closest?.("#adminCreditAdjustForm");
+        if (adminCreditForm) {
+          void handleAdminCreditAdjustSubmit(adminCreditForm);
+          return;
+        }
         console.log("[client][grok-edit] form submit blocked");
       }, true);
 
@@ -10571,6 +10888,16 @@ ${modeExample}`;
             alert("커뮤니티 기능은 준비 중입니다.");
           }
         });
+      });
+
+      document.addEventListener("click", (event) => {
+        const actionButton = event.target.closest?.("[data-action]");
+        if (!actionButton) return;
+        const action = actionButton.dataset.action;
+        if (action === "open-login") {
+          event.preventDefault();
+          openLoginModal(actionButton);
+        }
       });
 
       if (topSettingsButton) {

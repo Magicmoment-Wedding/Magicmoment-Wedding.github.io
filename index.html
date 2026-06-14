@@ -1089,6 +1089,44 @@
         font-weight: 800;
       }
 
+      .admin-list-card {
+        cursor: pointer;
+      }
+
+      .admin-list-card summary {
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .admin-list-card summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .admin-card-summary {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .admin-summary-subtext {
+        margin-top: 3px;
+        color: #705e61;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .admin-status-badge {
+        flex-shrink: 0;
+        border-radius: 9999px;
+        padding: 4px 8px;
+        color: #fff;
+        background: var(--rose-deep);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
       .admin-main-title {
         color: #4f2630;
         font-size: 15px;
@@ -1099,6 +1137,11 @@
       .admin-meta-list {
         display: grid;
         gap: 7px;
+      }
+
+      .admin-summary-lines {
+        display: grid;
+        gap: 6px;
       }
 
       .admin-meta-row {
@@ -1132,6 +1175,48 @@
         opacity: 0.68;
         overflow-wrap: anywhere;
         word-break: break-word;
+      }
+
+      .admin-detail-panel {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(129, 80, 92, 0.12);
+      }
+
+      .admin-detail-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        color: var(--rose-deep);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .admin-list-card[open] .admin-detail-toggle .material-symbols-outlined {
+        transform: rotate(180deg);
+      }
+
+      .admin-more-button {
+        min-height: 42px;
+        border-radius: 9999px;
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .admin-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .admin-row-value {
+        min-width: 0;
+        text-align: right;
+        overflow-wrap: anywhere;
       }
 
       .admin-dashboard *,
@@ -5400,6 +5485,11 @@ Important:
       let isNewUser = false;
       let siteGuidePageIndex = 0;
       let lastGenerationUsedFreeCredit = false;
+      const ADMIN_LIST_PAGE_SIZE = 5;
+      let adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
+      let adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
+      let adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
+      let lastAdminDashboardRenderArgs = null;
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -6020,24 +6110,14 @@ Important:
 
       function getAdminMemberName(item = {}) {
         // TODO: Prefer backend-provided userName/name/nickname in admin API responses when available.
-        return getAdminNestedValue(item, [
-          "userName",
-          "user_name",
-          "name",
-          "nickname",
-          "user.name",
-          "user.nickname",
-          "profile.name",
-          "profile.nickname",
-          "userEmail",
-          "user_email",
-          "email",
-          "user.email",
-          "profile.email",
-        ], "알 수 없는 회원");
+        return getAdminDisplayName(item);
       }
 
       function getAdminMemberEmail(item = {}) {
+        return getAdminEmail(item);
+      }
+
+      function getAdminEmail(item = {}) {
         return getAdminNestedValue(item, [
           "userEmail",
           "user_email",
@@ -6046,11 +6126,27 @@ Important:
           "buyer_email",
           "user.email",
           "profile.email",
-        ], "없음");
+        ], "이메일 없음");
+      }
+
+      function getAdminDisplayName(item = {}) {
+        const email = getAdminEmail(item);
+        const candidates = [
+          getAdminNestedValue(item, ["displayName", "display_name", "user.displayName", "user.display_name", "profile.displayName", "profile.display_name"], ""),
+          getAdminNestedValue(item, ["userName", "user_name", "user.userName", "user.user_name", "profile.userName", "profile.user_name"], ""),
+          getAdminNestedValue(item, ["name", "user.name", "profile.name"], ""),
+          getAdminNestedValue(item, ["nickname", "user.nickname", "profile.nickname"], ""),
+          getAdminNestedValue(item, ["fullName", "full_name", "user.fullName", "user.full_name", "profile.fullName", "profile.full_name"], ""),
+        ];
+        const normalizedEmail = String(email || "").trim().toLowerCase();
+        const value = candidates
+          .map((candidate) => String(candidate || "").trim())
+          .find((candidate) => candidate && candidate.toLowerCase() !== normalizedEmail);
+        return value || "이름 미등록";
       }
 
       function getAdminUserDisplayName(user = {}) {
-        return getAdminNestedValue(user, ["name", "nickname", "email", "userEmail", "user_email"], "알 수 없는 회원");
+        return getAdminDisplayName(user);
       }
 
       function getAdminUserCreditBalance(user = {}) {
@@ -6176,13 +6272,138 @@ Important:
         `;
       }
 
+      function renderAdminMoreButton(kind, visibleCount, totalCount) {
+        if (totalCount <= visibleCount) return "";
+        const remaining = totalCount - visibleCount;
+        return `<button class="admin-more-button" data-admin-more="${escapeHtml(kind)}" type="button">더보기 ${Math.min(ADMIN_LIST_PAGE_SIZE, remaining)}개</button>`;
+      }
+
+      function renderAdminUserCard(user = {}) {
+        const userId = getAdminNestedValue(user, ["id", "userId", "user_id", "authUserId", "auth_user_id"], "회원 ID 없음");
+        const providerUserId = getAdminNestedValue(user, ["providerUserId", "provider_user_id"], "없음");
+        const updatedAt = user.updatedAt ?? user.updated_at;
+        return `
+          <details class="admin-data-row admin-list-card admin-user-item">
+            <summary>
+              <div class="admin-card-summary">
+                <div>
+                  <div class="admin-main-title">회원: ${escapeHtml(getAdminUserDisplayName(user))}</div>
+                  <div class="admin-summary-subtext">${escapeHtml(getAdminEmail(user))}</div>
+                </div>
+                <span class="admin-status-badge">${escapeHtml(getAdminNestedValue(user, ["provider", "authProvider", "auth_provider"], "알 수 없음"))}</span>
+              </div>
+              <div class="admin-summary-lines mt-2">
+                <div class="admin-meta-row"><span class="admin-meta-label">보유 크레딧</span><span class="admin-meta-value">${escapeHtml(String(getAdminUserCreditBalance(user)))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">가입방식</span><span class="admin-meta-value">${escapeHtml(getAdminNestedValue(user, ["provider", "authProvider", "auth_provider"], "알 수 없음"))}</span></div>
+              </div>
+              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+            </summary>
+            <div class="admin-detail-panel">
+              <div class="admin-meta-list">
+                <div class="admin-meta-row"><span class="admin-meta-label">회원 ID</span><span class="admin-meta-value">${escapeHtml(userId)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">가입일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(user.createdAt ?? user.created_at))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">업데이트</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(updatedAt))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">안내완료</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.onboardingCompleted ?? user.onboarding_completed))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">무료대상</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationEligible ?? user.free_generation_eligible))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">무료사용</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationUsed ?? user.free_generation_used))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">관리자</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.isAdmin ?? user.is_admin ?? user.admin))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">providerUserId</span><span class="admin-meta-value">${escapeHtml(providerUserId)}</span></div>
+              </div>
+            </div>
+          </details>
+        `;
+      }
+
+      function renderAdminPaymentCard(payment = {}) {
+        const orderId = getAdminNestedValue(payment, ["orderId", "order_id", "id"], "주문번호 없음");
+        const tid = getAdminNestedValue(payment, ["tid", "transactionId", "transaction_id", "paymentKey", "payment_key"], "없음");
+        const packageId = getAdminNestedValue(payment, ["packageId", "package_id"], "없음");
+        const paymentStatusRaw = getAdminNestedValue(payment, ["status", "paymentStatus", "payment_status"], "unknown");
+        return `
+          <details class="admin-data-row admin-list-card admin-payment-item">
+            <summary>
+              <div class="admin-card-summary">
+                <div>
+                  <div class="admin-main-title">회원: ${escapeHtml(getAdminMemberName(payment))}</div>
+                  <div class="admin-summary-subtext">상품: ${escapeHtml(getAdminPaymentProductName(payment))}</div>
+                </div>
+                <span class="admin-status-badge">${escapeHtml(getAdminPaymentStatusLabel(paymentStatusRaw))}</span>
+              </div>
+              <div class="admin-summary-lines mt-2">
+                <div class="admin-meta-row"><span class="admin-meta-label">금액</span><span class="admin-meta-value">${escapeHtml(formatAdminCurrency(payment.amount ?? payment.price))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentStatusLabel(paymentStatusRaw))}</span></div>
+              </div>
+              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+            </summary>
+            <div class="admin-detail-panel">
+              <div class="admin-meta-list">
+                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminMemberEmail(payment))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">지급 크레딧</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentCredits(payment))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">packageId</span><span class="admin-meta-value">${escapeHtml(packageId)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">결제일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(payment.paidAt ?? payment.paid_at ?? payment.createdAt ?? payment.created_at))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">생성일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(payment.createdAt ?? payment.created_at))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">provider</span><span class="admin-meta-value">${escapeHtml(getAdminNestedValue(payment, ["provider", "paymentProvider", "payment_provider"], "알 수 없음"))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">status 원문</span><span class="admin-meta-value">${escapeHtml(paymentStatusRaw)}</span></div>
+              </div>
+              <div class="admin-id-text admin-order-id mt-2">주문번호: ${escapeHtml(orderId)}</div>
+              <div class="admin-id-text mt-2">TID: ${escapeHtml(tid)}</div>
+            </div>
+          </details>
+        `;
+      }
+
+      function renderAdminGenerationCard(generation = {}) {
+        const generationId = getAdminNestedValue(generation, ["id", "generationId", "generation_id", "uuid"], "생성 ID 없음");
+        const modeRaw = getAdminNestedValue(generation, ["mode", "generationMode", "generation_mode"], "없음");
+        const presetRaw = getAdminNestedValue(generation, ["preset", "presetName", "preset_name", "presetKey", "preset_key", "location", "locationPreset", "location_preset"], "없음");
+        const statusRaw = getAdminNestedValue(generation, ["status", "generationStatus", "generation_status"], "unknown");
+        const isFreeGeneration = generation.freeGeneration ?? generation.free_generation ?? generation.usedFreeCredit ?? generation.used_free_credit ?? generation.isFree ?? generation.is_free;
+        const hasWatermark = generation.watermarked ?? generation.hasWatermark ?? generation.has_watermark ?? generation.watermark;
+        const thumbnailUrl = getAdminNestedValue(generation, ["thumbnailUrl", "thumbnail_url", "imageUrl", "image_url", "resultUrl", "result_url"], "");
+        return `
+          <details class="admin-data-row admin-list-card admin-generation-item">
+            <summary>
+              <div class="admin-card-summary">
+                <div>
+                  <div class="admin-main-title">회원: ${escapeHtml(getAdminMemberName(generation))}</div>
+                  <div class="admin-summary-subtext">${escapeHtml(getAdminGenerationStyleLabel(generation))} · ${escapeHtml(getAdminGenerationPresetLabel(generation))}</div>
+                </div>
+                <span class="admin-status-badge">${escapeHtml(getAdminGenerationStatusLabel(statusRaw))}</span>
+              </div>
+              <div class="admin-summary-lines mt-2">
+                <div class="admin-meta-row"><span class="admin-meta-label">생성일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(generation.createdAt ?? generation.created_at))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationStatusLabel(statusRaw))}</span></div>
+              </div>
+              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+            </summary>
+            <div class="admin-detail-panel">
+              <div class="admin-meta-list">
+                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminMemberEmail(generation))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">mode 원문</span><span class="admin-meta-value">${escapeHtml(modeRaw)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">preset 원문</span><span class="admin-meta-value">${escapeHtml(presetRaw)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">무료 생성</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(isFreeGeneration))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">워터마크</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(hasWatermark, "포함", "없음"))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">createdAt 원문</span><span class="admin-meta-value">${escapeHtml(String(generation.createdAt ?? generation.created_at ?? "없음"))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">status 원문</span><span class="admin-meta-value">${escapeHtml(statusRaw)}</span></div>
+                ${thumbnailUrl ? `<div class="admin-meta-row"><span class="admin-meta-label">결과</span><span class="admin-meta-value"><a class="text-primary font-bold" href="${escapeHtml(thumbnailUrl)}" target="_blank" rel="noopener noreferrer">보기</a></span></div>` : ""}
+              </div>
+              <div class="admin-id-text admin-generation-id mt-2">생성 ID: ${escapeHtml(generationId)}</div>
+            </div>
+          </details>
+        `;
+      }
+
       function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, errors = [] } = {}) {
         if (!adminContent) return;
+        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, errors };
         const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
         const normalizedUsers = usersError ? { users: [], total: 0 } : normalizeAdminUsersPayload(usersPayload);
         const users = normalizedUsers.users;
-        const payments = getAdminPayloadArray(paymentsPayload, ["payments"]).slice(0, 5);
-        const generations = getAdminPayloadArray(generationsPayload, ["generations"]).slice(0, 5);
+        const visibleUsers = users.slice(0, adminVisibleUsersCount);
+        const payments = getAdminPayloadArray(paymentsPayload, ["payments"]);
+        const visiblePayments = payments.slice(0, adminVisiblePaymentsCount);
+        const generations = getAdminPayloadArray(generationsPayload, ["generations"]);
+        const visibleGenerations = generations.slice(0, adminVisibleGenerationsCount);
         const totalUsers = summary.totalUsers ?? summary.users ?? summary.userCount ?? normalizedUsers.total;
         const totalPayments = summary.totalPayments ?? summary.payments ?? summary.paymentCount ?? paymentsPayload.total ?? payments.length;
         const totalRevenue = summary.totalRevenue ?? summary.revenue ?? summary.paymentAmount ?? summary.amount ?? 0;
@@ -6217,45 +6438,16 @@ Important:
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">회원 관리</h2>
               <div class="admin-data-list">
-                ${usersError ? `<div class="admin-empty">회원 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>` : users.length ? users.map((user) => `
-                  <div class="admin-data-row">
-                    <div class="admin-main-title">회원: ${escapeHtml(getAdminUserDisplayName(user))}</div>
-                    <div class="admin-meta-list">
-                      <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminNestedValue(user, ["email", "userEmail", "user_email"], "없음"))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">로그인</span><span class="admin-meta-value">${escapeHtml(getAdminNestedValue(user, ["provider", "authProvider", "auth_provider"], "알 수 없음"))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">보유 크레딧</span><span class="admin-meta-value">${escapeHtml(String(getAdminUserCreditBalance(user)))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">가입일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(user.createdAt ?? user.created_at))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">안내완료</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.onboardingCompleted ?? user.onboarding_completed))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">무료대상</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationEligible ?? user.free_generation_eligible))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">무료사용</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationUsed ?? user.free_generation_used))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">관리자</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.isAdmin ?? user.is_admin ?? user.admin))}</span></div>
-                    </div>
-                  </div>
-                `).join("") : `<div class="admin-empty">회원 데이터가 없습니다.</div>`}
+                ${usersError ? `<div class="admin-empty">회원 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>` : users.length ? visibleUsers.map(renderAdminUserCard).join("") : `<div class="admin-empty">회원 데이터가 없습니다.</div>`}
+                ${!usersError ? renderAdminMoreButton("users", adminVisibleUsersCount, users.length) : ""}
               </div>
             </section>
 
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">결제 내역</h2>
               <div class="admin-data-list">
-                ${payments.length ? payments.map((payment) => {
-                  const orderId = getAdminNestedValue(payment, ["orderId", "order_id", "id"], "주문번호 없음");
-                  const paymentStatus = getAdminNestedValue(payment, ["status", "paymentStatus", "payment_status"], "unknown");
-                  return `
-                  <div class="admin-data-row admin-payment-item">
-                    <div class="admin-main-title">회원: ${escapeHtml(getAdminMemberName(payment))}</div>
-                    <div class="admin-meta-list">
-                      <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminMemberEmail(payment))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">상품</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentProductName(payment))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">결제금액</span><span class="admin-meta-value">${escapeHtml(formatAdminCurrency(payment.amount ?? payment.price))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">지급 크레딧</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentCredits(payment))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentStatusLabel(paymentStatus))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">결제일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(payment.paidAt ?? payment.paid_at ?? payment.createdAt ?? payment.created_at))}</span></div>
-                    </div>
-                    <div class="admin-id-text admin-order-id">주문번호: ${escapeHtml(orderId)}</div>
-                  </div>
-                  `;
-                }).join("") : `<div class="admin-empty">결제 데이터가 없습니다.</div>`}
+                ${payments.length ? visiblePayments.map(renderAdminPaymentCard).join("") : `<div class="admin-empty">결제 데이터가 없습니다.</div>`}
+                ${renderAdminMoreButton("payments", adminVisiblePaymentsCount, payments.length)}
               </div>
             </section>
 
@@ -6273,26 +6465,8 @@ Important:
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">생성 내역</h2>
               <div class="admin-data-list">
-                ${generations.length ? generations.map((generation) => {
-                  const generationId = getAdminNestedValue(generation, ["id", "generationId", "generation_id", "uuid"], "생성 ID 없음");
-                  const isFreeGeneration = generation.freeGeneration ?? generation.free_generation ?? generation.usedFreeCredit ?? generation.used_free_credit ?? generation.isFree ?? generation.is_free;
-                  const hasWatermark = generation.watermarked ?? generation.hasWatermark ?? generation.has_watermark ?? generation.watermark;
-                  return `
-                  <div class="admin-data-row admin-generation-item">
-                    <div class="admin-main-title">회원: ${escapeHtml(getAdminMemberName(generation))}</div>
-                    <div class="admin-meta-list">
-                      <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminMemberEmail(generation))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">스타일</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationStyleLabel(generation))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">배경</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationPresetLabel(generation))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationStatusLabel(getAdminNestedValue(generation, ["status", "generationStatus", "generation_status"], "unknown")))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">무료 제작</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(isFreeGeneration))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">워터마크</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(hasWatermark, "포함", "없음"))}</span></div>
-                      <div class="admin-meta-row"><span class="admin-meta-label">생성일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(generation.createdAt ?? generation.created_at))}</span></div>
-                    </div>
-                    <div class="admin-id-text admin-generation-id">생성 ID: ${escapeHtml(generationId)}</div>
-                  </div>
-                  `;
-                }).join("") : `<div class="admin-empty">생성 데이터가 없습니다.</div>`}
+                ${generations.length ? visibleGenerations.map(renderAdminGenerationCard).join("") : `<div class="admin-empty">생성 데이터가 없습니다.</div>`}
+                ${renderAdminMoreButton("generations", adminVisibleGenerationsCount, generations.length)}
               </div>
             </section>
           </div>
@@ -6301,6 +6475,10 @@ Important:
 
       async function refreshAdminDashboard() {
         if (!adminContent) return;
+        adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
+        adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
+        adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
+        lastAdminDashboardRenderArgs = null;
         renderAdminState({ icon: "progress_activity", title: "관리자 데이터를 불러오는 중입니다", message: "권한과 운영 데이터를 확인하고 있어요." });
 
         try {
@@ -11178,6 +11356,23 @@ ${modeExample}`;
       });
 
       document.addEventListener("click", (event) => {
+        const adminMoreButton = event.target.closest?.("[data-admin-more]");
+        if (adminMoreButton) {
+          event.preventDefault();
+          const kind = adminMoreButton.dataset.adminMore;
+          if (kind === "users") {
+            adminVisibleUsersCount += ADMIN_LIST_PAGE_SIZE;
+          } else if (kind === "payments") {
+            adminVisiblePaymentsCount += ADMIN_LIST_PAGE_SIZE;
+          } else if (kind === "generations") {
+            adminVisibleGenerationsCount += ADMIN_LIST_PAGE_SIZE;
+          }
+          if (lastAdminDashboardRenderArgs) {
+            renderAdminDashboard(lastAdminDashboardRenderArgs);
+          }
+          return;
+        }
+
         const actionButton = event.target.closest?.("[data-action]");
         if (!actionButton) return;
         const action = actionButton.dataset.action;

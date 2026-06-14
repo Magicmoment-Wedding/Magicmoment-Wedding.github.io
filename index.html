@@ -5892,7 +5892,26 @@ Important:
 
       function normalizeAuthUser(payload = {}) {
         const user = payload?.user ?? payload?.data?.user ?? null;
-        return user && typeof user === "object" ? user : null;
+        if (!user || typeof user !== "object") return null;
+
+        const normalizedUser = { ...user };
+        const normalizedCreditBalance = normalizeAuthCreditBalance({ user: normalizedUser });
+        if (normalizedCreditBalance !== null) {
+          normalizedUser.creditBalance = normalizedCreditBalance;
+        }
+        normalizedUser.onboardingCompleted = normalizeBooleanField(
+          normalizedUser.onboardingCompleted ?? normalizedUser.onboarding_completed,
+          normalizedUser.onboardingCompleted,
+        );
+        normalizedUser.freeGenerationEligible = normalizeBooleanField(
+          normalizedUser.freeGenerationEligible ?? normalizedUser.free_generation_eligible,
+          normalizedUser.freeGenerationEligible,
+        );
+        normalizedUser.freeGenerationUsed = normalizeBooleanField(
+          normalizedUser.freeGenerationUsed ?? normalizedUser.free_generation_used,
+          normalizedUser.freeGenerationUsed,
+        );
+        return normalizedUser;
       }
 
       function isAuthenticatedUser(user = currentUser) {
@@ -5991,10 +6010,14 @@ Important:
           ?? payload?.data?.credits?.credits
           ?? payload?.balance
           ?? payload?.creditBalance
+          ?? payload?.credit_balance
           ?? payload?.data?.balance
           ?? payload?.data?.creditBalance
+          ?? payload?.data?.credit_balance
           ?? payload?.user?.creditBalance
-          ?? payload?.data?.user?.creditBalance;
+          ?? payload?.user?.credit_balance
+          ?? payload?.data?.user?.creditBalance
+          ?? payload?.data?.user?.credit_balance;
         const numericValue = Number(value);
         return Number.isFinite(numericValue) ? numericValue : null;
       }
@@ -6032,10 +6055,11 @@ Important:
         const openEventValue = pickAuthField(payload, user, ["openEventEligible", "open_event_eligible", "firstPurchaseEligible", "first_purchase_eligible"]);
         const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
 
-        onboardingCompleted = normalizeBooleanField(onboardingValue, true);
+        const normalizedIsNewUser = normalizeBooleanField(isNewUserValue, false);
+        onboardingCompleted = normalizeBooleanField(onboardingValue, normalizedIsNewUser ? false : true);
         freeGenerationUsed = normalizeBooleanField(freeUsedValue, false);
-        freeGenerationEligible = normalizeBooleanField(freeEligibleValue, false);
-        freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, false);
+        freeGenerationEligible = normalizeBooleanField(freeEligibleValue, normalizedIsNewUser);
+        freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, freeGenerationEligible === true && freeGenerationUsed !== true);
         openEventEligible = normalizeBooleanField(openEventValue, false);
         isNewUser = normalizeBooleanField(isNewUserValue, !onboardingCompleted);
         if (user && typeof user === "object") {
@@ -7490,7 +7514,7 @@ Important:
         const label = generateButton.querySelector("span:first-child");
         const detail = generateButton.querySelector("span:last-child");
         const hasUser = authChecked === true && isAuthenticatedUser(currentUser);
-        const canUseFreeGeneration = freeGenerationEligible === true && freeGenerationAvailable === true;
+        const canUseFreeGeneration = hasFreeGeneration(currentUser);
         let labelText = "로그인 확인 중...";
         let detailText = "잠시만 기다려 주세요.";
 
@@ -8170,7 +8194,7 @@ Important:
           const pageSteps = guideSteps.slice(currentPage * 2, currentPage * 2 + 2);
           const hasUser = authChecked === true && isAuthenticatedUser(currentUser);
           const freeStartEligible = hasUser && onboardingCompleted === false && freeGenerationEligible === true;
-          const canUseFreeGeneration = hasUser && onboardingCompleted === true && freeGenerationEligible === true && freeGenerationAvailable === true;
+          const canUseFreeGeneration = hasUser && hasFreeGeneration(currentUser);
           const needsCredits = hasUser && onboardingCompleted === true && !canUseFreeGeneration && Number(creditBalance) < 25;
           const buttonLabel = currentPage === pageCount - 1
             ? (
@@ -8263,7 +8287,7 @@ Important:
         try {
           if (onboardingCompleted) {
             clearPendingAction();
-            if (freeGenerationEligible === true && freeGenerationAvailable === true) {
+            if (hasFreeGeneration(currentUser)) {
               navigateToScreen("editor");
               setStatus("무료 1회 제작 버튼을 눌러 사진을 만들어 주세요.");
               return;
@@ -8278,13 +8302,6 @@ Important:
             return;
           }
 
-          if (freeGenerationEligible !== true) {
-            clearPendingAction();
-            navigateToScreen(Number(creditBalance) < 25 ? "credits" : "editor");
-            showAccountMenuToast(Number(creditBalance) < 25 ? "크레딧을 충전하고 계속 이용해 주세요." : "사진 제작을 시작해 주세요.");
-            return;
-          }
-
           if (!onboardingCompleted) {
             await completeOnboarding();
           }
@@ -8293,9 +8310,9 @@ Important:
             return;
           }
           clearPendingAction();
-          showAccountMenuToast(freeGenerationEligible === true && freeGenerationAvailable === true ? "가입 선물로 첫 1회는 무료로 제작할 수 있어요." : "사진 제작을 시작해 주세요.");
+          showAccountMenuToast(hasFreeGeneration(currentUser) ? "가입 선물로 첫 1회는 무료로 제작할 수 있어요." : "사진 제작을 시작해 주세요.");
           navigateToScreen("editor");
-          if (freeGenerationEligible === true && freeGenerationAvailable === true) {
+          if (hasFreeGeneration(currentUser)) {
             setStatus("가입 선물로 첫 1회는 무료로 제작할 수 있어요. 무료 제작 결과에는 Magic Ai Studio 워터마크가 표시됩니다.");
           }
         } catch (error) {
@@ -8334,8 +8351,21 @@ Important:
         showAccountMenuToast("두 번째 제작부터는 크레딧이 필요합니다.");
       }
 
+      function shouldShowOnboarding(user = currentUser) {
+        return Boolean(user && onboardingCompleted === false);
+      }
+
+      function hasFreeGeneration(user = currentUser) {
+        return Boolean(
+          user
+          && onboardingCompleted === true
+          && freeGenerationEligible === true
+          && freeGenerationUsed !== true
+        );
+      }
+
       function shouldShowOnboardingCards() {
-        return onboardingCompleted === false && freeGenerationEligible === true;
+        return shouldShowOnboarding(currentUser);
       }
 
       function canStartGenerationFromCurrentState() {
@@ -8349,24 +8379,14 @@ Important:
           return false;
         }
 
-        if (!onboardingCompleted) {
-          if (freeGenerationEligible !== true) {
-            if (Number(creditBalance) < 25) {
-              showCreditRequiredForGeneration();
-              navigateToScreen("credits");
-            } else {
-              showAccountMenuToast("사진 제작을 시작해 주세요.");
-              navigateToScreen("editor");
-            }
-            return false;
-          }
+        if (shouldShowOnboarding(currentUser)) {
           siteGuidePageIndex = 0;
           showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
           navigateToScreen("siteGuide");
           return false;
         }
 
-        if (freeGenerationEligible === true && freeGenerationAvailable === true) {
+        if (hasFreeGeneration(currentUser)) {
           return true;
         }
 
@@ -8384,16 +8404,16 @@ Important:
           throw createLoginRequiredGenerationError();
         }
 
-        if (!onboardingCompleted) {
+        if (shouldShowOnboarding(currentUser)) {
           const error = new Error("ONBOARDING_REQUIRED");
           error.code = "ONBOARDING_REQUIRED";
           error.publicMessage = "사이트 이용안내를 먼저 확인해 주세요.";
           error.isOnboardingRequired = true;
-          error.isOnboardingEligible = freeGenerationEligible === true;
+          error.isOnboardingEligible = true;
           throw error;
         }
 
-        if (!(freeGenerationEligible === true && freeGenerationAvailable === true) && Number(creditBalance) < 25) {
+        if (!hasFreeGeneration(currentUser) && Number(creditBalance) < 25) {
           const error = new Error("CREDITS_REQUIRED");
           error.code = "CREDITS_REQUIRED";
           error.publicMessage = "두 번째 제작부터는 크레딧이 필요합니다.\n크레딧을 충전하고 계속 이용해 주세요.";
@@ -12935,7 +12955,7 @@ ${modeExample}`;
 
         hideError();
         isGenerating = true;
-        lastGenerationUsedFreeCredit = freeGenerationEligible === true && freeGenerationAvailable === true;
+        lastGenerationUsedFreeCredit = hasFreeGeneration(currentUser);
         generateButton.disabled = true;
         activeGenerationMode = getGenerationMode();
         clearResults();
@@ -13012,20 +13032,10 @@ ${modeExample}`;
 
           if (isOnboardingRequiredError) {
             setStatus("");
-            if (freeGenerationEligible === true || effectiveError.isOnboardingEligible === true) {
-              siteGuidePageIndex = 0;
-              showError("사이트 이용안내를 먼저 확인해 주세요.", { title: "이용안내" });
-              showAccountMenuToast("사이트 이용안내를 먼저 확인해 주세요.");
-              setAppScreen("siteGuide", { replaceHistory: true });
-              return;
-            }
-            if (Number(creditBalance) < 25) {
-              showCreditRequiredForGeneration();
-              setAppScreen("credits", { replaceHistory: true });
-              return;
-            }
-            showError("이용 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", { title: "생성 안내" });
-            showAccountMenuToast("이용 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+            siteGuidePageIndex = 0;
+            showError("사이트 이용안내를 먼저 확인해 주세요.", { title: "이용안내" });
+            showAccountMenuToast("사이트 이용안내를 먼저 확인해 주세요.");
+            setAppScreen("siteGuide", { replaceHistory: true });
             return;
           }
 

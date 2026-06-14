@@ -1229,6 +1229,7 @@
       }
 
       .admin-panel-card input,
+      .admin-panel-card textarea,
       .admin-panel-card button {
         width: 100%;
         max-width: 100%;
@@ -1244,6 +1245,113 @@
         border: 1px dashed rgba(129, 80, 92, 0.18);
         font-size: 13px;
         line-height: 1.6;
+      }
+
+      .admin-toggle-row {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-radius: 16px;
+        padding: 10px 12px;
+        color: #4f2630;
+        background: rgba(255, 248, 250, 0.78);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .admin-toggle-row input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--rose-deep);
+      }
+
+      .admin-search-results {
+        display: grid;
+        gap: 8px;
+      }
+
+      .admin-search-result-button,
+      .admin-selected-user,
+      .admin-danger-zone {
+        border-radius: 16px;
+        padding: 12px;
+        color: #705e61;
+        background: rgba(255, 255, 255, 0.68);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .admin-search-result-button {
+        text-align: left;
+      }
+
+      .admin-search-result-button:hover,
+      .admin-search-result-button:focus-visible {
+        border-color: rgba(129, 80, 92, 0.28);
+        background: rgba(255, 248, 250, 0.88);
+      }
+
+      .admin-selected-user strong,
+      .admin-danger-zone strong {
+        display: block;
+        color: #4f2630;
+        font-size: 13px;
+      }
+
+      .admin-danger-zone {
+        margin-top: 12px;
+        border-color: rgba(190, 42, 76, 0.22);
+        background: rgba(255, 244, 247, 0.82);
+      }
+
+      .admin-danger-button {
+        margin-top: 10px;
+        min-height: 42px;
+        border-radius: 9999px;
+        color: #fff;
+        background: #be2a4c;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .admin-danger-button:disabled,
+      .admin-panel-card button:disabled {
+        cursor: not-allowed;
+        opacity: 0.52;
+      }
+
+      .admin-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .admin-modal-cancel,
+      .admin-modal-confirm {
+        min-height: 44px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .admin-modal-cancel {
+        color: var(--rose-deep);
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+      }
+
+      .admin-modal-confirm {
+        color: #fff;
+        background: var(--rose-deep);
+      }
+
+      .admin-modal-confirm.is-danger {
+        background: #be2a4c;
       }
 
       .site-guide-step {
@@ -5490,6 +5598,13 @@ Important:
       let adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
       let adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
       let lastAdminDashboardRenderArgs = null;
+      let adminIncludeDeletedUsers = false;
+      let adminCreditSearchResults = [];
+      let adminCreditSearchMessage = "";
+      let adminCreditSelectedUser = null;
+      let adminCreditSearchTimerId = null;
+      let adminCreditConfirmState = null;
+      let adminDeleteConfirmUser = null;
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -6155,6 +6270,208 @@ Important:
         return Number.isFinite(number) ? number : 0;
       }
 
+      function getAdminUserId(user = {}) {
+        return getAdminNestedValue(user, ["id", "userId", "user_id", "authUserId", "auth_user_id"], "");
+      }
+
+      function getAdminProvider(user = {}) {
+        return getAdminNestedValue(user, ["provider", "authProvider", "auth_provider"], "알 수 없음");
+      }
+
+      function isAdminUserDeleted(user = {}) {
+        return Boolean(user.deletedAt || user.deleted_at || user.isDeleted || user.is_deleted || user.deleted);
+      }
+
+      function isAdminUserAdmin(user = {}) {
+        return user.isAdmin === true || user.is_admin === true || user.admin === true || user.role === "admin";
+      }
+
+      function isAdminSelfUser(user = {}) {
+        const userId = String(getAdminUserId(user) || "").trim();
+        const currentId = String(getAuthenticatedUserId(currentUser) || currentAdmin?.id || currentAdmin?.userId || currentAdmin?.user_id || "").trim();
+        const email = String(getAdminEmail(user) || "").trim().toLowerCase();
+        const currentEmail = String(getAuthUserEmail(currentUser) || currentAdmin?.email || currentAdmin?.userEmail || "").trim().toLowerCase();
+        return Boolean((userId && currentId && userId === currentId) || (email && currentEmail && email === currentEmail));
+      }
+
+      function getAdminErrorCode(error) {
+        return String(
+          error?.response?.code
+          || error?.response?.errorCode
+          || error?.response?.error
+          || error?.code
+          || "",
+        ).trim();
+      }
+
+      function getAdminCreditAdjustErrorMessage(error) {
+        const messages = {
+          USER_NOT_FOUND: "회원을 찾을 수 없습니다.",
+          MULTIPLE_USERS_FOUND: "여러 회원이 검색되었습니다. 정확한 회원을 선택해 주세요.",
+          INSUFFICIENT_CREDIT: "차감 후 크레딧이 음수가 될 수 없습니다.",
+          ADMIN_REQUIRED: "관리자 권한이 필요합니다.",
+        };
+        return messages[getAdminErrorCode(error)] || (error?.statusCode === 403 ? "관리자 권한이 필요합니다." : "크레딧 조정에 실패했습니다.");
+      }
+
+      function getAdminDeleteErrorMessage(error) {
+        const messages = {
+          CONFIRM_REQUIRED: "DELETE를 정확히 입력해 주세요.",
+          REASON_REQUIRED: "삭제 사유를 입력해 주세요.",
+          CANNOT_DELETE_SELF: "본인 계정은 삭제할 수 없습니다.",
+          CANNOT_DELETE_LAST_ADMIN: "마지막 관리자 계정은 삭제할 수 없습니다.",
+          USER_ALREADY_DELETED: "이미 삭제된 회원입니다.",
+          USER_NOT_FOUND: "회원을 찾을 수 없습니다.",
+        };
+        return messages[getAdminErrorCode(error)] || "회원 삭제에 실패했습니다.";
+      }
+
+      function getAdminSearchUsers(payload = {}) {
+        return Array.isArray(payload.users)
+          ? payload.users
+          : Array.isArray(payload.data?.users)
+            ? payload.data.users
+            : getAdminPayloadArray(payload, ["users", "items", "results"]);
+      }
+
+      function renderAdminCreditSearchResults() {
+        const target = document.getElementById("adminCreditSearchResults");
+        if (!target) return;
+
+        if (adminCreditSearchMessage) {
+          target.innerHTML = `<p class="admin-empty">${escapeHtml(adminCreditSearchMessage)}</p>`;
+          return;
+        }
+
+        target.innerHTML = adminCreditSearchResults.length
+          ? adminCreditSearchResults.map((user, index) => `
+              <button class="admin-search-result-button" data-admin-credit-user-index="${index}" type="button">
+                <strong>${escapeHtml(getAdminUserDisplayName(user))}</strong>
+                <span>${escapeHtml(getAdminEmail(user))}</span><br />
+                <span>가입방식: ${escapeHtml(getAdminProvider(user))}</span><br />
+                <span>보유 크레딧: ${escapeHtml(String(getAdminUserCreditBalance(user)))}</span>
+              </button>
+            `).join("")
+          : "";
+      }
+
+      function renderAdminSelectedCreditUser() {
+        const target = document.getElementById("adminSelectedCreditUser");
+        if (!target) return;
+
+        if (!adminCreditSelectedUser) {
+          target.innerHTML = "";
+          target.classList.add("hidden");
+          syncAdminCreditAdjustButton();
+          return;
+        }
+
+        target.classList.remove("hidden");
+        target.innerHTML = `
+          <p class="text-xs font-bold text-on-surface-variant">선택된 회원</p>
+          <strong>${escapeHtml(getAdminUserDisplayName(adminCreditSelectedUser))}</strong>
+          <span>${escapeHtml(getAdminEmail(adminCreditSelectedUser))}</span><br />
+          <span>현재 크레딧: ${escapeHtml(String(getAdminUserCreditBalance(adminCreditSelectedUser)))}</span>
+        `;
+        syncAdminCreditAdjustButton();
+      }
+
+      function syncAdminCreditAdjustButton() {
+        const form = document.getElementById("adminCreditAdjustForm");
+        const button = document.getElementById("adminCreditAdjustButton");
+        if (!form || !button) return;
+        const amount = Number(form.elements.amount?.value || 0);
+        const reason = String(form.elements.reason?.value || "").trim();
+        button.disabled = !adminCreditSelectedUser || !Number.isFinite(amount) || amount === 0 || !reason;
+      }
+
+      function setAdminCreditStatus(message = "", type = "") {
+        const status = document.getElementById("adminCreditAdjustStatus");
+        if (!status) return;
+        status.textContent = message;
+        status.classList.toggle("hidden", !message);
+        status.style.borderStyle = type === "success" ? "solid" : "dashed";
+      }
+
+      function renderAdminCreditAdjustModal() {
+        if (!adminCreditConfirmState) return "";
+        const user = adminCreditConfirmState.user;
+        const amount = Number(adminCreditConfirmState.amount || 0);
+        const currentCredits = getAdminUserCreditBalance(user);
+        const expectedCredits = currentCredits + amount;
+        return `
+          <div class="login-modal-overlay is-open" aria-hidden="false" data-admin-modal="credit">
+            <section class="login-modal-panel" role="dialog" aria-modal="true" aria-labelledby="adminCreditConfirmTitle">
+              <div class="login-modal-header">
+                <button class="login-modal-close" data-admin-modal-close type="button" aria-label="크레딧 조정 확인 닫기">
+                  <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+              </div>
+              <div class="login-modal-body">
+                <h2 class="login-modal-title font-display" id="adminCreditConfirmTitle">크레딧 조정 확인</h2>
+                <div class="customer-info-list mt-4">
+                  <section class="customer-info-row"><p class="customer-info-label">회원</p><p class="customer-info-value">${escapeHtml(getAdminUserDisplayName(user))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">이메일</p><p class="customer-info-value">${escapeHtml(getAdminEmail(user))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">현재 크레딧</p><p class="customer-info-value">${escapeHtml(String(currentCredits))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">조정 크레딧</p><p class="customer-info-value">${escapeHtml(amount > 0 ? `+${amount}` : String(amount))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">조정 후 예상 크레딧</p><p class="customer-info-value">${escapeHtml(String(expectedCredits))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">사유</p><p class="customer-info-value">${escapeHtml(adminCreditConfirmState.reason)}</p></section>
+                </div>
+                <div class="admin-modal-actions">
+                  <button class="admin-modal-cancel" data-admin-modal-close type="button">취소</button>
+                  <button class="admin-modal-confirm" data-admin-credit-confirm-submit type="button">크레딧 조정하기</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      function renderAdminDeleteModal() {
+        if (!adminDeleteConfirmUser) return "";
+        const isTargetAdmin = isAdminUserAdmin(adminDeleteConfirmUser);
+        return `
+          <div class="login-modal-overlay is-open" aria-hidden="false" data-admin-modal="delete">
+            <section class="login-modal-panel" role="dialog" aria-modal="true" aria-labelledby="adminDeleteConfirmTitle">
+              <div class="login-modal-header">
+                <button class="login-modal-close" data-admin-modal-close type="button" aria-label="회원 삭제 확인 닫기">
+                  <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+              </div>
+              <div class="login-modal-body">
+                <h2 class="login-modal-title font-display" id="adminDeleteConfirmTitle">회원 삭제 확인</h2>
+                <p class="login-modal-lead">정말 이 회원을 삭제하시겠습니까?</p>
+                ${isTargetAdmin ? `<p class="admin-empty">관리자 계정입니다. 삭제하면 운영 접근 권한이 사라질 수 있습니다.</p>` : ""}
+                <div class="customer-info-list mt-4">
+                  <section class="customer-info-row"><p class="customer-info-label">회원</p><p class="customer-info-value">${escapeHtml(getAdminUserDisplayName(adminDeleteConfirmUser))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">이메일</p><p class="customer-info-value">${escapeHtml(getAdminEmail(adminDeleteConfirmUser))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">보유 크레딧</p><p class="customer-info-value">${escapeHtml(String(getAdminUserCreditBalance(adminDeleteConfirmUser)))}</p></section>
+                </div>
+                <div class="admin-empty">
+                  삭제 후 기본 목록에서 숨겨지며 로그인/생성 이용이 차단됩니다. 결제/생성/크레딧 기록은 보존됩니다.
+                </div>
+                <form class="mt-4 grid gap-3" id="adminDeleteUserForm">
+                  <textarea class="min-h-[88px] rounded-[16px] border border-primary/10 bg-white/80 px-3 py-3 text-sm" name="deleteReason" placeholder="삭제 사유" required></textarea>
+                  <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="confirmText" placeholder="DELETE" required />
+                  <div class="admin-modal-actions">
+                    <button class="admin-modal-cancel" data-admin-modal-close type="button">취소</button>
+                    <button class="admin-modal-confirm is-danger" id="adminDeleteSubmitButton" type="submit" disabled>삭제 실행</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      function closeAdminModal() {
+        adminCreditConfirmState = null;
+        adminDeleteConfirmUser = null;
+        if (lastAdminDashboardRenderArgs) {
+          renderAdminDashboard(lastAdminDashboardRenderArgs);
+        }
+      }
+
       function getAdminPaymentProductName(payment = {}) {
         const packageId = getAdminNestedValue(payment, ["packageId", "package_id", "package.id"], "");
         const goodsName = getAdminNestedValue(payment, ["goodsName", "goods_name", "productName", "product_name"], "");
@@ -6279,9 +6596,13 @@ Important:
       }
 
       function renderAdminUserCard(user = {}) {
-        const userId = getAdminNestedValue(user, ["id", "userId", "user_id", "authUserId", "auth_user_id"], "회원 ID 없음");
+        const userId = getAdminUserId(user) || "회원 ID 없음";
         const providerUserId = getAdminNestedValue(user, ["providerUserId", "provider_user_id"], "없음");
         const updatedAt = user.updatedAt ?? user.updated_at;
+        const isDeleted = isAdminUserDeleted(user);
+        const isSelf = isAdminSelfUser(user);
+        const deletedAt = user.deletedAt ?? user.deleted_at;
+        const deleteReason = user.deleteReason ?? user.delete_reason ?? user.deletedReason ?? user.deleted_reason ?? "";
         return `
           <details class="admin-data-row admin-list-card admin-user-item">
             <summary>
@@ -6290,11 +6611,12 @@ Important:
                   <div class="admin-main-title">회원: ${escapeHtml(getAdminUserDisplayName(user))}</div>
                   <div class="admin-summary-subtext">${escapeHtml(getAdminEmail(user))}</div>
                 </div>
-                <span class="admin-status-badge">${escapeHtml(getAdminNestedValue(user, ["provider", "authProvider", "auth_provider"], "알 수 없음"))}</span>
+                <span class="admin-status-badge">${escapeHtml(isDeleted ? "삭제됨" : getAdminProvider(user))}</span>
               </div>
               <div class="admin-summary-lines mt-2">
                 <div class="admin-meta-row"><span class="admin-meta-label">보유 크레딧</span><span class="admin-meta-value">${escapeHtml(String(getAdminUserCreditBalance(user)))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">가입방식</span><span class="admin-meta-value">${escapeHtml(getAdminNestedValue(user, ["provider", "authProvider", "auth_provider"], "알 수 없음"))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">가입방식</span><span class="admin-meta-value">${escapeHtml(getAdminProvider(user))}</span></div>
+                ${isDeleted ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(deletedAt))}</span></div>` : ""}
               </div>
               <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
             </summary>
@@ -6308,7 +6630,22 @@ Important:
                 <div class="admin-meta-row"><span class="admin-meta-label">무료사용</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationUsed ?? user.free_generation_used))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">관리자</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.isAdmin ?? user.is_admin ?? user.admin))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">providerUserId</span><span class="admin-meta-value">${escapeHtml(providerUserId)}</span></div>
+                ${isDeleted ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제 사유</span><span class="admin-meta-value">${escapeHtml(deleteReason || "사유 없음")}</span></div>` : ""}
               </div>
+              ${isDeleted ? `
+                <div class="admin-danger-zone">
+                  <strong>삭제된 회원</strong>
+                  <p class="mt-1">복구 API가 연결된 경우 회원 이용을 다시 허용할 수 있습니다.</p>
+                  <button class="admin-more-button mt-3" data-admin-restore-user="${escapeHtml(userId)}" type="button">회원 복구</button>
+                </div>
+              ` : `
+                <div class="admin-danger-zone">
+                  <strong>위험 작업</strong>
+                  <p class="mt-1">회원 삭제 시 로그인과 서비스 이용이 차단됩니다. 결제/생성/크레딧 기록은 운영 기록으로 보존됩니다.</p>
+                  <button class="admin-danger-button" data-admin-delete-user="${escapeHtml(userId)}" type="button" ${isSelf ? "disabled" : ""}>회원 삭제</button>
+                  ${isSelf ? `<p class="mt-2 text-xs font-bold text-primary">본인 계정은 삭제할 수 없습니다.</p>` : ""}
+                </div>
+              `}
             </div>
           </details>
         `;
@@ -6437,6 +6774,10 @@ Important:
           <div class="admin-dashboard-grid">
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">회원 관리</h2>
+              <label class="admin-toggle-row">
+                <span>삭제 회원 포함</span>
+                <input id="adminIncludeDeletedToggle" type="checkbox" ${adminIncludeDeletedUsers ? "checked" : ""} />
+              </label>
               <div class="admin-data-list">
                 ${usersError ? `<div class="admin-empty">회원 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>` : users.length ? visibleUsers.map(renderAdminUserCard).join("") : `<div class="admin-empty">회원 데이터가 없습니다.</div>`}
                 ${!usersError ? renderAdminMoreButton("users", adminVisibleUsersCount, users.length) : ""}
@@ -6454,10 +6795,12 @@ Important:
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">크레딧 조정</h2>
               <form class="mt-3 grid gap-3" id="adminCreditAdjustForm">
-                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="userId" placeholder="회원 ID 또는 이메일" required />
+                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" id="adminCreditUserSearchInput" name="userSearch" placeholder="회원 이름 또는 이메일을 입력하세요" autocomplete="off" />
+                <div class="admin-search-results" id="adminCreditSearchResults"></div>
+                <div class="admin-selected-user hidden" id="adminSelectedCreditUser"></div>
                 <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="amount" placeholder="조정 크레딧 예: 25 또는 -25" required type="number" />
-                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="reason" placeholder="조정 사유" />
-                <button class="h-11 rounded-full bg-primary text-sm font-bold text-on-primary" type="submit">크레딧 조정</button>
+                <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="reason" placeholder="조정 사유" required />
+                <button class="h-11 rounded-full bg-primary text-sm font-bold text-on-primary" id="adminCreditAdjustButton" type="submit" disabled>크레딧 조정하기</button>
               </form>
               <p class="admin-empty hidden" id="adminCreditAdjustStatus"></p>
             </section>
@@ -6470,7 +6813,11 @@ Important:
               </div>
             </section>
           </div>
+          ${renderAdminCreditAdjustModal()}
+          ${renderAdminDeleteModal()}
         `;
+        renderAdminCreditSearchResults();
+        renderAdminSelectedCreditUser();
       }
 
       async function refreshAdminDashboard() {
@@ -6509,7 +6856,7 @@ Important:
 
         const requests = [
           ["요약", fetchAdminJson("/api/admin/summary")],
-          ["회원 관리", fetchAdminJson("/api/admin/users")],
+          ["회원 관리", fetchAdminJson(`/api/admin/users${adminIncludeDeletedUsers ? "?includeDeleted=true" : ""}`)],
           ["결제 내역", fetchAdminJson("/api/admin/payments")],
           ["생성 내역", fetchAdminJson("/api/admin/generations")],
         ];
@@ -6529,42 +6876,151 @@ Important:
       }
 
       async function handleAdminCreditAdjustSubmit(form) {
-        const status = document.getElementById("adminCreditAdjustStatus");
         const formData = new FormData(form);
-        const userId = String(formData.get("userId") || "").trim();
         const amount = Number(formData.get("amount") || 0);
         const reason = String(formData.get("reason") || "").trim();
 
-        if (!userId || !Number.isFinite(amount) || amount === 0) {
-          if (status) {
-            status.textContent = "회원 ID와 0이 아닌 조정 크레딧을 입력해 주세요.";
-            status.classList.remove("hidden");
-          }
+        if (!adminCreditSelectedUser || !Number.isFinite(amount) || amount === 0 || !reason) {
+          setAdminCreditStatus("회원 선택, 0이 아닌 조정 크레딧, 조정 사유를 입력해 주세요.");
           return;
         }
 
-        if (status) {
-          status.textContent = "크레딧을 조정하는 중입니다.";
-          status.classList.remove("hidden");
+        adminCreditConfirmState = {
+          user: adminCreditSelectedUser,
+          amount,
+          reason,
+        };
+        if (lastAdminDashboardRenderArgs) {
+          renderAdminDashboard(lastAdminDashboardRenderArgs);
+        }
+      }
+
+      async function handleAdminCreditConfirmSubmit() {
+        if (!adminCreditConfirmState?.user) return;
+
+        const selectedUser = adminCreditConfirmState.user;
+        const amount = Number(adminCreditConfirmState.amount || 0);
+        const reason = String(adminCreditConfirmState.reason || "").trim();
+        const userId = getAdminUserId(selectedUser);
+        const email = getAdminEmail(selectedUser);
+
+        try {
+          const payload = await fetchAdminJson("/api/admin/credits/adjust", {
+            method: "POST",
+            cache: "no-store",
+            body: JSON.stringify({ userId, email, amount, reason }),
+          });
+
+          const nextBalance = normalizeAuthCreditBalance(payload) ?? normalizeAuthCreditBalance(payload?.data) ?? null;
+          if (nextBalance !== null) {
+            adminCreditSelectedUser = {
+              ...selectedUser,
+              creditBalance: nextBalance,
+            };
+          }
+
+          adminCreditConfirmState = null;
+          adminCreditSearchResults = [];
+          adminCreditSearchMessage = "";
+          await refreshAdminDashboard();
+          setAdminCreditStatus("크레딧 조정이 완료되었습니다.", "success");
+        } catch (error) {
+          adminCreditConfirmState = null;
+          if (lastAdminDashboardRenderArgs) {
+            renderAdminDashboard(lastAdminDashboardRenderArgs);
+          }
+          setAdminCreditStatus(getAdminCreditAdjustErrorMessage(error));
+        }
+      }
+
+      async function searchAdminCreditUsers(query) {
+        const q = String(query || "").trim();
+        if (q.length < 2) {
+          adminCreditSearchResults = [];
+          adminCreditSearchMessage = "";
+          renderAdminCreditSearchResults();
+          return;
+        }
+
+        adminCreditSearchMessage = "회원을 검색하는 중입니다.";
+        adminCreditSearchResults = [];
+        renderAdminCreditSearchResults();
+
+        try {
+          const payload = await fetchAdminJson(`/api/admin/users/search?q=${encodeURIComponent(q)}`);
+          adminCreditSearchResults = getAdminSearchUsers(payload);
+          adminCreditSearchMessage = adminCreditSearchResults.length ? "" : "검색 결과가 없습니다.";
+        } catch (error) {
+          adminCreditSearchResults = [];
+          adminCreditSearchMessage = getAdminCreditAdjustErrorMessage(error);
+        }
+        renderAdminCreditSearchResults();
+      }
+
+      function findAdminRenderedUserById(userId) {
+        const targetId = String(userId || "").trim();
+        if (!targetId || !lastAdminDashboardRenderArgs) return null;
+        const users = normalizeAdminUsersPayload(lastAdminDashboardRenderArgs.usersPayload).users;
+        return users.find((user) => String(getAdminUserId(user) || "").trim() === targetId) || null;
+      }
+
+      function syncAdminDeleteSubmitButton(form) {
+        const button = document.getElementById("adminDeleteSubmitButton");
+        if (!button || !form) return;
+        const reason = String(form.elements.deleteReason?.value || "").trim();
+        const confirmText = String(form.elements.confirmText?.value || "").trim();
+        button.disabled = !reason || confirmText !== "DELETE";
+      }
+
+      async function handleAdminDeleteUserSubmit(form) {
+        if (!adminDeleteConfirmUser) return;
+        const formData = new FormData(form);
+        const reason = String(formData.get("deleteReason") || "").trim();
+        const confirmText = String(formData.get("confirmText") || "").trim();
+
+        if (!reason || confirmText !== "DELETE") {
+          return;
         }
 
         try {
-          await fetchAdminJson("/api/admin/credits/adjust", {
+          await fetchAdminJson("/api/admin/users/delete", {
             method: "POST",
             cache: "no-store",
-            body: JSON.stringify({ userId, amount, reason }),
+            body: JSON.stringify({
+              userId: getAdminUserId(adminDeleteConfirmUser),
+              reason,
+              confirmText,
+            }),
           });
-          if (status) {
-            status.textContent = "크레딧 조정이 완료되었습니다.";
-          }
-          form.reset();
-          void refreshAdminDashboard();
+          adminDeleteConfirmUser = null;
+          await refreshAdminDashboard();
+          setAdminCreditStatus("회원 삭제가 완료되었습니다.", "success");
         } catch (error) {
-          if (status) {
-            status.textContent = error.statusCode === 403
-              ? "관리자 권한이 없습니다."
-              : "관리자 데이터를 불러오지 못했습니다";
+          const message = getAdminDeleteErrorMessage(error);
+          adminDeleteConfirmUser = null;
+          if (lastAdminDashboardRenderArgs) {
+            renderAdminDashboard(lastAdminDashboardRenderArgs);
           }
+          setAdminCreditStatus(message);
+        }
+      }
+
+      async function handleAdminRestoreUser(userId) {
+        const user = findAdminRenderedUserById(userId);
+        if (!user) return;
+        try {
+          await fetchAdminJson("/api/admin/users/restore", {
+            method: "POST",
+            cache: "no-store",
+            body: JSON.stringify({
+              userId: getAdminUserId(user),
+              reason: "관리자 복구",
+            }),
+          });
+          await refreshAdminDashboard();
+          setAdminCreditStatus("회원 복구가 완료되었습니다.", "success");
+        } catch (error) {
+          setAdminCreditStatus(error?.statusCode === 404 ? "회원 복구 API를 찾을 수 없습니다." : "회원 복구에 실패했습니다.");
         }
       }
 
@@ -10947,6 +11403,11 @@ ${modeExample}`;
       document.addEventListener("submit", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        const adminDeleteForm = event.target?.closest?.("#adminDeleteUserForm");
+        if (adminDeleteForm) {
+          void handleAdminDeleteUserSubmit(adminDeleteForm);
+          return;
+        }
         const adminCreditForm = event.target?.closest?.("#adminCreditAdjustForm");
         if (adminCreditForm) {
           void handleAdminCreditAdjustSubmit(adminCreditForm);
@@ -10954,6 +11415,31 @@ ${modeExample}`;
         }
         console.log("[client][grok-edit] form submit blocked");
       }, true);
+
+      document.addEventListener("input", (event) => {
+        const searchInput = event.target?.closest?.("#adminCreditUserSearchInput");
+        if (searchInput) {
+          adminCreditSelectedUser = null;
+          renderAdminSelectedCreditUser();
+          if (adminCreditSearchTimerId) {
+            window.clearTimeout(adminCreditSearchTimerId);
+          }
+          adminCreditSearchTimerId = window.setTimeout(() => {
+            void searchAdminCreditUsers(searchInput.value);
+          }, 300);
+          return;
+        }
+
+        if (event.target?.closest?.("#adminCreditAdjustForm")) {
+          syncAdminCreditAdjustButton();
+          return;
+        }
+
+        const deleteForm = event.target?.closest?.("#adminDeleteUserForm");
+        if (deleteForm) {
+          syncAdminDeleteSubmitButton(deleteForm);
+        }
+      });
 
       screenStartButtons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -11356,6 +11842,62 @@ ${modeExample}`;
       });
 
       document.addEventListener("click", (event) => {
+        const modalCloseButton = event.target.closest?.("[data-admin-modal-close]");
+        if (modalCloseButton || event.target.closest?.("[data-admin-modal]") === event.target) {
+          event.preventDefault();
+          closeAdminModal();
+          return;
+        }
+
+        const creditConfirmButton = event.target.closest?.("[data-admin-credit-confirm-submit]");
+        if (creditConfirmButton) {
+          event.preventDefault();
+          void handleAdminCreditConfirmSubmit();
+          return;
+        }
+
+        const creditUserButton = event.target.closest?.("[data-admin-credit-user-index]");
+        if (creditUserButton) {
+          event.preventDefault();
+          const index = Number(creditUserButton.dataset.adminCreditUserIndex);
+          const selectedUser = adminCreditSearchResults[index];
+          if (selectedUser) {
+            adminCreditSelectedUser = selectedUser;
+            adminCreditSearchResults = [];
+            adminCreditSearchMessage = "";
+            const input = document.getElementById("adminCreditUserSearchInput");
+            if (input) {
+              input.value = `${getAdminUserDisplayName(selectedUser)} / ${getAdminEmail(selectedUser)}`;
+            }
+            renderAdminCreditSearchResults();
+            renderAdminSelectedCreditUser();
+          }
+          return;
+        }
+
+        const deleteUserButton = event.target.closest?.("[data-admin-delete-user]");
+        if (deleteUserButton) {
+          event.preventDefault();
+          const user = findAdminRenderedUserById(deleteUserButton.dataset.adminDeleteUser);
+          if (!user) return;
+          if (isAdminSelfUser(user)) {
+            setAdminCreditStatus("본인 계정은 삭제할 수 없습니다.");
+            return;
+          }
+          adminDeleteConfirmUser = user;
+          if (lastAdminDashboardRenderArgs) {
+            renderAdminDashboard(lastAdminDashboardRenderArgs);
+          }
+          return;
+        }
+
+        const restoreUserButton = event.target.closest?.("[data-admin-restore-user]");
+        if (restoreUserButton) {
+          event.preventDefault();
+          void handleAdminRestoreUser(restoreUserButton.dataset.adminRestoreUser);
+          return;
+        }
+
         const adminMoreButton = event.target.closest?.("[data-admin-more]");
         if (adminMoreButton) {
           event.preventDefault();
@@ -11370,6 +11912,13 @@ ${modeExample}`;
           if (lastAdminDashboardRenderArgs) {
             renderAdminDashboard(lastAdminDashboardRenderArgs);
           }
+          return;
+        }
+
+        const includeDeletedToggle = event.target.closest?.("#adminIncludeDeletedToggle");
+        if (includeDeletedToggle) {
+          adminIncludeDeletedUsers = includeDeletedToggle.checked;
+          void refreshAdminDashboard();
           return;
         }
 

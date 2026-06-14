@@ -5605,6 +5605,9 @@ Important:
       let adminCreditSearchTimerId = null;
       let adminCreditConfirmState = null;
       let adminDeleteConfirmUser = null;
+      let isAdminDeletingUser = false;
+      let adminOperationStatusMessage = "";
+      let adminOperationStatusType = "";
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -6279,7 +6282,16 @@ Important:
       }
 
       function isAdminUserDeleted(user = {}) {
-        return Boolean(user.deletedAt || user.deleted_at || user.isDeleted || user.is_deleted || user.deleted);
+        const status = normalizeAdminToken(user.status || user.userStatus || user.user_status || "");
+        return Boolean(
+          user.deletedAt
+          || user.deleted_at
+          || user.isDeleted
+          || user.is_deleted
+          || user.deleted
+          || status === "deleted"
+          || status === "disabled"
+        );
       }
 
       function isAdminUserAdmin(user = {}) {
@@ -6322,8 +6334,49 @@ Important:
           CANNOT_DELETE_LAST_ADMIN: "마지막 관리자 계정은 삭제할 수 없습니다.",
           USER_ALREADY_DELETED: "이미 삭제된 회원입니다.",
           USER_NOT_FOUND: "회원을 찾을 수 없습니다.",
+          ADMIN_REQUIRED: "관리자 권한이 필요합니다.",
         };
         return messages[getAdminErrorCode(error)] || "회원 삭제에 실패했습니다.";
+      }
+
+      function getAdminUsersUrl(includeDeleted = adminIncludeDeletedUsers) {
+        return `/api/admin/users${includeDeleted ? "?includeDeleted=true" : ""}`;
+      }
+
+      function filterAdminVisibleUsers(users = [], includeDeleted = adminIncludeDeletedUsers) {
+        return includeDeleted ? users : users.filter((user) => !isAdminUserDeleted(user));
+      }
+
+      function withAdminUsersPayloadUsers(payload = {}, users = []) {
+        const total = Number(payload.total ?? payload.data?.total ?? users.length);
+        if (Array.isArray(payload.data?.users)) {
+          return {
+            ...payload,
+            data: {
+              ...payload.data,
+              users,
+              total: Number.isFinite(total) ? Math.min(total, users.length) : users.length,
+            },
+          };
+        }
+        return {
+          ...payload,
+          users,
+          total: Number.isFinite(total) ? Math.min(total, users.length) : users.length,
+        };
+      }
+
+      function removeAdminUserFromCurrentState(userId) {
+        if (!lastAdminDashboardRenderArgs) return;
+        const targetId = String(userId || "").trim();
+        if (!targetId) return;
+        const normalizedUsers = normalizeAdminUsersPayload(lastAdminDashboardRenderArgs.usersPayload);
+        const nextUsers = normalizedUsers.users.filter((user) => String(getAdminUserId(user) || "").trim() !== targetId);
+        lastAdminDashboardRenderArgs = {
+          ...lastAdminDashboardRenderArgs,
+          usersPayload: withAdminUsersPayloadUsers(lastAdminDashboardRenderArgs.usersPayload, nextUsers),
+        };
+        renderAdminDashboard(lastAdminDashboardRenderArgs);
       }
 
       function getAdminSearchUsers(payload = {}) {
@@ -6393,6 +6446,16 @@ Important:
         status.style.borderStyle = type === "success" ? "solid" : "dashed";
       }
 
+      function setAdminOperationStatus(message = "", type = "") {
+        adminOperationStatusMessage = message;
+        adminOperationStatusType = type;
+        const status = document.getElementById("adminOperationStatus");
+        if (!status) return;
+        status.textContent = message;
+        status.classList.toggle("hidden", !message);
+        status.style.borderStyle = type === "success" ? "solid" : "dashed";
+      }
+
       function renderAdminCreditAdjustModal() {
         if (!adminCreditConfirmState) return "";
         const user = adminCreditConfirmState.user;
@@ -6455,7 +6518,7 @@ Important:
                   <input class="h-11 rounded-[16px] border border-primary/10 bg-white/80 px-3 text-sm" name="confirmText" placeholder="DELETE" required />
                   <div class="admin-modal-actions">
                     <button class="admin-modal-cancel" data-admin-modal-close type="button">취소</button>
-                    <button class="admin-modal-confirm is-danger" id="adminDeleteSubmitButton" type="submit" disabled>삭제 실행</button>
+                    <button class="admin-modal-confirm is-danger" id="adminDeleteSubmitButton" type="submit" ${isAdminDeletingUser ? "disabled" : "disabled"}>${isAdminDeletingUser ? "삭제 중..." : "삭제 실행"}</button>
                   </div>
                 </form>
               </div>
@@ -6736,18 +6799,22 @@ Important:
         const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
         const normalizedUsers = usersError ? { users: [], total: 0 } : normalizeAdminUsersPayload(usersPayload);
         const users = normalizedUsers.users;
-        const visibleUsers = users.slice(0, adminVisibleUsersCount);
+        const displayUsers = filterAdminVisibleUsers(users, adminIncludeDeletedUsers);
+        const visibleUsers = displayUsers.slice(0, adminVisibleUsersCount);
         const payments = getAdminPayloadArray(paymentsPayload, ["payments"]);
         const visiblePayments = payments.slice(0, adminVisiblePaymentsCount);
         const generations = getAdminPayloadArray(generationsPayload, ["generations"]);
         const visibleGenerations = generations.slice(0, adminVisibleGenerationsCount);
-        const totalUsers = summary.totalUsers ?? summary.users ?? summary.userCount ?? normalizedUsers.total;
+        const totalUsers = summary.activeUsers ?? summary.activeUserCount ?? summary.totalActiveUsers ?? summary.totalUsers ?? summary.users ?? summary.userCount ?? displayUsers.length;
         const totalPayments = summary.totalPayments ?? summary.payments ?? summary.paymentCount ?? paymentsPayload.total ?? payments.length;
         const totalRevenue = summary.totalRevenue ?? summary.revenue ?? summary.paymentAmount ?? summary.amount ?? 0;
         const totalGenerations = summary.totalGenerations ?? summary.generations ?? summary.generationCount ?? generationsPayload.total ?? generations.length;
         const errorNotice = errors.length
           ? `<div class="admin-empty">관리자 데이터를 불러오지 못했습니다. 실패한 항목: ${escapeHtml(errors.join(", "))}</div>`
           : "";
+        const operationNotice = adminOperationStatusMessage
+          ? `<div class="admin-empty" id="adminOperationStatus" style="border-style: ${adminOperationStatusType === "success" ? "solid" : "dashed"};">${escapeHtml(adminOperationStatusMessage)}</div>`
+          : `<div class="admin-empty hidden" id="adminOperationStatus"></div>`;
 
         adminContent.innerHTML = `
           <section class="site-guide-hero">
@@ -6759,12 +6826,13 @@ Important:
             <h1 class="mt-2 font-display text-[30px] leading-tight text-on-surface">관리자 대시보드</h1>
             <p class="mt-2 text-sm leading-6 text-on-surface-variant">회원, 결제, 크레딧, 생성 내역을 확인하고 운영 작업을 처리합니다.</p>
             ${errorNotice}
+            ${operationNotice}
           </section>
 
           <section class="admin-panel-card">
             <h2 class="font-display text-[23px] leading-tight text-on-surface">요약</h2>
             <div class="admin-stat-grid mt-3">
-              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">회원</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalUsers ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">${adminIncludeDeletedUsers ? "전체 회원" : "활성 회원"}</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalUsers ?? 0))}</p></div>
               <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">결제</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalPayments ?? 0))}</p></div>
               <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">매출</p><p class="mt-1 text-xl font-black">${escapeHtml(formatAdminCurrency(totalRevenue))}</p></div>
               <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">생성</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalGenerations ?? 0))}</p></div>
@@ -6779,8 +6847,8 @@ Important:
                 <input id="adminIncludeDeletedToggle" type="checkbox" ${adminIncludeDeletedUsers ? "checked" : ""} />
               </label>
               <div class="admin-data-list">
-                ${usersError ? `<div class="admin-empty">회원 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>` : users.length ? visibleUsers.map(renderAdminUserCard).join("") : `<div class="admin-empty">회원 데이터가 없습니다.</div>`}
-                ${!usersError ? renderAdminMoreButton("users", adminVisibleUsersCount, users.length) : ""}
+                ${usersError ? `<div class="admin-empty">회원 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>` : displayUsers.length ? visibleUsers.map(renderAdminUserCard).join("") : `<div class="admin-empty">회원 데이터가 없습니다.</div>`}
+                ${!usersError ? renderAdminMoreButton("users", adminVisibleUsersCount, displayUsers.length) : ""}
               </div>
             </section>
 
@@ -6856,7 +6924,7 @@ Important:
 
         const requests = [
           ["요약", fetchAdminJson("/api/admin/summary")],
-          ["회원 관리", fetchAdminJson(`/api/admin/users${adminIncludeDeletedUsers ? "?includeDeleted=true" : ""}`)],
+          ["회원 관리", fetchAdminJson(getAdminUsersUrl())],
           ["결제 내역", fetchAdminJson("/api/admin/payments")],
           ["생성 내역", fetchAdminJson("/api/admin/generations")],
         ];
@@ -6873,6 +6941,41 @@ Important:
           generationsPayload: results[3].status === "fulfilled" ? results[3].value : {},
           errors,
         });
+      }
+
+      async function refreshAdminUsersAndSummary({ deletedUserId = "" } = {}) {
+        if (!lastAdminDashboardRenderArgs) {
+          await refreshAdminDashboard();
+          return;
+        }
+
+        const [summaryResult, usersResult] = await Promise.allSettled([
+          fetchAdminJson("/api/admin/summary"),
+          fetchAdminJson(getAdminUsersUrl()),
+        ]);
+        const nextArgs = {
+          ...lastAdminDashboardRenderArgs,
+          summaryPayload: summaryResult.status === "fulfilled" ? summaryResult.value : lastAdminDashboardRenderArgs.summaryPayload,
+          usersPayload: usersResult.status === "fulfilled" ? usersResult.value : lastAdminDashboardRenderArgs.usersPayload,
+          usersError: usersResult.status === "rejected" ? usersResult.reason : null,
+          errors: [
+            ...(summaryResult.status === "rejected" ? ["요약"] : []),
+            ...(usersResult.status === "rejected" ? ["회원 관리"] : []),
+          ],
+        };
+
+        renderAdminDashboard(nextArgs);
+
+        const targetId = String(deletedUserId || "").trim();
+        if (targetId && !adminIncludeDeletedUsers && usersResult.status === "fulfilled") {
+          const refreshedUsers = filterAdminVisibleUsers(normalizeAdminUsersPayload(usersResult.value).users, false);
+          const stillVisible = refreshedUsers.some((user) => String(getAdminUserId(user) || "").trim() === targetId);
+          if (stillVisible) {
+            setAdminOperationStatus("삭제 요청은 처리되었지만 목록 갱신에 문제가 있습니다. 잠시 후 다시 확인해 주세요.");
+            return false;
+          }
+        }
+        return true;
       }
 
       async function handleAdminCreditAdjustSubmit(form) {
@@ -6969,39 +7072,60 @@ Important:
         if (!button || !form) return;
         const reason = String(form.elements.deleteReason?.value || "").trim();
         const confirmText = String(form.elements.confirmText?.value || "").trim();
-        button.disabled = !reason || confirmText !== "DELETE";
+        button.disabled = isAdminDeletingUser || !reason || confirmText !== "DELETE";
+        button.textContent = isAdminDeletingUser ? "삭제 중..." : "삭제 실행";
       }
 
       async function handleAdminDeleteUserSubmit(form) {
-        if (!adminDeleteConfirmUser) return;
+        if (!adminDeleteConfirmUser || isAdminDeletingUser) return;
         const formData = new FormData(form);
         const reason = String(formData.get("deleteReason") || "").trim();
         const confirmText = String(formData.get("confirmText") || "").trim();
+        const selectedUser = adminDeleteConfirmUser;
+        const userId = getAdminUserId(selectedUser);
 
         if (!reason || confirmText !== "DELETE") {
           return;
         }
 
+        isAdminDeletingUser = true;
+        if (lastAdminDashboardRenderArgs) {
+          renderAdminDashboard(lastAdminDashboardRenderArgs);
+        }
+
         try {
-          await fetchAdminJson("/api/admin/users/delete", {
+          const response = await fetch(getAuthApiUrl("/api/admin/users/delete"), {
             method: "POST",
+            credentials: "include",
             cache: "no-store",
-            body: JSON.stringify({
-              userId: getAdminUserId(adminDeleteConfirmUser),
-              reason,
-              confirmText,
-            }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, reason: reason.trim(), confirmText: confirmText.trim() }),
           });
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok || data?.ok !== true) {
+            const error = new Error(data?.message || data?.error || `Delete user request failed: ${response.status}`);
+            error.statusCode = response.status;
+            error.response = data;
+            throw error;
+          }
+
+          isAdminDeletingUser = false;
           adminDeleteConfirmUser = null;
-          await refreshAdminDashboard();
-          setAdminCreditStatus("회원 삭제가 완료되었습니다.", "success");
+          removeAdminUserFromCurrentState(userId);
+          const isRefreshClean = await refreshAdminUsersAndSummary({ deletedUserId: userId });
+          if (isRefreshClean !== false) {
+            setAdminOperationStatus("회원이 삭제되었습니다.", "success");
+          }
         } catch (error) {
+          isAdminDeletingUser = false;
           const message = getAdminDeleteErrorMessage(error);
-          adminDeleteConfirmUser = null;
           if (lastAdminDashboardRenderArgs) {
             renderAdminDashboard(lastAdminDashboardRenderArgs);
           }
-          setAdminCreditStatus(message);
+          setAdminOperationStatus(message);
+        } finally {
+          isAdminDeletingUser = false;
         }
       }
 
@@ -7018,9 +7142,9 @@ Important:
             }),
           });
           await refreshAdminDashboard();
-          setAdminCreditStatus("회원 복구가 완료되었습니다.", "success");
+          setAdminOperationStatus("회원 복구가 완료되었습니다.", "success");
         } catch (error) {
-          setAdminCreditStatus(error?.statusCode === 404 ? "회원 복구 API를 찾을 수 없습니다." : "회원 복구에 실패했습니다.");
+          setAdminOperationStatus(error?.statusCode === 404 ? "회원 복구 API를 찾을 수 없습니다." : "회원 복구에 실패했습니다.");
         }
       }
 
@@ -11881,7 +12005,7 @@ ${modeExample}`;
           const user = findAdminRenderedUserById(deleteUserButton.dataset.adminDeleteUser);
           if (!user) return;
           if (isAdminSelfUser(user)) {
-            setAdminCreditStatus("본인 계정은 삭제할 수 없습니다.");
+            setAdminOperationStatus("본인 계정은 삭제할 수 없습니다.");
             return;
           }
           adminDeleteConfirmUser = user;

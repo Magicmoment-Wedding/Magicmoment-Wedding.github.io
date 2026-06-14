@@ -5608,6 +5608,7 @@ Important:
       let isAdminDeletingUser = false;
       let adminOperationStatusMessage = "";
       let adminOperationStatusType = "";
+      const FRONT_ADMIN_EMAIL = "vamprub@gmail.com";
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -5856,21 +5857,44 @@ Important:
           ?? admin?.role
           ?? "",
         ).trim().toLowerCase();
+        const explicitCandidates = [
+          payload?.isAdmin,
+          payload?.is_admin,
+          typeof payload?.admin === "boolean" || typeof payload?.admin === "string" || typeof payload?.admin === "number" ? payload.admin : undefined,
+          payload?.data?.isAdmin,
+          payload?.data?.is_admin,
+          typeof payload?.data?.admin === "boolean" || typeof payload?.data?.admin === "string" || typeof payload?.data?.admin === "number" ? payload.data.admin : undefined,
+          payload?.profile?.isAdmin,
+          payload?.profile?.is_admin,
+          payload?.user?.isAdmin,
+          payload?.user?.is_admin,
+        ];
+        const explicitValue = explicitCandidates.find((value) => value !== undefined && value !== null);
+        const hasExplicitAdminValue = explicitValue !== undefined;
+        const isExplicitAdmin = explicitValue === true || explicitValue === "true" || explicitValue === 1 || explicitValue === "1";
+
+        return {
+          isAdmin: hasExplicitAdminValue ? isExplicitAdmin : role === "admin",
+          admin: admin && typeof admin === "object" ? admin : null,
+        };
+      }
+
+      function normalizeExplicitAdminFlag(payload = {}) {
         const explicitValue = payload?.isAdmin
           ?? payload?.is_admin
-          ?? payload?.admin
           ?? payload?.data?.isAdmin
           ?? payload?.data?.is_admin
-          ?? payload?.data?.admin
           ?? payload?.profile?.isAdmin
           ?? payload?.profile?.is_admin
           ?? payload?.user?.isAdmin
-          ?? payload?.user?.is_admin;
+          ?? payload?.user?.is_admin
+          ?? payload?.data?.user?.isAdmin
+          ?? payload?.data?.user?.is_admin;
+        return explicitValue === true || explicitValue === "true" || explicitValue === 1 || explicitValue === "1";
+      }
 
-        return {
-          isAdmin: explicitValue === true || explicitValue === "true" || explicitValue === 1 || explicitValue === "1" || role === "admin",
-          admin: admin && typeof admin === "object" ? admin : null,
-        };
+      function canShowAdminEntry() {
+        return Boolean(currentUser?.isAdmin === true && getAuthUserEmail(currentUser).toLowerCase() === FRONT_ADMIN_EMAIL);
       }
 
       function getAuthUserName(user) {
@@ -6025,7 +6049,7 @@ Important:
         accountMenuLoginItem?.classList.toggle("hidden", hasUser);
         accountMenuUserCard?.classList.toggle("hidden", !hasUser);
         accountMenuCustomerInfoButton?.classList.toggle("hidden", !hasUser);
-        accountMenuAdminItem?.classList.toggle("hidden", !(hasUser && isAdmin));
+        accountMenuAdminItem?.classList.toggle("hidden", !(hasUser && canShowAdminEntry()));
 
         if (!hasUser) return;
 
@@ -6073,12 +6097,18 @@ Important:
       function applyAuthSession(payload = {}) {
         const user = normalizeAuthUser(payload);
         const authCreditBalance = normalizeAuthCreditBalance(payload);
+        const authIsAdmin = normalizeExplicitAdminFlag(payload);
+        resetAdminDashboardState({ clearContent: true });
         currentUser = isAuthenticatedUser(user) ? user : null;
         authChecked = true;
         isLoggedIn = isAuthenticatedUser(currentUser);
         isMyPhotoBoxLoggedIn = isLoggedIn;
-        isAdmin = false;
+        const isAllowedAdminUser = Boolean(currentUser && authIsAdmin && getAuthUserEmail(currentUser).toLowerCase() === FRONT_ADMIN_EMAIL);
+        isAdmin = isAllowedAdminUser;
         currentAdmin = null;
+        if (currentUser) {
+          currentUser.isAdmin = isAllowedAdminUser;
+        }
         applyUserEntitlements(payload, currentUser);
         console.log("[auth] currentUser updated");
 
@@ -6105,8 +6135,15 @@ Important:
 
       function applyAdminSession(payload = {}) {
         const adminStatus = normalizeAdminStatus(payload);
-        isAdmin = Boolean(currentUser && adminStatus.isAdmin);
+        const isAllowedAdminUser = Boolean(currentUser && adminStatus.isAdmin && getAuthUserEmail(currentUser).toLowerCase() === FRONT_ADMIN_EMAIL);
+        isAdmin = isAllowedAdminUser;
         currentAdmin = isAdmin ? adminStatus.admin : null;
+        if (currentUser) {
+          currentUser.isAdmin = isAdmin;
+        }
+        if (!isAdmin) {
+          resetAdminDashboardState({ clearContent: appScreen !== "admin" });
+        }
         syncAuthUi();
 
       }
@@ -6454,6 +6491,28 @@ Important:
         status.textContent = message;
         status.classList.toggle("hidden", !message);
         status.style.borderStyle = type === "success" ? "solid" : "dashed";
+      }
+
+      function resetAdminDashboardState({ clearContent = false } = {}) {
+        adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
+        adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
+        adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
+        lastAdminDashboardRenderArgs = null;
+        adminCreditSearchResults = [];
+        adminCreditSearchMessage = "";
+        adminCreditSelectedUser = null;
+        adminCreditConfirmState = null;
+        adminDeleteConfirmUser = null;
+        isAdminDeletingUser = false;
+        adminOperationStatusMessage = "";
+        adminOperationStatusType = "";
+        if (adminCreditSearchTimerId) {
+          window.clearTimeout(adminCreditSearchTimerId);
+          adminCreditSearchTimerId = null;
+        }
+        if (clearContent && adminContent) {
+          adminContent.innerHTML = "";
+        }
       }
 
       function renderAdminCreditAdjustModal() {
@@ -6890,16 +6949,20 @@ Important:
 
       async function refreshAdminDashboard() {
         if (!adminContent) return;
-        adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
-        adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
-        adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
-        lastAdminDashboardRenderArgs = null;
+        resetAdminDashboardState({ clearContent: true });
         renderAdminState({ icon: "progress_activity", title: "관리자 데이터를 불러오는 중입니다", message: "권한과 운영 데이터를 확인하고 있어요." });
 
         try {
           const adminPayload = await fetchAdminStatus();
           applyAdminSession(adminPayload);
         } catch (error) {
+          isAdmin = false;
+          currentAdmin = null;
+          if (currentUser) {
+            currentUser.isAdmin = false;
+          }
+          resetAdminDashboardState({ clearContent: true });
+          syncAuthUi();
           if (error.statusCode === 401) {
             renderAdminState({
               icon: "login",
@@ -6910,7 +6973,12 @@ Important:
             return;
           }
           if (error.statusCode === 403) {
-            renderAdminState({ icon: "lock", title: "관리자 권한이 없습니다", message: "관리자 권한이 확인된 계정에서만 접근할 수 있습니다." });
+            renderAdminState({
+              icon: "lock",
+              title: "관리자 권한이 없습니다",
+              message: "이 화면은 관리자 계정에서만 접근할 수 있습니다.",
+              action: `<button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" data-action="admin-home" type="button">홈으로 돌아가기</button>`,
+            });
             return;
           }
           renderAdminState({ icon: "error", title: "관리자 데이터를 불러오지 못했습니다", message: "잠시 후 다시 시도해 주세요." });
@@ -6918,7 +6986,13 @@ Important:
         }
 
         if (!isAdmin) {
-          renderAdminState({ icon: "lock", title: "관리자 권한이 없습니다", message: "관리자 권한이 확인된 계정에서만 접근할 수 있습니다." });
+          resetAdminDashboardState({ clearContent: true });
+          renderAdminState({
+            icon: "lock",
+            title: "관리자 권한이 없습니다",
+            message: "이 화면은 관리자 계정에서만 접근할 수 있습니다.",
+            action: `<button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" data-action="admin-home" type="button">홈으로 돌아가기</button>`,
+          });
           return;
         }
 
@@ -7173,7 +7247,7 @@ Important:
         try {
           const payload = await fetchCurrentUser();
           applyAuthSession(payload);
-          if (currentUser) {
+          if (currentUser?.isAdmin === true) {
             try {
               const adminPayload = await fetchAdminStatus();
               applyAdminSession(adminPayload);
@@ -7214,8 +7288,12 @@ Important:
           applyAuthUser(null);
           myPhotos = [];
           myPhotosError = "";
+          resetAdminDashboardState({ clearContent: true });
           closeAccountMenu();
           closeLoginModal();
+          if (appScreen === "admin") {
+            navigateToScreen("home");
+          }
           showAccountMenuToast("로그아웃되었습니다.");
         } catch (error) {
           if (DEBUG_MODE) {
@@ -11825,7 +11903,7 @@ ${modeExample}`;
 
       function handleAdminClick() {
         closeAccountMenu();
-        if (!currentUser || !isAdmin) {
+        if (!currentUser || !canShowAdminEntry()) {
           showAccountMenuToast("관리자 권한이 필요합니다.");
           return;
         }
@@ -12052,6 +12130,9 @@ ${modeExample}`;
         if (action === "open-login") {
           event.preventDefault();
           openLoginModal(actionButton);
+        } else if (action === "admin-home") {
+          event.preventDefault();
+          navigateToScreen("home");
         }
       });
 

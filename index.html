@@ -6633,6 +6633,7 @@ Important:
         const user = adminDeleteConfirmState.user;
         const mode = adminDeleteConfirmState.mode === "hard" ? "hard" : "soft";
         const isHardDelete = mode === "hard";
+        const isInactiveUser = isAdminUserDeleted(user);
         const isTargetAdmin = isAdminUserAdmin(user);
         const title = isHardDelete ? "회원 완전삭제 확인" : "회원 이용중지 확인";
         const lead = isHardDelete ? "정말 이 회원 정보를 완전히 삭제하시겠습니까?" : "이 회원을 이용중지 처리하시겠습니까?";
@@ -6671,8 +6672,9 @@ Important:
                 <div class="customer-info-list mt-4">
                   <section class="customer-info-row"><p class="customer-info-label">회원</p><p class="customer-info-value">${escapeHtml(getAdminUserDisplayName(user))}</p></section>
                   <section class="customer-info-row"><p class="customer-info-label">이메일</p><p class="customer-info-value">${escapeHtml(getAdminEmail(user))}</p></section>
-                  <section class="customer-info-row"><p class="customer-info-label">provider</p><p class="customer-info-value">${escapeHtml(getAdminProvider(user))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">가입방식</p><p class="customer-info-value">${escapeHtml(getAdminProvider(user))}</p></section>
                   <section class="customer-info-row"><p class="customer-info-label">보유 크레딧</p><p class="customer-info-value">${escapeHtml(String(getAdminUserCreditBalance(user)))}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">현재 상태</p><p class="customer-info-value">${escapeHtml(isInactiveUser ? "이용중지" : "활성")}</p></section>
                 </div>
                 ${description}
                 <form class="mt-4 grid gap-3" id="adminDeleteUserForm">
@@ -6861,8 +6863,14 @@ Important:
               ${isDeleted ? `
                 <div class="admin-danger-zone">
                   <strong>이용중지 회원</strong>
-                  <p class="mt-1">복구 API가 연결된 경우 회원 이용을 다시 허용할 수 있습니다.</p>
-                  <button class="admin-more-button mt-3" data-admin-restore-user="${escapeHtml(userId)}" type="button">회원 복구</button>
+                  <p class="mt-1">복구 시 다시 로그인과 생성 이용을 허용할 수 있습니다.</p>
+                  <button class="admin-more-button mt-3" data-admin-restore-user="${escapeHtml(userId)}" type="button" ${isSelf ? "disabled" : ""}>회원 복구</button>
+                  <div class="admin-danger-action mt-3">
+                    <strong>위험 작업</strong>
+                    <p class="mt-1">완전삭제 시 회원 정보가 실제로 삭제되며, 같은 소셜 계정으로 다시 로그인하면 신규 가입자로 생성됩니다. 테스트 계정 초기화에만 사용하세요.</p>
+                    <button class="admin-danger-button" data-admin-delete-user="${escapeHtml(userId)}" data-admin-delete-mode="hard" type="button" ${isSelf ? "disabled" : ""}>완전삭제</button>
+                  </div>
+                  ${isSelf ? `<p class="mt-2 text-xs font-bold text-primary">본인 계정은 삭제할 수 없습니다.</p>` : ""}
                 </div>
               ` : `
                 <div class="admin-danger-zone">
@@ -7162,8 +7170,10 @@ Important:
         renderAdminDashboard(nextArgs);
 
         const targetId = String(deletedUserId || "").trim();
-        if (targetId && !adminIncludeDeletedUsers && usersResult.status === "fulfilled") {
-          const refreshedUsers = filterAdminVisibleUsers(normalizeAdminUsersPayload(usersResult.value).users, false);
+        if (targetId && usersResult.status === "fulfilled") {
+          const refreshedUsers = includeActivity
+            ? normalizeAdminUsersPayload(usersResult.value).users
+            : filterAdminVisibleUsers(normalizeAdminUsersPayload(usersResult.value).users, false);
           const stillVisible = refreshedUsers.some((user) => String(getAdminUserId(user) || "").trim() === targetId);
           if (stillVisible) {
             setAdminOperationStatus("삭제 요청은 처리되었지만 목록 갱신에 문제가 있습니다. 잠시 후 다시 확인해 주세요.");

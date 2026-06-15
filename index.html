@@ -133,6 +133,9 @@
         --glass-strong: rgba(255, 255, 255, 0.72);
         --hairline: rgba(255, 255, 255, 0.68);
         --font-sans-kr: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        --app-bottom-nav-height: 88px;
+        --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+        --guide-bottom-space: calc(var(--app-bottom-nav-height) + var(--mobile-safe-bottom) + 32px);
       }
 
       * {
@@ -1157,12 +1160,59 @@
         padding-bottom: 18px;
       }
 
+      #siteGuideScreen {
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 0;
+      }
+
+      #siteGuideScreen:not(.hidden) {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #siteGuideScreen .app-topbar {
+        flex-shrink: 0;
+      }
+
+      .site-guide-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: var(--guide-bottom-space);
+        overscroll-behavior: contain;
+      }
+
       #siteGuideScreen.is-first-onboarding .site-guide-general-only {
         display: none;
       }
 
-      #siteGuideScreen.is-first-onboarding {
+      #siteGuideScreen.is-first-onboarding .site-guide-scroll {
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
+        padding-bottom: 0;
+      }
+
+      #siteGuideScreen.is-first-onboarding .site-guide-hero,
+      #siteGuideScreen.is-first-onboarding .site-guide-steps-section > h2 {
+        display: none;
+      }
+
+      #siteGuideScreen.is-first-onboarding .site-guide-steps-section {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #siteGuideScreen.is-first-onboarding .site-guide-steps {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        padding-bottom: 0;
       }
 
       .onboarding-page {
@@ -1173,9 +1223,11 @@
       }
 
       .onboarding-page.is-first-onboarding {
-        min-height: min(620px, calc(100vh - 170px));
+        flex: 1;
+        min-height: 0;
+        height: 100%;
         overflow: hidden;
-        padding-bottom: calc(96px + env(safe-area-inset-bottom));
+        gap: 0;
       }
 
       .onboarding-cards-grid {
@@ -1193,16 +1245,32 @@
         padding-top: 2px;
       }
 
+      .first-onboarding-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 0 calc(var(--mobile-safe-bottom) + 96px);
+        overscroll-behavior: contain;
+      }
+
       .onboarding-page.is-first-onboarding .onboarding-footer {
+        position: sticky;
+        bottom: calc(var(--mobile-safe-bottom) + 12px);
+        z-index: 60;
+        flex-shrink: 0;
         margin-top: auto;
-        padding: 14px 0 calc(92px + env(safe-area-inset-bottom));
+        padding: 12px 0 calc(var(--mobile-safe-bottom) + 12px);
+        background: linear-gradient(to top, rgba(255, 248, 250, 0.98), rgba(255, 248, 250, 0.78));
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
       }
 
       .onboarding-footer-button {
-        min-height: 48px;
+        min-height: 52px;
         max-width: 100%;
         border-radius: 9999px;
-        padding: 0 20px;
+        padding: 0 24px;
         color: #fff;
         background: var(--rose-deep);
         font-size: 14px;
@@ -2876,16 +2944,14 @@
       .landing-gallery-grid {
         width: min(100%, 430px);
         margin: 0 auto;
-        padding: 12px;
+        padding: 0;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        border-radius: 34px;
-        background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 247, 249, 0.52)),
-          rgba(255, 255, 255, 0.42);
-        border: 1px solid rgba(255, 255, 255, 0.82);
-        box-shadow: 0 24px 64px rgba(129, 80, 92, 0.14);
+        gap: 8px;
+        border-radius: 24px;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
       }
 
       .landing-gallery-grid .landing-photo-card {
@@ -2894,7 +2960,8 @@
         padding: 0;
         background: transparent;
         border: 0;
-        box-shadow: 0 12px 28px rgba(129, 80, 92, 0.12);
+        border-radius: 20px;
+        box-shadow: 0 8px 18px rgba(129, 80, 92, 0.1);
       }
 
       .landing-photo-card,
@@ -2912,9 +2979,8 @@
         object-fit: var(--landing-gallery-fit, cover);
         object-position: var(--landing-gallery-position, center center);
         display: block;
-        border-radius: 20px;
-        background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(252, 241, 242, 0.76));
+        border-radius: 0;
+        background: transparent;
       }
 
       .landing-compare-frame {
@@ -2922,8 +2988,8 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        border-radius: 22px;
-        background: #fff8f7;
+        border-radius: inherit;
+        background: transparent;
       }
 
       .landing-compare-frame img {
@@ -3000,9 +3066,9 @@
 
       @media (max-width: 640px) {
         .landing-gallery-grid {
-          width: min(calc(100vw - 88px), 300px);
-          gap: 8px;
-          padding: 10px;
+          width: min(calc(100vw - 48px), 340px);
+          gap: 6px;
+          padding: 0;
         }
       }
 
@@ -3429,6 +3495,10 @@
         z-index: 10;
       }
 
+      .app-bottom-nav.is-guide-hidden {
+        display: none;
+      }
+
       .app-bottom-nav button {
         height: 46px;
         border-radius: 18px;
@@ -3586,7 +3656,7 @@
         .landing-gallery-grid {
           width: min(100%, 520px);
           max-width: 520px;
-          padding: 16px;
+          padding: 0;
         }
 
         .landing-gallery-grid .landing-photo-card {
@@ -3651,7 +3721,7 @@
         }
 
         .landing-gallery-grid {
-          gap: 10px;
+          gap: 6px;
         }
 
         .landing-custom-image {
@@ -3828,7 +3898,7 @@
           <section class="landing-section" aria-label="어시스턴트 커스텀 콘셉트">
             <div class="landing-section-inner">
               <div class="landing-custom-image">
-                <img src="public/landing-gallery/landing-gallery-3.jpg" alt="한옥 커스텀 웨딩 콘셉트" width="1000" height="553" loading="lazy" decoding="async" />
+                <img src="public/landing-gallery/landing-gallery-3.jpeg" alt="한옥 커스텀 웨딩 콘셉트" width="1000" height="553" loading="lazy" decoding="async" />
               </div>
               <div class="flex flex-col gap-5">
                 <p class="landing-eyebrow">Custom Concept</p>
@@ -4484,7 +4554,7 @@
               <span class="w-9"></span>
             </div>
 
-            <div class="mt-4 flex flex-col gap-4">
+            <div class="site-guide-scroll mt-4 flex flex-col gap-4">
               <section class="site-guide-hero">
                 <span class="brand-logo brand-logo-horizontal brand-logo-sm" aria-label="Magic Ai Studio">
                   <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
@@ -4495,7 +4565,7 @@
                 <p class="mt-2 text-sm leading-6 text-on-surface-variant">처음 오신 분도 쉽게 따라 할 수 있도록 사진 만들기부터 저장, 갤러리 업로드, 크레딧 충전까지 차례대로 안내해드려요.</p>
               </section>
 
-              <section>
+              <section class="site-guide-steps-section">
                 <h2 class="mb-3 text-[17px] font-bold text-on-surface">이용 방법</h2>
                 <div class="site-guide-steps" id="siteGuideSteps"></div>
               </section>
@@ -8958,7 +9028,12 @@ Important:
         return "";
       }
 
+      function isFirstOnboardingOpen() {
+        return appScreen === "siteGuide" && siteGuideMode === "firstOnboarding";
+      }
+
       function syncBottomNavUi(activeKey = getBottomNavKeyForScreen(appScreen)) {
+        appBottomNav?.classList.toggle("is-guide-hidden", isFirstOnboardingOpen());
         bottomNavItems.forEach((item) => {
           const isActive = item.dataset.bottomNav === activeKey;
           item.classList.toggle("is-active", isActive);
@@ -9044,8 +9119,10 @@ Important:
 
         siteGuideStepsContainer.innerHTML = `
           <div class="onboarding-page is-first-onboarding">
-            <div class="onboarding-cards-grid">
-              ${pageSteps.map((step, offset) => renderGuideStepCard(step, currentPage === 2 ? 3 : currentPage * 2 + offset + 1)).join("")}
+            <div class="first-onboarding-scroll">
+              <div class="onboarding-cards-grid">
+                ${pageSteps.map((step, offset) => renderGuideStepCard(step, currentPage === 2 ? 3 : currentPage * 2 + offset + 1)).join("")}
+              </div>
             </div>
             <div class="onboarding-footer">
               <span class="text-sm font-bold text-primary">${currentPage + 1}/${pageCount}</span>
@@ -9081,6 +9158,7 @@ Important:
           `).join("");
           siteGuideFaqList.dataset.rendered = "true";
         }
+        syncBottomNavUi();
       }
 
       async function completeOnboarding() {
@@ -12896,6 +12974,7 @@ ${modeExample}`;
       const customerInfoNickname = document.getElementById("customerInfoNickname");
       const customerInfoProfileValue = document.getElementById("customerInfoProfileValue");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
+      const appBottomNav = document.querySelector(".app-bottom-nav");
       const bottomNavItems = Array.from(document.querySelectorAll("[data-bottom-nav]"));
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
       const accountMenuTriggerButtons = [

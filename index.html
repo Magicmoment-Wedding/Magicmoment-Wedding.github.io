@@ -2825,11 +2825,12 @@
       }
 
       .landing-gallery-grid {
-        position: relative;
-        width: min(100%, 390px);
-        aspect-ratio: 1 / 0.92;
+        width: min(100%, 430px);
         margin: 0 auto;
-        padding: 10px;
+        padding: 14px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
         border-radius: 34px;
         background:
           linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 247, 249, 0.52)),
@@ -2839,7 +2840,8 @@
       }
 
       .landing-gallery-grid .landing-photo-card {
-        position: absolute;
+        position: relative;
+        aspect-ratio: 4 / 5;
         padding: 5px;
         background: rgba(255, 252, 250, 0.84);
         border: 1px solid rgba(255, 255, 255, 0.76);
@@ -2866,57 +2868,103 @@
           linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(252, 241, 242, 0.76));
       }
 
-      .landing-gallery-grid .landing-photo-featured {
-        left: 4%;
-        top: 7%;
-        width: 44%;
-        height: 76%;
+      .landing-compare-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 20px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(252, 241, 242, 0.76));
+      }
+
+      .landing-compare-frame img {
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+      }
+
+      .landing-compare-after {
+        position: absolute;
+        inset: 0;
+        animation: landingCompareReveal 5.2s ease-in-out infinite;
+        clip-path: inset(0 85% 0 0);
+        overflow: hidden;
         z-index: 2;
-        --landing-gallery-position: center top;
       }
 
-      .landing-gallery-grid .landing-photo-landscape {
-        right: 4%;
-        top: 8%;
-        width: 49%;
-        height: 30%;
-        z-index: 3;
-        --landing-gallery-position: center center;
-      }
-
-      .landing-gallery-grid .landing-photo-wide {
-        right: 6%;
-        bottom: 7%;
-        width: 39%;
-        height: 48%;
-        padding: 4px;
-        z-index: 3;
-        --landing-gallery-position: center 30%;
-      }
-
-      .landing-gallery-grid .landing-photo-accent {
-        left: 29%;
-        bottom: 6%;
-        width: 28%;
-        height: 28%;
-        padding: 4px;
+      .landing-compare-divider {
+        position: absolute;
         z-index: 4;
-        --landing-gallery-position: center 38%;
+        top: 0;
+        bottom: 0;
+        left: 15%;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow:
+          0 0 0 1px rgba(129, 80, 92, 0.08),
+          0 0 18px rgba(31, 26, 27, 0.18);
+        animation: landingCompareDivider 5.2s ease-in-out infinite;
+        transform: translateX(-50%);
+      }
+
+      .landing-compare-divider::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        box-shadow: 0 8px 18px rgba(129, 80, 92, 0.18);
+        transform: translate(-50%, -50%);
+      }
+
+      .landing-compare-card:nth-child(2) .landing-compare-after,
+      .landing-compare-card:nth-child(2) .landing-compare-divider {
+        animation-delay: -1.1s;
+      }
+
+      .landing-compare-card:nth-child(3) .landing-compare-after,
+      .landing-compare-card:nth-child(3) .landing-compare-divider {
+        animation-delay: -2.2s;
+      }
+
+      .landing-compare-card:nth-child(4) .landing-compare-after,
+      .landing-compare-card:nth-child(4) .landing-compare-divider {
+        animation-delay: -3.3s;
+      }
+
+      @keyframes landingCompareReveal {
+        0%,
+        100% {
+          clip-path: inset(0 85% 0 0);
+        }
+
+        50% {
+          clip-path: inset(0 15% 0 0);
+        }
+      }
+
+      @keyframes landingCompareDivider {
+        0%,
+        100% {
+          left: 15%;
+        }
+
+        50% {
+          left: 85%;
+        }
       }
 
       @media (max-width: 640px) {
         .landing-gallery-grid {
-          width: min(calc(100vw - 96px), 320px);
+          width: min(calc(100vw - 88px), 300px);
+          gap: 8px;
+          padding: 10px;
         }
-      }
-
-
-      .landing-photo-card.position-top {
-        --landing-gallery-position: center top;
-      }
-
-      .landing-photo-card.position-soft-top {
-        --landing-gallery-position: center 32%;
       }
 
       .landing-custom-image {
@@ -3497,44 +3545,13 @@
         }
 
         .landing-gallery-grid {
-          width: min(100%, 500px);
-          max-width: 500px;
-          aspect-ratio: 1 / 0.78;
+          width: min(100%, 520px);
+          max-width: 520px;
           padding: 16px;
         }
 
-        .landing-gallery-grid .landing-photo-featured {
-          left: 4%;
-          top: 7%;
-          width: 43%;
-          height: 77%;
-        }
-
-        .landing-gallery-grid .landing-photo-landscape {
-          right: 4%;
-          top: 8%;
-          width: 50%;
-          height: 30%;
-        }
-
-        .landing-gallery-grid .landing-photo-landscape:nth-child(2) {
-          margin-top: 0;
-        }
-
-        .landing-gallery-grid .landing-photo-wide {
-          right: 6%;
-          bottom: 8%;
-          width: 39%;
-          height: 48%;
-          margin-top: 0;
-        }
-
-        .landing-gallery-grid .landing-photo-accent {
-          left: 30%;
-          bottom: 7%;
-          width: 27%;
-          height: 28%;
-          margin-top: 0;
+        .landing-gallery-grid .landing-photo-card {
+          padding: 6px;
         }
 
         .landing-pricing-grid {
@@ -3729,17 +3746,41 @@
                 </button>
               </div>
               <div class="landing-gallery-grid" aria-label="프리미엄 웨딩 테이블포토 샘플">
-                <article class="landing-photo-card landing-photo-featured position-top">
-                  <img src="public/landing-gallery/landing-gallery-1.jpg" alt="AI 웨딩 갤러리 샘플 1" width="640" height="960" loading="lazy" decoding="async" onerror="this.hidden=true" />
+                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
+                  <div class="landing-compare-frame">
+                    <img src="public/landing-gallery/1-1.png" alt="AI 웨딩 비포 샘플 1" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    <div class="landing-compare-after" aria-hidden="true">
+                      <img src="public/landing-gallery/1-2.png" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    </div>
+                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                  </div>
                 </article>
-                <article class="landing-photo-card landing-photo-pair landing-photo-landscape">
-                  <img src="public/landing-gallery/landing-gallery-2.png" alt="AI 웨딩 갤러리 샘플 2" width="1000" height="553" loading="lazy" decoding="async" onerror="this.hidden=true" />
+                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
+                  <div class="landing-compare-frame">
+                    <img src="public/landing-gallery/2-1.png" alt="AI 웨딩 비포 샘플 2" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    <div class="landing-compare-after" aria-hidden="true">
+                      <img src="public/landing-gallery/2-2.png" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    </div>
+                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                  </div>
                 </article>
-                <article class="landing-photo-card landing-photo-wide">
-                  <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" onerror="this.hidden=true" />
+                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
+                  <div class="landing-compare-frame">
+                    <img src="public/landing-gallery/3-1.jpg" alt="AI 웨딩 비포 샘플 3" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    <div class="landing-compare-after" aria-hidden="true">
+                      <img src="public/landing-gallery/3-2.jpg" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    </div>
+                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                  </div>
                 </article>
-                <article class="landing-photo-card landing-photo-accent position-soft-top">
-                  <img src="public/landing-gallery/landing-gallery-5.png" alt="AI 웨딩 갤러리 샘플 5" width="640" height="960" loading="lazy" decoding="async" onerror="this.hidden=true" />
+                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
+                  <div class="landing-compare-frame">
+                    <img src="public/landing-gallery/4-1.jpg" alt="AI 웨딩 비포 샘플 4" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    <div class="landing-compare-after" aria-hidden="true">
+                      <img src="public/landing-gallery/4-2.png" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
+                    </div>
+                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                  </div>
                 </article>
               </div>
             </div>
@@ -5089,6 +5130,8 @@
       const PRIVACY_VERSION = "2026-06-15";
       const TERMS_CONSENT_STORAGE_KEY = "magic_terms_consent";
       const SIGNUP_CONSENT_STORAGE_KEY = "magic_signup_consents";
+      const AUTH_MODE_STORAGE_KEY = "magic_auth_mode";
+      const AUTH_PROVIDER_STORAGE_KEY = "magic_auth_provider";
       const NICEPAY_SDK_URL = "https://pay.nicepay.co.kr/v1/js/";
       const NICEPAY_SDK_SCRIPT_ID = "nicepay-sdk-script";
       const LAST_PAYMENT_ORDER_ID_STORAGE_KEY = "magic_last_payment_order_id";
@@ -6283,6 +6326,43 @@ Important:
         url.searchParams.set("mode", mode === "signup" ? "signup" : "login");
         url.searchParams.set("returnTo", sanitizeLoginReturnView(returnView));
         return url.toString();
+      }
+
+      function persistAuthStartState(provider, mode) {
+        const safeProvider = sanitizeOAuthProvider(provider);
+        const authMode = mode === "signup" ? "signup" : "login";
+        try {
+          window.sessionStorage.setItem(AUTH_MODE_STORAGE_KEY, authMode);
+          if (safeProvider) {
+            window.sessionStorage.setItem(AUTH_PROVIDER_STORAGE_KEY, safeProvider);
+          }
+        } catch (error) {
+          return;
+        }
+      }
+
+      function getStoredAuthMode() {
+        try {
+          return window.sessionStorage.getItem(AUTH_MODE_STORAGE_KEY) === "signup" ? "signup" : "login";
+        } catch (error) {
+          return "login";
+        }
+      }
+
+      function getAuthModeFromParams(searchParams = new URLSearchParams(window.location.search)) {
+        const queryMode = String(searchParams.get("mode") || searchParams.get("auth_mode") || "").trim().toLowerCase();
+        if (queryMode === "signup" || queryMode === "login") return queryMode;
+        return getStoredAuthMode();
+      }
+
+      function clearAuthStartState() {
+        try {
+          window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_MODE_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_PROVIDER_STORAGE_KEY);
+        } catch (error) {
+          return;
+        }
       }
 
       function getOAuthProviderLabel(provider) {
@@ -8386,6 +8466,8 @@ Important:
         url.searchParams.delete("login");
         url.searchParams.delete("auth");
         url.searchParams.delete("auth_success");
+        url.searchParams.delete("mode");
+        url.searchParams.delete("auth_mode");
         url.searchParams.delete("returnTo");
         url.searchParams.delete("reason");
         url.searchParams.delete("provider");
@@ -8492,6 +8574,8 @@ Important:
           "ACCOUNT_ALREADY_EXISTS",
           "DUPLICATE_EMAIL_DIFFERENT_PROVIDER",
           "DUPLICATE_PROVIDER",
+          "CONSENT_REQUIRED",
+          "LOGIN_FAILED",
         ]);
         return loginStatus === "failed" || authStatus === "failed" || Boolean(authError && blockedCodes.has(normalizedAuthError));
       }
@@ -8538,6 +8622,17 @@ Important:
         if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
           return "이미 가입된 계정입니다. 로그인으로 이용해 주세요.";
         }
+        if (normalizedCode === "CONSENT_REQUIRED") {
+          return "회원가입을 위해 필수 약관 전체동의가 필요합니다.";
+        }
+        if (normalizedCode === "LOGIN_FAILED") {
+          return "로그인 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+        }
+        if (normalizedCode === "DUPLICATE_PROVIDER") {
+          const existingProvider = searchParams.get("existing_provider") || searchParams.get("existingProvider") || "";
+          const existingLabel = searchParams.get("existing_provider_label") || searchParams.get("existingProviderLabel") || getProviderLabel(existingProvider);
+          return `이미 ${existingLabel}로 가입된 이메일입니다. ${existingLabel} 로그인으로 이용해 주세요.`;
+        }
         if (normalizedCode === "DUPLICATE_EMAIL_DIFFERENT_PROVIDER") {
           const existingProvider = searchParams.get("existing_provider") || searchParams.get("existingProvider") || "";
           const existingLabel = searchParams.get("existing_provider_label") || searchParams.get("existingProviderLabel") || getProviderLabel(existingProvider);
@@ -8563,6 +8658,16 @@ Important:
         if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
           setAuthTab("login", "이미 가입된 계정입니다. 로그인으로 이용해 주세요.");
           openLoginModal(null, { tab: "login" });
+          return true;
+        }
+        if (normalizedCode === "CONSENT_REQUIRED") {
+          setAuthTab("signup", "회원가입을 위해 필수 약관 전체동의가 필요합니다.");
+          openLoginModal(null, { tab: "signup" });
+          return true;
+        }
+        if (normalizedCode === "LOGIN_FAILED") {
+          setAuthTab(getAuthModeFromParams(searchParams), "로그인 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          openLoginModal(null, { tab: authTab });
           return true;
         }
         return false;
@@ -8622,13 +8727,69 @@ Important:
         navigateToLoginReturnView(returnView);
       }
 
-      async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
-        console.log("[auth] login success query detected");
-        console.log("[auth] fetching current user after login success");
+      async function acceptSignupConsentsIfNeeded(authMode) {
+        if (authMode !== "signup") return false;
+
+        let signupConsents = null;
         try {
-          const user = await refreshAuthState({ showError: false });
+          const rawConsents = window.sessionStorage.getItem(SIGNUP_CONSENT_STORAGE_KEY);
+          if (!rawConsents) return false;
+          signupConsents = JSON.parse(rawConsents);
+        } catch (error) {
+          showAccountMenuToast("약관 동의 기록을 확인하지 못했습니다. 다시 시도해 주세요.");
+          throw error;
+        }
+
+        if (!signupConsents?.termsVersion || !signupConsents?.privacyVersion || signupConsents?.ageConfirmed !== true) {
+          showAccountMenuToast("회원가입을 위해 필수 약관 전체동의가 필요합니다.");
+          throw new Error("INVALID_SIGNUP_CONSENT");
+        }
+
+        const response = await fetch(getAuthApiUrl("/api/auth/consents/accept"), {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            termsVersion: signupConsents.termsVersion,
+            privacyVersion: signupConsents.privacyVersion,
+            ageConfirmed: signupConsents.ageConfirmed === true,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload?.ok === false) {
+          throw new Error(payload?.message || payload?.error || `Consent accept failed: ${response.status}`);
+        }
+
+        console.log("[auth] signup consent saved:", {
+          termsVersion: signupConsents.termsVersion,
+          privacyVersion: signupConsents.privacyVersion,
+        });
+        return true;
+      }
+
+      async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
+        const authMode = getAuthModeFromParams(loginParams);
+        console.log("[auth] callback query:", Object.fromEntries(loginParams.entries()));
+        console.log("[auth] login success detected:", { mode: authMode, provider: loginParams.get("provider") || "" });
+        console.log("[auth] fetchCurrentUser after success");
+        try {
+          let user = await refreshAuthState({ showError: false });
           if (!user) {
             showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+            return null;
+          }
+
+          try {
+            const didSaveConsents = await acceptSignupConsentsIfNeeded(authMode);
+            if (didSaveConsents) {
+              const refreshedUser = await refreshAuthState({ showError: false });
+              if (refreshedUser) {
+                user = refreshedUser;
+              }
+            }
+          } catch (error) {
+            console.warn("[auth] signup consent save failed:", error);
+            showAccountMenuToast("약관 동의 기록 저장에 실패했습니다. 다시 시도해 주세요.");
             return null;
           }
 
@@ -8638,9 +8799,15 @@ Important:
           console.log("[auth] current user:", { hasUser: Boolean(user), id: getAuthenticatedUserId(user), provider: getUserAuthProvider(user), isAdmin: user?.isAdmin === true });
           console.log("[auth] display login success toast:", displayName);
           showAccountMenuToast(`${displayName}님 로그인되었습니다.`);
+          if (authMode === "signup") {
+            window.setTimeout(() => {
+              showAccountMenuToast("회원가입이 완료되었습니다.");
+            }, 700);
+          }
           handlePostLoginExperience(returnView);
           return user;
         } finally {
+          clearAuthStartState();
           cleanLoginRedirectQuery();
           clearLoginReturnState();
           console.log("[auth] cleaned auth query:", window.location.search);
@@ -8659,7 +8826,10 @@ Important:
         const hasDuplicateProviderQuery = getDuplicateProviderErrorFromParams(loginParams);
         if (hasDuplicateProviderQuery) {
           authStartupCheckPromise = Promise.resolve().then(() => {
+            console.log("[auth] callback query:", Object.fromEntries(loginParams.entries()));
+            console.log("[auth] auth error:", loginParams.get("auth_error") || loginParams.get("code") || "duplicate_provider");
             handleDuplicateProviderRedirectQuery(loginParams);
+            clearAuthStartState();
             return null;
           });
           return authStartupCheckPromise;
@@ -8672,6 +8842,8 @@ Important:
         if (hasAuthError) {
           authStartupCheckPromise = Promise.resolve()
             .then(() => {
+              console.log("[auth] callback query:", Object.fromEntries(loginParams.entries()));
+              console.log("[auth] auth error:", loginParams.get("auth_error") || loginParams.get("code") || loginParams.get("error") || "");
               applyAuthUser(null);
               showAccountMenuToast(getLoginFailureMessage(loginParams));
               if (!handleAuthModeErrorPrompt(loginParams)) {
@@ -8681,6 +8853,7 @@ Important:
               return null;
             })
             .finally(() => {
+              clearAuthStartState();
               cleanLoginRedirectQuery();
               clearLoginReturnState();
               console.log("[auth] cleaned auth query:", window.location.search);
@@ -12966,6 +13139,7 @@ ${modeExample}`;
           return;
         }
 
+        persistAuthStartState(safeProvider, authMode);
         const returnView = rememberLoginReturnView();
         const providerLabel = getOAuthProviderLabel(safeProvider);
         const loginStartUrl = getOAuthLoginStartUrl(safeProvider, returnView, authMode);
@@ -12975,6 +13149,9 @@ ${modeExample}`;
         }
 
         const actionLabel = authMode === "signup" ? "회원가입" : "로그인";
+        console.log("[auth] startSocialAuth provider:", safeProvider);
+        console.log("[auth] startSocialAuth mode:", authMode);
+        console.log("[auth] redirect URL:", loginStartUrl);
         setSocialLoginButtonLoading(button, true, `${providerLabel} ${actionLabel}으로 이동 중...`);
         showAccountMenuToast(`${providerLabel} ${actionLabel}으로 이동 중...`);
         window.location.href = loginStartUrl;

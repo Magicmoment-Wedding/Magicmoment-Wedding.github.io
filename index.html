@@ -2942,12 +2942,12 @@
       }
 
       .landing-gallery-grid {
-        width: min(100%, 430px);
+        width: min(100%, 680px);
         margin: 0 auto;
         padding: 0;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        gap: 6px;
         border-radius: 24px;
         background: transparent;
         border: 0;
@@ -3066,8 +3066,8 @@
 
       @media (max-width: 640px) {
         .landing-gallery-grid {
-          width: min(calc(100vw - 48px), 340px);
-          gap: 6px;
+          width: min(calc(100vw - 32px), 680px);
+          gap: 5px;
           padding: 0;
         }
       }
@@ -3653,9 +3653,14 @@
           font-size: 17px;
         }
 
+        .landing-gallery-preview-section .landing-section-inner {
+          grid-template-columns: minmax(0, 0.74fr) minmax(480px, 1.18fr);
+          gap: 36px;
+        }
+
         .landing-gallery-grid {
-          width: min(100%, 520px);
-          max-width: 520px;
+          width: min(100%, 680px);
+          max-width: 680px;
           padding: 0;
         }
 
@@ -3843,7 +3848,7 @@
             </div>
           </section>
 
-          <section class="landing-section" aria-label="스타일 갤러리 프리뷰">
+          <section class="landing-section landing-gallery-preview-section" aria-label="스타일 갤러리 프리뷰">
             <div class="landing-section-inner">
               <div class="flex flex-col gap-4">
                 <p class="landing-eyebrow">Gallery Preview</p>

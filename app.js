@@ -21,7 +21,14 @@ import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } f
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
 import { getCredits, testChargeCredits } from "./services/credits-api.js";
-import { completeOnboarding, fetchCurrentUser, normalizeUser } from "./services/auth.js";
+import {
+  completeOnboarding,
+  fetchCurrentUser,
+  hasFreeGeneration,
+  isAdminUser,
+  isFirstTimeOnboardingTarget,
+  normalizeUser,
+} from "./services/auth.js";
 import { getPresetPromptIntent } from "./services/prompt-intents.js";
 import { navigate, PREVIOUS_ROUTE, ROUTES, getRouteFromHash, initRouter } from "./services/router.js";
 import { getState, subscribe, updateState } from "./services/store.js";
@@ -281,7 +288,7 @@ async function refreshCurrentUser() {
     applyAuthSession(user);
 
     const state = getState();
-    if (user && state.pendingGenerate && user.onboardingCompleted === false) {
+    if (state.pendingGenerate && isFirstTimeOnboardingTarget(user)) {
       openFirstTimeOnboardingFlow();
     }
 
@@ -313,16 +320,17 @@ function handleCreateClick() {
     return;
   }
 
-  if (state.currentUser.onboardingCompleted === false) {
+  if (isAdminUser(state.currentUser)) {
+    startPaidGenerationFlow();
+    return;
+  }
+
+  if (isFirstTimeOnboardingTarget(state.currentUser)) {
     openFirstTimeOnboardingFlow();
     return;
   }
 
-  if (
-    state.currentUser.onboardingCompleted === true &&
-    state.currentUser.freeGenerationEligible === true &&
-    state.currentUser.freeGenerationUsed !== true
-  ) {
+  if (hasFreeGeneration(state.currentUser)) {
     startFreeGenerationFlow();
     return;
   }

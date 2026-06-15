@@ -5,19 +5,55 @@ export function normalizeUser(user) {
     return null;
   }
 
+  const creditBalance = Number(user.creditBalance ?? user.credit_balance ?? user.credits ?? 0);
   const normalized = {
     ...user,
-    onboardingCompleted: user.onboardingCompleted === true,
-    freeGenerationEligible: user.freeGenerationEligible !== false,
-    freeGenerationUsed: user.freeGenerationUsed === true,
-    creditBalance: Number.isFinite(Number(user.creditBalance))
-      ? Number(user.creditBalance)
-      : Number.isFinite(Number(user.credits))
-        ? Number(user.credits)
-        : 0,
+    isAdmin: user.isAdmin === true || user.is_admin === true,
+    onboardingCompleted: user.onboardingCompleted ?? user.onboarding_completed ?? false,
+    freeGenerationEligible: user.freeGenerationEligible ?? user.free_generation_eligible ?? false,
+    freeGenerationUsed: user.freeGenerationUsed ?? user.free_generation_used ?? false,
+    freeGenerationAvailable: user.freeGenerationAvailable ?? user.free_generation_available ?? false,
+    creditBalance: Number.isFinite(creditBalance) ? creditBalance : 0,
   };
 
   return normalized;
+}
+
+export function isAdminUser(user) {
+  return user?.isAdmin === true ||
+    String(user?.email || "").toLowerCase().trim() === "vamprub@gmail.com";
+}
+
+export function isFirstTimeOnboardingTarget(user) {
+  if (!user) {
+    return false;
+  }
+
+  if (isAdminUser(user)) {
+    return false;
+  }
+
+  return (
+    user.onboardingCompleted === false &&
+    user.freeGenerationEligible === true &&
+    user.freeGenerationUsed !== true
+  );
+}
+
+export function hasFreeGeneration(user) {
+  if (!user) {
+    return false;
+  }
+
+  if (isAdminUser(user)) {
+    return false;
+  }
+
+  return (
+    user.onboardingCompleted === true &&
+    user.freeGenerationEligible === true &&
+    user.freeGenerationUsed !== true
+  );
 }
 
 export async function fetchCurrentUser() {

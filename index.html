@@ -2721,6 +2721,22 @@
         --landing-gallery-position: center 34%;
       }
 
+      .landing-gallery-grid .landing-photo-accent {
+        left: 3%;
+        bottom: 7%;
+        width: 28%;
+        height: 25%;
+        padding: 4px;
+        z-index: 6;
+        --landing-gallery-position: center 38%;
+      }
+
+      @media (max-width: 640px) {
+        .landing-gallery-grid {
+          width: min(calc(100vw - 96px), 320px);
+        }
+      }
+
 
       .landing-photo-card.position-top {
         --landing-gallery-position: center top;
@@ -2816,6 +2832,39 @@
       .landing-plan-card.is-featured .landing-plan-button {
         color: #fff;
         background: var(--rose-deep);
+      }
+
+      .landing-business-footer {
+        width: 100%;
+        margin-top: clamp(8px, 2vw, 24px);
+        padding: 22px 18px calc(30px + env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(129, 80, 92, 0.12);
+        background:
+          linear-gradient(180deg, rgba(255, 250, 246, 0.72), rgba(252, 239, 242, 0.9)),
+          #fffaf6;
+      }
+
+      .landing-business-footer-inner {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        color: #6b4a53;
+        font-size: 13px;
+        line-height: 1.7;
+        letter-spacing: 0;
+      }
+
+      .landing-business-footer-line {
+        margin: 0;
+        word-break: keep-all;
+      }
+
+      .landing-business-footer-copy {
+        margin-top: 2px;
+        color: #8a5965;
+        font-weight: 600;
       }
 
       .app-stage {
@@ -3318,6 +3367,14 @@
           margin-top: 0;
         }
 
+        .landing-gallery-grid .landing-photo-accent {
+          left: 4%;
+          bottom: 7%;
+          width: 24%;
+          height: 28%;
+          margin-top: 0;
+        }
+
         .landing-pricing-grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 18px;
@@ -3511,16 +3568,19 @@
               </div>
               <div class="landing-gallery-grid" aria-label="프리미엄 웨딩 테이블포토 샘플">
                 <article class="landing-photo-card landing-photo-featured position-top">
-                  <img src="public/landing-gallery/landing-gallery-1.jpg" alt="AI 웨딩 갤러리 샘플 1" width="640" height="960" loading="lazy" decoding="async" />
+                  <img src="/landing-gallery/landing-gallery-1.jpg" alt="AI 웨딩 갤러리 샘플 1" width="640" height="960" loading="lazy" decoding="async" />
                 </article>
                 <article class="landing-photo-card landing-photo-pair landing-photo-landscape">
-                  <img src="public/landing-gallery/landing-gallery-2.png" alt="AI 웨딩 갤러리 샘플 2" width="1000" height="553" loading="lazy" decoding="async" />
+                  <img src="/landing-gallery/landing-gallery-2.png" alt="AI 웨딩 갤러리 샘플 2" width="1000" height="553" loading="lazy" decoding="async" />
                 </article>
                 <article class="landing-photo-card landing-photo-pair landing-photo-portrait position-top">
-                  <img src="public/landing-gallery/landing-gallery-5.png" alt="AI 웨딩 갤러리 샘플 5" width="640" height="960" loading="lazy" decoding="async" />
+                  <img src="/landing-gallery/landing-gallery-3.jpg" alt="AI 웨딩 갤러리 샘플 3" width="1000" height="553" loading="lazy" decoding="async" />
                 </article>
                 <article class="landing-photo-card landing-photo-wide">
-                  <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
+                  <img src="/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" />
+                </article>
+                <article class="landing-photo-card landing-photo-accent position-soft-top">
+                  <img src="/landing-gallery/landing-gallery-5.png" alt="AI 웨딩 갤러리 샘플 5" width="640" height="960" loading="lazy" decoding="async" />
                 </article>
               </div>
             </div>
@@ -3593,6 +3653,14 @@
               </div>
             </div>
           </section>
+          <footer class="landing-business-footer" aria-label="사업자 정보">
+            <div class="landing-business-footer-inner">
+              <p class="landing-business-footer-line">상호명: 더원모먼트 | 대표: 박웅철 | 사업자등록번호: 870-14-01837</p>
+              <p class="landing-business-footer-line">주소: 경기도 군포시 당동 135-1 5층 528호 | 전화: 010-7175-2620 | 이메일: vamprub@naver.com</p>
+              <p class="landing-business-footer-line">개인정보관리책임자: 박웅철</p>
+              <p class="landing-business-footer-line landing-business-footer-copy">© Magic AI Studio. All Rights Reserved.</p>
+            </div>
+          </footer>
         </div>
       </section>
 

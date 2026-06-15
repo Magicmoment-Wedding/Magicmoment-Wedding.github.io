@@ -752,8 +752,8 @@
       .social-login-button:disabled,
       .social-login-button[aria-disabled="true"] {
         cursor: not-allowed;
-        opacity: 0.56;
-        filter: grayscale(0.12);
+        opacity: 0.48;
+        filter: grayscale(0.28) saturate(0.72);
         box-shadow:
           0 6px 16px rgba(129, 80, 92, 0.05),
           inset 0 1px 0 rgba(255, 255, 255, 0.58);
@@ -849,6 +849,64 @@
         text-align: center;
       }
 
+      .auth-tab-list {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 5px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.66);
+        border: 1px solid rgba(129, 80, 92, 0.12);
+      }
+
+      .auth-tab-button {
+        min-height: 40px;
+        border-radius: 9999px;
+        color: #81505c;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .auth-tab-button.is-active {
+        color: #fff;
+        background: linear-gradient(135deg, #81505c, #9b6170);
+        box-shadow: 0 10px 24px rgba(129, 80, 92, 0.16);
+      }
+
+      .auth-tab-panel {
+        margin-top: 18px;
+      }
+
+      .auth-tab-title {
+        color: #3e2028;
+        font-size: 18px;
+        line-height: 1.35;
+        font-weight: 900;
+      }
+
+      .auth-tab-lead {
+        margin-top: 6px;
+        color: #705e61;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+
+      .auth-tab-switch {
+        margin-top: 16px;
+        color: #705e61;
+        font-size: 12px;
+        line-height: 1.6;
+        text-align: center;
+      }
+
+      .auth-tab-switch button {
+        color: var(--rose-deep);
+        font-weight: 900;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
       .login-consent-box {
         margin-top: 18px;
         border-radius: 22px;
@@ -875,6 +933,29 @@
         height: 18px;
         margin-top: 1px;
         accent-color: var(--rose-deep);
+      }
+
+      .login-consent-row.is-all-required {
+        grid-template-columns: 24px minmax(0, 1fr);
+        align-items: center;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .login-consent-list {
+        margin: 0;
+        padding-left: 28px;
+        color: #705e61;
+        font-size: 11px;
+        line-height: 1.7;
+        list-style: disc;
+      }
+
+      .login-consent-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        padding-left: 28px;
       }
 
       .login-consent-link {
@@ -2786,49 +2867,40 @@
       }
 
       .landing-gallery-grid .landing-photo-featured {
-        left: 3%;
-        top: 5%;
-        width: 47%;
-        height: 66%;
+        left: 4%;
+        top: 7%;
+        width: 44%;
+        height: 76%;
         z-index: 2;
         --landing-gallery-position: center top;
       }
 
       .landing-gallery-grid .landing-photo-landscape {
-        right: 3%;
-        top: 10%;
-        width: 50%;
-        height: 31%;
+        right: 4%;
+        top: 8%;
+        width: 49%;
+        height: 30%;
         z-index: 3;
         --landing-gallery-position: center center;
       }
 
-      .landing-gallery-grid .landing-photo-portrait {
-        right: 7%;
-        top: 43%;
-        width: 40%;
-        height: 48%;
-        z-index: 4;
-        --landing-gallery-position: center top;
-      }
-
       .landing-gallery-grid .landing-photo-wide {
-        left: 15%;
-        bottom: 4%;
-        width: 40%;
-        height: 35%;
+        right: 6%;
+        bottom: 7%;
+        width: 39%;
+        height: 48%;
         padding: 4px;
-        z-index: 5;
-        --landing-gallery-position: center 34%;
+        z-index: 3;
+        --landing-gallery-position: center 30%;
       }
 
       .landing-gallery-grid .landing-photo-accent {
-        left: 3%;
-        bottom: 7%;
+        left: 29%;
+        bottom: 6%;
         width: 28%;
-        height: 25%;
+        height: 28%;
         padding: 4px;
-        z-index: 6;
+        z-index: 4;
         --landing-gallery-position: center 38%;
       }
 
@@ -3434,44 +3506,33 @@
         .landing-gallery-grid .landing-photo-featured {
           left: 4%;
           top: 7%;
-          width: 42%;
-          height: 78%;
+          width: 43%;
+          height: 77%;
         }
 
         .landing-gallery-grid .landing-photo-landscape {
           right: 4%;
           top: 8%;
-          width: 52%;
+          width: 50%;
           height: 30%;
-        }
-
-        .landing-gallery-grid .landing-photo-portrait {
-          right: 8%;
-          top: 41%;
-          width: 34%;
-          height: 50%;
         }
 
         .landing-gallery-grid .landing-photo-landscape:nth-child(2) {
           margin-top: 0;
         }
 
-        .landing-gallery-grid .landing-photo-portrait:nth-child(3) {
-          margin-top: 0;
-        }
-
         .landing-gallery-grid .landing-photo-wide {
-          left: 43%;
+          right: 6%;
           bottom: 8%;
-          width: 30%;
-          height: 40%;
+          width: 39%;
+          height: 48%;
           margin-top: 0;
         }
 
         .landing-gallery-grid .landing-photo-accent {
-          left: 4%;
+          left: 30%;
           bottom: 7%;
-          width: 24%;
+          width: 27%;
           height: 28%;
           margin-top: 0;
         }
@@ -3673,9 +3734,6 @@
                 </article>
                 <article class="landing-photo-card landing-photo-pair landing-photo-landscape">
                   <img src="public/landing-gallery/landing-gallery-2.png" alt="AI 웨딩 갤러리 샘플 2" width="1000" height="553" loading="lazy" decoding="async" onerror="this.hidden=true" />
-                </article>
-                <article class="landing-photo-card landing-photo-pair landing-photo-portrait position-top">
-                  <img src="public/landing-gallery/landing-gallery-3.jpg" alt="AI 웨딩 갤러리 샘플 3" width="1000" height="553" loading="lazy" decoding="async" onerror="this.hidden=true" />
                 </article>
                 <article class="landing-photo-card landing-photo-wide">
                   <img src="public/landing-gallery/landing-gallery-4.png" alt="AI 웨딩 갤러리 샘플 4" width="542" height="960" loading="lazy" decoding="async" onerror="this.hidden=true" />
@@ -4764,7 +4822,7 @@
             </span>
           </div>
           <h2 class="login-modal-title font-display" id="loginModalTitle">Magic AI Studio 로그인</h2>
-          <p class="login-modal-lead" id="loginModalDescription">서비스 이용을 위해 약관 확인 및 필수 동의가 필요합니다.</p>
+          <p class="login-modal-lead" id="loginModalDescription">로그인 또는 회원가입을 선택해 주세요.</p>
           <p class="login-modal-copy">로그인하면 생성한 사진을 마이포토박스에 보관하고, 크레딧을 안전하게 관리할 수 있어요.</p>
           <div class="mt-4 hidden rounded-[18px] border border-white/80 bg-white/70 p-3" id="loginUserSummary">
             <div class="flex items-center gap-3">
@@ -4781,42 +4839,74 @@
               </button>
             </div>
           </div>
-          <div class="login-consent-box" aria-label="필수 약관 동의">
-            <label class="login-consent-row">
-              <input id="loginTermsConsent" type="checkbox" />
-              <span>[필수] 이용약관에 동의합니다.</span>
-              <button class="login-consent-link" data-policy-target="terms" type="button">보기</button>
-            </label>
-            <label class="login-consent-row">
-              <input id="loginPrivacyConsent" type="checkbox" />
-              <span>[필수] 개인정보 처리방침을 확인했으며 개인정보 수집·이용에 동의합니다.</span>
-              <button class="login-consent-link" data-policy-target="privacy" type="button">보기</button>
-            </label>
-            <label class="login-consent-row">
-              <input id="loginAgeConsent" type="checkbox" />
-              <span>[필수] 만 14세 이상입니다.</span>
-              <span aria-hidden="true"></span>
-            </label>
-            <p class="login-consent-message" id="loginConsentMessage" role="alert" aria-live="polite"></p>
+          <div class="auth-tab-list" role="tablist" aria-label="로그인 또는 회원가입 선택">
+            <button class="auth-tab-button is-active" id="authLoginTab" data-auth-tab="login" type="button" role="tab" aria-selected="true" aria-controls="authLoginPanel">로그인</button>
+            <button class="auth-tab-button" id="authSignupTab" data-auth-tab="signup" type="button" role="tab" aria-selected="false" aria-controls="authSignupPanel">회원가입</button>
           </div>
-          <div class="social-login-list" aria-label="소셜 로그인">
-            <button class="social-login-button is-kakao" data-social-login-provider="kakao" type="button" aria-disabled="true">
-              <span class="social-login-icon" aria-hidden="true">K</span>
-              <span>카카오톡으로 로그인</span>
-              <span aria-hidden="true"></span>
-            </button>
-            <button class="social-login-button is-naver" data-social-login-provider="naver" type="button" aria-disabled="true">
-              <span class="social-login-icon" aria-hidden="true">N</span>
-              <span>네이버로 로그인</span>
-              <span aria-hidden="true"></span>
-            </button>
-            <button class="social-login-button is-google is-pending" data-social-login-provider="google" type="button" aria-describedby="loginModalDescription" aria-disabled="true">
-              <span class="social-login-icon" aria-hidden="true">G</span>
-              <span>Google 로그인 (준비중)</span>
-              <span class="social-login-status" aria-hidden="true">대기중</span>
-            </button>
+
+          <div class="auth-tab-panel" id="authLoginPanel" data-auth-panel="login" role="tabpanel" aria-labelledby="authLoginTab">
+            <h3 class="auth-tab-title">로그인</h3>
+            <p class="auth-tab-lead">이미 가입하신 계정으로 로그인해 주세요.</p>
+            <p class="login-consent-message" id="loginAuthMessage" role="alert" aria-live="polite"></p>
+            <div class="social-login-list" aria-label="소셜 로그인">
+              <button class="social-login-button is-kakao" data-social-login-provider="kakao" data-auth-mode="login" type="button">
+                <span class="social-login-icon" aria-hidden="true">K</span>
+                <span>카카오톡으로 로그인</span>
+                <span aria-hidden="true"></span>
+              </button>
+              <button class="social-login-button is-naver" data-social-login-provider="naver" data-auth-mode="login" type="button">
+                <span class="social-login-icon" aria-hidden="true">N</span>
+                <span>네이버로 로그인</span>
+                <span aria-hidden="true"></span>
+              </button>
+              <button class="social-login-button is-google is-pending" data-social-login-provider="google" data-auth-mode="login" type="button" aria-describedby="loginModalDescription" aria-disabled="true">
+                <span class="social-login-icon" aria-hidden="true">G</span>
+                <span>Google 로그인 (준비중)</span>
+                <span class="social-login-status" aria-hidden="true">대기중</span>
+              </button>
+            </div>
+            <p class="auth-tab-switch">아직 회원이 아니신가요? <button data-auth-tab-switch="signup" type="button">회원가입</button></p>
           </div>
-          <p class="login-modal-terms">필수 동의 항목은 서비스 회원정보, 사진, 생성 결과, 결제/크레딧 처리에 필요한 고지입니다.</p>
+
+          <div class="auth-tab-panel hidden" id="authSignupPanel" data-auth-panel="signup" role="tabpanel" aria-labelledby="authSignupTab">
+            <h3 class="auth-tab-title">회원가입</h3>
+            <p class="auth-tab-lead">Magic AI Studio 이용을 위해 필수 약관에 동의해 주세요.</p>
+            <div class="login-consent-box" aria-label="필수 약관 전체동의">
+              <label class="login-consent-row is-all-required">
+                <input id="signupAllRequiredConsents" type="checkbox" />
+                <span>필수 약관 전체동의</span>
+              </label>
+              <ul class="login-consent-list">
+                <li>[필수] 이용약관 동의</li>
+                <li>[필수] 개인정보 처리방침 확인 및 개인정보 수집·이용 동의</li>
+                <li>[필수] 만 14세 이상 확인</li>
+              </ul>
+              <div class="login-consent-links">
+                <button class="login-consent-link" data-policy-target="terms" type="button">이용약관 보기</button>
+                <button class="login-consent-link" data-policy-target="privacy" type="button">개인정보 처리방침 보기</button>
+              </div>
+              <p class="login-consent-message" id="signupConsentMessage" role="alert" aria-live="polite"></p>
+            </div>
+            <div class="social-login-list" aria-label="소셜 회원가입">
+              <button class="social-login-button is-kakao" data-social-login-provider="kakao" data-auth-mode="signup" type="button" aria-disabled="true">
+                <span class="social-login-icon" aria-hidden="true">K</span>
+                <span>카카오톡으로 회원가입</span>
+                <span aria-hidden="true"></span>
+              </button>
+              <button class="social-login-button is-naver" data-social-login-provider="naver" data-auth-mode="signup" type="button" aria-disabled="true">
+                <span class="social-login-icon" aria-hidden="true">N</span>
+                <span>네이버로 회원가입</span>
+                <span aria-hidden="true"></span>
+              </button>
+              <button class="social-login-button is-google is-pending" data-social-login-provider="google" data-auth-mode="signup" type="button" aria-describedby="loginModalDescription" aria-disabled="true">
+                <span class="social-login-icon" aria-hidden="true">G</span>
+                <span>Google 회원가입 (준비중)</span>
+                <span class="social-login-status" aria-hidden="true">대기중</span>
+              </button>
+            </div>
+            <p class="auth-tab-switch">이미 회원이신가요? <button data-auth-tab-switch="login" type="button">로그인</button></p>
+          </div>
+          <p class="login-modal-terms">회원가입 시 필수 동의 항목은 서비스 회원정보, 사진, 생성 결과, 결제/크레딧 처리에 필요한 고지입니다.</p>
         </div>
       </section>
     </div>
@@ -4998,6 +5088,7 @@
       const TERMS_VERSION = "2026-06-15";
       const PRIVACY_VERSION = "2026-06-15";
       const TERMS_CONSENT_STORAGE_KEY = "magic_terms_consent";
+      const SIGNUP_CONSENT_STORAGE_KEY = "magic_signup_consents";
       const NICEPAY_SDK_URL = "https://pay.nicepay.co.kr/v1/js/";
       const NICEPAY_SDK_SCRIPT_ID = "nicepay-sdk-script";
       const LAST_PAYMENT_ORDER_ID_STORAGE_KEY = "magic_last_payment_order_id";
@@ -5815,11 +5906,12 @@ Important:
       const loginUserEmail = document.getElementById("loginUserEmail");
       const loginUserCredit = document.getElementById("loginUserCredit");
       const loginModalLogoutButton = document.getElementById("loginModalLogoutButton");
-      const loginTermsConsent = document.getElementById("loginTermsConsent");
-      const loginPrivacyConsent = document.getElementById("loginPrivacyConsent");
-      const loginAgeConsent = document.getElementById("loginAgeConsent");
-      const loginConsentMessage = document.getElementById("loginConsentMessage");
-      const loginConsentInputs = [loginTermsConsent, loginPrivacyConsent, loginAgeConsent].filter(Boolean);
+      const authTabButtons = Array.from(document.querySelectorAll("[data-auth-tab]"));
+      const authTabPanels = Array.from(document.querySelectorAll("[data-auth-panel]"));
+      const authTabSwitchButtons = Array.from(document.querySelectorAll("[data-auth-tab-switch]"));
+      const loginAuthMessage = document.getElementById("loginAuthMessage");
+      const signupAllRequiredConsents = document.getElementById("signupAllRequiredConsents");
+      const signupConsentMessage = document.getElementById("signupConsentMessage");
       const policyTargetButtons = Array.from(document.querySelectorAll("[data-policy-target]"));
       const policyBackButtons = Array.from(document.querySelectorAll("[data-policy-back]"));
       const accountMenuAdminItem = document.getElementById("accountMenuAdminItem");
@@ -5940,6 +6032,8 @@ Important:
       let isLoggedIn = false;
       let isAuthLoading = false;
       let authChecked = false;
+      let authTab = "login";
+      let allRequiredConsentsChecked = false;
       let isMyPhotoBoxLoggedIn = false;
       let currentUser = null;
       let isAdmin = false;
@@ -6181,11 +6275,12 @@ Important:
         return OAUTH_LOGIN_PROVIDERS.has(value) ? value : "";
       }
 
-      function getOAuthLoginStartUrl(provider, returnView) {
+      function getOAuthLoginStartUrl(provider, returnView, mode = "login") {
         const safeProvider = sanitizeOAuthProvider(provider);
         if (!safeProvider) return "";
 
         const url = new URL(getAuthApiUrl(`/api/auth/${safeProvider}/start`), window.location.origin);
+        url.searchParams.set("mode", mode === "signup" ? "signup" : "login");
         url.searchParams.set("returnTo", sanitizeLoginReturnView(returnView));
         return url.toString();
       }
@@ -6244,7 +6339,8 @@ Important:
 
       function hasStoredRequiredConsent() {
         try {
-          const rawConsent = window.sessionStorage.getItem(TERMS_CONSENT_STORAGE_KEY);
+          const rawConsent = window.sessionStorage.getItem(SIGNUP_CONSENT_STORAGE_KEY)
+            || window.sessionStorage.getItem(TERMS_CONSENT_STORAGE_KEY);
           if (!rawConsent) return false;
           const consent = JSON.parse(rawConsent);
           return consent?.termsVersion === TERMS_VERSION &&
@@ -6256,17 +6352,17 @@ Important:
       }
 
       function userHasRequiredConsents(user = currentUser) {
-        if (!user) return hasStoredRequiredConsent();
-        return user.hasRequiredConsents === true || hasStoredRequiredConsent();
+        if (!user) return false;
+        return true;
       }
 
-      function areLoginConsentsChecked() {
-        return Boolean(loginTermsConsent?.checked && loginPrivacyConsent?.checked && loginAgeConsent?.checked);
+      function hasSignupRequiredConsentsChecked() {
+        return allRequiredConsentsChecked === true;
       }
 
-      function persistRequiredConsent() {
+      function persistSignupConsent() {
         try {
-          window.sessionStorage.setItem(TERMS_CONSENT_STORAGE_KEY, JSON.stringify({
+          window.sessionStorage.setItem(SIGNUP_CONSENT_STORAGE_KEY, JSON.stringify({
             termsVersion: TERMS_VERSION,
             privacyVersion: PRIVACY_VERSION,
             ageConfirmed: true,
@@ -6277,39 +6373,65 @@ Important:
         }
       }
 
-      function syncLoginConsentUi() {
-        const isReady = areLoginConsentsChecked();
-        socialLoginButtons.forEach((button) => {
-          if (!button.classList.contains("cursor-wait")) {
-            button.disabled = false;
-          }
-          button.setAttribute("aria-disabled", isReady ? "false" : "true");
+      function syncAuthTabUi() {
+        authTabButtons.forEach((button) => {
+          const isActive = button.dataset.authTab === authTab;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-selected", isActive ? "true" : "false");
         });
-        if (isReady && loginConsentMessage) {
-          loginConsentMessage.textContent = "";
+        authTabPanels.forEach((panel) => {
+          panel.classList.toggle("hidden", panel.dataset.authPanel !== authTab);
+        });
+      }
+
+      function setAuthTab(nextTab, message = "") {
+        authTab = nextTab === "signup" ? "signup" : "login";
+        if (loginAuthMessage) loginAuthMessage.textContent = authTab === "login" ? message : "";
+        if (signupConsentMessage) signupConsentMessage.textContent = authTab === "signup" ? message : "";
+        syncAuthTabUi();
+        syncSignupConsentUi();
+      }
+
+      function syncSignupConsentUi() {
+        allRequiredConsentsChecked = Boolean(signupAllRequiredConsents?.checked);
+        socialLoginButtons.forEach((button) => {
+          const mode = button.dataset.authMode === "signup" ? "signup" : "login";
+          const isPendingProvider = button.classList.contains("is-pending");
+          const shouldDisable = isPendingProvider || (mode === "signup" && !allRequiredConsentsChecked);
+          if (!button.classList.contains("cursor-wait")) {
+            button.disabled = shouldDisable;
+          }
+          button.setAttribute("aria-disabled", shouldDisable ? "true" : "false");
+        });
+        if (allRequiredConsentsChecked && signupConsentMessage) {
+          signupConsentMessage.textContent = "";
         }
       }
 
-      function requireLoginConsents() {
-        if (areLoginConsentsChecked()) {
-          persistRequiredConsent();
+      function toggleAllRequiredConsents() {
+        if (!signupAllRequiredConsents) return;
+        allRequiredConsentsChecked = !allRequiredConsentsChecked;
+        signupAllRequiredConsents.checked = allRequiredConsentsChecked;
+        syncSignupConsentUi();
+      }
+
+      function requireSignupConsents() {
+        if (hasSignupRequiredConsentsChecked()) {
+          persistSignupConsent();
           return true;
         }
 
-        if (loginConsentMessage) {
-          loginConsentMessage.textContent = "필수 약관에 동의해 주세요.";
+        if (signupConsentMessage) {
+          signupConsentMessage.textContent = "필수 약관 전체동의 후 회원가입을 진행해 주세요.";
         }
-        showAccountMenuToast("필수 약관에 동의해 주세요.");
+        showAccountMenuToast("필수 약관 전체동의 후 회원가입을 진행해 주세요.");
         return false;
       }
 
       function showRequiredConsentPrompt() {
-        showAccountMenuToast("필수 약관에 동의해 주세요.");
-        if (loginTermsConsent) loginTermsConsent.checked = false;
-        if (loginPrivacyConsent) loginPrivacyConsent.checked = false;
-        if (loginAgeConsent) loginAgeConsent.checked = false;
-        syncLoginConsentUi();
-        openLoginModal();
+        showAccountMenuToast("회원가입 시 필수 약관 동의가 필요합니다.");
+        setAuthTab("signup", "필수 약관 전체동의 후 회원가입을 진행해 주세요.");
+        openLoginModal(null, { tab: "signup" });
       }
 
       function ensureRequiredConsentsForProtectedAction() {
@@ -8359,16 +8481,19 @@ Important:
         const loginStatus = String(searchParams.get("login") || "").toLowerCase();
         const authStatus = String(searchParams.get("auth") || "").toLowerCase();
         const authError = String(searchParams.get("auth_error") || searchParams.get("error") || searchParams.get("code") || "").trim();
+        const normalizedAuthError = authError.toUpperCase();
         const blockedCodes = new Set([
           "ACCOUNT_DISABLED",
           "USER_DELETED",
           "ACCOUNT_DELETED",
           "ADMIN_REQUIRED",
           "LOGIN_REQUIRED",
+          "ACCOUNT_NOT_FOUND",
+          "ACCOUNT_ALREADY_EXISTS",
           "DUPLICATE_EMAIL_DIFFERENT_PROVIDER",
-          "duplicate_provider",
+          "DUPLICATE_PROVIDER",
         ]);
-        return loginStatus === "failed" || authStatus === "failed" || Boolean(authError && blockedCodes.has(authError));
+        return loginStatus === "failed" || authStatus === "failed" || Boolean(authError && blockedCodes.has(normalizedAuthError));
       }
 
       function getPaymentRedirectStatus() {
@@ -8400,11 +8525,23 @@ Important:
         const reason = String(searchParams.get("reason") || "").toLowerCase();
         const provider = String(searchParams.get("provider") || "").toLowerCase();
         const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
-        if (code === "ACCOUNT_DISABLED" || code === "USER_DELETED" || code === "ACCOUNT_DELETED") {
+        const normalizedCode = code.toUpperCase();
+        if (normalizedCode === "ACCOUNT_DISABLED" || normalizedCode === "USER_DELETED" || normalizedCode === "ACCOUNT_DELETED") {
           return "이용이 중지된 계정입니다.";
         }
-        if (code === "ADMIN_REQUIRED" || code === "LOGIN_REQUIRED") {
+        if (normalizedCode === "ADMIN_REQUIRED" || normalizedCode === "LOGIN_REQUIRED") {
           return "로그인 정보를 확인하지 못했어요.";
+        }
+        if (normalizedCode === "ACCOUNT_NOT_FOUND") {
+          return "가입된 계정이 없습니다. 회원가입을 먼저 진행해 주세요.";
+        }
+        if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
+          return "이미 가입된 계정입니다. 로그인으로 이용해 주세요.";
+        }
+        if (normalizedCode === "DUPLICATE_EMAIL_DIFFERENT_PROVIDER") {
+          const existingProvider = searchParams.get("existing_provider") || searchParams.get("existingProvider") || "";
+          const existingLabel = searchParams.get("existing_provider_label") || searchParams.get("existingProviderLabel") || getProviderLabel(existingProvider);
+          return `이미 ${existingLabel}로 가입된 이메일입니다. ${existingLabel} 로그인으로 이용해 주세요.`;
         }
         if (reason.includes("kakao") || provider === "kakao") {
           return "카카오 로그인에 실패했어요. 다시 시도해 주세요.";
@@ -8413,6 +8550,22 @@ Important:
           return "Google 로그인에 실패했어요. 다시 시도해 주세요.";
         }
         return "로그인에 실패했어요. 다시 시도해 주세요.";
+      }
+
+      function handleAuthModeErrorPrompt(searchParams = new URLSearchParams(window.location.search)) {
+        const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
+        const normalizedCode = code.toUpperCase();
+        if (normalizedCode === "ACCOUNT_NOT_FOUND") {
+          setAuthTab("signup", "가입된 계정이 없습니다. 회원가입을 먼저 진행해 주세요.");
+          openLoginModal(null, { tab: "signup" });
+          return true;
+        }
+        if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
+          setAuthTab("login", "이미 가입된 계정입니다. 로그인으로 이용해 주세요.");
+          openLoginModal(null, { tab: "login" });
+          return true;
+        }
+        return false;
       }
 
       function navigateToLoginReturnView(returnView) {
@@ -8449,11 +8602,6 @@ Important:
       function handlePostLoginExperience(returnView) {
         if (!currentUser) return;
         console.log("[auth] route after login:", { returnView, screen: appScreen, onboardingCompleted, freeGenerationEligible });
-
-        if (!userHasRequiredConsents(currentUser)) {
-          showRequiredConsentPrompt();
-          return;
-        }
 
         if (shouldShowOnboardingCards()) {
           clearPendingAction();
@@ -8526,7 +8674,9 @@ Important:
             .then(() => {
               applyAuthUser(null);
               showAccountMenuToast(getLoginFailureMessage(loginParams));
-              navigateToLoginReturnView(loginReturnView);
+              if (!handleAuthModeErrorPrompt(loginParams)) {
+                navigateToLoginReturnView(loginReturnView);
+              }
               openCreditManagementForPaymentResult(paymentStatus);
               return null;
             })
@@ -12622,12 +12772,12 @@ ${modeExample}`;
         }, 2200);
       }
 
-      function openLoginModal(trigger) {
+      function openLoginModal(trigger, options = {}) {
         if (!loginModalOverlay || !loginModalPanel) return;
 
         rememberLoginReturnView();
         activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
-        syncLoginConsentUi();
+        setAuthTab(options.tab || authTab || "login");
         loginModalOverlay.classList.add("is-open");
         loginModalOverlay.setAttribute("aria-hidden", "false");
 
@@ -12714,7 +12864,7 @@ ${modeExample}`;
           openLoginModal(button || activeAccountMenuTrigger);
           return;
         }
-        startOAuthLogin(safeProvider, button || duplicateProviderLoginButton);
+        startOAuthLogin(safeProvider, button || duplicateProviderLoginButton, "login");
       }
 
       function openCustomerInfoModal(trigger) {
@@ -12778,7 +12928,7 @@ ${modeExample}`;
       }
 
       function handleKakaoLogin(button) {
-        startOAuthLogin("kakao", button);
+        startOAuthLogin("kakao", button, getAuthModeFromButton(button));
       }
 
       function setSocialLoginButtonLoading(button, isLoading, label = "") {
@@ -12800,39 +12950,45 @@ ${modeExample}`;
         }
       }
 
-      function startOAuthLogin(provider, button) {
-        if (!requireLoginConsents()) {
-          return;
-        }
+      function getAuthModeFromButton(button) {
+        return button?.dataset?.authMode === "signup" ? "signup" : "login";
+      }
 
+      function startOAuthLogin(provider, button, mode = "login") {
         const safeProvider = sanitizeOAuthProvider(provider);
         if (!safeProvider) {
           showAccountMenuToast("소셜 로그인 연동을 준비 중입니다.");
           return;
         }
 
+        const authMode = mode === "signup" ? "signup" : "login";
+        if (authMode === "signup" && !requireSignupConsents()) {
+          return;
+        }
+
         const returnView = rememberLoginReturnView();
         const providerLabel = getOAuthProviderLabel(safeProvider);
-        const loginStartUrl = getOAuthLoginStartUrl(safeProvider, returnView);
+        const loginStartUrl = getOAuthLoginStartUrl(safeProvider, returnView, authMode);
         if (!loginStartUrl) {
           showAccountMenuToast(`${providerLabel} 로그인 연동을 준비 중입니다.`);
           return;
         }
 
-        setSocialLoginButtonLoading(button, true, `${providerLabel} 로그인으로 이동 중...`);
-        showAccountMenuToast(`${providerLabel} 로그인으로 이동 중...`);
+        const actionLabel = authMode === "signup" ? "회원가입" : "로그인";
+        setSocialLoginButtonLoading(button, true, `${providerLabel} ${actionLabel}으로 이동 중...`);
+        showAccountMenuToast(`${providerLabel} ${actionLabel}으로 이동 중...`);
         window.location.href = loginStartUrl;
       }
 
       function handleNaverLogin(button) {
-        startOAuthLogin("naver", button);
+        startOAuthLogin("naver", button, getAuthModeFromButton(button));
       }
 
-      function handleGoogleLogin() {
-        if (!requireLoginConsents()) {
+      function handleGoogleLogin(button) {
+        const authMode = getAuthModeFromButton(button);
+        if (authMode === "signup" && !requireSignupConsents()) {
           return;
         }
-
         showAccountMenuToast("Google 로그인은 현재 준비중입니다. 카카오톡 또는 네이버 로그인을 이용해 주세요.");
       }
 
@@ -13061,8 +13217,21 @@ ${modeExample}`;
         }
       });
 
-      loginConsentInputs.forEach((input) => {
-        input.addEventListener("change", syncLoginConsentUi);
+      authTabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setAuthTab(button.dataset.authTab);
+        });
+      });
+
+      authTabSwitchButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setAuthTab(button.dataset.authTabSwitch);
+        });
+      });
+
+      signupAllRequiredConsents?.addEventListener("change", () => {
+        allRequiredConsentsChecked = Boolean(signupAllRequiredConsents.checked);
+        syncSignupConsentUi();
       });
 
       policyTargetButtons.forEach((button) => {
@@ -13099,7 +13268,8 @@ ${modeExample}`;
           handleSocialLogin(button.dataset.socialLoginProvider, button);
         });
       });
-      syncLoginConsentUi();
+      syncAuthTabUi();
+      syncSignupConsentUi();
 
       accountMenuCustomerInfoButton?.addEventListener("click", (event) => {
         event.preventDefault();

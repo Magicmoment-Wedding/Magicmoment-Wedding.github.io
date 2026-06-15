@@ -1,4 +1,5 @@
 import { renderBottomNav } from "./bottom-nav.js";
+import { renderFirstTimeOnboarding } from "./first-time-onboarding.js";
 import { renderLoadingOverlay } from "./loading-overlay.js";
 import { renderModal } from "./modal.js";
 import { renderTopBar } from "./top-bar.js";
@@ -11,6 +12,7 @@ export function renderLayout({ route, title, content, state }) {
     </main>
     ${route === "credits" || route === "settings" ? "" : renderBottomNav({ route, hasResults: state.results.length > 0 })}
     ${renderModal(state)}
+    ${renderFirstTimeOnboarding(state)}
     ${state.isGenerating ? renderLoadingOverlay() : ""}
   `;
 }

@@ -10,6 +10,7 @@ import { renderHomePage } from "./pages/home.js";
 import { renderMorePage } from "./pages/more.js";
 import { renderOptionsPage } from "./pages/options.js";
 import { renderResultPage } from "./pages/result.js";
+import { renderSiteGuidePage } from "./pages/site-guide.js";
 import { renderStudioPage } from "./pages/studio.js";
 import { renderSuggestionsPage } from "./pages/suggestions.js";
 import { renderCreditsPage } from "./pages/credits.js";
@@ -20,6 +21,7 @@ import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } f
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
 import { getCredits, testChargeCredits } from "./services/credits-api.js";
+import { completeOnboarding, fetchCurrentUser, normalizeUser } from "./services/auth.js";
 import { getPresetPromptIntent } from "./services/prompt-intents.js";
 import { navigate, PREVIOUS_ROUTE, ROUTES, getRouteFromHash, initRouter } from "./services/router.js";
 import { getState, subscribe, updateState } from "./services/store.js";
@@ -132,6 +134,8 @@ function getPage(route, state) {
       return { title: "스타일 갤러리", content: renderGalleryPage(state) };
     case ROUTES.MORE:
       return { title: "더 많은 기능", content: renderMorePage(state) };
+    case ROUTES.SITE_GUIDE:
+      return { title: "사이트 이용안내", content: renderSiteGuidePage(state) };
     case ROUTES.CONCIERGE:
       return { title: "대행 서비스", content: renderConciergePage(state) };
     case ROUTES.STUDIO:
@@ -220,6 +224,148 @@ function openCustomPresetModal() {
       type: "customPreset",
     },
   });
+}
+
+function openLoginModal() {
+  updateState({
+    pendingAfterLogin: "generate",
+    pendingGenerate: true,
+    activeModal: {
+      type: "loginRequired",
+    },
+  });
+}
+
+function openFirstTimeOnboardingFlow() {
+  updateState({
+    activeModal: null,
+    firstTimeOnboardingOpen: true,
+    firstTimeOnboardingStep: 0,
+    onboardingErrorMessage: "",
+  });
+}
+
+function closeFirstTimeOnboardingFlow() {
+  updateState({
+    firstTimeOnboardingOpen: false,
+    firstTimeOnboardingStep: 0,
+    onboardingCompleting: false,
+  });
+}
+
+function showToast(message, type = "success") {
+  updateState({
+    activeModal: {
+      type: "success",
+      title: type === "error" ? "처리에 실패했습니다" : "완료되었습니다",
+      description: message,
+    },
+  });
+}
+
+function applyAuthSession(user) {
+  const normalizedUser = normalizeUser(user);
+
+  updateState({
+    currentUser: normalizedUser,
+    credits: normalizedUser?.creditBalance ?? getState().credits,
+    authLoading: false,
+  });
+}
+
+async function refreshCurrentUser() {
+  updateState({ authLoading: true });
+
+  try {
+    const user = await fetchCurrentUser();
+    applyAuthSession(user);
+
+    const state = getState();
+    if (user && state.pendingGenerate && user.onboardingCompleted === false) {
+      openFirstTimeOnboardingFlow();
+    }
+
+    return user;
+  } catch (error) {
+    console.warn("[auth] current user fetch failed", error);
+    updateState({ authLoading: false });
+    return null;
+  }
+}
+
+function startFreeGenerationFlow() {
+  navigate(ROUTES.CREATE);
+}
+
+function startPaidGenerationFlow() {
+  navigate(ROUTES.CREATE);
+}
+
+function handleCreateClick() {
+  const state = getState();
+
+  if (state.authLoading) {
+    return;
+  }
+
+  if (!state.currentUser) {
+    openLoginModal();
+    return;
+  }
+
+  if (state.currentUser.onboardingCompleted === false) {
+    openFirstTimeOnboardingFlow();
+    return;
+  }
+
+  if (
+    state.currentUser.onboardingCompleted === true &&
+    state.currentUser.freeGenerationEligible === true &&
+    state.currentUser.freeGenerationUsed !== true
+  ) {
+    startFreeGenerationFlow();
+    return;
+  }
+
+  if ((state.currentUser.creditBalance || 0) < 25) {
+    openCreditsModal("shortage", { requiredCredits: 25 });
+    return;
+  }
+
+  startPaidGenerationFlow();
+}
+
+async function completeFirstTimeOnboarding() {
+  const state = getState();
+
+  if (state.onboardingCompleting) {
+    return;
+  }
+
+  updateState({ onboardingCompleting: true });
+
+  try {
+    await completeOnboarding();
+
+    const refreshedUser = await fetchCurrentUser();
+    if (refreshedUser) {
+      applyAuthSession(refreshedUser);
+    }
+
+    closeFirstTimeOnboardingFlow();
+    updateState({
+      pendingAfterLogin: null,
+      pendingGenerate: false,
+    });
+    navigate(ROUTES.CREATE);
+    showToast("이용안내가 완료되었습니다. 첫 1회 무료 제작을 시작할 수 있어요.");
+  } catch (error) {
+    console.error("[onboarding] complete failed", error);
+    updateState({
+      onboardingCompleting: false,
+      onboardingErrorMessage: "이용안내 완료 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    });
+  }
 }
 
 function getGalleryStyle(styleId) {
@@ -582,6 +728,19 @@ async function handleAction(action, target) {
     return;
   }
 
+  if (action === "next-first-onboarding") {
+    updateState({
+      firstTimeOnboardingStep: Math.min((state.firstTimeOnboardingStep ?? 0) + 1, 2),
+      onboardingErrorMessage: "",
+    });
+    return;
+  }
+
+  if (action === "complete-first-onboarding") {
+    await completeFirstTimeOnboarding();
+    return;
+  }
+
   if (action === "open-image-modal") {
     // concierge 페이지에서 data-image-url로 직접 전달받는 경우
     if (target?.dataset.imageUrl) {
@@ -839,6 +998,11 @@ app.addEventListener("click", async (event) => {
   }
 
   if (target.dataset.route) {
+    if (target.dataset.route === ROUTES.CREATE) {
+      handleCreateClick();
+      return;
+    }
+
     navigate(target.dataset.route);
     return;
   }
@@ -1025,3 +1189,4 @@ subscribe((state) => {
 
 initRouter(syncRoute);
 renderRoute(getState().route, getState());
+void refreshCurrentUser();

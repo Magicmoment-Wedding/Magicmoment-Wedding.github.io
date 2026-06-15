@@ -199,6 +199,24 @@ function renderCustomPresetModal(state) {
   `);
 }
 
+function renderLoginRequiredModal() {
+  return renderShell(`
+    <div class="flex flex-col gap-5 text-center">
+      <div class="w-14 h-14 mx-auto rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-[28px]" style="font-variation-settings: 'FILL' 1;">person</span>
+      </div>
+      <div class="space-y-2">
+        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">LOGIN REQUIRED</p>
+        <h3 class="font-display text-[30px] leading-none text-on-surface">로그인이 필요합니다</h3>
+        <p class="text-sm text-on-surface-variant">첫 1회 무료 제작과 크레딧 상태 확인을 위해 로그인 후 다시 시도해 주세요.</p>
+      </div>
+      <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="close-modal">
+        확인
+      </button>
+    </div>
+  `);
+}
+
 function renderImageModal(imageModal) {
   const items = Array.isArray(imageModal.items) ? imageModal.items : [];
   const hasNavigation = items.length > 1;
@@ -291,6 +309,11 @@ export function renderModal(state) {
 
   if (modal.type === "customPreset") {
     modalHtml.push(renderCustomPresetModal(state));
+    return modalHtml.join("");
+  }
+
+  if (modal.type === "loginRequired") {
+    modalHtml.push(renderLoginRequiredModal());
     return modalHtml.join("");
   }
 

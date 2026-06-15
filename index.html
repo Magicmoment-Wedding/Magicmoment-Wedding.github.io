@@ -3499,6 +3499,58 @@
         display: none;
       }
 
+      .auth-processing-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(255, 248, 250, 0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .auth-processing-overlay.is-active {
+        display: flex;
+      }
+
+      .auth-processing-card {
+        width: min(320px, 100%);
+        border-radius: 28px;
+        padding: 28px 22px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 18px 60px rgba(90, 40, 58, 0.16);
+        text-align: center;
+      }
+
+      .auth-processing-spinner {
+        width: 34px;
+        height: 34px;
+        margin: 18px auto;
+        border-radius: 9999px;
+        border: 3px solid rgba(129, 80, 92, 0.18);
+        border-top-color: var(--rose-deep);
+        animation: orbitSpin 0.8s linear infinite;
+      }
+
+      .auth-processing-title {
+        color: var(--rose-deep);
+        font-size: 20px;
+        font-weight: 900;
+        line-height: 1.3;
+        word-break: keep-all;
+      }
+
+      .auth-processing-copy {
+        margin-top: 8px;
+        color: #6f5b60;
+        font-size: 14px;
+        line-height: 1.65;
+        word-break: keep-all;
+      }
+
       .app-bottom-nav button {
         height: 46px;
         border-radius: 18px;
@@ -4899,6 +4951,18 @@
               <span>어시스턴트</span>
             </button>
           </nav>
+
+          <div class="auth-processing-overlay" id="authProcessingOverlay" aria-hidden="true">
+            <section class="auth-processing-card" role="status" aria-live="polite" aria-labelledby="authProcessingTitle" aria-describedby="authProcessingMessage">
+              <span class="brand-logo brand-logo-horizontal brand-logo-md" aria-label="Magic Ai Studio">
+                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                <span class="brand-logo-fallback">Magic Ai Studio</span>
+              </span>
+              <div class="auth-processing-spinner" aria-hidden="true"></div>
+              <h3 class="auth-processing-title" id="authProcessingTitle">가입 중입니다</h3>
+              <p class="auth-processing-copy" id="authProcessingMessage">계정 정보를 확인하고 첫 이용 안내를 준비하고 있어요. 잠시만 기다려 주세요.</p>
+            </section>
+          </div>
         </div>
       </section>
     </main>
@@ -5246,6 +5310,7 @@
       const SIGNUP_CONSENT_STORAGE_KEY = "magic_signup_consents";
       const AUTH_MODE_STORAGE_KEY = "magic_auth_mode";
       const AUTH_PROVIDER_STORAGE_KEY = "magic_auth_provider";
+      const SIGNUP_PROCESSING_STORAGE_KEY = "magic_signup_processing";
       const NICEPAY_SDK_URL = "https://pay.nicepay.co.kr/v1/js/";
       const NICEPAY_SDK_SCRIPT_ID = "nicepay-sdk-script";
       const LAST_PAYMENT_ORDER_ID_STORAGE_KEY = "magic_last_payment_order_id";
@@ -6449,6 +6514,11 @@ Important:
         const authMode = mode === "signup" ? "signup" : "login";
         try {
           window.sessionStorage.setItem(AUTH_MODE_STORAGE_KEY, authMode);
+          if (authMode === "signup") {
+            window.sessionStorage.setItem(SIGNUP_PROCESSING_STORAGE_KEY, "true");
+          } else {
+            window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
+          }
           if (safeProvider) {
             window.sessionStorage.setItem(AUTH_PROVIDER_STORAGE_KEY, safeProvider);
           }
@@ -6471,11 +6541,83 @@ Important:
         return getStoredAuthMode();
       }
 
+      function getPendingAuthProcessingMode() {
+        try {
+          const storedMode = window.sessionStorage.getItem(AUTH_MODE_STORAGE_KEY);
+          const signupProcessing = window.sessionStorage.getItem(SIGNUP_PROCESSING_STORAGE_KEY) === "true";
+          if (storedMode === "signup" || signupProcessing) return "signup";
+          if (storedMode === "login" && window.sessionStorage.getItem(LOGIN_STARTED_STORAGE_KEY) === "true") return "login";
+        } catch (error) {
+          return "";
+        }
+        return "";
+      }
+
+      function getAuthProcessingCopy(mode = "login", subMessage = "") {
+        const authMode = mode === "signup" ? "signup" : "login";
+        return {
+          title: authMode === "signup" ? "가입 중입니다" : "로그인 중입니다",
+          message: subMessage || (
+            authMode === "signup"
+              ? "계정 정보를 확인하고 첫 이용 안내를 준비하고 있어요. 잠시만 기다려 주세요."
+              : "계정 정보를 확인하고 있어요. 잠시만 기다려 주세요."
+          ),
+        };
+      }
+
+      function clearAuthProcessingTimers() {
+        authProcessingTimerIds.forEach((timerId) => window.clearTimeout(timerId));
+        authProcessingTimerIds = [];
+      }
+
+      function updateAuthProcessingMessage(message) {
+        if (authProcessingMessage) {
+          authProcessingMessage.textContent = message;
+        }
+      }
+
+      function scheduleAuthProcessingTimeouts(mode = "login") {
+        clearAuthProcessingTimers();
+        const isSignup = mode === "signup";
+        const messages = isSignup
+          ? [
+            [8000, "조금만 더 기다려 주세요. 계정 정보를 확인하고 첫 이용 안내를 준비하고 있어요."],
+            [20000, "처리가 지연되고 있습니다. 새로고침하지 말고 잠시만 기다려 주세요."],
+            [40000, "처리가 오래 걸리고 있습니다. 문제가 계속되면 다시 시도해 주세요."],
+          ]
+          : [
+            [8000, "조금만 더 기다려 주세요. 계정 정보를 확인하고 있어요."],
+            [20000, "처리가 지연되고 있습니다. 새로고침하지 말고 잠시만 기다려 주세요."],
+            [40000, "처리가 오래 걸리고 있습니다. 문제가 계속되면 다시 시도해 주세요."],
+          ];
+
+        authProcessingTimerIds = messages.map(([delay, message]) => window.setTimeout(() => {
+          updateAuthProcessingMessage(message);
+        }, delay));
+      }
+
+      function showAuthProcessingOverlay(mode = "login", subMessage = "") {
+        if (!authProcessingOverlay) return;
+        const copy = getAuthProcessingCopy(mode, subMessage);
+        if (authProcessingTitle) authProcessingTitle.textContent = copy.title;
+        if (authProcessingMessage) authProcessingMessage.textContent = copy.message;
+        authProcessingOverlay.classList.add("is-active");
+        authProcessingOverlay.setAttribute("aria-hidden", "false");
+        scheduleAuthProcessingTimeouts(mode);
+      }
+
+      function hideAuthProcessingOverlay() {
+        clearAuthProcessingTimers();
+        authProcessingOverlay?.classList.remove("is-active");
+        authProcessingOverlay?.setAttribute("aria-hidden", "true");
+      }
+
       function clearAuthStartState() {
         try {
           window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_MODE_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_PROVIDER_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
         } catch (error) {
           return;
         }
@@ -8886,6 +9028,7 @@ Important:
 
       async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
         const authMode = getAuthModeFromParams(loginParams);
+        showAuthProcessingOverlay(authMode);
         console.log("[auth] callback query:", Object.fromEntries(loginParams.entries()));
         console.log("[auth] login success detected:", { mode: authMode, provider: loginParams.get("provider") || "" });
         console.log("[auth] fetchCurrentUser after success");
@@ -8927,6 +9070,7 @@ Important:
           clearAuthStartState();
           cleanLoginRedirectQuery();
           clearLoginReturnState();
+          hideAuthProcessingOverlay();
           console.log("[auth] cleaned auth query:", window.location.search);
         }
       }
@@ -8938,6 +9082,10 @@ Important:
 
         console.log("[auth] app mounted - checking me");
         const loginParams = new URLSearchParams(window.location.search);
+        const pendingAuthProcessingMode = getPendingAuthProcessingMode();
+        if (pendingAuthProcessingMode) {
+          showAuthProcessingOverlay(pendingAuthProcessingMode);
+        }
         const paymentStatus = getPaymentRedirectStatus();
         const loginReturnView = getLoginRedirectReturnView();
         const hasDuplicateProviderQuery = getDuplicateProviderErrorFromParams(loginParams);
@@ -8947,6 +9095,7 @@ Important:
             console.log("[auth] auth error:", loginParams.get("auth_error") || loginParams.get("code") || "duplicate_provider");
             handleDuplicateProviderRedirectQuery(loginParams);
             clearAuthStartState();
+            hideAuthProcessingOverlay();
             return null;
           });
           return authStartupCheckPromise;
@@ -8963,6 +9112,7 @@ Important:
               console.log("[auth] auth error:", loginParams.get("auth_error") || loginParams.get("code") || loginParams.get("error") || "");
               applyAuthUser(null);
               showAccountMenuToast(getLoginFailureMessage(loginParams));
+              hideAuthProcessingOverlay();
               if (!handleAuthModeErrorPrompt(loginParams)) {
                 navigateToLoginReturnView(loginReturnView);
               }
@@ -8973,6 +9123,7 @@ Important:
               clearAuthStartState();
               cleanLoginRedirectQuery();
               clearLoginReturnState();
+              hideAuthProcessingOverlay();
               console.log("[auth] cleaned auth query:", window.location.search);
               if (hasPaymentQuery) {
                 cleanPaymentRedirectQuery();
@@ -9003,7 +9154,35 @@ Important:
         }
 
         authStartupCheckPromise = refreshAuthState({ showError: false })
-          .then((user) => {
+          .then(async (user) => {
+            if (pendingAuthProcessingMode === "signup" && !user) {
+              clearAuthStartState();
+              clearLoginReturnState();
+              hideAuthProcessingOverlay();
+              showAccountMenuToast("회원가입 정보를 확인하지 못했습니다. 다시 시도해 주세요.");
+            }
+            if (pendingAuthProcessingMode === "signup" && user) {
+              try {
+                const didSaveConsents = await acceptSignupConsentsIfNeeded("signup");
+                if (didSaveConsents) {
+                  const refreshedUser = await refreshAuthState({ showError: false });
+                  if (refreshedUser) {
+                    user = refreshedUser;
+                  }
+                }
+                showAccountMenuToast("회원가입이 완료되었습니다.");
+                handlePostLoginExperience(loginReturnView);
+              } catch (error) {
+                if (DEBUG_MODE) {
+                  console.warn("[auth] pending signup recovery failed:", error);
+                }
+                showAccountMenuToast("회원가입 정보를 확인하지 못했습니다. 다시 시도해 주세요.");
+              } finally {
+                clearAuthStartState();
+                clearLoginReturnState();
+                hideAuthProcessingOverlay();
+              }
+            }
             openCreditManagementForPaymentResult(paymentStatus);
             return user;
           })
@@ -9011,6 +9190,11 @@ Important:
             if (DEBUG_MODE) {
               console.warn("[client][auth] startup check failed:", error);
             }
+            if (pendingAuthProcessingMode) {
+              clearAuthStartState();
+              clearLoginReturnState();
+            }
+            hideAuthProcessingOverlay();
             openCreditManagementForPaymentResult(paymentStatus);
             return null;
           })
@@ -9021,6 +9205,9 @@ Important:
             }
             if (hasPaymentQuery) {
               cleanPaymentRedirectQuery();
+            }
+            if (pendingAuthProcessingMode) {
+              hideAuthProcessingOverlay();
             }
           });
 
@@ -12980,6 +13167,9 @@ ${modeExample}`;
       const customerInfoProfileValue = document.getElementById("customerInfoProfileValue");
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
       const appBottomNav = document.querySelector(".app-bottom-nav");
+      const authProcessingOverlay = document.getElementById("authProcessingOverlay");
+      const authProcessingTitle = document.getElementById("authProcessingTitle");
+      const authProcessingMessage = document.getElementById("authProcessingMessage");
       const bottomNavItems = Array.from(document.querySelectorAll("[data-bottom-nav]"));
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
       const accountMenuTriggerButtons = [
@@ -12993,6 +13183,7 @@ ${modeExample}`;
       let activeAccountMenuTrigger = null;
       let activeLoginModalTrigger = null;
       let accountMenuToastTimerId = null;
+      let authProcessingTimerIds = [];
 
       void startAuthStartupCheck();
 
@@ -13329,6 +13520,9 @@ ${modeExample}`;
         console.log("[auth] startSocialAuth mode:", authMode);
         console.log("[auth] redirect URL:", loginStartUrl);
         setSocialLoginButtonLoading(button, true, `${providerLabel} ${actionLabel}으로 이동 중...`);
+        showAuthProcessingOverlay(authMode, authMode === "signup"
+          ? "소셜 계정 확인 후 자동으로 다음 단계로 이동합니다."
+          : "소셜 계정 확인 후 자동으로 돌아옵니다.");
         showAccountMenuToast(`${providerLabel} ${actionLabel}으로 이동 중...`);
         window.location.href = loginStartUrl;
       }

@@ -8432,7 +8432,7 @@ Important:
           button.dataset.defaultLabel = defaultLabel;
           const isActivePayment = activePaymentPackageId === packageId;
           button.disabled = isPaymentLoading;
-          button.textContent = isActivePayment ? "결제창 준비 중..." : defaultLabel;
+          button.textContent = isActivePayment ? "결제 준비 중..." : defaultLabel;
         });
 
         syncAccountMenuUi();
@@ -8464,7 +8464,7 @@ Important:
         return rewardCredits;
       }
 
-      function showCreditStatus(message, type = "success") {
+      function showCreditStatus(message, type = "success", options = {}) {
         if (!creditStatusText) return;
 
         if (!message) {
@@ -8473,7 +8473,9 @@ Important:
           return;
         }
 
-        creditStatusText.textContent = message;
+        const code = String(options.code || "").trim();
+        creditStatusText.textContent = code ? `${message}\n오류 코드: ${code}` : message;
+        creditStatusText.style.whiteSpace = "pre-wrap";
         creditStatusText.className = type === "error"
           ? "rounded-DEFAULT border px-4 py-3 text-sm bg-red-50/80 text-red-600 border-red-100"
           : "rounded-DEFAULT border px-4 py-3 text-sm bg-primary/10 text-primary border-primary/15";
@@ -8507,24 +8509,65 @@ Important:
         return `${FRONT_API_BASE_URL}/api/payments/nice/prepare`;
       }
 
+      function getPaymentReadyErrorMessage(code, fallback = "") {
+        const normalizedCode = String(code || "").trim().toUpperCase();
+        switch (normalizedCode) {
+          case "LOGIN_REQUIRED":
+          case "AUTH_REQUIRED":
+            return "결제를 위해 로그인이 필요합니다.";
+          case "CONSENT_REQUIRED":
+            return "결제를 진행하려면 필수 약관 동의가 필요합니다.";
+          case "ACCOUNT_DISABLED":
+          case "USER_DELETED":
+          case "ACCOUNT_DELETED":
+            return "이용이 제한된 계정입니다. 문의하기를 이용해 주세요.";
+          case "INVALID_PRODUCT":
+          case "INVALID_PACKAGE":
+          case "PRODUCT_NOT_FOUND":
+            return "선택한 크레딧 상품 정보를 확인할 수 없습니다.";
+          case "NICEPAY_CONFIG_MISSING":
+            return "결제 설정이 준비되지 않았습니다. 관리자에게 문의해 주세요.";
+          case "PAYMENT_ORDER_CREATE_FAILED":
+            return "결제 주문 생성 중 문제가 발생했습니다.";
+          default:
+            return fallback || PAYMENT_PREPARE_FAILED_MESSAGE;
+        }
+      }
+
       function normalizeNicePaymentPayload(payload = {}) {
         const payment = payload?.payment ?? payload?.data?.payment ?? payload?.data ?? payload;
         return payment && typeof payment === "object" ? payment : {};
       }
 
       async function prepareNicePayment(packageId) {
-        const response = await fetch(getNicePaymentPrepareUrl(), {
+        const endpoint = getNicePaymentPrepareUrl();
+        console.log("[payment] ready endpoint", endpoint);
+        const response = await fetch(endpoint, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ packageId }),
+          body: JSON.stringify({ packageId, productId: packageId }),
         });
         const payload = await response.json().catch(() => ({}));
 
+        console.log("[payment] ready response", {
+          status: response.status,
+          ok: response.ok,
+          code: payload?.code || payload?.error,
+          message: payload?.message,
+          data: payload,
+        });
+
         if (!response.ok || payload?.ok === false) {
-          throw new Error(payload?.message || payload?.error || `Payment prepare request failed: ${response.status}`);
+          const code = String(payload?.code || payload?.error || "PAYMENT_READY_FAILED").trim().toUpperCase();
+          const message = getPaymentReadyErrorMessage(code, payload?.message || payload?.error || "");
+          throw Object.assign(new Error(message), {
+            code,
+            status: response.status,
+            data: payload,
+          });
         }
 
         return normalizeNicePaymentPayload(payload);
@@ -8667,11 +8710,6 @@ Important:
           return;
         }
 
-        if (!ensureRequiredConsentsForProtectedAction()) {
-          showCreditStatus("필수 약관에 동의해 주세요.", "error");
-          return;
-        }
-
         if (isPaymentLoading) return;
 
         isPaymentLoading = true;
@@ -8680,6 +8718,14 @@ Important:
         updateCreditUi();
 
         try {
+          console.log("[payment] current user before ready", {
+            id: currentUser?.id,
+            email: currentUser?.email,
+            creditBalance: currentUser?.creditBalance,
+            hasRequiredConsents: currentUser?.hasRequiredConsents,
+            consentRequired: currentUser?.consentRequired,
+            isLegacyUser: currentUser?.isLegacyUser,
+          });
           const payment = await prepareNicePayment(packageId);
           await loadNicepaySdk();
           requestNicePayment(payment);
@@ -8687,16 +8733,28 @@ Important:
           activePaymentPackageId = null;
           updateCreditUi();
         } catch (error) {
-          if (DEBUG_MODE) {
-            console.warn("[client][payments] NICEPAY start failed:", error);
+          console.error("[payment] ready failed", {
+            status: error?.status,
+            code: error?.code,
+            message: error?.message,
+            data: error?.data,
+          });
+
+          if (error?.code === "CONSENT_REQUIRED") {
+            const message = getPaymentReadyErrorMessage(error.code, error.message);
+            showCreditStatus(`${message}\n기존 회원에게 계속 표시되면 약관 정책 적용 상태를 확인해 주세요.`, "error", { code: error.code });
+            showAccountMenuToast(message);
+            showRequiredConsentPrompt();
+          } else {
+            const code = error?.code || "";
+            const message = error?.message?.includes("SDK")
+              ? PAYMENT_SDK_LOAD_FAILED_MESSAGE
+              : error?.message?.includes("AUTHNICE")
+                ? PAYMENT_MODULE_UNAVAILABLE_MESSAGE
+                : getPaymentReadyErrorMessage(code, error?.message);
+            showCreditStatus(message, "error", { code });
+            showAccountMenuToast(message);
           }
-          const message = error?.message?.includes("SDK")
-            ? PAYMENT_SDK_LOAD_FAILED_MESSAGE
-            : error?.message?.includes("AUTHNICE")
-              ? PAYMENT_MODULE_UNAVAILABLE_MESSAGE
-              : PAYMENT_PREPARE_FAILED_MESSAGE;
-          showCreditStatus(message, "error");
-          showAccountMenuToast(message);
           isPaymentLoading = false;
           activePaymentPackageId = null;
           updateCreditUi();

@@ -122,6 +122,19 @@
         },
       };
     </script>
+    <script>
+      try {
+        const authFlowProcessing = window.sessionStorage.getItem("auth_flow_processing") === "true";
+        const legacyAuthMode = window.sessionStorage.getItem("magic_auth_mode");
+        const legacyLoginStarted = window.sessionStorage.getItem("magic_login_started") === "true";
+        const legacySignupProcessing = window.sessionStorage.getItem("magic_signup_processing") === "true";
+        if (authFlowProcessing || legacySignupProcessing || (legacyAuthMode && legacyLoginStarted)) {
+          document.documentElement.classList.add("auth-flow-pending");
+        }
+      } catch (error) {
+        // sessionStorage may be unavailable in private or restricted browsing modes.
+      }
+    </script>
     <style>
       :root {
         --rose: #c48b97;
@@ -270,6 +283,20 @@
       .app-topbar-logo {
         flex: 0 1 auto;
         min-width: 0;
+      }
+
+      .app-topbar-logo-button {
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        color: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .app-topbar-logo img {
@@ -3637,9 +3664,9 @@
       }
 
       .auth-processing-overlay {
-        position: absolute;
+        position: fixed;
         inset: 0;
-        z-index: 200;
+        z-index: 1000;
         display: none;
         align-items: center;
         justify-content: center;
@@ -3647,10 +3674,17 @@
         background: rgba(255, 248, 250, 0.88);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        overscroll-behavior: contain;
+        touch-action: none;
       }
 
-      .auth-processing-overlay.is-active {
+      .auth-processing-overlay.is-active,
+      .auth-flow-pending .auth-processing-overlay {
         display: flex;
+      }
+
+      .auth-flow-pending .landing-page {
+        visibility: hidden;
       }
 
       .auth-processing-card {
@@ -3685,6 +3719,15 @@
         color: #6f5b60;
         font-size: 14px;
         line-height: 1.65;
+        word-break: keep-all;
+      }
+
+      .auth-processing-help {
+        margin-top: 14px;
+        color: #81505c;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.5;
         word-break: keep-all;
       }
 
@@ -4204,10 +4247,12 @@
                 <span class="material-symbols-outlined text-[17px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
                 <span class="font-semibold">크레딧</span>
               </button>
-              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
-                <span class="brand-logo-fallback">Magic Ai Studio</span>
-              </span>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <button id="topSettingsButton" class="w-10 h-10 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-sm" type="button" aria-label="계정 메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="accountMenuPanel">
                 <span class="material-symbols-outlined text-[20px]">settings</span>
               </button>
@@ -4279,10 +4324,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo editor-topbar-logo" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
-                <span class="brand-logo-fallback">Magic Ai Studio</span>
-              </span>
+              <button class="app-topbar-logo-button editor-topbar-logo" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-action="account-menu" type="button" aria-label="계정 메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="accountMenuPanel">
                 <span class="material-symbols-outlined text-[19px]">settings</span>
               </button>
@@ -4591,10 +4638,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
-                <span class="brand-logo-fallback">Magic Ai Studio</span>
-              </span>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
             <section class="flex flex-col gap-4 hidden mt-3" id="resultSection">
@@ -4681,7 +4730,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">스타일 갤러리</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
             <div id="galleryContent" class="mt-4"></div>
@@ -4692,7 +4746,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button" aria-label="뒤로가기">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">마이포토박스</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
 
@@ -4750,7 +4809,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button" aria-label="뒤로가기">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">사이트 이용안내</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
 
@@ -4835,7 +4899,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">크레딧 충전</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
 
@@ -4952,7 +5021,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button" aria-label="뒤로가기">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">관리자</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
 
@@ -4964,7 +5038,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-policy-back type="button" aria-label="뒤로가기">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">이용약관</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
             <div class="mt-4 flex flex-col gap-4">
@@ -5018,7 +5097,12 @@
               <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-policy-back type="button" aria-label="뒤로가기">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
-              <p class="font-display text-[19px] text-primary">개인정보 처리방침</p>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
               <span class="w-9"></span>
             </div>
             <div class="mt-4 flex flex-col gap-4">
@@ -5102,8 +5186,9 @@
                 <span class="brand-logo-fallback">Magic Ai Studio</span>
               </span>
               <div class="auth-processing-spinner" aria-hidden="true"></div>
-              <h3 class="auth-processing-title" id="authProcessingTitle">가입 중입니다</h3>
-              <p class="auth-processing-copy" id="authProcessingMessage">계정 정보를 확인하고 첫 이용 안내를 준비하고 있어요. 잠시만 기다려 주세요.</p>
+              <h3 class="auth-processing-title" id="authProcessingTitle">회원가입 중입니다</h3>
+              <p class="auth-processing-copy" id="authProcessingMessage">계정을 생성하고 정보를 불러오고 있어요. 잠시만 기다려 주세요.</p>
+              <p class="auth-processing-help">앱을 닫지 말고 잠시 기다려 주세요.</p>
             </section>
           </div>
         </div>
@@ -5481,6 +5566,10 @@
       const AUTH_MODE_STORAGE_KEY = "magic_auth_mode";
       const AUTH_PROVIDER_STORAGE_KEY = "magic_auth_provider";
       const SIGNUP_PROCESSING_STORAGE_KEY = "magic_signup_processing";
+      const AUTH_FLOW_MODE_STORAGE_KEY = "auth_flow_mode";
+      const AUTH_FLOW_PROCESSING_STORAGE_KEY = "auth_flow_processing";
+      const AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY = "auth_open_account_menu";
+      const AUTH_PENDING_STARTED_AT_STORAGE_KEY = "auth_pending_started_at";
       const LAST_ACTIVITY_STORAGE_KEY = "magic_last_activity_at";
       const SESSION_STARTED_STORAGE_KEY = "magic_session_started_at";
       const AUTO_LOGOUT_WARNING_STORAGE_KEY = "magic_auto_logout_warning_shown";
@@ -6699,8 +6788,13 @@ Important:
       function persistAuthStartState(provider, mode) {
         const safeProvider = sanitizeOAuthProvider(provider);
         const authMode = mode === "signup" ? "signup" : "login";
+        const now = Date.now();
         try {
           window.sessionStorage.setItem(AUTH_MODE_STORAGE_KEY, authMode);
+          window.sessionStorage.setItem(AUTH_FLOW_MODE_STORAGE_KEY, authMode);
+          window.sessionStorage.setItem(AUTH_FLOW_PROCESSING_STORAGE_KEY, "true");
+          window.sessionStorage.setItem(AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY, "true");
+          window.sessionStorage.setItem(AUTH_PENDING_STARTED_AT_STORAGE_KEY, String(now));
           if (authMode === "signup") {
             window.sessionStorage.setItem(SIGNUP_PROCESSING_STORAGE_KEY, "true");
           } else {
@@ -6709,6 +6803,13 @@ Important:
           if (safeProvider) {
             window.sessionStorage.setItem(AUTH_PROVIDER_STORAGE_KEY, safeProvider);
           }
+          authFlowState = `${authMode}-processing`;
+          authFlowMode = authMode;
+          authProcessingMessageText = authMode === "signup"
+            ? "회원가입 중입니다. 잠시만 기다려 주세요."
+            : "로그인 중입니다. 잠시만 기다려 주세요.";
+          shouldOpenAccountMenuAfterAuth = true;
+          pendingAuthStartedAt = now;
         } catch (error) {
           return;
         }
@@ -6716,6 +6817,8 @@ Important:
 
       function getStoredAuthMode() {
         try {
+          const flowMode = window.sessionStorage.getItem(AUTH_FLOW_MODE_STORAGE_KEY);
+          if (flowMode === "signup" || flowMode === "login") return flowMode;
           return window.sessionStorage.getItem(AUTH_MODE_STORAGE_KEY) === "signup" ? "signup" : "login";
         } catch (error) {
           return "login";
@@ -6730,6 +6833,9 @@ Important:
 
       function getPendingAuthProcessingMode() {
         try {
+          const flowProcessing = window.sessionStorage.getItem(AUTH_FLOW_PROCESSING_STORAGE_KEY) === "true";
+          const flowMode = window.sessionStorage.getItem(AUTH_FLOW_MODE_STORAGE_KEY);
+          if (flowProcessing && (flowMode === "signup" || flowMode === "login")) return flowMode;
           const storedMode = window.sessionStorage.getItem(AUTH_MODE_STORAGE_KEY);
           const signupProcessing = window.sessionStorage.getItem(SIGNUP_PROCESSING_STORAGE_KEY) === "true";
           if (storedMode === "signup" || signupProcessing) return "signup";
@@ -6743,10 +6849,10 @@ Important:
       function getAuthProcessingCopy(mode = "login", subMessage = "") {
         const authMode = mode === "signup" ? "signup" : "login";
         return {
-          title: authMode === "signup" ? "가입 중입니다" : "로그인 중입니다",
+          title: authMode === "signup" ? "회원가입 중입니다" : "로그인 중입니다",
           message: subMessage || (
             authMode === "signup"
-              ? "계정 정보를 확인하고 첫 이용 안내를 준비하고 있어요. 잠시만 기다려 주세요."
+              ? "계정을 생성하고 정보를 불러오고 있어요. 잠시만 기다려 주세요."
               : "계정 정보를 확인하고 있어요. 잠시만 기다려 주세요."
           ),
         };
@@ -6768,13 +6874,13 @@ Important:
         const isSignup = mode === "signup";
         const messages = isSignup
           ? [
-            [8000, "조금만 더 기다려 주세요. 계정 정보를 확인하고 첫 이용 안내를 준비하고 있어요."],
-            [20000, "처리가 지연되고 있습니다. 새로고침하지 말고 잠시만 기다려 주세요."],
+            [15000, "계정 확인에 시간이 조금 더 걸리고 있어요. 앱을 닫지 말고 잠시 기다려 주세요."],
+            [30000, "처리가 지연되고 있습니다. 새로고침하지 말고 잠시만 기다려 주세요."],
             [40000, "처리가 오래 걸리고 있습니다. 문제가 계속되면 다시 시도해 주세요."],
           ]
           : [
-            [8000, "조금만 더 기다려 주세요. 계정 정보를 확인하고 있어요."],
-            [20000, "처리가 지연되고 있습니다. 새로고침하지 말고 잠시만 기다려 주세요."],
+            [15000, "계정 확인에 시간이 조금 더 걸리고 있어요. 앱을 닫지 말고 잠시 기다려 주세요."],
+            [30000, "처리가 지연되고 있습니다. 새로고침하지 말고 잠시만 기다려 주세요."],
             [40000, "처리가 오래 걸리고 있습니다. 문제가 계속되면 다시 시도해 주세요."],
           ];
 
@@ -6785,9 +6891,17 @@ Important:
 
       function showAuthProcessingOverlay(mode = "login", subMessage = "") {
         if (!authProcessingOverlay) return;
+        const authMode = mode === "signup" ? "signup" : "login";
         const copy = getAuthProcessingCopy(mode, subMessage);
         if (authProcessingTitle) authProcessingTitle.textContent = copy.title;
         if (authProcessingMessage) authProcessingMessage.textContent = copy.message;
+        authFlowState = `${authMode}-processing`;
+        authFlowMode = authMode;
+        authProcessingMessageText = copy.message;
+        shouldOpenAccountMenuAfterAuth = true;
+        pendingAuthStartedAt = pendingAuthStartedAt || Date.now();
+        document.documentElement.classList.add("auth-flow-pending");
+        document.body?.classList.add("overflow-hidden");
         authProcessingOverlay.classList.add("is-active");
         authProcessingOverlay.setAttribute("aria-hidden", "false");
         scheduleAuthProcessingTimeouts(mode);
@@ -6795,6 +6909,8 @@ Important:
 
       function hideAuthProcessingOverlay() {
         clearAuthProcessingTimers();
+        document.documentElement.classList.remove("auth-flow-pending");
+        document.body?.classList.remove("overflow-hidden");
         authProcessingOverlay?.classList.remove("is-active");
         authProcessingOverlay?.setAttribute("aria-hidden", "true");
       }
@@ -6805,6 +6921,15 @@ Important:
           window.sessionStorage.removeItem(AUTH_MODE_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_PROVIDER_STORAGE_KEY);
           window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_FLOW_MODE_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_FLOW_PROCESSING_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_PENDING_STARTED_AT_STORAGE_KEY);
+          authFlowState = "idle";
+          authFlowMode = null;
+          authProcessingMessageText = "";
+          shouldOpenAccountMenuAfterAuth = false;
+          pendingAuthStartedAt = null;
         } catch (error) {
           return;
         }
@@ -9428,7 +9553,10 @@ Important:
           return true;
         }
         if (normalizedCode === "LOGIN_FAILED") {
-          setAuthTab(getAuthModeFromParams(searchParams), "로그인 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          const failedMode = getAuthModeFromParams(searchParams);
+          setAuthTab(failedMode, failedMode === "signup"
+            ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+            : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
           openLoginModal(null, { tab: authTab });
           return true;
         }
@@ -9490,6 +9618,12 @@ Important:
         navigateToLoginReturnView(returnView);
       }
 
+      function openAccountMenuAfterAuth() {
+        syncAccountMenuUi();
+        closeLoginModal();
+        openAccountMenu(topSettingsButton || activeAccountMenuTrigger);
+      }
+
       async function acceptSignupConsentsIfNeeded(authMode) {
         if (authMode !== "signup") return false;
 
@@ -9539,7 +9673,12 @@ Important:
         try {
           let user = await refreshAuthState({ showError: false });
           if (!user) {
-            showAccountMenuToast("로그인 정보를 확인하지 못했어요. 다시 시도해 주세요.");
+            authFlowState = "error";
+            setAuthTab(authMode);
+            openLoginModal(null, { tab: authMode, forceAuthForm: true });
+            showAccountMenuToast(authMode === "signup"
+              ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+              : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
             return null;
           }
 
@@ -9553,21 +9692,24 @@ Important:
             }
           } catch (error) {
             console.warn("[auth] signup consent save failed:", error);
-            showAccountMenuToast("약관 동의 기록 저장에 실패했습니다. 다시 시도해 주세요.");
+            authFlowState = "error";
+            setAuthTab(authMode);
+            openLoginModal(null, { tab: authMode, forceAuthForm: true });
+            showAccountMenuToast(authMode === "signup"
+              ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+              : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
             return null;
           }
 
           closeLoginModal();
-          closeAccountMenu();
           const displayName = getAuthUserName(user);
           console.log("[auth] current user:", { hasUser: Boolean(user), id: getAuthenticatedUserId(user), provider: getUserAuthProvider(user), isAdmin: user?.isAdmin === true });
           console.log("[auth] display login success toast:", displayName);
-          showAccountMenuToast(`${displayName}님 로그인되었습니다.`);
-          if (authMode === "signup") {
-            window.setTimeout(() => {
-              showAccountMenuToast("회원가입이 완료되었습니다.");
-            }, 700);
-          }
+          authFlowState = authMode === "signup" ? "signup-success" : "login-success";
+          openAccountMenuAfterAuth();
+          showAccountMenuToast(authMode === "signup"
+            ? `${displayName}님 회원가입이 완료되었습니다.`
+            : `${displayName}님 로그인 되었습니다.`);
           handlePostLoginExperience(returnView);
           return user;
         } finally {
@@ -9614,11 +9756,16 @@ Important:
             .then(() => {
               console.log("[auth] callback query:", Object.fromEntries(loginParams.entries()));
               console.log("[auth] auth error:", loginParams.get("auth_error") || loginParams.get("code") || loginParams.get("error") || "");
+              const errorMode = getAuthModeFromParams(loginParams);
               applyAuthUser(null);
-              showAccountMenuToast(getLoginFailureMessage(loginParams));
+              authFlowState = "error";
+              showAccountMenuToast(errorMode === "signup"
+                ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+                : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
               hideAuthProcessingOverlay();
               if (!handleAuthModeErrorPrompt(loginParams)) {
                 navigateToLoginReturnView(loginReturnView);
+                openLoginModal(null, { tab: errorMode, forceAuthForm: true });
               }
               openCreditManagementForPaymentResult(paymentStatus);
               return null;
@@ -9659,28 +9806,45 @@ Important:
 
         authStartupCheckPromise = refreshAuthState({ showError: false })
           .then(async (user) => {
-            if (pendingAuthProcessingMode === "signup" && !user) {
+            if (pendingAuthProcessingMode && !user) {
+              authFlowState = "error";
               clearAuthStartState();
               clearLoginReturnState();
               hideAuthProcessingOverlay();
-              showAccountMenuToast("회원가입 정보를 확인하지 못했습니다. 다시 시도해 주세요.");
+              setAuthTab(pendingAuthProcessingMode);
+              openLoginModal(null, { tab: pendingAuthProcessingMode, forceAuthForm: true });
+              showAccountMenuToast(pendingAuthProcessingMode === "signup"
+                ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+                : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
             }
-            if (pendingAuthProcessingMode === "signup" && user) {
+            if (pendingAuthProcessingMode && user) {
               try {
-                const didSaveConsents = await acceptSignupConsentsIfNeeded("signup");
-                if (didSaveConsents) {
-                  const refreshedUser = await refreshAuthState({ showError: false });
-                  if (refreshedUser) {
-                    user = refreshedUser;
+                if (pendingAuthProcessingMode === "signup") {
+                  const didSaveConsents = await acceptSignupConsentsIfNeeded("signup");
+                  if (didSaveConsents) {
+                    const refreshedUser = await refreshAuthState({ showError: false });
+                    if (refreshedUser) {
+                      user = refreshedUser;
+                    }
                   }
                 }
-                showAccountMenuToast("회원가입이 완료되었습니다.");
+                const displayName = getAuthUserName(user);
+                authFlowState = pendingAuthProcessingMode === "signup" ? "signup-success" : "login-success";
+                openAccountMenuAfterAuth();
+                showAccountMenuToast(pendingAuthProcessingMode === "signup"
+                  ? `${displayName}님 회원가입이 완료되었습니다.`
+                  : `${displayName}님 로그인 되었습니다.`);
                 handlePostLoginExperience(loginReturnView);
               } catch (error) {
                 if (DEBUG_MODE) {
                   console.warn("[auth] pending signup recovery failed:", error);
                 }
-                showAccountMenuToast("회원가입 정보를 확인하지 못했습니다. 다시 시도해 주세요.");
+                authFlowState = "error";
+                setAuthTab(pendingAuthProcessingMode);
+                openLoginModal(null, { tab: pendingAuthProcessingMode, forceAuthForm: true });
+                showAccountMenuToast(pendingAuthProcessingMode === "signup"
+                  ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+                  : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
               } finally {
                 clearAuthStartState();
                 clearLoginReturnState();
@@ -10508,6 +10672,14 @@ Important:
 
       function closeMyPhotoBox() {
         navigateToScreen("editor");
+      }
+
+      function goToLandingPage() {
+        closeAccountMenu();
+        closeLoginModal();
+        navigateToScreen("landing");
+        landingScreen?.scrollTo?.({ top: 0, behavior: "auto" });
+        window.scrollTo({ top: 0, behavior: "auto" });
       }
 
       function openMyPhotoDetail(photo) {
@@ -13995,6 +14167,11 @@ ${modeExample}`;
       let activeLoginModalTrigger = null;
       let accountMenuToastTimerId = null;
       let authProcessingTimerIds = [];
+      let authFlowState = "idle";
+      let authFlowMode = null;
+      let authProcessingMessageText = "";
+      let shouldOpenAccountMenuAfterAuth = false;
+      let pendingAuthStartedAt = null;
 
       window.addEventListener("storage", handleAuthStorageEvent);
 
@@ -14408,9 +14585,7 @@ ${modeExample}`;
         console.log("[auth] startSocialAuth mode:", authMode);
         console.log("[auth] redirect URL:", loginStartUrl);
         setSocialLoginButtonLoading(button, true, `${providerLabel} ${actionLabel}으로 이동 중...`);
-        showAuthProcessingOverlay(authMode, authMode === "signup"
-          ? "소셜 계정 확인 후 자동으로 다음 단계로 이동합니다."
-          : "소셜 계정 확인 후 자동으로 돌아옵니다.");
+        showAuthProcessingOverlay(authMode);
         showAccountMenuToast(`${providerLabel} ${actionLabel}으로 이동 중...`);
         window.location.href = loginStartUrl;
       }
@@ -14539,6 +14714,9 @@ ${modeExample}`;
           const action = button.dataset.action;
           if (action === "account-menu") {
             toggleAccountMenu(button);
+          }
+          if (action === "go-landing") {
+            goToLandingPage();
           }
           if (action === "open-assistant-chat") {
             openAssistantKakaoModal();

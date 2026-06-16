@@ -1034,6 +1034,9 @@ app.addEventListener("click", async (event) => {
     }
 
     navigate(target.dataset.route);
+    if (target.dataset.route === ROUTES.HOME) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
     return;
   }
 

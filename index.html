@@ -5353,6 +5353,33 @@
       </section>
     </div>
 
+    <div class="login-modal-overlay" id="assistantKakaoModalOverlay" aria-hidden="true">
+      <section class="login-modal-panel" id="assistantKakaoModalPanel" role="dialog" aria-modal="true" aria-labelledby="assistantKakaoTitle" aria-describedby="assistantKakaoDescription">
+        <div class="login-modal-header">
+          <button class="login-modal-close" id="assistantKakaoClose" type="button" aria-label="카카오톡 상담 안내 닫기">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <div class="login-modal-body">
+          <div class="login-modal-brand mb-4">
+            <span class="brand-logo brand-logo-horizontal brand-logo-md" aria-label="Magic Ai Studio">
+              <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+              <span class="brand-logo-fallback">Magic Ai Studio</span>
+            </span>
+          </div>
+          <h2 class="login-modal-title font-display" id="assistantKakaoTitle">카카오톡 상담으로 이동합니다</h2>
+          <p class="login-modal-lead" id="assistantKakaoDescription">상담은 카카오톡에서 진행됩니다.</p>
+          <p class="login-modal-copy">상담 화면이 열려도 이 Magic AI Studio 화면은 닫지 마세요. 상담 후 브라우저로 돌아오면 기존 화면에서 이어서 이용할 수 있어요.</p>
+          <p class="mt-3 rounded-[18px] bg-primary/10 px-4 py-3 text-xs leading-5 text-primary">카카오톡 앱이 열리면 상담 후 휴대폰의 앱 전환 화면에서 Safari/Chrome으로 다시 돌아와 주세요.</p>
+          <div class="mt-5 grid gap-2">
+            <button class="h-12 rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="assistantKakaoOpenButton" type="button">카카오톡 상담 열기</button>
+            <button class="h-12 rounded-full bg-white/75 text-primary text-sm font-bold border border-primary/10" id="assistantKakaoCopyButton" type="button">사이트 주소 복사</button>
+            <button class="h-12 rounded-full bg-white/55 text-on-surface-variant text-sm font-bold border border-white/80" id="assistantKakaoCancelButton" type="button">취소</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <div class="fixed inset-0 z-[90] hidden modal-glass backdrop-blur-md items-center justify-center px-3 py-5 sm:p-8" id="imageModal">
       <div class="relative w-full h-full max-w-6xl flex flex-col gap-4" id="imageModalShell">
         <div class="image-modal-header glass-panel rounded-full px-3 py-2 flex items-center justify-between gap-3 text-white">
@@ -5455,6 +5482,18 @@
       const AUTH_MODE_STORAGE_KEY = "magic_auth_mode";
       const AUTH_PROVIDER_STORAGE_KEY = "magic_auth_provider";
       const SIGNUP_PROCESSING_STORAGE_KEY = "magic_signup_processing";
+      const LAST_ACTIVITY_STORAGE_KEY = "magic_last_activity_at";
+      const SESSION_STARTED_STORAGE_KEY = "magic_session_started_at";
+      const AUTO_LOGOUT_WARNING_STORAGE_KEY = "magic_auto_logout_warning_shown";
+      const FORCE_LOGOUT_STORAGE_KEY = "magic_force_logout";
+      const USER_IDLE_TIMEOUT_MS = 6 * 60 * 60 * 1000;
+      const ADMIN_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+      const USER_SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+      const ADMIN_SESSION_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+      const AUTO_LOGOUT_WARNING_MS = 5 * 60 * 1000;
+      const AUTO_LOGOUT_CHECK_INTERVAL_MS = 30 * 1000;
+      const ACTIVITY_THROTTLE_MS = 10 * 1000;
+      const ACTIVITY_EVENTS = ["click", "touchstart", "keydown", "scroll"];
       const NICEPAY_SDK_URL = "https://pay.nicepay.co.kr/v1/js/";
       const NICEPAY_SDK_SCRIPT_ID = "nicepay-sdk-script";
       const LAST_PAYMENT_ORDER_ID_STORAGE_KEY = "magic_last_payment_order_id";
@@ -6386,6 +6425,7 @@ Important:
       let currentGenerationId = "";
       let currentGenerationGalleryUploadIndex = null;
       let galleryUploadLimitReached = false;
+      let isGalleryUploading = false;
       let generatingGallerySlides = [];
       let generatingGallerySlideIndex = 0;
       let generatingGalleryIntervalId = null;
@@ -6415,6 +6455,10 @@ Important:
       let isCreditsLoading = false;
       let isPaymentLoading = false;
       let activePaymentPackageId = null;
+      let autoLogoutIntervalId = null;
+      let areActivityListenersBound = false;
+      let lastActivityUpdateAt = 0;
+      let isAutoLogoutRunning = false;
       let nicepaySdkLoadPromise = null;
       let onboardingCompleted = true;
       let freeGenerationUsed = false;
@@ -7260,6 +7304,12 @@ Important:
           updateCreditUi();
         }
 
+        if (isLoggedIn) {
+          startAutoLogoutTracking();
+        } else {
+          stopAutoLogoutTracking({ clearStorage: true });
+        }
+
         syncAuthUi();
         syncEditorGenerationCopy();
         updateCreditUi();
@@ -7291,6 +7341,218 @@ Important:
 
       function applyAuthUser(user) {
         applyAuthSession({ ok: Boolean(user), user });
+      }
+
+      function getStorageItem(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function setStorageItem(key, value) {
+        try {
+          window.localStorage.setItem(key, value);
+        } catch (error) {
+          return;
+        }
+      }
+
+      function removeStorageItem(key) {
+        try {
+          window.localStorage.removeItem(key);
+        } catch (error) {
+          return;
+        }
+      }
+
+      function clearAutoLogoutStorage() {
+        removeStorageItem(LAST_ACTIVITY_STORAGE_KEY);
+        removeStorageItem(SESSION_STARTED_STORAGE_KEY);
+        removeStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY);
+      }
+
+      function getLastActivityAt() {
+        const value = Number(getStorageItem(LAST_ACTIVITY_STORAGE_KEY) || 0);
+        return Number.isFinite(value) ? value : 0;
+      }
+
+      function getSessionStartedAt() {
+        const value = Number(getStorageItem(SESSION_STARTED_STORAGE_KEY) || 0);
+        return Number.isFinite(value) ? value : 0;
+      }
+
+      function getAutoLogoutTimeoutMs(user = currentUser) {
+        return user?.isAdmin === true ? ADMIN_IDLE_TIMEOUT_MS : USER_IDLE_TIMEOUT_MS;
+      }
+
+      function getAutoLogoutMaxAgeMs(user = currentUser) {
+        return user?.isAdmin === true ? ADMIN_SESSION_MAX_AGE_MS : USER_SESSION_MAX_AGE_MS;
+      }
+
+      function updateLastActivity(force = false) {
+        if (!currentUser) return;
+        const now = Date.now();
+        if (!force && now - lastActivityUpdateAt < ACTIVITY_THROTTLE_MS) return;
+        lastActivityUpdateAt = now;
+        setStorageItem(LAST_ACTIVITY_STORAGE_KEY, String(now));
+        removeStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY);
+      }
+
+      function handleTrackedActivity() {
+        updateLastActivity(false);
+      }
+
+      function isProtectedOperationInProgress() {
+        return Boolean(isGenerating || isPaymentLoading || activePaymentPackageId || isGalleryUploading);
+      }
+
+      function startAutoLogoutTracking() {
+        if (!currentUser) {
+          stopAutoLogoutTracking({ clearStorage: true });
+          return;
+        }
+
+        if (!getLastActivityAt()) {
+          updateLastActivity(true);
+        }
+        if (!getSessionStartedAt()) {
+          setStorageItem(SESSION_STARTED_STORAGE_KEY, String(Date.now()));
+        }
+
+        if (!areActivityListenersBound) {
+          ACTIVITY_EVENTS.forEach((eventName) => {
+            window.addEventListener(eventName, handleTrackedActivity, { passive: true });
+          });
+          areActivityListenersBound = true;
+        }
+
+        if (!autoLogoutIntervalId) {
+          autoLogoutIntervalId = window.setInterval(() => {
+            void checkAutoLogout();
+          }, AUTO_LOGOUT_CHECK_INTERVAL_MS);
+        }
+      }
+
+      function stopAutoLogoutTracking(options = {}) {
+        const { clearStorage = false } = options;
+        if (autoLogoutIntervalId) {
+          window.clearInterval(autoLogoutIntervalId);
+          autoLogoutIntervalId = null;
+        }
+
+        if (areActivityListenersBound) {
+          ACTIVITY_EVENTS.forEach((eventName) => {
+            window.removeEventListener(eventName, handleTrackedActivity);
+          });
+          areActivityListenersBound = false;
+        }
+
+        lastActivityUpdateAt = 0;
+        if (clearStorage) {
+          clearAutoLogoutStorage();
+        }
+      }
+
+      async function checkAutoLogout() {
+        if (!currentUser || isAutoLogoutRunning) return;
+        if (isProtectedOperationInProgress()) return;
+
+        const lastActivityAt = getLastActivityAt();
+        if (!lastActivityAt) {
+          updateLastActivity(true);
+          return;
+        }
+
+        const idleMs = Date.now() - lastActivityAt;
+        const timeoutMs = getAutoLogoutTimeoutMs(currentUser);
+        const sessionStartedAt = getSessionStartedAt();
+        if (sessionStartedAt && Date.now() - sessionStartedAt >= getAutoLogoutMaxAgeMs(currentUser)) {
+          await autoLogout("session_expired");
+          return;
+        }
+        const remainingMs = timeoutMs - idleMs;
+
+        if (remainingMs <= AUTO_LOGOUT_WARNING_MS && remainingMs > 0) {
+          const warningShown = getStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY) === "true";
+          if (!warningShown) {
+            setStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY, "true");
+            showAccountMenuToast("장시간 활동이 없어 곧 자동 로그아웃됩니다.");
+          }
+        }
+
+        if (idleMs >= timeoutMs) {
+          await autoLogout("idle_timeout");
+        }
+      }
+
+      function handleExpiredAuthSession(options = {}) {
+        const { showMessage = true, broadcast = false } = options;
+        const hadSession = Boolean(currentUser || getLastActivityAt());
+        applyAuthUser(null);
+        myPhotos = [];
+        myPhotosError = "";
+        resetAdminDashboardState({ clearContent: true });
+        clearPendingAction();
+        clearAutoLogoutStorage();
+        if (appScreen === "admin") {
+          navigateToScreen("home");
+        }
+        if (broadcast) {
+          setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
+        }
+        if (showMessage && hadSession) {
+          showAccountMenuToast("로그인 시간이 만료되었습니다. 다시 로그인해 주세요.");
+        }
+      }
+
+      async function autoLogout(reason = "timeout", options = {}) {
+        const { broadcast = true } = options;
+        if (isAutoLogoutRunning) return;
+        isAutoLogoutRunning = true;
+
+        try {
+          await fetch(getAuthApiUrl("/api/auth/logout"), {
+            method: "POST",
+            credentials: "include",
+          });
+        } catch (error) {
+          console.warn("[auth] auto logout request failed", error);
+        } finally {
+          isAutoLogoutRunning = false;
+        }
+
+        const message = reason === "idle_timeout"
+          ? "장시간 활동이 없어 자동 로그아웃되었습니다."
+          : reason === "session_expired"
+            ? "로그인 시간이 만료되었습니다. 다시 로그인해 주세요."
+            : "로그아웃되었습니다.";
+
+        applyAuthUser(null);
+        myPhotos = [];
+        myPhotosError = "";
+        resetAdminDashboardState({ clearContent: true });
+        clearPendingAction();
+        closeAccountMenu();
+        closeLoginModal();
+        clearAutoLogoutStorage();
+        if (appScreen === "admin") {
+          navigateToScreen("home");
+        }
+        if (broadcast) {
+          setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
+        }
+        showAccountMenuToast(message);
+      }
+
+      function handleAuthStorageEvent(event) {
+        if (event.key === FORCE_LOGOUT_STORAGE_KEY && event.newValue && currentUser) {
+          void autoLogout("session_expired", { broadcast: false });
+        }
+        if (event.key === LAST_ACTIVITY_STORAGE_KEY && event.newValue) {
+          removeStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY);
+        }
       }
 
       async function fetchAdminStatus() {
@@ -8502,6 +8764,10 @@ Important:
             showDuplicateProviderModal(duplicateProviderError);
             return null;
           }
+          if (error?.statusCode === 401 || String(error?.code || "").toUpperCase() === "LOGIN_REQUIRED") {
+            handleExpiredAuthSession({ showMessage: true });
+            return null;
+          }
           applyAuthUser(null);
           if (showError) {
             showAccountMenuToast("로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
@@ -8528,6 +8794,9 @@ Important:
           myPhotos = [];
           myPhotosError = "";
           resetAdminDashboardState({ clearContent: true });
+          clearPendingAction();
+          clearAutoLogoutStorage();
+          setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
           closeAccountMenu();
           closeLoginModal();
           if (appScreen === "admin") {
@@ -12752,6 +13021,7 @@ ${modeExample}`;
         const item = getCurrentModalImageItem();
 
         if (!item?.url) return;
+        if (isGalleryUploading) return;
 
         const resultIndex = getModalResultIndex(item);
         const duplicateKey = getGalleryItemKey(item);
@@ -12791,6 +13061,7 @@ ${modeExample}`;
         const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || imageUrl || null;
 
         imageModalGalleryUpload.disabled = true;
+        isGalleryUploading = true;
         const buttonLabel = imageModalGalleryUpload.querySelector("span:last-child");
         if (buttonLabel) buttonLabel.textContent = "업로드 중...";
         setImageModalStatus("스타일 갤러리에 올리는 중…");
@@ -12985,6 +13256,7 @@ ${modeExample}`;
 
           setImageModalStatus("스타일 갤러리에 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.");
         } finally {
+          isGalleryUploading = false;
           imageModalGalleryUpload.disabled = false;
           syncGalleryUploadButtonState(item);
         }
@@ -13489,6 +13761,12 @@ ${modeExample}`;
       const duplicateProviderLoginButton = document.getElementById("duplicateProviderLoginButton");
       const duplicateProviderLoginIcon = document.getElementById("duplicateProviderLoginIcon");
       const duplicateProviderLoginLabel = document.getElementById("duplicateProviderLoginLabel");
+      const assistantKakaoModalOverlay = document.getElementById("assistantKakaoModalOverlay");
+      const assistantKakaoModalPanel = document.getElementById("assistantKakaoModalPanel");
+      const assistantKakaoClose = document.getElementById("assistantKakaoClose");
+      const assistantKakaoOpenButton = document.getElementById("assistantKakaoOpenButton");
+      const assistantKakaoCopyButton = document.getElementById("assistantKakaoCopyButton");
+      const assistantKakaoCancelButton = document.getElementById("assistantKakaoCancelButton");
       const customerInfoModalOverlay = document.getElementById("customerInfoModalOverlay");
       const customerInfoModalPanel = document.getElementById("customerInfoModalPanel");
       const customerInfoClose = document.getElementById("customerInfoClose");
@@ -13516,11 +13794,15 @@ ${modeExample}`;
       const accountMenuItems = Array.from(document.querySelectorAll("[data-account-menu-action]"));
       const socialLoginButtons = Array.from(document.querySelectorAll("[data-social-login-provider]"));
       const ASSISTANT_CHAT_URL = "https://pf.kakao.com/_xeNSts/chat";
+      const ASSISTANT_RETURN_HINT_KEY = "magic_assistant_return_hint";
+      const MAGIC_RETURN_STATE_KEY = "magic_return_state";
       const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
       let activeAccountMenuTrigger = null;
       let activeLoginModalTrigger = null;
       let accountMenuToastTimerId = null;
       let authProcessingTimerIds = [];
+
+      window.addEventListener("storage", handleAuthStorageEvent);
 
       void startAuthStartupCheck();
 
@@ -13737,6 +14019,76 @@ ${modeExample}`;
         duplicateProviderModalOverlay.setAttribute("aria-hidden", "true");
       }
 
+      function openAssistantKakaoModal() {
+        if (!assistantKakaoModalOverlay || !assistantKakaoModalPanel) {
+          openAssistantChat();
+          return;
+        }
+
+        closeAccountMenu();
+        assistantKakaoModalOverlay.classList.add("is-open");
+        assistantKakaoModalOverlay.setAttribute("aria-hidden", "false");
+
+        window.requestAnimationFrame(() => {
+          assistantKakaoOpenButton?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeAssistantKakaoModal() {
+        if (!assistantKakaoModalOverlay) return;
+        assistantKakaoModalOverlay.classList.remove("is-open");
+        assistantKakaoModalOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      function saveAssistantReturnState() {
+        const returnUrl = window.location.href;
+        try {
+          localStorage.setItem(ASSISTANT_RETURN_HINT_KEY, JSON.stringify({
+            openedAt: new Date().toISOString(),
+            returnUrl,
+          }));
+        } catch (error) {
+          console.warn("[assistant] return hint save failed", error);
+        }
+
+        try {
+          sessionStorage.setItem(MAGIC_RETURN_STATE_KEY, JSON.stringify({
+            view: appScreen,
+            selectedMode: activeGenerationMode,
+            selectedPreset: getCurrentPresetKey(),
+            selectedResultId: currentGenerationId || null,
+            selectedImageIndex: Number.isInteger(activeImageModalIndex) ? activeImageModalIndex : null,
+            returnUrl,
+            savedAt: new Date().toISOString(),
+          }));
+        } catch (error) {
+          console.warn("[assistant] return state save failed", error);
+        }
+      }
+
+      async function copyAssistantReturnUrl() {
+        const returnUrl = window.location.href;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(returnUrl);
+          } else {
+            const input = document.createElement("input");
+            input.value = returnUrl;
+            input.setAttribute("readonly", "");
+            input.style.position = "fixed";
+            input.style.opacity = "0";
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand("copy");
+            input.remove();
+          }
+          showAccountMenuToast("현재 사이트 주소를 복사했어요.");
+        } catch (error) {
+          console.warn("[assistant] return url copy failed", error);
+          showAccountMenuToast("주소 복사에 실패했어요. 브라우저 주소창의 링크를 이용해 주세요.");
+        }
+      }
+
       function startProviderLogin(provider, button = null) {
         const safeProvider = sanitizeOAuthProvider(provider);
         if (!safeProvider) {
@@ -13806,7 +14158,7 @@ ${modeExample}`;
 
       function handleContactClick() {
         closeAccountMenu();
-        openAssistantChat();
+        openAssistantKakaoModal();
       }
 
       function handleKakaoLogin(button) {
@@ -13930,15 +14282,63 @@ ${modeExample}`;
       }
 
       function openAssistantChat() {
+        saveAssistantReturnState();
+        closeAssistantKakaoModal();
+
         const chatWindow = window.open(ASSISTANT_CHAT_URL, "_blank");
 
         if (chatWindow) {
           chatWindow.opener = null;
+          showAccountMenuToast("카카오톡 상담을 새 창으로 열었어요.");
           return;
         }
 
-        window.location.assign(ASSISTANT_CHAT_URL);
+        window.location.href = ASSISTANT_CHAT_URL;
       }
+
+      function handleReturnFromAssistant() {
+        let data = null;
+        try {
+          const raw = localStorage.getItem(ASSISTANT_RETURN_HINT_KEY);
+          if (!raw) return;
+          data = JSON.parse(raw);
+        } catch (error) {
+          localStorage.removeItem(ASSISTANT_RETURN_HINT_KEY);
+          return;
+        }
+
+        const openedAt = new Date(data?.openedAt || "").getTime();
+        if (!Number.isFinite(openedAt)) {
+          localStorage.removeItem(ASSISTANT_RETURN_HINT_KEY);
+          return;
+        }
+
+        const elapsed = Date.now() - openedAt;
+        if (elapsed > 10000 && elapsed < 1000 * 60 * 60) {
+          showAccountMenuToast("Magic AI Studio로 돌아왔어요. 이어서 이용하실 수 있습니다.");
+          localStorage.removeItem(ASSISTANT_RETURN_HINT_KEY);
+        }
+      }
+
+      function handleAssistantVisibilityChange() {
+        if (document.visibilityState === "visible") {
+          handleReturnFromAssistant();
+        }
+      }
+
+      assistantKakaoClose?.addEventListener("click", closeAssistantKakaoModal);
+      assistantKakaoCancelButton?.addEventListener("click", closeAssistantKakaoModal);
+      assistantKakaoOpenButton?.addEventListener("click", openAssistantChat);
+      assistantKakaoCopyButton?.addEventListener("click", copyAssistantReturnUrl);
+      assistantKakaoModalOverlay?.addEventListener("click", (event) => {
+        if (event.target === assistantKakaoModalOverlay) {
+          closeAssistantKakaoModal();
+        }
+      });
+
+      window.addEventListener("focus", handleReturnFromAssistant);
+      window.addEventListener("pageshow", handleReturnFromAssistant);
+      document.addEventListener("visibilitychange", handleAssistantVisibilityChange);
 
       featureActionButtons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -13947,7 +14347,7 @@ ${modeExample}`;
             toggleAccountMenu(button);
           }
           if (action === "open-assistant-chat") {
-            openAssistantChat();
+            openAssistantKakaoModal();
           }
           if (action === "gallery-placeholder") {
             navigateToScreen("gallery");
@@ -14219,7 +14619,7 @@ ${modeExample}`;
       });
 
       siteGuideContactButton?.addEventListener("click", () => {
-        openAssistantChat();
+        openAssistantKakaoModal();
       });
 
       siteGuideStepsContainer?.addEventListener("click", (event) => {
@@ -14297,7 +14697,7 @@ ${modeExample}`;
       if (bottomAssistantButton) {
         bottomAssistantButton.addEventListener("click", () => {
           syncBottomNavUi("assistant");
-          openAssistantChat();
+          openAssistantKakaoModal();
         });
       }
 

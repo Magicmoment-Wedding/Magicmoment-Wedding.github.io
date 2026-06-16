@@ -3719,8 +3719,15 @@
       }
 
       .bottom-nav-main.is-active .bottom-nav-main-button {
+        color: #fffafc;
         transform: translateY(-2px);
         box-shadow: 0 18px 42px rgba(112, 30, 52, 0.28);
+      }
+
+      .bottom-nav-main.is-active .bottom-nav-main-button .material-symbols-outlined {
+        color: inherit;
+        opacity: 1;
+        filter: none;
       }
 
       .bottom-nav-main-label {
@@ -12271,6 +12278,14 @@ ${modeExample}`;
         return `${FRONT_API_BASE_URL}/api/gallery/upload`;
       }
 
+      async function ensureCurrentUserForGalleryUpload() {
+        if (getAuthenticatedUserId(currentUser) || currentUser?.email) {
+          return currentUser;
+        }
+
+        return refreshAuthState({ showError: false });
+      }
+
       function getModalResultIndex(item) {
         if (Number.isInteger(item?.index)) return item.index;
         return Number.isInteger(activeImageModalIndex) ? activeImageModalIndex : 0;
@@ -12738,11 +12753,6 @@ ${modeExample}`;
 
         if (!item?.url) return;
 
-        if (!ensureRequiredConsentsForProtectedAction()) {
-          setImageModalStatus("필수 약관에 동의해 주세요.");
-          return;
-        }
-
         const resultIndex = getModalResultIndex(item);
         const duplicateKey = getGalleryItemKey(item);
         if (item.gallerySource) {
@@ -12778,20 +12788,30 @@ ${modeExample}`;
         const generationId = ensureCurrentGenerationId();
         const uploadOriginalImageUrl = originalImageUrl || originalImagePath || null;
         const uploadOriginalImagePath = originalImagePath || null;
-        const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || null;
+        const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || imageUrl || null;
 
         imageModalGalleryUpload.disabled = true;
         const buttonLabel = imageModalGalleryUpload.querySelector("span:last-child");
-        if (buttonLabel) buttonLabel.textContent = "올리는 중";
+        if (buttonLabel) buttonLabel.textContent = "업로드 중...";
         setImageModalStatus("스타일 갤러리에 올리는 중…");
 
         try {
           ensureApiBaseUrlConfigured();
+          const user = await ensureCurrentUserForGalleryUpload();
+          if (!user) {
+            throw Object.assign(new Error("로그인이 필요합니다."), {
+              code: "LOGIN_REQUIRED",
+              status: 401,
+            });
+          }
+
           const payload = {
             generationId,
             resultIndex,
             imageUrl,
+            resultImageUrl: imageUrl,
             imagePath: imagePath || undefined,
+            resultImagePath: imagePath || undefined,
             styleCategory: activeGenerationMode || "",
             presetKey,
             presetLabel,
@@ -12804,22 +12824,56 @@ ${modeExample}`;
           console.log("[gallery-upload] has originalImageUrl:", Boolean(payload.originalImageUrl));
           console.log("[gallery-upload] has originalImagePath:", Boolean(payload.originalImagePath));
           console.log("[gallery-upload] has originalThumbnailUrl:", Boolean(payload.originalThumbnailUrl));
+          console.log("[gallery-upload] request", {
+            endpoint: getGalleryUploadUrl(),
+            userEmail: user?.email,
+            hasOriginalImageUrl: Boolean(payload.originalImageUrl),
+            hasOriginalImagePath: Boolean(payload.originalImagePath),
+            hasOriginalThumbnailUrl: Boolean(payload.originalThumbnailUrl),
+            hasResultImageUrl: Boolean(payload.resultImageUrl),
+            hasResultImagePath: Boolean(payload.resultImagePath),
+          });
           if (!payload.originalImageUrl) {
             console.warn("[gallery-upload] originalImageUrl missing");
           }
           const response = await fetch(getGalleryUploadUrl(), {
             method: "POST",
+            credentials: "include",
             headers: {
               "Content-Type": "application/json",
               "X-Anonymous-Id": getAnonymousId(),
             },
             body: JSON.stringify(payload),
           });
+          const responseData = await response.json().catch(() => ({}));
+
+          console.log("[gallery-upload] response", {
+            status: response.status,
+            ok: response.ok,
+            code: responseData?.code || responseData?.error,
+            message: responseData?.message,
+          });
 
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
+            const errorData = responseData || {};
             const duplicateCode = String(errorData.code || errorData.error || "").toUpperCase();
             const policyCode = duplicateCode || String(errorData.message || "").toUpperCase();
+            if (response.status === 401 || duplicateCode === "LOGIN_REQUIRED" || duplicateCode === "AUTH_REQUIRED") {
+              throw Object.assign(new Error(errorData.message || "로그인이 필요합니다."), {
+                status: response.status,
+                code: duplicateCode || "LOGIN_REQUIRED",
+                data: errorData,
+              });
+            }
+
+            if (duplicateCode === "CONSENT_REQUIRED") {
+              throw Object.assign(new Error(errorData.message || "필수 약관 동의가 필요합니다."), {
+                status: response.status,
+                code: duplicateCode,
+                data: errorData,
+              });
+            }
+
             if (policyCode.includes("GALLERY_UPLOAD_LIMIT")) {
               galleryUploadLimitReached = true;
               setImageModalStatus("스타일 갤러리는 1인당 최대 10장까지 업로드할 수 있어요.");
@@ -12845,10 +12899,14 @@ ${modeExample}`;
               return;
             }
 
-            throw new Error(errorData.message || `Gallery upload failed: ${response.status}`);
+            throw Object.assign(new Error(errorData.message || `Gallery upload failed: ${response.status}`), {
+              status: response.status,
+              code: duplicateCode || "GALLERY_UPLOAD_FAILED",
+              data: errorData,
+            });
           }
 
-          const uploaded = await response.json().catch(() => ({}));
+          const uploaded = responseData || {};
           if (uploaded?.duplicated === true) {
             if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
             currentGenerationGalleryUploadIndex = resultIndex;
@@ -12894,7 +12952,37 @@ ${modeExample}`;
             : "스타일 갤러리에 업로드했어요.");
           syncGalleryUploadButtonState(item);
         } catch (error) {
-          console.error("[client][gallery-upload] failed:", error);
+          console.error("[client][gallery-upload] failed:", {
+            status: error?.status,
+            code: error?.code,
+            message: error?.message,
+            data: error?.data,
+          });
+          if (error?.status === 401 || error?.code === "LOGIN_REQUIRED" || error?.code === "AUTH_REQUIRED") {
+            const recoveredUser = await refreshAuthState({ showError: false }).catch(() => null);
+            if (!recoveredUser) {
+              applyAuthUser(null);
+              setImageModalStatus("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
+              showAccountMenuToast("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
+              return;
+            }
+
+            setImageModalStatus("갤러리 업로드 인증 처리에 문제가 있습니다. 잠시 후 다시 시도해 주세요.");
+            showAccountMenuToast("갤러리 업로드 인증 처리에 문제가 있습니다.");
+            return;
+          }
+
+          if (error?.code === "CONSENT_REQUIRED") {
+            setImageModalStatus("갤러리 업로드를 진행하려면 필수 약관 동의가 필요합니다.");
+            showRequiredConsentPrompt();
+            return;
+          }
+
+          if (error?.code === "GALLERY_LIMIT_REACHED") {
+            setImageModalStatus("4장 중 1장만 갤러리에 올릴 수 있어요.");
+            return;
+          }
+
           setImageModalStatus("스타일 갤러리에 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.");
         } finally {
           imageModalGalleryUpload.disabled = false;

@@ -1,18 +1,36 @@
 import { getApiUrl } from "./config.js";
 
+function toBoolean(value, fallback = false) {
+  if (value === true || value === "true" || value === 1 || value === "1") {
+    return true;
+  }
+  if (value === false || value === "false" || value === 0 || value === "0") {
+    return false;
+  }
+  return fallback;
+}
+
 export function normalizeUser(user) {
   if (!user || typeof user !== "object") {
     return null;
   }
 
   const creditBalance = Number(user.creditBalance ?? user.credit_balance ?? user.credits ?? 0);
+  const isAdmin = toBoolean(user.isAdmin ?? user.is_admin, false);
+  const isLegacyUser = toBoolean(user.isLegacyUser ?? user.is_legacy_user, false);
+  const consentRequired = toBoolean(user.consentRequired ?? user.consent_required, false);
   const normalized = {
     ...user,
-    isAdmin: user.isAdmin === true || user.is_admin === true,
-    onboardingCompleted: user.onboardingCompleted ?? user.onboarding_completed ?? false,
-    freeGenerationEligible: user.freeGenerationEligible ?? user.free_generation_eligible ?? false,
-    freeGenerationUsed: user.freeGenerationUsed ?? user.free_generation_used ?? false,
-    freeGenerationAvailable: user.freeGenerationAvailable ?? user.free_generation_available ?? false,
+    isAdmin,
+    isLegacyUser,
+    consentRequired: isAdmin || isLegacyUser ? false : consentRequired,
+    hasRequiredConsents: isAdmin || isLegacyUser
+      ? true
+      : toBoolean(user.hasRequiredConsents ?? user.has_required_consents, true),
+    onboardingCompleted: toBoolean(user.onboardingCompleted ?? user.onboarding_completed, false),
+    freeGenerationEligible: toBoolean(user.freeGenerationEligible ?? user.free_generation_eligible, false),
+    freeGenerationUsed: toBoolean(user.freeGenerationUsed ?? user.free_generation_used, false),
+    freeGenerationAvailable: toBoolean(user.freeGenerationAvailable ?? user.free_generation_available, false),
     creditBalance: Number.isFinite(creditBalance) ? creditBalance : 0,
   };
 

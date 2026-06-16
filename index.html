@@ -6668,10 +6668,26 @@ Important:
           normalizedUser.freeGenerationUsed ?? normalizedUser.free_generation_used,
           normalizedUser.freeGenerationUsed,
         );
-        normalizedUser.hasRequiredConsents = normalizeBooleanField(
-          normalizedUser.hasRequiredConsents ?? normalizedUser.has_required_consents,
+        normalizedUser.isAdmin = normalizeBooleanField(
+          normalizedUser.isAdmin ?? normalizedUser.is_admin,
           false,
         );
+        normalizedUser.isLegacyUser = normalizeBooleanField(
+          normalizedUser.isLegacyUser ?? normalizedUser.is_legacy_user,
+          false,
+        );
+        normalizedUser.hasRequiredConsents = normalizeBooleanField(
+          normalizedUser.hasRequiredConsents ?? normalizedUser.has_required_consents,
+          true,
+        );
+        normalizedUser.consentRequired = normalizeBooleanField(
+          normalizedUser.consentRequired ?? normalizedUser.consent_required,
+          false,
+        );
+        if (normalizedUser.isAdmin === true || normalizedUser.isLegacyUser === true) {
+          normalizedUser.hasRequiredConsents = true;
+          normalizedUser.consentRequired = false;
+        }
         return normalizedUser;
       }
 
@@ -6691,7 +6707,9 @@ Important:
 
       function userHasRequiredConsents(user = currentUser) {
         if (!user) return false;
-        return true;
+        if (user.isAdmin === true || user.isLegacyUser === true) return true;
+        if (user.consentRequired === true) return false;
+        return user.hasRequiredConsents !== false;
       }
 
       function hasSignupRequiredConsentsChecked() {
@@ -6767,9 +6785,8 @@ Important:
       }
 
       function showRequiredConsentPrompt() {
-        showAccountMenuToast("회원가입 시 필수 약관 동의가 필요합니다.");
-        setAuthTab("signup", "필수 약관 전체동의 후 회원가입을 진행해 주세요.");
-        openLoginModal(null, { tab: "signup" });
+        showAccountMenuToast("서비스 이용을 위해 필수 약관 동의가 필요합니다.");
+        showError("서비스 이용을 위해 필수 약관 동의가 필요합니다.", { title: "약관 동의 필요" });
       }
 
       function ensureRequiredConsentsForProtectedAction() {
@@ -7077,7 +7094,18 @@ Important:
         applyUserEntitlements(payload, currentUser);
         if (currentUser) {
           const consentValue = pickAuthField(payload, currentUser, ["hasRequiredConsents", "has_required_consents"]);
-          currentUser.hasRequiredConsents = normalizeBooleanField(consentValue, hasStoredRequiredConsent());
+          const consentRequiredValue = pickAuthField(payload, currentUser, ["consentRequired", "consent_required"]);
+          const legacyValue = pickAuthField(payload, currentUser, ["isLegacyUser", "is_legacy_user"]);
+          currentUser.isLegacyUser = normalizeBooleanField(legacyValue, currentUser.isLegacyUser === true);
+          currentUser.consentRequired = normalizeBooleanField(consentRequiredValue, false);
+          currentUser.hasRequiredConsents = normalizeBooleanField(consentValue, true);
+          if (isAllowedAdminUser || currentUser.isLegacyUser === true) {
+            currentUser.hasRequiredConsents = true;
+            currentUser.consentRequired = false;
+          } else if (hasStoredRequiredConsent()) {
+            currentUser.hasRequiredConsents = true;
+            currentUser.consentRequired = false;
+          }
         }
         console.log("[auth] currentUser updated");
 
@@ -8966,6 +8994,13 @@ Important:
       function handleAuthModeErrorPrompt(searchParams = new URLSearchParams(window.location.search)) {
         const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
         const normalizedCode = code.toUpperCase();
+        if (currentUser) {
+          if (normalizedCode === "CONSENT_REQUIRED") {
+            showRequiredConsentPrompt();
+            return true;
+          }
+          return false;
+        }
         if (normalizedCode === "ACCOUNT_NOT_FOUND") {
           setAuthTab("signup", "가입된 계정이 없습니다. 회원가입을 먼저 진행해 주세요.");
           openLoginModal(null, { tab: "signup" });
@@ -8977,8 +9012,7 @@ Important:
           return true;
         }
         if (normalizedCode === "CONSENT_REQUIRED") {
-          setAuthTab("signup", "회원가입을 위해 필수 약관 전체동의가 필요합니다.");
-          openLoginModal(null, { tab: "signup" });
+          showRequiredConsentPrompt();
           return true;
         }
         if (normalizedCode === "LOGIN_FAILED") {
@@ -9485,6 +9519,11 @@ Important:
       }
 
       function requestLoginForGeneration() {
+        if (getAuthenticatedUserId(currentUser)) {
+          showAccountMenuToast("이미 로그인되어 있습니다.");
+          return;
+        }
+
         try {
           window.sessionStorage.setItem(PENDING_ACTION_STORAGE_KEY, "start_generation");
           window.sessionStorage.setItem(RETURN_TO_STORAGE_KEY, "editor");
@@ -9530,6 +9569,18 @@ Important:
       }
 
       function canStartGenerationFromCurrentState() {
+        console.log("[generate] before click", {
+          hasCurrentUser: Boolean(currentUser),
+          email: currentUser?.email || "",
+          creditBalance,
+          hasRequiredConsents: currentUser?.hasRequiredConsents,
+          consentRequired: currentUser?.consentRequired,
+          isLegacyUser: currentUser?.isLegacyUser,
+          onboardingCompleted,
+          freeGenerationEligible,
+          freeGenerationUsed,
+        });
+
         if (authChecked !== true) {
           showAccountMenuToast("로그인 상태를 확인 중입니다. 잠시 후 다시 시도해 주세요.");
           return false;
@@ -13370,6 +13421,11 @@ ${modeExample}`;
 
       function openLoginModal(trigger, options = {}) {
         if (!loginModalOverlay || !loginModalPanel) return;
+        if (getAuthenticatedUserId(currentUser) && options.forceAuthForm !== true) {
+          showAccountMenuToast("이미 로그인되어 있습니다.");
+          syncAccountMenuUi();
+          return;
+        }
 
         rememberLoginReturnView();
         activeLoginModalTrigger = trigger || activeAccountMenuTrigger;

@@ -234,6 +234,12 @@ function openCustomPresetModal() {
 }
 
 function openLoginModal() {
+  const state = getState();
+  if (state.currentUser) {
+    showToast("이미 로그인되어 있습니다.");
+    return;
+  }
+
   updateState({
     pendingAfterLogin: "generate",
     pendingGenerate: true,
@@ -310,6 +316,17 @@ function startPaidGenerationFlow() {
 
 function handleCreateClick() {
   const state = getState();
+  console.log("[generate] before click", {
+    hasCurrentUser: Boolean(state.currentUser),
+    email: state.currentUser?.email || "",
+    creditBalance: state.currentUser?.creditBalance ?? state.credits ?? 0,
+    hasRequiredConsents: state.currentUser?.hasRequiredConsents,
+    consentRequired: state.currentUser?.consentRequired,
+    isLegacyUser: state.currentUser?.isLegacyUser,
+    onboardingCompleted: state.currentUser?.onboardingCompleted,
+    freeGenerationEligible: state.currentUser?.freeGenerationEligible,
+    freeGenerationUsed: state.currentUser?.freeGenerationUsed,
+  });
 
   if (state.authLoading) {
     return;
@@ -322,6 +339,11 @@ function handleCreateClick() {
 
   if (isAdminUser(state.currentUser)) {
     startPaidGenerationFlow();
+    return;
+  }
+
+  if (state.currentUser.consentRequired === true && state.currentUser.isLegacyUser !== true) {
+    showToast("서비스 이용을 위해 필수 약관 동의가 필요합니다.", "error");
     return;
   }
 

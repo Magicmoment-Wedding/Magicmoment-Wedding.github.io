@@ -4726,7 +4726,6 @@
 
                 <div class="my-photo-filter-list" role="tablist" aria-label="마이포토박스 필터">
                   <button class="my-photo-filter-button is-active" data-my-photo-filter="all" type="button" role="tab" aria-selected="true">전체</button>
-                  <button class="my-photo-filter-button" data-my-photo-filter="recommended" type="button" role="tab" aria-selected="false">AI 추천</button>
                   <button class="my-photo-filter-button" data-my-photo-filter="gallery" type="button" role="tab" aria-selected="false">갤러리 업로드</button>
                 </div>
 
@@ -10093,9 +10092,11 @@ Important:
         if (Array.isArray(payload.photos)) return payload.photos;
         if (Array.isArray(payload.myPhotos)) return payload.myPhotos;
         if (Array.isArray(payload.my_photos)) return payload.my_photos;
+        if (Array.isArray(payload.generations)) return payload.generations;
         if (Array.isArray(payload.items)) return payload.items;
         if (Array.isArray(payload.data?.photos)) return payload.data.photos;
         if (Array.isArray(payload.data?.myPhotos)) return payload.data.myPhotos;
+        if (Array.isArray(payload.data?.generations)) return payload.data.generations;
         if (Array.isArray(payload.data?.items)) return payload.data.items;
         return [];
       }
@@ -10137,30 +10138,132 @@ Important:
         }).format(date);
       }
 
+      function getMyPhotoGenerationId(rawItem = {}, fallback = "") {
+        return String(
+          rawItem.generationId
+            || rawItem.generation_id
+            || rawItem.generation?.id
+            || rawItem.id
+            || fallback
+            || "",
+        ).trim();
+      }
+
+      function getMyPhotoRawImages(rawItem = {}) {
+        if (Array.isArray(rawItem.images)) return rawItem.images;
+        if (Array.isArray(rawItem.resultImages)) return rawItem.resultImages;
+        if (Array.isArray(rawItem.result_images)) return rawItem.result_images;
+        if (Array.isArray(rawItem.results)) return rawItem.results;
+        if (Array.isArray(rawItem.items)) return rawItem.items;
+        if (Array.isArray(rawItem.photos)) return rawItem.photos;
+        if (rawItem.representativeImage || rawItem.representative_image) {
+          return [rawItem.representativeImage || rawItem.representative_image];
+        }
+        return [rawItem];
+      }
+
+      function normalizeMyPhotoBoolean(value, fallback = false) {
+        if (typeof value === "boolean") return value;
+        if (typeof value === "number") return value === 1;
+        if (typeof value === "string") {
+          const normalized = value.trim().toLowerCase();
+          if (["true", "1", "yes", "y"].includes(normalized)) return true;
+          if (["false", "0", "no", "n"].includes(normalized)) return false;
+        }
+        return fallback;
+      }
+
+      function getMyPhotoDisplayImageUrl(image = {}) {
+        const isFreeGeneration = normalizeMyPhotoBoolean(image.isFreeGeneration ?? image.is_free_generation, false);
+        const hasWatermark = normalizeMyPhotoBoolean(image.hasWatermark ?? image.has_watermark ?? image.watermarked, false);
+        const watermarkedImageUrl = firstUrlValue(
+          image.watermarkedImageUrl,
+          image.watermarked_image_url,
+          image.watermarkUrl,
+          image.watermark_url,
+        );
+        const cleanImageUrl = firstUrlValue(
+          image.cleanImageUrl,
+          image.clean_image_url,
+          image.originalResultUrl,
+          image.original_result_url,
+        );
+        const fallbackUrl = firstUrlValue(
+          image.url,
+          image.imageUrl,
+          image.image_url,
+          image.resultImageUrl,
+          image.result_image_url,
+          image.resultUrl,
+          image.result_url,
+          image.publicUrl,
+          image.public_url,
+          image.downloadUrl,
+          image.download_url,
+          image.signedUrl,
+          image.signed_url,
+          image.path,
+          image.imagePath,
+          image.image_path,
+          image.resultImagePath,
+          image.result_image_path,
+        );
+
+        if (isFreeGeneration || hasWatermark) {
+          return watermarkedImageUrl || fallbackUrl;
+        }
+
+        return cleanImageUrl || fallbackUrl;
+      }
+
+      function normalizeMyPhotoImage(rawImage = {}, generation = {}, index = 0) {
+        if (!rawImage || typeof rawImage !== "object") return null;
+
+        const inheritedIsFree = normalizeMyPhotoBoolean(generation.isFreeGeneration ?? generation.is_free_generation, false);
+        const inheritedHasWatermark = normalizeMyPhotoBoolean(generation.hasWatermark ?? generation.has_watermark ?? generation.watermarked, false);
+        const isFreeGeneration = normalizeMyPhotoBoolean(rawImage.isFreeGeneration ?? rawImage.is_free_generation, inheritedIsFree);
+        const hasWatermark = normalizeMyPhotoBoolean(rawImage.hasWatermark ?? rawImage.has_watermark ?? rawImage.watermarked, inheritedHasWatermark);
+        const imageUrl = getMyPhotoDisplayImageUrl({
+          ...generation,
+          ...rawImage,
+          isFreeGeneration,
+          hasWatermark,
+        });
+        const thumbnailUrl = firstUrlValue(
+          rawImage.thumbnailUrl,
+          rawImage.thumbnail_url,
+          rawImage.thumbnail,
+          rawImage.thumbUrl,
+          rawImage.thumb_url,
+          imageUrl,
+        );
+        const generationId = getMyPhotoGenerationId(generation, rawImage.generationId || rawImage.generation_id || "");
+        const recommendedIndexValue = Number(generation.recommendedIndex ?? generation.recommended_index);
+        const isRecommended = normalizeMyPhotoBoolean(
+          rawImage.isRecommended ?? rawImage.is_recommended ?? rawImage.recommended,
+          Number.isInteger(recommendedIndexValue) ? index === recommendedIndexValue : index === 0,
+        );
+
+        if (!imageUrl && !thumbnailUrl) return null;
+
+        return {
+          id: rawImage.id || rawImage.photoId || rawImage.photo_id || rawImage.imageId || rawImage.image_id || `${generationId || "generation"}-${index}`,
+          generationId,
+          imageUrl,
+          thumbnailUrl,
+          resultLabel: rawImage.resultLabel || rawImage.result_label || rawImage.label || `AI 생성 결과 ${index + 1}`,
+          isRecommended,
+          galleryUploaded: normalizeMyPhotoBoolean(rawImage.galleryUploaded ?? rawImage.gallery_uploaded, normalizeMyPhotoBoolean(generation.galleryUploaded ?? generation.gallery_uploaded, false)),
+          source: rawImage.source || rawImage.origin || generation.source || generation.origin || "",
+          hasWatermark,
+          isFreeGeneration,
+          index,
+        };
+      }
+
       function normalizeMyPhotoItem(rawItem = {}, index = 0) {
         if (!rawItem || typeof rawItem !== "object") return null;
 
-        const imageUrl = firstUrlValue(
-          rawItem.imageUrl,
-          rawItem.image_url,
-          rawItem.resultUrl,
-          rawItem.result_url,
-          rawItem.url,
-          rawItem.publicUrl,
-          rawItem.public_url,
-          rawItem.downloadUrl,
-          rawItem.download_url,
-          rawItem.imagePath,
-          rawItem.image_path,
-        );
-        const thumbnailUrl = firstUrlValue(
-          rawItem.thumbnailUrl,
-          rawItem.thumbnail_url,
-          rawItem.thumbnail,
-          rawItem.thumbUrl,
-          rawItem.thumb_url,
-          imageUrl,
-        );
         const createdAt = getMyPhotoCreatedAtValue(rawItem);
         const styleLabel = String(
           rawItem.styleLabel
@@ -10169,6 +10272,7 @@ Important:
             || rawItem.style_name
             || rawItem.styleCategory
             || rawItem.style_category
+            || rawItem.style
             || rawItem.mode
             || "AI Wedding",
         ).trim();
@@ -10177,26 +10281,73 @@ Important:
             || rawItem.preset_label
             || rawItem.presetName
             || rawItem.preset_name
+            || rawItem.preset
             || rawItem.locationLabel
             || rawItem.location_label
             || rawItem.placeLabel
             || rawItem.place_label
             || "웨딩사진",
         ).trim();
+        const generationId = getMyPhotoGenerationId(rawItem, `${createdAt || "photo"}-${index}`);
+        const images = getMyPhotoRawImages(rawItem)
+          .map((image, imageIndex) => normalizeMyPhotoImage(image, { ...rawItem, id: generationId }, imageIndex))
+          .filter(Boolean);
+        const representativeImage = images.find((image) => image.isRecommended) || images[0] || null;
+
+        if (!representativeImage) return null;
 
         return {
-          id: rawItem.id || rawItem.photoId || rawItem.photo_id || `${createdAt || "photo"}-${index}`,
-          imageUrl,
-          thumbnailUrl,
+          id: generationId,
+          generationId,
+          imageUrl: representativeImage.imageUrl,
+          thumbnailUrl: representativeImage.thumbnailUrl,
           styleLabel,
           presetLabel,
           resultLabel: rawItem.resultLabel || rawItem.result_label || `${styleLabel} · ${presetLabel}`,
           createdAt,
           createdAtLabel: formatMyPhotoDate(createdAt),
-          isRecommended: Boolean(rawItem.isRecommended ?? rawItem.is_recommended ?? rawItem.recommended),
-          galleryUploaded: Boolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded),
+          isRecommended: Boolean(representativeImage.isRecommended),
+          galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery") || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
           source: rawItem.source || rawItem.origin || "",
+          hasWatermark: normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, false),
+          isFreeGeneration: normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, false),
+          images,
         };
+      }
+
+      function mergeMyPhotoGenerations(items = []) {
+        const grouped = new Map();
+        items.forEach((item) => {
+          if (!item) return;
+          const groupKey = item.generationId || item.id;
+          if (!grouped.has(groupKey)) {
+            grouped.set(groupKey, { ...item, images: [...(item.images || [])] });
+            return;
+          }
+
+          const existing = grouped.get(groupKey);
+          const knownImageIds = new Set(existing.images.map((image) => image.id || image.imageUrl));
+          (item.images || []).forEach((image) => {
+            const key = image.id || image.imageUrl;
+            if (!knownImageIds.has(key)) {
+              existing.images.push(image);
+              knownImageIds.add(key);
+            }
+          });
+          existing.galleryUploaded = existing.galleryUploaded || item.galleryUploaded;
+          existing.isRecommended = existing.isRecommended || item.isRecommended;
+          const representativeImage = existing.images.find((image) => image.isRecommended) || existing.images[0] || null;
+          if (representativeImage) {
+            existing.imageUrl = representativeImage.imageUrl;
+            existing.thumbnailUrl = representativeImage.thumbnailUrl;
+          }
+        });
+
+        return Array.from(grouped.values()).sort((a, b) => {
+          const aTime = new Date(a.createdAt || 0).getTime();
+          const bTime = new Date(b.createdAt || 0).getTime();
+          return (Number.isFinite(bTime) ? bTime : 0) - (Number.isFinite(aTime) ? aTime : 0);
+        });
       }
 
       async function fetchMyPhotos() {
@@ -10211,17 +10362,15 @@ Important:
           throw new Error(payload?.message || `My photos request failed: ${response.status}`);
         }
 
-        return extractMyPhotoItems(payload)
+        const normalizedItems = extractMyPhotoItems(payload)
           .filter(isRecentSevenDayPhoto)
           .map(normalizeMyPhotoItem)
           .filter((photo) => photo && (photo.imageUrl || photo.thumbnailUrl));
+
+        return mergeMyPhotoGenerations(normalizedItems);
       }
 
       function getFilteredMyPhotos() {
-        if (selectedMyPhotoFilter === "recommended") {
-          return myPhotos.filter((photo) => photo.isRecommended);
-        }
-
         if (selectedMyPhotoFilter === "gallery") {
           return myPhotos.filter((photo) => photo.galleryUploaded || photo.source === "gallery");
         }
@@ -10230,6 +10379,10 @@ Important:
       }
 
       function syncMyPhotoFilters() {
+        if (!["all", "gallery"].includes(selectedMyPhotoFilter)) {
+          selectedMyPhotoFilter = "all";
+        }
+
         myPhotoBoxFilterButtons.forEach((button) => {
           const isActive = button.dataset.myPhotoFilter === selectedMyPhotoFilter;
           button.classList.toggle("is-active", isActive);
@@ -10359,18 +10512,29 @@ Important:
 
       function openMyPhotoDetail(photo) {
         selectedMyPhoto = photo || null;
-        const visiblePhotos = getFilteredMyPhotos();
-        const items = visiblePhotos
+        const sourceImages = Array.isArray(photo?.images) && photo.images.length
+          ? photo.images
+          : [photo].filter(Boolean);
+        const items = sourceImages
           .map((item, index) => ({
             url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
-            label: item.resultLabel || item.presetLabel || `마이포토박스 사진 ${index + 1}`,
+            label: item.resultLabel || photo?.resultLabel || photo?.presetLabel || `마이포토박스 사진 ${index + 1}`,
             isRecommended: Boolean(item.isRecommended),
+            hasWatermark: item.hasWatermark === true,
+            isFreeGeneration: item.isFreeGeneration === true,
             index,
+            generationId: photo?.generationId || item.generationId || photo?.id || "",
             myPhotoSource: true,
           }))
           .filter((item) => item.url);
 
-        const startIndex = Math.max(0, visiblePhotos.indexOf(photo));
+        if (!items.length) {
+          showAccountMenuToast("확인할 이미지가 없습니다.");
+          return;
+        }
+
+        const recommendedStartIndex = items.findIndex((item) => item.isRecommended);
+        const startIndex = Math.max(0, recommendedStartIndex);
         openModalWithItems(items, startIndex);
       }
 
@@ -10957,6 +11121,18 @@ Important:
           title: options.title || "생성 실패",
           showCreditButton: options.showCreditButton,
         });
+      }
+
+      function canShowGenerationDebugDetails() {
+        return Boolean(DEBUG_MODE || currentUser?.isAdmin === true || canShowAdminEntry());
+      }
+
+      function getGenerationErrorDebugText(error = {}) {
+        if (!canShowGenerationDebugDetails()) return "";
+        const code = String(error.code || error.response?.code || error.response?.error || "").trim();
+        const stage = String(error.stage || error.response?.stage || "").trim();
+        if (!code && !stage) return "";
+        return `\n\n오류 코드: ${code || "-"}${stage ? ` / 단계: ${stage}` : ""}`;
       }
 
       function readFileAsDataUrl(file) {
@@ -11706,12 +11882,14 @@ ${modeExample}`;
           requestUrl,
           status: response.status,
         });
-        const data = parseJsonResponseBody(responseBody, "서버 응답을 읽지 못했습니다.");
+        const data = await response.clone().json().catch(() => parseJsonResponseBody(responseBody, "서버 응답을 읽지 못했습니다."));
         logMobileDebug("generate response body", data, response.ok ? "log" : "error");
         console.log("[generate] response body or message", sanitizeLogValue(data));
 
         if (!response.ok || !data.ok) {
           const responseCode = String(data.code || data.error || "").toUpperCase();
+          const responseStage = String(data.stage || data.step || data.phase || "").trim();
+          const responseMessage = data.message || data.errorMessage || data.error || "";
           const isInsufficientCredits =
             response.status === 402 ||
             data.status === 402 ||
@@ -11721,6 +11899,9 @@ ${modeExample}`;
             API_BASE_URL: FRONT_API_BASE_URL,
             requestUrl,
             status: response.status,
+            code: responseCode,
+            stage: responseStage,
+            message: responseMessage,
             requestedMode: mode,
             generationMode,
             presetKey: config.presetKey,
@@ -11729,13 +11910,16 @@ ${modeExample}`;
             generationPlace: selectedLandmark?.value || "",
             generationPlaceLabel: selectedLandmark?.label || "",
             hasImage: Boolean(imageFile),
-            message: data.message,
+            data: sanitizeLogValue(data),
             errorBody: sanitizeLogValue(responseBody),
             response: sanitizeLogValue(data),
           });
-          const error = new Error(data.message || "이미지 생성 실패");
+          const error = new Error(responseMessage || "이미지 생성 실패");
+          error.status = response.status;
           error.statusCode = data.status || response.status;
           error.code = responseCode || (isInsufficientCredits ? "INSUFFICIENT_CREDITS" : "");
+          error.stage = responseStage;
+          error.messageFromServer = responseMessage;
           error.response = data;
           if (responseCode === "LOGIN_REQUIRED" || responseCode === "AUTH_REQUIRED") {
             error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
@@ -11749,10 +11933,10 @@ ${modeExample}`;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
           } else if (responseCode === "WATERMARK_FAILED" || responseCode === "WATERMARK_LOGO_NOT_FOUND") {
-            error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+            error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
             error.isWatermarkFailed = true;
-          } else if (data.message) {
-            error.publicMessage = data.message;
+          } else if (responseMessage) {
+            error.publicMessage = responseMessage;
           } else {
             error.publicMessage = GENERAL_GENERATION_FAILURE_MESSAGE;
           }
@@ -12242,13 +12426,22 @@ ${modeExample}`;
       }
 
       function getDownloadPolicy() {
-        const normalizedPlan = String(userPlan || "free").toLowerCase();
-        const shouldWatermark = lastGenerationUsedFreeCredit || normalizedPlan !== "paid";
+        const shouldWatermark = lastGenerationUsedFreeCredit === true;
 
         return {
           shouldWatermark,
           maxSize: shouldWatermark ? WATERMARK_OUTPUT_LONG_EDGE : null,
         };
+      }
+
+      function shouldShowWatermarkForModalItem(item = {}) {
+        if (item.myPhotoSource) {
+          return item.hasWatermark === true || item.isFreeGeneration === true;
+        }
+
+        if (item.gallerySource) return false;
+
+        return getDownloadPolicy().shouldWatermark === true;
       }
 
       function sanitizeFilenamePart(value) {
@@ -12376,7 +12569,8 @@ ${modeExample}`;
         if (item?.gallerySource) return;
         if (!item?.url || !imageSaveModal || !imageSaveModalImg) return;
 
-        const policy = getDownloadPolicy();
+        const shouldWatermark = shouldShowWatermarkForModalItem(item);
+        const maxSize = shouldWatermark ? WATERMARK_OUTPUT_LONG_EDGE : null;
         let saveImageUrl = item.url;
         setImageModalStatus("저장 화면을 준비 중입니다.");
 
@@ -12384,8 +12578,8 @@ ${modeExample}`;
         try {
           const blob = await createImageBlobWithWatermark({
             imageUrl: item.url,
-            shouldWatermark: policy.shouldWatermark,
-            maxSize: policy.maxSize,
+            shouldWatermark,
+            maxSize,
           });
           imageSaveModalObjectUrl = URL.createObjectURL(blob);
           saveImageUrl = imageSaveModalObjectUrl;
@@ -13297,7 +13491,7 @@ ${modeExample}`;
         if (!item) return;
 
         const isGallerySource = Boolean(item.gallerySource);
-        const shouldShowLogoWatermark = !isGallerySource && getDownloadPolicy().shouldWatermark;
+        const shouldShowLogoWatermark = shouldShowWatermarkForModalItem(item);
         imageModalImg.src = item.url;
         imageModalImg.draggable = !isGallerySource;
         imageModalImg.dataset.source = isGallerySource ? "gallery" : "result";
@@ -14924,6 +15118,13 @@ ${modeExample}`;
         } catch (error) {
           let effectiveError = error;
           console.error("[client][grok-edit] generation failed:", effectiveError);
+          console.error("[client][grok-edit] generation failed details:", {
+            status: effectiveError.status || effectiveError.statusCode,
+            code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
+            stage: effectiveError.stage || effectiveError.response?.stage,
+            message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
+            data: sanitizeLogValue(effectiveError.response || null),
+          });
           if (effectiveError.response) {
             console.error("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
           }
@@ -15009,14 +15210,16 @@ ${modeExample}`;
 
           if (isWatermarkError) {
             setStatus("");
-            showError("무료 제작 워터마크 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.", { showCreditButton: false });
-            showAccountMenuToast("무료 제작 워터마크 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+            const watermarkMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
+            showError(`${watermarkMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
+            showAccountMenuToast(watermarkMessage);
             return;
           }
 
           setStatus("");
+          const fallbackGenerationMessage = effectiveError.publicMessage || effectiveError.response?.message || GENERAL_GENERATION_FAILURE_MESSAGE;
           showError(
-            effectiveError.publicMessage || effectiveError.response?.message || GENERAL_GENERATION_FAILURE_MESSAGE,
+            `${fallbackGenerationMessage}${getGenerationErrorDebugText(effectiveError)}`,
             { showCreditButton: false },
           );
         } finally {

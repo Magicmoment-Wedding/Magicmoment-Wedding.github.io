@@ -2989,6 +2989,38 @@
           linear-gradient(180deg, #fff8f7 0%, #fcf1f2 48%, #fff8f7 100%);
       }
 
+      .landing-auth-button {
+        position: fixed;
+        top: calc(20px + env(safe-area-inset-top, 0px));
+        right: 24px;
+        z-index: 50;
+        min-height: 40px;
+        border-radius: 999px;
+        padding: 9px 16px;
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--rose-deep);
+        font-size: 14px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 0;
+        box-shadow: 0 8px 24px rgba(82, 40, 58, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+      }
+
+      .landing-auth-button:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: 0 12px 30px rgba(82, 40, 58, 0.12);
+      }
+
+      .landing-auth-button:focus-visible {
+        outline: 3px solid rgba(129, 80, 92, 0.28);
+        outline-offset: 3px;
+      }
+
       .landing-sections {
         width: 100%;
         display: flex;
@@ -3371,6 +3403,14 @@
       }
 
       @media (max-width: 640px) {
+        .landing-auth-button {
+          top: calc(14px + env(safe-area-inset-top, 0px));
+          right: 14px;
+          min-height: 37px;
+          padding: 8px 13px;
+          font-size: 13px;
+        }
+
         .landing-gallery-grid {
           width: min(calc(100vw - 32px), 680px);
           gap: 5px;
@@ -4249,6 +4289,9 @@
   >
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
+        <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
+          로그인
+        </button>
         <div class="landing-sections" id="landingSections" aria-label="Magic Ai Studio 랜딩 소개">
           <section class="landing-section landing-hero-section" aria-label="Before After 쇼케이스">
             <div class="landing-section-inner">
@@ -6595,6 +6638,7 @@ Important:
 - If the face looks like a different person, the result is a failure.`;
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
+      const landingAuthButton = document.getElementById("landingAuthButton");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
       const editorScreen = document.getElementById("editorScreen");
@@ -7677,6 +7721,16 @@ Important:
         renderAccountAvatar(accountMenuUserAvatar, currentUser);
       }
 
+      function syncLandingAuthButtonUi() {
+        if (!landingAuthButton) return;
+        const hasUser = Boolean(getAuthenticatedUserId(currentUser));
+        landingAuthButton.classList.toggle("hidden", appScreen !== "landing");
+        landingAuthButton.textContent = hasUser ? "내 계정" : "로그인";
+        landingAuthButton.setAttribute("aria-label", hasUser ? "내 계정 열기" : "로그인 열기");
+        landingAuthButton.setAttribute("aria-controls", hasUser ? "accountMenuPanel" : "loginModalPanel");
+        landingAuthButton.setAttribute("aria-expanded", hasUser && isAccountMenuOpen() ? "true" : "false");
+      }
+
       function syncAuthUi() {
         const hasUser = Boolean(currentUser);
         loginUserSummary?.classList.toggle("hidden", !hasUser);
@@ -7708,6 +7762,7 @@ Important:
 
         syncAuthTabUi();
         syncAccountMenuUi();
+        syncLandingAuthButtonUi();
       }
 
       function applyAuthSession(payload = {}) {
@@ -11560,6 +11615,7 @@ Important:
           hideGeneratingGalleryPreview();
         }
 
+        syncLandingAuthButtonUi();
         syncBottomNavUi();
 
         if (replaceHistory) {
@@ -15192,6 +15248,8 @@ ${modeExample}`;
       const accountMenuPanel = document.getElementById("accountMenuPanel");
       const accountMenuClose = document.getElementById("accountMenuClose");
       const accountMenuToast = document.getElementById("accountMenuToast");
+      const accountMenuOriginalParent = accountMenuOverlay?.parentElement || null;
+      const accountMenuLandingHost = document.querySelector(".app-shell");
       const accountMenuLoginItem = document.getElementById("accountMenuLoginItem");
       const accountMenuUserCard = document.getElementById("accountMenuUserCard");
       const accountMenuUserAvatar = document.getElementById("accountMenuUserAvatar");
@@ -15240,6 +15298,7 @@ ${modeExample}`;
       const featureActionButtons = Array.from(document.querySelectorAll("[data-action]"));
       const accountMenuTriggerButtons = [
         topSettingsButton,
+        landingAuthButton,
         ...document.querySelectorAll('[data-action="account-menu"]'),
       ].filter(Boolean);
       const accountMenuItems = Array.from(document.querySelectorAll("[data-account-menu-action]"));
@@ -15319,10 +15378,21 @@ ${modeExample}`;
         accountMenuOverlay?.style.removeProperty("--account-menu-right");
       }
 
+      function syncAccountMenuHost() {
+        if (!accountMenuOverlay || !accountMenuOriginalParent) return;
+        const targetParent = appScreen === "landing" && accountMenuLandingHost
+          ? accountMenuLandingHost
+          : accountMenuOriginalParent;
+        if (targetParent && accountMenuOverlay.parentElement !== targetParent) {
+          targetParent.appendChild(accountMenuOverlay);
+        }
+      }
+
       function openAccountMenu(trigger) {
         if (!accountMenuOverlay || !accountMenuPanel) return;
 
         activeAccountMenuTrigger = trigger || activeAccountMenuTrigger;
+        syncAccountMenuHost();
         resetAccountMenuPosition();
         accountMenuOverlay.classList.add("is-open");
         accountMenuOverlay.setAttribute("aria-hidden", "false");
@@ -15354,6 +15424,16 @@ ${modeExample}`;
         }
 
         openAccountMenu(trigger);
+      }
+
+      function handleLandingAuthButtonClick() {
+        if (getAuthenticatedUserId(currentUser)) {
+          openAccountMenu(landingAuthButton);
+          syncLandingAuthButtonUi();
+          return;
+        }
+
+        openLoginModal(landingAuthButton, { tab: "login" });
       }
 
       function showAccountMenuToast(message) {
@@ -15922,6 +16002,8 @@ ${modeExample}`;
           toggleAccountMenu(topSettingsButton);
         });
       }
+
+      landingAuthButton?.addEventListener("click", handleLandingAuthButtonClick);
 
       accountMenuClose?.addEventListener("click", () => {
         closeAccountMenu({ restoreFocus: true });

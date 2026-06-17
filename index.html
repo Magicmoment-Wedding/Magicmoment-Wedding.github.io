@@ -9287,22 +9287,49 @@ Important:
         }
       }
 
-      async function fetchCurrentUser() {
-        console.log("[auth] calling /api/auth/me");
+      function isUnauthenticatedAuthPayload(payload = {}) {
+        return payload?.authenticated === false
+          || payload?.isAuthenticated === false
+          || payload?.userExists === false
+          || payload?.data?.authenticated === false
+          || payload?.data?.isAuthenticated === false
+          || payload?.data?.userExists === false;
+      }
+
+      async function fetchCurrentUser(options = {}) {
+        const { silent = true } = options;
+        if (!silent || DEBUG_MODE) {
+          console.info("[auth] calling /api/auth/me");
+        }
         const response = await fetch(getAuthApiUrl("/api/auth/me"), {
           method: "GET",
           credentials: "include",
           cache: "no-store",
         });
-        console.log("[auth] /api/auth/me status:", response.status);
-        const payload = await response.json().catch(() => ({}));
-        console.log("[auth] /api/auth/me user exists:", Boolean(normalizeAuthUser(payload)));
+        const parsed = await parseJsonResponseBody(response, { logInvalidJson: response.status !== 401 });
+        const payload = parsed.data || {};
 
-        if (!response.ok || payload?.ok === false) {
-          const error = new Error(payload?.message || payload?.error || `Auth me request failed: ${response.status}`);
+        if (response.status === 401) {
+          if (!silent || DEBUG_MODE) {
+            console.info("[auth] /api/auth/me: guest");
+          }
+          return { ok: false, authenticated: false, user: null, __guest: true };
+        }
+
+        const user = normalizeAuthUser(payload);
+        if (response.ok && (isUnauthenticatedAuthPayload(payload) || !user)) {
+          if (!silent || DEBUG_MODE) {
+            console.info("[auth] /api/auth/me: guest");
+          }
+          return { ...payload, authenticated: false, user: null, __guest: true };
+        }
+
+        if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+          const error = new Error(payload?.message || payload?.error || parsed.message || `Auth me request failed: ${response.status}`);
           error.statusCode = response.status;
           error.code = payload?.code || payload?.errorCode || payload?.error || "";
           error.response = payload;
+          error.rawPreview = parsed.rawText?.slice(0, 300);
           throw error;
         }
 
@@ -9314,7 +9341,7 @@ Important:
         isAuthLoading = true;
 
         try {
-          const payload = await fetchCurrentUser();
+          const payload = await fetchCurrentUser({ silent: !showError });
           applyAuthSession(payload);
           if (currentUser?.isAdmin === true) {
             try {
@@ -9329,7 +9356,7 @@ Important:
           }
           return currentUser;
         } catch (error) {
-          if (DEBUG_MODE) {
+          if (DEBUG_MODE || showError) {
             console.warn("[client][auth] /api/auth/me failed:", error);
           }
           const duplicateProviderError = getDuplicateProviderErrorFromPayload(error.response || error);
@@ -9339,7 +9366,7 @@ Important:
             return null;
           }
           if (error?.statusCode === 401 || String(error?.code || "").toUpperCase() === "LOGIN_REQUIRED") {
-            handleExpiredAuthSession({ showMessage: true });
+            handleExpiredAuthSession({ showMessage: showError });
             return null;
           }
           applyAuthUser(null);
@@ -10183,7 +10210,9 @@ Important:
       function startAuthStartupCheck() {
         if (authStartupCheckPromise) return authStartupCheckPromise;
 
-        console.log("[auth] app mounted - checking me");
+        if (DEBUG_MODE) {
+          console.info("[auth] app mounted - checking me");
+        }
         const loginParams = new URLSearchParams(window.location.search);
         const pendingAuthProcessingMode = getPendingAuthProcessingMode();
         if (pendingAuthProcessingMode) {
@@ -11520,7 +11549,8 @@ Important:
         }
       }
 
-      async function parseJsonResponseBody(response) {
+      async function parseJsonResponseBody(response, options = {}) {
+        const { logInvalidJson = true } = options;
         const contentType = response.headers.get("content-type") || "";
         const text = await response.text();
 
@@ -11541,11 +11571,13 @@ Important:
           trimmed.startsWith("[");
 
         if (!looksLikeJson) {
-          console.error("[client][api][invalid-json-response]", {
-            status: response.status,
-            contentType,
-            preview: text.slice(0, 300),
-          });
+          if (logInvalidJson) {
+            console.error("[client][api][invalid-json-response]", {
+              status: response.status,
+              contentType,
+              preview: text.slice(0, 300),
+            });
+          }
 
           return {
             ok: false,
@@ -11564,12 +11596,14 @@ Important:
             rawText: text,
           };
         } catch (error) {
-          console.error("[client][api][json-parse-failed]", {
-            status: response.status,
-            contentType,
-            preview: text.slice(0, 300),
-            error,
-          });
+          if (logInvalidJson) {
+            console.error("[client][api][json-parse-failed]", {
+              status: response.status,
+              contentType,
+              preview: text.slice(0, 300),
+              error,
+            });
+          }
 
           return {
             ok: false,

@@ -82,6 +82,116 @@ async function parseJsonResponseBody(response) {
   }
 }
 
+function wait(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function resolveJobId(payload = {}) {
+  return String(payload.jobId || payload.job_id || payload.data?.jobId || payload.data?.job_id || "").trim();
+}
+
+function getJobStatus(payload = {}) {
+  return String(payload.status || payload.jobStatus || payload.job_status || payload.state || payload.data?.status || "").toLowerCase();
+}
+
+function extractJobResult(payload = {}, jobId = "") {
+  const candidates = [
+    payload.result,
+    payload.generationResult,
+    payload.data?.result,
+    payload.data?.generationResult,
+    payload.data,
+    payload,
+  ];
+  const result = candidates.find((candidate) => (
+    candidate &&
+    typeof candidate === "object" &&
+    (Array.isArray(candidate.results) || Array.isArray(candidate.imageUrls) || Array.isArray(candidate.image_urls))
+  ));
+
+  return result ? { ...result, ok: result.ok !== false, jobId } : null;
+}
+
+function getJobFailureMessage(code, fallback = "") {
+  if (code === "FREE_GENERATION_NOT_AVAILABLE") {
+    return "무료 제작을 사용할 수 없습니다. 계정 상태를 다시 확인해 주세요.";
+  }
+  if (code === "WATERMARK_FAILED" || code === "WATERMARK_LOGO_NOT_FOUND") {
+    return "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
+  }
+  if (code === "INVALID_SERVER_RESPONSE") {
+    return "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+  }
+  return fallback || "생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+}
+
+function requestGenerationRun(jobId) {
+  fetch(getApiUrl("/api/generate/run"), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jobId }),
+  }).catch((error) => {
+    console.warn("[generate-run] request failed", error);
+  });
+}
+
+async function pollGenerationStatus(jobId) {
+  const startedAt = Date.now();
+  const timeoutMs = 180000;
+  requestGenerationRun(jobId);
+
+  while (Date.now() - startedAt < timeoutMs) {
+    await wait(2000);
+    const response = await fetch(getApiUrl(`/api/generate/status?jobId=${encodeURIComponent(jobId)}`), {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    });
+    const parsed = await parseJsonResponseBody(response);
+    const payload = parsed.data || {};
+    const status = getJobStatus(payload) || "processing";
+
+    if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+      const code = String(response.status === 504 ? "SERVER_TIMEOUT" : (payload?.code || payload?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED"))).toUpperCase();
+      const message = response.status === 504
+        ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요."
+        : getJobFailureMessage(code, payload?.message || parsed.message);
+      const error = new Error(message);
+      error.statusCode = response.status;
+      error.code = code;
+      error.publicMessage = message;
+      error.response = payload;
+      error.rawPreview = parsed.rawText?.slice(0, 300);
+      throw error;
+    }
+
+    if (["succeeded", "success", "completed", "complete"].includes(status)) {
+      const result = extractJobResult(payload, jobId);
+      if (result) return result;
+      const error = new Error("생성 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      error.code = "GENERATION_JOB_FAILED";
+      error.publicMessage = error.message;
+      throw error;
+    }
+
+    if (["failed", "error", "canceled", "cancelled"].includes(status)) {
+      const code = String(payload?.code || payload?.error || payload?.data?.code || "GENERATION_JOB_FAILED").toUpperCase();
+      const message = getJobFailureMessage(code, payload?.message || payload?.data?.message || "");
+      const error = new Error(message);
+      error.code = code;
+      error.publicMessage = message;
+      error.response = payload;
+      throw error;
+    }
+  }
+
+  const error = new Error("생성이 지연되고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.");
+  error.code = "GENERATION_JOB_TIMEOUT";
+  error.publicMessage = error.message;
+  throw error;
+}
+
 export async function generateImages(prompt, options = {}) {
   const {
     sourceImageUrl,
@@ -127,15 +237,21 @@ export async function generateImages(prompt, options = {}) {
     body: formData,
   });
   const parsed = await parseJsonResponseBody(response);
-  const payload = parsed.data || {};
+  let payload = parsed.data || {};
+  const jobId = resolveJobId(payload);
+  const hasImmediateResults = Array.isArray(payload.results) || Array.isArray(payload.imageUrls) || Array.isArray(payload.image_urls);
+  if (response.ok && parsed.parseOk && jobId && !hasImmediateResults) {
+    payload = await pollGenerationStatus(jobId);
+  }
 
   if (!response.ok || !parsed.parseOk || !payload?.ok) {
     const isInsufficientCredits =
       response.status === 402 ||
       payload?.status === 402 ||
       payload?.code === "INSUFFICIENT_CREDITS";
-    const code = payload?.code || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED");
+    const code = response.status === 504 ? "SERVER_TIMEOUT" : (payload?.code || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"));
     const message =
+      (response.status === 504 ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요." : "") ||
       payload?.message ||
       parsed.message ||
       "생성 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
@@ -159,15 +275,23 @@ export async function generateImages(prompt, options = {}) {
       error.currentCredits = payload?.currentCredits;
     } else if (error.code === "INVALID_SERVER_RESPONSE") {
       error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    } else if (error.code === "SERVER_TIMEOUT") {
+      error.publicMessage = "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요.";
+    } else if (error.code === "FREE_GENERATION_NOT_AVAILABLE") {
+      error.publicMessage = "무료 제작을 사용할 수 없습니다. 계정 상태를 다시 확인해 주세요.";
     } else if (error.code === "WATERMARK_FAILED") {
       error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
-    } else if (error.code === "GENERATION_FAILED") {
+    } else if (error.code === "GENERATION_JOB_FAILED" || error.code === "GENERATION_FAILED") {
       error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
     }
     throw error;
   }
 
-  const resultItems = Array.isArray(payload.results) ? payload.results : [];
+  const resultItems = Array.isArray(payload.results)
+    ? payload.results
+    : (Array.isArray(payload.imageUrls || payload.image_urls)
+      ? (payload.imageUrls || payload.image_urls).map((url, index) => ({ ok: true, imageBase64: url, index }))
+      : []);
   const failedImages = Array.isArray(payload.failedImages) ? payload.failedImages : [];
 
   return resultItems.map((item, index) => {

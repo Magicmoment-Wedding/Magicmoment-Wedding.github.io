@@ -1270,16 +1270,52 @@
 
       .site-guide-copy {
         display: grid;
-        gap: 9px;
+        gap: 10px;
         margin-top: 12px;
       }
 
-      .site-guide-copy p {
+      .site-guide-copy p,
+      .site-guide-tip-copy p {
         margin: 0;
         color: #514346;
         font-size: 14px;
         line-height: 1.72;
         word-break: keep-all;
+        overflow-wrap: normal;
+        line-break: strict;
+      }
+
+      .site-guide-tip-blocks {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .site-guide-tip-block {
+        border-radius: 18px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.58);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+      }
+
+      .site-guide-tip-title {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 9999px;
+        padding: 3px 10px;
+        color: var(--rose-deep);
+        background: rgba(129, 80, 92, 0.1);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.3;
+        word-break: keep-all;
+      }
+
+      .site-guide-tip-copy {
+        display: grid;
+        gap: 7px;
+        margin-top: 9px;
       }
 
       .site-guide-copy strong,
@@ -1749,6 +1785,10 @@
         box-shadow: 0 14px 36px rgba(129, 80, 92, 0.1);
       }
 
+      .site-guide-step.is-wide {
+        grid-column: 1 / -1;
+      }
+
       .site-guide-illustration {
         min-height: 128px;
         padding: 16px;
@@ -1784,6 +1824,35 @@
 
       .site-guide-step-body {
         padding: 16px;
+        min-width: 0;
+      }
+
+      .site-guide-card-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .site-guide-card-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .site-guide-card-title {
+        min-width: min(100%, 12em);
+        max-width: 100%;
+        color: var(--ink);
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        line-break: strict;
       }
 
       .site-guide-step-number {
@@ -6598,6 +6667,7 @@ Important:
       let galleryImages = [];
       const uploadedGalleryImageUrls = new Set();
       let currentGenerationId = "";
+      let currentGenerationJobId = "";
       let currentGenerationGalleryUploadIndex = null;
       let galleryUploadLimitReached = false;
       let isGalleryUploading = false;
@@ -6664,22 +6734,42 @@ Important:
       const guideSteps = [
         {
           title: "사진 올리기",
-          paragraphs: [
-            "좋은 결과는 원본 사진에서 시작돼요.",
-            "고화질 사진, 밝은 조명, 흰색 또는 단순한 배경일수록 AI가 얼굴을 더 정확하게 인식해요.",
-            "이미 보정이 많이 들어간 사진보다는 원본에 가까운 사진을 올리면 더 자연스럽고 멋진 결과가 나와요.",
+          blocks: [
+            {
+              title: "좋은 사진 조건",
+              paragraphs: [
+                "고화질 사진, 밝은 조명, 흰색 또는 단순한 배경일수록 AI가 얼굴을 더 정확하게 인식해요.",
+              ],
+            },
+            {
+              title: "원본 사진 추천",
+              paragraphs: [
+                "이미 보정이 많이 들어간 사진보다는 원본에 가까운 사진을 올리면 더 자연스럽고 멋진 결과가 나와요.",
+              ],
+            },
           ],
-          highlights: ["고화질 사진", "흰색 또는 단순한 배경", "원본에 가까운 사진", "더 자연스럽고 멋진 결과"],
+          highlights: ["고화질 사진", "밝은 조명", "흰색 또는 단순한 배경", "원본에 가까운 사진", "자연스럽고 멋진 결과"],
           icon: "add_a_photo",
           image: null,
           notes: [],
         },
         {
           title: "스타일 선택하기",
-          paragraphs: [
-            "원하는 스타일에 어울리는 사진을 고르면 결과가 더 좋아져요.",
-            "예를 들어 소파샷은 앉아있는 사진, 꽃잎샷은 가까운 커플 사진처럼 원본 포즈와 스타일이 잘 맞을수록 자연스럽게 완성돼요.",
-            "스타일마다 예쁨단계가 있어요. 유럽배경은 1단계, 디즈니배경은 3단계처럼 콘셉트에 따라 의상, 분위기, 약간의 예쁨 보정이 들어갈 수 있어요.",
+          blocks: [
+            {
+              title: "사진과 스타일 맞추기",
+              paragraphs: [
+                "원하는 스타일에 어울리는 사진을 고르면 결과가 더 좋아져요.",
+                "예를 들어 소파샷은 앉아있는 사진, 꽃잎샷은 가까운 커플 사진처럼 원본 포즈와 스타일이 잘 맞을수록 자연스럽게 완성돼요.",
+              ],
+            },
+            {
+              title: "예쁨단계 확인",
+              paragraphs: [
+                "스타일마다 예쁨단계가 있어요.",
+                "유럽배경은 1단계, 디즈니배경은 3단계처럼 콘셉트에 따라 의상, 분위기, 약간의 예쁨 보정이 들어갈 수 있어요.",
+              ],
+            },
           ],
           highlights: ["스타일에 어울리는 사진", "원본 포즈와 스타일", "예쁨단계", "약간의 예쁨 보정"],
           icon: "style",
@@ -6706,6 +6796,7 @@ Important:
         {
           title: "스타일 갤러리에 올리기",
           badge: "5크레딧 지급",
+          wide: true,
           paragraphs: [
             "완성된 사진 중 마음에 드는 1장을 스타일 갤러리에 올릴 수 있어요.",
             "갤러리에 업로드하면 5크레딧을 지급해드려요.",
@@ -10043,6 +10134,24 @@ Important:
 
       function renderGuideDescription(step = {}) {
         const highlights = Array.isArray(step.highlights) ? step.highlights : [];
+        const blocks = Array.isArray(step.blocks) ? step.blocks : [];
+        if (blocks.length) {
+          return `
+            <div class="site-guide-tip-blocks">
+              ${blocks.map((block) => `
+                <section class="site-guide-tip-block">
+                  <span class="site-guide-tip-title">${escapeHtml(block.title || "")}</span>
+                  <div class="site-guide-tip-copy">
+                    ${(Array.isArray(block.paragraphs) ? block.paragraphs : []).map((paragraph) => `
+                      <p>${renderGuideCopyText(paragraph, highlights)}</p>
+                    `).join("")}
+                  </div>
+                </section>
+              `).join("")}
+            </div>
+          `;
+        }
+
         const paragraphs = Array.isArray(step.paragraphs) && step.paragraphs.length
           ? step.paragraphs
           : [step.description || ""].filter(Boolean);
@@ -10057,17 +10166,19 @@ Important:
       function renderGuideStepCard(step, stepNumber) {
         const notes = Array.isArray(step?.notes) ? step.notes : [];
         return `
-          <article class="site-guide-step">
+          <article class="site-guide-step ${step?.wide ? "is-wide" : ""}">
             <div class="site-guide-illustration" aria-hidden="true">
               <div class="site-guide-placeholder">
                 <span class="material-symbols-outlined text-[34px]">${escapeHtml(step?.icon || "info")}</span>
               </div>
             </div>
             <div class="site-guide-step-body">
-              <div class="flex items-center gap-3">
+              <div class="site-guide-card-heading">
                 <span class="site-guide-step-number">${stepNumber}</span>
-                <h3 class="text-[18px] font-bold leading-6 text-on-surface">${escapeHtml(step?.title || "")}</h3>
-                ${step?.badge ? `<span class="site-guide-badge">${escapeHtml(step.badge)}</span>` : ""}
+                <div class="site-guide-card-title-row">
+                  <h3 class="site-guide-card-title">${escapeHtml(step?.title || "")}</h3>
+                  ${step?.badge ? `<span class="site-guide-badge">${escapeHtml(step.badge)}</span>` : ""}
+                </div>
               </div>
               ${renderGuideDescription(step)}
               ${notes.length ? `
@@ -11200,6 +11311,206 @@ Important:
         }
       }
 
+      function wait(ms) {
+        return new Promise((resolve) => window.setTimeout(resolve, ms));
+      }
+
+      function resolveGenerationJobId(payload = {}) {
+        return String(
+          payload.jobId ||
+          payload.job_id ||
+          payload.data?.jobId ||
+          payload.data?.job_id ||
+          payload.result?.jobId ||
+          payload.result?.job_id ||
+          "",
+        ).trim();
+      }
+
+      function getGenerationJobStatus(payload = {}) {
+        return String(
+          payload.status ||
+          payload.jobStatus ||
+          payload.job_status ||
+          payload.state ||
+          payload.data?.status ||
+          payload.data?.jobStatus ||
+          payload.data?.job_status ||
+          "",
+        ).trim().toLowerCase();
+      }
+
+      function getGenerationJobProgressMessage(status, elapsedMs = 0) {
+        if (elapsedMs >= 90000) {
+          return "작업이 지연되고 있어요. 완료되면 마이포토박스에서도 확인할 수 있어요.";
+        }
+        if (elapsedMs >= 30000) {
+          return "사진 제작에 시간이 조금 더 걸리고 있어요. 창을 닫지 말고 기다려 주세요.";
+        }
+
+        if (status === "queued" || status === "pending") {
+          return "사진 제작을 준비하고 있어요.";
+        }
+        if (status === "watermark" || status === "watermarking") {
+          return "무료 제작 워터마크를 적용하고 있어요.";
+        }
+        if (status === "saving" || status === "storing") {
+          return "완성된 사진을 저장하고 있어요.";
+        }
+        return "AI가 사진을 만들고 있어요. 잠시만 기다려 주세요.";
+      }
+
+      function getGenerationJobFailureMessage(code, fallbackMessage = "") {
+        if (code === "FREE_GENERATION_NOT_AVAILABLE") {
+          return "무료 제작을 사용할 수 없습니다. 계정 상태를 다시 확인해 주세요.";
+        }
+        if (code === "WATERMARK_FAILED" || code === "WATERMARK_LOGO_NOT_FOUND") {
+          return "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
+        }
+        if (code === "INVALID_SERVER_RESPONSE") {
+          return "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        }
+        if (code === "GENERATION_JOB_FAILED" || code === "GENERATION_FAILED") {
+          return "생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        }
+        return fallbackMessage || "생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+      }
+
+      function extractGenerationResultFromJobPayload(payload = {}, jobId = "") {
+        const candidates = [
+          payload.result,
+          payload.generationResult,
+          payload.generation_result,
+          payload.data?.result,
+          payload.data?.generationResult,
+          payload.data?.generation_result,
+          payload.data,
+          payload,
+        ];
+        const result = candidates.find((candidate) => (
+          candidate &&
+          typeof candidate === "object" &&
+          (
+            Array.isArray(candidate.results) ||
+            Array.isArray(candidate.imageUrls) ||
+            Array.isArray(candidate.image_urls) ||
+            Array.isArray(candidate.images) ||
+            candidate.originalImageUrl ||
+            candidate.original_image_url
+          )
+        ));
+
+        if (!result) return null;
+        return {
+          ...result,
+          ok: result.ok !== false,
+          jobId: result.jobId || result.job_id || jobId,
+          generationMeta: {
+            ...(result.generationMeta || result.generation_meta || {}),
+            jobId,
+          },
+        };
+      }
+
+      async function requestGenerationRun(jobId) {
+        if (!jobId) return;
+
+        fetch(`${FRONT_API_BASE_URL}/api/generate/run`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId }),
+        }).catch((error) => {
+          console.warn("[generate-run] request failed", error);
+        });
+      }
+
+      async function pollGenerationJobStatus(jobId) {
+        const startedAt = Date.now();
+        const timeoutMs = 180000;
+        const intervalMs = 2000;
+        currentGenerationJobId = jobId;
+        setStatus(getGenerationJobProgressMessage("queued", 0));
+        requestGenerationRun(jobId);
+
+        while (Date.now() - startedAt < timeoutMs) {
+          await wait(intervalMs);
+          const elapsedMs = Date.now() - startedAt;
+          const requestUrl = `${FRONT_API_BASE_URL}/api/generate/status?jobId=${encodeURIComponent(jobId)}`;
+          let response;
+          try {
+            response = await fetch(requestUrl, {
+              method: "GET",
+              credentials: "include",
+              cache: "no-store",
+            });
+          } catch (error) {
+            console.warn("[client][generate-status] network failed", { jobId, error });
+            setStatus(getGenerationJobProgressMessage("processing", elapsedMs));
+            continue;
+          }
+
+          const parsed = await parseJsonResponseBody(response);
+          const payload = parsed.data || {};
+          const status = getGenerationJobStatus(payload) || "processing";
+          console.log("[client][generate-status]", {
+            jobId,
+            status,
+            httpStatus: response.status,
+            ok: response.ok,
+          });
+
+          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+            const code = String(payload?.code || payload?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED")).toUpperCase();
+            const message = response.status === 504
+              ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요."
+              : getGenerationJobFailureMessage(code, payload?.message || parsed.message);
+            const error = new Error(message);
+            error.status = response.status;
+            error.statusCode = response.status;
+            error.code = response.status === 504 ? "SERVER_TIMEOUT" : code;
+            error.publicMessage = message;
+            error.response = payload;
+            error.rawPreview = parsed.rawText?.slice(0, 300);
+            throw error;
+          }
+
+          if (status === "succeeded" || status === "success" || status === "completed" || status === "complete") {
+            const result = extractGenerationResultFromJobPayload(payload, jobId);
+            if (!result) {
+              const error = new Error("GENERATION_JOB_FAILED");
+              error.code = "GENERATION_JOB_FAILED";
+              error.publicMessage = "생성 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+              error.response = payload;
+              throw error;
+            }
+            setStatus("완성된 사진을 저장하고 있어요.");
+            return result;
+          }
+
+          if (status === "failed" || status === "error" || status === "canceled" || status === "cancelled") {
+            const code = String(payload?.code || payload?.error || payload?.data?.code || "GENERATION_JOB_FAILED").toUpperCase();
+            const message = getGenerationJobFailureMessage(code, payload?.message || payload?.data?.message || "");
+            const error = new Error(message);
+            error.code = code;
+            error.publicMessage = message;
+            error.response = payload;
+            if (code === "WATERMARK_FAILED" || code === "WATERMARK_LOGO_NOT_FOUND") {
+              error.isWatermarkFailed = true;
+            }
+            throw error;
+          }
+
+          setStatus(getGenerationJobProgressMessage(status, elapsedMs));
+        }
+
+        const error = new Error("GENERATION_JOB_TIMEOUT");
+        error.code = "GENERATION_JOB_TIMEOUT";
+        error.publicMessage = "생성이 지연되고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.";
+        error.jobId = jobId;
+        throw error;
+      }
+
       function sanitizeLogValue(value, depth = 0) {
         if (value === null || typeof value === "undefined") {
           return value;
@@ -11301,6 +11612,7 @@ Important:
         generationMeta = null;
         imageMetadata = [];
         currentGenerationId = "";
+        currentGenerationJobId = "";
         currentGenerationGalleryUploadIndex = null;
         recommendedIndex = null;
         resultDisplayOrder = [];
@@ -12234,12 +12546,31 @@ ${modeExample}`;
           status: response.status,
         });
         const parsed = await parseJsonResponseBody(response);
-        const data = parsed.data || {};
+        let data = parsed.data || {};
         logMobileDebug("generate response body", data, response.ok ? "log" : "error");
         console.log("[generate] response body or message", sanitizeLogValue(data));
 
+        const responseJobId = resolveGenerationJobId(data);
+        const hasImmediateResults = Array.isArray(data.results) || Array.isArray(data.imageUrls) || Array.isArray(data.image_urls) || Array.isArray(data.images);
+        if (response.ok && parsed.parseOk && responseJobId && !hasImmediateResults) {
+          currentGenerationJobId = responseJobId;
+          currentGenerationId = responseJobId;
+          generationMeta = {
+            ...(generationMeta || {}),
+            jobId: responseJobId,
+            generationId: responseJobId,
+            usedFreeGeneration: useFreeGeneration,
+            hasWatermark: useFreeGeneration,
+          };
+          console.log("[client][generate][job-created]", {
+            jobId: responseJobId,
+            generationType: useFreeGeneration ? "free" : "paid",
+          });
+          data = await pollGenerationJobStatus(responseJobId);
+        }
+
         if (!response.ok || !parsed.parseOk || !data?.ok) {
-          const responseCode = String(data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED")).toUpperCase();
+          const responseCode = String(response.status === 504 ? "SERVER_TIMEOUT" : (data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"))).toUpperCase();
           const responseStage = String(data.stage || data.step || data.phase || "").trim();
           const responseMessage = data?.message || data?.errorMessage || data?.error || parsed.message || "";
           const isInsufficientCredits =
@@ -12269,7 +12600,7 @@ ${modeExample}`;
             errorBody: sanitizeLogValue(parsed.rawText),
             response: sanitizeLogValue(data),
           });
-          const error = new Error(responseMessage || "이미지 생성 실패");
+          const error = new Error(response.status === 504 ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요." : (responseMessage || "이미지 생성 실패"));
           error.status = response.status;
           error.statusCode = data.status || response.status;
           error.code = responseCode || (isInsufficientCredits ? "INSUFFICIENT_CREDITS" : "");
@@ -12277,7 +12608,9 @@ ${modeExample}`;
           error.messageFromServer = responseMessage;
           error.response = data;
           error.rawPreview = parsed.rawText?.slice(0, 300);
-          if (responseCode === "LOGIN_REQUIRED" || responseCode === "AUTH_REQUIRED") {
+          if (responseCode === "SERVER_TIMEOUT") {
+            error.publicMessage = "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요.";
+          } else if (responseCode === "LOGIN_REQUIRED" || responseCode === "AUTH_REQUIRED") {
             error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
             error.isLoginRequired = true;
           } else if (responseCode === "ONBOARDING_REQUIRED") {
@@ -12288,12 +12621,14 @@ ${modeExample}`;
             error.isInsufficientCredits = true;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
+          } else if (responseCode === "FREE_GENERATION_NOT_AVAILABLE") {
+            error.publicMessage = "무료 제작을 사용할 수 없습니다. 계정 상태를 다시 확인해 주세요.";
           } else if (responseCode === "WATERMARK_FAILED" || responseCode === "WATERMARK_LOGO_NOT_FOUND") {
             error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
             error.isWatermarkFailed = true;
           } else if (responseCode === "INVALID_SERVER_RESPONSE") {
             error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-          } else if (responseCode === "GENERATION_FAILED") {
+          } else if (responseCode === "GENERATION_JOB_FAILED" || responseCode === "GENERATION_FAILED") {
             error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
           } else if (responseMessage) {
             error.publicMessage = responseMessage;
@@ -12303,7 +12638,13 @@ ${modeExample}`;
           throw error;
         }
 
-        const resultItems = Array.isArray(data.results) ? data.results : [];
+        const resultItems = Array.isArray(data.results)
+          ? data.results
+          : (Array.isArray(data.images)
+            ? data.images
+            : (Array.isArray(data.imageUrls || data.image_urls)
+              ? (data.imageUrls || data.image_urls).map((url, index) => ({ ok: true, imageUrl: url, index }))
+              : []));
         const getGeneratedResultImageUrl = (item) => {
           const candidates = [
             item?.imageUrl,
@@ -15473,7 +15814,7 @@ ${modeExample}`;
           });
           isGenerating = false;
           generateButton.disabled = false;
-          void refreshAuthState({ showError: false });
+          await refreshAuthState({ showError: false });
           setAppScreen("result", { replaceHistory: true });
         } catch (error) {
           let effectiveError = error;
@@ -15521,6 +15862,12 @@ ${modeExample}`;
 
           clearResults();
           setAppScreen("editor", { replaceHistory: true });
+          try {
+            await refreshAuthState({ showError: false });
+            syncEditorGenerationCopy();
+          } catch (authRefreshError) {
+            console.warn("[client][generate] auth refresh after failure failed:", authRefreshError);
+          }
           const generationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
           const isLoginRequiredError = effectiveError.isLoginRequired || generationErrorCode === "LOGIN_REQUIRED" || generationErrorCode === "AUTH_REQUIRED";
           const isOnboardingRequiredError = effectiveError.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";

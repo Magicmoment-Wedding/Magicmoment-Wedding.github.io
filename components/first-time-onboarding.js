@@ -50,7 +50,7 @@ export function renderFirstTimeOnboarding(state) {
           </div>
           <p class="font-label-caps text-label-caps text-primary tracking-widest mt-6">STEP ${stepIndex + 1}</p>
           <div class="mt-2 flex flex-col items-center gap-2">
-            <h3 class="font-display text-[30px] sm:text-[34px] leading-tight text-on-surface">${step.title}</h3>
+            <h3 class="font-display text-[30px] sm:text-[34px] leading-tight text-on-surface [word-break:keep-all] [overflow-wrap:normal]">${step.title}</h3>
             ${step.badge ? `
               <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">${step.badge}</span>
             ` : ""}

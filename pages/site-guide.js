@@ -12,13 +12,13 @@ export function renderSiteGuidePage() {
 
     <section class="grid grid-cols-1 gap-3">
       ${guideItems.map((item, index) => `
-        <article class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex gap-4">
+        <article class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex gap-4 ${item.wide ? "col-span-full" : ""}">
           <div class="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
             <span class="font-bold text-sm">${index + 1}</span>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="font-display text-[24px] leading-tight text-on-surface">${item.title}</h2>
+              <h2 class="font-display text-[24px] leading-tight text-on-surface [word-break:keep-all] [overflow-wrap:normal]">${item.title}</h2>
               ${item.badge ? `
                 <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">${item.badge}</span>
               ` : ""}

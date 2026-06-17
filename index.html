@@ -2482,18 +2482,38 @@
         bottom: clamp(14px, 3%, 24px);
         z-index: 18;
         display: none;
-        width: clamp(52px, 12%, 110px);
-        max-width: 14%;
-        opacity: 0.17;
+        width: auto;
+        max-width: none;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.68);
+        color: #8f4f62;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.1;
+        text-align: center;
+        opacity: 1;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         pointer-events: none;
         user-select: none;
       }
 
       .logo-watermark img {
+        display: none;
+      }
+
+      .logo-watermark::before {
+        content: "Magic AI Studio";
         display: block;
-        width: 100%;
-        height: auto;
-        object-fit: contain;
+      }
+
+      .logo-watermark::after {
+        content: "Free Preview";
+        display: block;
+        font-size: 10px;
+        font-weight: 800;
       }
 
       .result-comparison-slider .logo-watermark {
@@ -2508,8 +2528,12 @@
       .result-card .logo-watermark {
         right: 12px;
         bottom: 12px;
-        width: clamp(38px, 18%, 58px);
-        max-width: 18%;
+        padding: 6px 9px;
+        font-size: 10px;
+      }
+
+      .result-card .logo-watermark::after {
+        display: none;
       }
 
       .has-logo-watermark .logo-watermark {
@@ -11265,8 +11289,12 @@ Important:
 
         const inheritedIsFree = normalizeMyPhotoBoolean(generation.isFreeGeneration ?? generation.is_free_generation, false);
         const inheritedHasWatermark = normalizeMyPhotoBoolean(generation.hasWatermark ?? generation.has_watermark ?? generation.watermarked, false);
+        const inheritedGenerationType = generation.generationType || generation.generation_type || (inheritedIsFree ? "free" : "");
+        const inheritedWatermarkStrategy = generation.watermarkStrategy || generation.watermark_strategy || "";
         const isFreeGeneration = normalizeMyPhotoBoolean(rawImage.isFreeGeneration ?? rawImage.is_free_generation, inheritedIsFree);
         const hasWatermark = normalizeMyPhotoBoolean(rawImage.hasWatermark ?? rawImage.has_watermark ?? rawImage.watermarked, inheritedHasWatermark);
+        const generationType = rawImage.generationType || rawImage.generation_type || inheritedGenerationType;
+        const watermarkStrategy = rawImage.watermarkStrategy || rawImage.watermark_strategy || inheritedWatermarkStrategy;
         const imageUrl = getMyPhotoDisplayImageUrl({
           ...generation,
           ...rawImage,
@@ -11301,6 +11329,8 @@ Important:
           source: rawImage.source || rawImage.origin || generation.source || generation.origin || "",
           hasWatermark,
           isFreeGeneration,
+          generationType,
+          watermarkStrategy,
           index,
         };
       }
@@ -11355,6 +11385,8 @@ Important:
           source: rawItem.source || rawItem.origin || "",
           hasWatermark: normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, false),
           isFreeGeneration: normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, false),
+          generationType: rawItem.generationType || rawItem.generation_type || "",
+          watermarkStrategy: rawItem.watermarkStrategy || rawItem.watermark_strategy || "",
           images,
         };
       }
@@ -13051,6 +13083,7 @@ ${modeExample}`;
               additionalIndex,
               fallbackLabel: variantLabels[index] || `결과 ${index + 1}`,
             });
+          const metadata = imageMetadata[index] || {};
           allResultImages.push({
             url,
             index,
@@ -13059,6 +13092,10 @@ ${modeExample}`;
               : `${copy?.title || variantLabels[index] || `AI 생성 결과 ${index + 1}`}`,
             description: copy?.description || "",
             isRecommended,
+            generationType: metadata.generationType || metadata.generation_type || generationMeta?.generationType || generationMeta?.generation_type,
+            isFreeGeneration: metadata.isFreeGeneration === true || metadata.is_free_generation === true || generationMeta?.isFreeGeneration === true || generationMeta?.usedFreeGeneration === true,
+            hasWatermark: metadata.hasWatermark === true || metadata.has_watermark === true || generationMeta?.hasWatermark === true || generationMeta?.has_watermark === true,
+            watermarkStrategy: metadata.watermarkStrategy || metadata.watermark_strategy || generationMeta?.watermarkStrategy || generationMeta?.watermark_strategy || "",
           });
         });
 
@@ -13209,6 +13246,7 @@ ${modeExample}`;
             generationId: responseJobId,
             usedFreeGeneration: useFreeGeneration,
             hasWatermark: useFreeGeneration,
+            generationType: useFreeGeneration ? "free" : "paid",
           };
           console.log("[client][generate][job-created]", {
             jobId: responseJobId,
@@ -13325,6 +13363,10 @@ ${modeExample}`;
         });
 
         const generationId = resolveGenerationIdFromPayload(data) || createClientGenerationId();
+        const responseGenerationType = data.generationType || data.generation_type || (useFreeGeneration ? "free" : "paid");
+        const responseIsFreeGeneration = data.isFreeGeneration === true || data.is_free_generation === true || responseGenerationType === "free";
+        const responseHasWatermark = data.hasWatermark === true || data.has_watermark === true || responseIsFreeGeneration;
+        const responseWatermarkStrategy = data.watermarkStrategy || data.watermark_strategy || "";
 
         const responseOriginalImageUrl = firstUrlValue(data.originalImageUrl, data.original_image_url, data.originalImage, uploadedOriginalImageUrl);
         const responseOriginalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, data.original_thumbnail_url, responseOriginalImageUrl);
@@ -13348,7 +13390,10 @@ ${modeExample}`;
             generationId,
             usedFreeGeneration: useFreeGeneration,
             freeGenerationNumber: useFreeGeneration ? 1 : null,
-            hasWatermark: Boolean(data.hasWatermark ?? data.has_watermark ?? useFreeGeneration),
+            generationType: responseGenerationType,
+            isFreeGeneration: responseIsFreeGeneration,
+            hasWatermark: responseHasWatermark,
+            watermarkStrategy: responseWatermarkStrategy,
             locationPreset: selectedLandmark?.value || "",
             category: getLocationCategoryForMode(generationMode),
             generationPlace: selectedLandmark?.value || "",
@@ -13358,6 +13403,10 @@ ${modeExample}`;
             ...item,
             index: Number.isInteger(item.index) ? item.index : fallbackIndex,
             imagePath: item.imagePath || item.image_path || item.path || item.storagePath || item.storage_path || "",
+            generationType: item.generationType || item.generation_type || responseGenerationType,
+            isFreeGeneration: item.isFreeGeneration === true || item.is_free_generation === true || responseIsFreeGeneration,
+            hasWatermark: item.hasWatermark === true || item.has_watermark === true || responseHasWatermark,
+            watermarkStrategy: item.watermarkStrategy || item.watermark_strategy || responseWatermarkStrategy,
           })),
         };
       }
@@ -13778,12 +13827,7 @@ ${modeExample}`;
       }
 
       function getDownloadPolicy() {
-        const shouldWatermark = Boolean(
-          generationMeta?.hasWatermark === true ||
-          generationMeta?.has_watermark === true ||
-          generationMeta?.usedFreeGeneration === true ||
-          lastGenerationUsedFreeCredit === true
-        );
+        const shouldWatermark = shouldShowWatermarkOverlay(generationMeta) || lastGenerationUsedFreeCredit === true;
 
         return {
           shouldWatermark,
@@ -13791,14 +13835,45 @@ ${modeExample}`;
         };
       }
 
+      function shouldShowWatermarkOverlay(itemOrResult = {}) {
+        const generationType =
+          itemOrResult?.generationType ||
+          itemOrResult?.generation_type ||
+          itemOrResult?.result_payload?.generationType ||
+          itemOrResult?.resultPayload?.generationType;
+        const hasWatermark =
+          itemOrResult?.hasWatermark === true ||
+          itemOrResult?.has_watermark === true ||
+          itemOrResult?.result_payload?.hasWatermark === true ||
+          itemOrResult?.resultPayload?.hasWatermark === true;
+        const watermarkStrategy =
+          itemOrResult?.watermarkStrategy ||
+          itemOrResult?.watermark_strategy ||
+          itemOrResult?.result_payload?.watermarkStrategy ||
+          itemOrResult?.resultPayload?.watermarkStrategy;
+
+        if (generationType === "paid" && hasWatermark !== true && watermarkStrategy !== "frontend_overlay") {
+          return false;
+        }
+
+        const isFree =
+          itemOrResult?.isFreeGeneration === true ||
+          itemOrResult?.is_free_generation === true ||
+          itemOrResult?.usedFreeGeneration === true ||
+          itemOrResult?.used_free_generation === true ||
+          generationType === "free";
+
+        return isFree || hasWatermark || watermarkStrategy === "frontend_overlay";
+      }
+
       function shouldShowWatermarkForModalItem(item = {}) {
         if (item.myPhotoSource) {
-          return item.hasWatermark === true;
+          return shouldShowWatermarkOverlay(item);
         }
 
         if (item.gallerySource) return false;
 
-        return getDownloadPolicy().shouldWatermark === true;
+        return shouldShowWatermarkOverlay(item) || getDownloadPolicy().shouldWatermark === true;
       }
 
       function sanitizeFilenamePart(value) {

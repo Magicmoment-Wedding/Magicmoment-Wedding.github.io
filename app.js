@@ -16,6 +16,7 @@ import { renderSuggestionsPage } from "./pages/suggestions.js";
 import { renderCreditsPage } from "./pages/credits.js";
 import { renderSettingsPage } from "./pages/settings.js";
 import { setupBeforeAfterSliders } from "./components/before-after-slider.js";
+import { shouldShowWatermarkOverlay } from "./components/watermarked-image.js";
 import { openAssistantChat } from "./services/assistant-chat.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
@@ -205,12 +206,13 @@ function closeModal() {
   updateState({ activeModal: null });
 }
 
-function openPhotoSaveGuideModal(imageUrl, label = "저장할 이미지") {
+function openPhotoSaveGuideModal(imageUrl, label = "저장할 이미지", showWatermark = false) {
   updateState({
     activeModal: {
       type: "photoSaveGuide",
       imageUrl,
       label,
+      showWatermark,
     },
   });
 }
@@ -436,6 +438,11 @@ function getImageModalItems(state) {
         : `${result.variantLabel ?? `AI 생성 결과 ${index + 1}`}`,
       isRecommended: index === recommendedIndex,
       resultIndex: index,
+      showWatermark: shouldShowWatermarkOverlay(result),
+      generationType: result.generationType,
+      isFreeGeneration: result.isFreeGeneration,
+      hasWatermark: result.hasWatermark,
+      watermarkStrategy: result.watermarkStrategy,
     })),
   ].filter((item) => item.url);
 }
@@ -458,7 +465,9 @@ function openImageModal(imageUrl, label) {
       index,
       items,
       saveLabel: getImageSaveLabel(),
-      saveHelp: "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.",
+      saveHelp: item.showWatermark
+        ? "무료 제작 이미지는 워터마크가 포함된 미리보기입니다."
+        : "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.",
     },
   });
 }
@@ -485,7 +494,9 @@ function moveImageModal(direction) {
       index: nextIndex,
       items,
       saveLabel: getImageSaveLabel(),
-      saveHelp: "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.",
+      saveHelp: nextItem.showWatermark
+        ? "무료 제작 이미지는 워터마크가 포함된 미리보기입니다."
+        : "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.",
     },
   });
 }
@@ -535,7 +546,10 @@ async function performGeneration() {
         regularCredits: generationCost,
         usedFreeGeneration: useFreeGeneration,
         freeGenerationNumber: useFreeGeneration ? 1 : null,
-        hasWatermark: useFreeGeneration,
+        generationType: resultPayload.generationMeta?.generationType || (useFreeGeneration ? "free" : "paid"),
+        isFreeGeneration: resultPayload.generationMeta?.isFreeGeneration === true || useFreeGeneration,
+        hasWatermark: resultPayload.generationMeta?.hasWatermark === true || useFreeGeneration,
+        watermarkStrategy: resultPayload.generationMeta?.watermarkStrategy || "",
         remainingCredits: state.credits,
         qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
         billingTitle: useFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "크레딧 차감 없이 생성되었습니다",
@@ -681,6 +695,11 @@ async function downloadSelectedResult() {
     return;
   }
 
+  if (shouldShowWatermarkOverlay(selectedResult)) {
+    window.alert("무료 제작 이미지는 워터마크가 포함된 미리보기입니다.");
+    return;
+  }
+
   await saveImageForDevice(selectedResult.afterUrl, `${selectedResult.id ?? "magic-ai-studio-result"}.jpg`);
 }
 
@@ -814,7 +833,7 @@ async function handleAction(action, target) {
   if (action === "save-image-modal") {
     const modal = getState().activeImageModal;
     if (modal?.url) {
-      openPhotoSaveGuideModal(modal.url, modal.label || "저장할 이미지");
+      openPhotoSaveGuideModal(modal.url, modal.label || "저장할 이미지", modal.showWatermark === true);
     }
     return;
   }

@@ -1,3 +1,6 @@
+import { renderWatermarkedImage, shouldShowWatermarkOverlay } from "../components/watermarked-image.js";
+import { escapeHtml } from "../services/format.js";
+
 export function renderUploadedGalleryPage(galleryImages = []) {
   if (galleryImages.length === 0) {
     return `
@@ -16,9 +19,15 @@ export function renderUploadedGalleryPage(galleryImages = []) {
     const size = sizeVariants[index % sizeVariants.length];
     
     return `
-      <article class="rounded-[20px] overflow-hidden glass-panel glow-shadow cursor-pointer transition-transform hover:scale-105 group ${size}" data-gallery-image-url="${image.imageUrl}" data-gallery-image-title="${image.title || 'Uploaded Result'}">
+      <article class="rounded-[20px] overflow-hidden glass-panel glow-shadow cursor-pointer transition-transform hover:scale-105 group ${size}" data-gallery-image-url="${escapeHtml(image.imageUrl)}" data-gallery-image-title="${escapeHtml(image.title || 'Uploaded Result')}">
         <div class="relative w-full h-full">
-          <img alt="${image.title || 'Uploaded Result'}" class="absolute inset-0 w-full h-full object-cover" src="${image.imageUrl}" loading="lazy" />
+          ${renderWatermarkedImage({
+            src: image.imageUrl,
+            alt: image.title || "Uploaded Result",
+            imageClassName: "absolute inset-0 w-full h-full object-cover",
+            showWatermark: shouldShowWatermarkOverlay(image),
+            compact: true,
+          }).replace("<img ", "<img loading=\"lazy\" ")}
           <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <span class="material-symbols-outlined text-[32px] text-white">search</span>

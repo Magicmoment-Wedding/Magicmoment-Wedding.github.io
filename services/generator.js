@@ -26,6 +26,7 @@ function buildSafeMockPayload(state) {
 
 function createRealPayload(state, mockPayload, generatedImages, analysisMeta, prompt) {
   const sourceImage = getSourceImage(state.sourceImageId);
+  const firstGeneratedImage = generatedImages.find((image) => image && typeof image === "object") ?? {};
   const firstSuccessfulIndex = generatedImages.findIndex((image) => {
     const imageUrl = typeof image === "string" ? image : image?.url;
     return Boolean(imageUrl);
@@ -48,6 +49,10 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       isRecommended: index === recommendedIndex,
       status: isFailed ? "failed" : "success",
       errorMessage: imageUrl?.errorMessage || "",
+      generationType: imageUrl?.generationType || imageUrl?.generation_type || (state.currentUser?.freeGenerationAvailable === true ? "free" : "paid"),
+      isFreeGeneration: imageUrl?.isFreeGeneration === true || imageUrl?.is_free_generation === true || state.currentUser?.freeGenerationAvailable === true,
+      hasWatermark: imageUrl?.hasWatermark === true || imageUrl?.has_watermark === true || state.currentUser?.freeGenerationAvailable === true,
+      watermarkStrategy: imageUrl?.watermarkStrategy || imageUrl?.watermark_strategy || "",
     };
   });
 
@@ -63,6 +68,10 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       analysisMeta,
       resultMode: "real",
       resultProvider: "next-api",
+      generationType: firstGeneratedImage.generationType || firstGeneratedImage.generation_type || (state.currentUser?.freeGenerationAvailable === true ? "free" : "paid"),
+      isFreeGeneration: firstGeneratedImage.isFreeGeneration === true || firstGeneratedImage.is_free_generation === true || state.currentUser?.freeGenerationAvailable === true,
+      hasWatermark: firstGeneratedImage.hasWatermark === true || firstGeneratedImage.has_watermark === true || state.currentUser?.freeGenerationAvailable === true,
+      watermarkStrategy: firstGeneratedImage.watermarkStrategy || firstGeneratedImage.watermark_strategy || "",
     },
   };
 }

@@ -1,4 +1,5 @@
 import { getSourceImage } from "../mock/sources.js";
+import { renderWatermarkedImage, shouldShowWatermarkOverlay } from "../components/watermarked-image.js";
 import { CREDIT_PRICING, PRINT_PRODUCTS } from "../services/credit.js";
 import { escapeHtml, formatNumber } from "../services/format.js";
 
@@ -57,6 +58,7 @@ export function renderResultPage(state) {
   const mainResult = safeResults[mainResultIndex] ?? safeResults[0];
   const isMainFailed = isFailedResult(mainResult);
   const isCurrentFailed = isFailedResult(currentResult);
+  const shouldShowFreeNotice = safeResults.some((result) => !isFailedResult(result) && shouldShowWatermarkOverlay(result));
   const recommendationStatus = state.generationMeta?.recommendationStatus ?? "pending";
   const alternateResults = safeResults
     .map((result, index) => ({ result, index }))
@@ -86,6 +88,12 @@ export function renderResultPage(state) {
     : `남은 제작 횟수는 ${formatNumber(Math.max(0, Math.floor(Number(generationMeta.remainingCredits ?? state.credits ?? 0) / 25)))}회입니다.`);
 
   return `
+    ${shouldShowFreeNotice ? `
+      <section class="w-full rounded-DEFAULT bg-primary-container/25 border border-primary-container/40 px-4 py-3 text-sm font-semibold text-primary">
+        무료 제작 결과에는 Magic AI Studio 워터마크가 표시됩니다.
+      </section>
+    ` : ""}
+
     <section class="result-recommendation-layout w-full flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_8.5rem] gap-3">
       <article class="recommended-result-card relative rounded-xl overflow-hidden glass-panel glow-shadow border-2 ${selectedIndex === mainResultIndex ? "border-primary" : "border-white/60"}">
         ${isMainFailed ? `
@@ -94,7 +102,12 @@ export function renderResultPage(state) {
           </div>
         ` : `
           <button class="relative block w-full aspect-[4/5] overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${getImageModalIndex(mainResultIndex)}" aria-label="추천 결과 크게 보기">
-            <img alt="${escapeHtml(mainResult.title)}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="${mainResult.afterUrl}" />
+            ${renderWatermarkedImage({
+              src: mainResult.afterUrl,
+              alt: mainResult.title,
+              imageClassName: "absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]",
+              showWatermark: shouldShowWatermarkOverlay(mainResult),
+            })}
             <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-1 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">클릭해서 크게 보기</span>
             ${markRecommendedImage(mainResultIndex, mainResultIndex, recommendationStatus)}
             ${selectedIndex === mainResultIndex ? `
@@ -130,7 +143,13 @@ export function renderResultPage(state) {
                   </div>
                 ` : `
                   <button class="relative block w-full aspect-[4/5] overflow-hidden group" data-action="open-image-modal" data-image-modal-index="${getImageModalIndex(index)}" aria-label="추가 ${alternateIndex + 1} 크게 보기">
-                    <img alt="${escapeHtml(result.title)}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" src="${result.afterUrl}" />
+                    ${renderWatermarkedImage({
+                      src: result.afterUrl,
+                      alt: result.title,
+                      imageClassName: "absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]",
+                      showWatermark: shouldShowWatermarkOverlay(result),
+                      compact: true,
+                    })}
                     ${index === selectedIndex ? `
                       <div class="absolute top-2 right-2 bg-primary-container text-on-primary-container rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
                         <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
@@ -165,7 +184,12 @@ export function renderResultPage(state) {
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">AFTER</span>
         <button class="relative w-full aspect-[4/5] rounded-lg overflow-hidden group" ${isCurrentFailed ? "" : `data-action="open-image-modal" data-image-modal-index="${getImageModalIndex(selectedIndex)}"`} aria-label="AI 생성 결과 크게 보기">
           ${isCurrentFailed ? renderFailedImagePanel(currentResult) : `
-            <img alt="After preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" src="${currentResult.afterUrl}" />
+            ${renderWatermarkedImage({
+              src: currentResult.afterUrl,
+              alt: "After preview",
+              imageClassName: "absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]",
+              showWatermark: shouldShowWatermarkOverlay(currentResult),
+            })}
             <span class="absolute inset-x-3 bottom-3 rounded-full bg-black/45 text-white px-3 py-1 text-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">클릭해서 크게 보기</span>
             ${markRecommendedImage(recommendedIndex, selectedIndex, recommendationStatus)}
           `}
@@ -222,7 +246,7 @@ export function renderResultPage(state) {
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">download</span>
         사진/갤러리에 저장
       </button>
-      <p class="px-2 text-xs leading-5 text-on-surface-variant">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요. 데스크톱에서는 이미지가 다운로드됩니다.</p>
+      <p class="px-2 text-xs leading-5 text-on-surface-variant">${shouldShowWatermarkOverlay(currentResult) ? "무료 제작 이미지는 워터마크가 포함된 미리보기입니다." : "모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요. 데스크톱에서는 이미지가 다운로드됩니다."}</p>
       <button class="w-full h-14 rounded-full ${generationMeta.upscaleIncluded ? "glass-panel text-primary" : "bg-primary/90 text-on-primary shadow-[0_8px_20px_rgba(129,80,92,0.3)]"} font-button text-button backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95 group" data-action="purchase-upscale">
         <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
         ${generationMeta.upscaleIncluded ? "고해상도 변환 완료" : `고해상도 변환`}

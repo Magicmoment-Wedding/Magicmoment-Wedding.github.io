@@ -293,10 +293,18 @@ export async function generateImages(prompt, options = {}) {
       ? (payload.imageUrls || payload.image_urls).map((url, index) => ({ ok: true, imageBase64: url, index }))
       : []);
   const failedImages = Array.isArray(payload.failedImages) ? payload.failedImages : [];
+  const generationType = payload.generationType || payload.generation_type || (useFreeGeneration ? "free" : "paid");
+  const isFreeGeneration = payload.isFreeGeneration === true || payload.is_free_generation === true || generationType === "free";
+  const hasWatermark = payload.hasWatermark === true || payload.has_watermark === true || isFreeGeneration;
+  const watermarkStrategy = payload.watermarkStrategy || payload.watermark_strategy || "";
 
   return resultItems.map((item, index) => {
     const failed = failedImages.find((failedImage) => failedImage?.index === item?.index);
-    const url = item?.imageBase64 || "";
+    const url = item?.imageBase64 || item?.imageUrl || item?.image_url || item?.publicUrl || item?.public_url || item?.url || "";
+    const itemGenerationType = item?.generationType || item?.generation_type || generationType;
+    const itemIsFreeGeneration = item?.isFreeGeneration === true || item?.is_free_generation === true || isFreeGeneration;
+    const itemHasWatermark = item?.hasWatermark === true || item?.has_watermark === true || hasWatermark;
+    const itemWatermarkStrategy = item?.watermarkStrategy || item?.watermark_strategy || watermarkStrategy;
 
     if (item?.ok === false || !url) {
       return {
@@ -304,6 +312,10 @@ export async function generateImages(prompt, options = {}) {
         status: "failed",
         errorMessage: item?.message || failed?.message || "이미지를 생성하지 못했어요.",
         variantLabel: item?.label || failed?.label || `결과 ${index + 1}`,
+        generationType: itemGenerationType,
+        isFreeGeneration: itemIsFreeGeneration,
+        hasWatermark: itemHasWatermark,
+        watermarkStrategy: itemWatermarkStrategy,
       };
     }
 
@@ -312,6 +324,10 @@ export async function generateImages(prompt, options = {}) {
       status: "success",
       score: null,
       variantLabel: item?.label || `결과 ${index + 1}`,
+      generationType: itemGenerationType,
+      isFreeGeneration: itemIsFreeGeneration,
+      hasWatermark: itemHasWatermark,
+      watermarkStrategy: itemWatermarkStrategy,
     };
   });
 }

@@ -66,6 +66,10 @@ function normalizeGalleryItem(item) {
     originalThumbnailUrl,
     original_image_url: originalImageUrl,
     original_thumbnail_url: originalThumbnailUrl,
+    generationType: item.generationType || item.generation_type || item.result_payload?.generationType || item.resultPayload?.generationType || "",
+    isFreeGeneration: item.isFreeGeneration === true || item.is_free_generation === true,
+    hasWatermark: item.hasWatermark === true || item.has_watermark === true || item.watermarked === true,
+    watermarkStrategy: item.watermarkStrategy || item.watermark_strategy || item.result_payload?.watermarkStrategy || item.resultPayload?.watermarkStrategy || "",
   };
 }
 
@@ -100,6 +104,10 @@ export async function uploadGalleryImage(imageUrl, metadata = {}) {
       presetLabel: metadata.presetLabel || "",
       resultLabel: metadata.resultLabel || metadata.title || "Uploaded Result",
       isRecommended: Boolean(metadata.isRecommended),
+      generationType: metadata.generationType || metadata.generation_type || "",
+      isFreeGeneration: metadata.isFreeGeneration === true || metadata.is_free_generation === true,
+      hasWatermark: metadata.hasWatermark === true || metadata.has_watermark === true,
+      watermarkStrategy: metadata.watermarkStrategy || metadata.watermark_strategy || "",
       originalImageUrl: firstUrlValue(metadata.originalImageUrl),
       originalImagePath: metadata.originalImagePath ?? null,
       originalThumbnailUrl: firstUrlValue(metadata.originalThumbnailUrl, metadata.originalImageUrl),

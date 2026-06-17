@@ -1,5 +1,6 @@
 import { CREDIT_PACKAGES } from "../services/credit.js";
 import { escapeHtml, formatCurrency, formatNumber } from "../services/format.js";
+import { renderWatermarkOverlay } from "./watermarked-image.js";
 
 function renderShell(content, dismissable = true) {
   return `
@@ -165,10 +166,13 @@ function renderPhotoSaveGuideModal(modal) {
           <button class="h-10 shrink-0 rounded-full bg-white/15 px-4 text-sm font-bold text-white hover:bg-white/25" data-action="close-modal" type="button">돌아가기</button>
         </div>
         <div class="min-h-0 flex-1 overflow-auto rounded-[24px] bg-black/30 p-3">
-          <img alt="${escapeHtml(modal.label ?? "저장할 이미지")}" class="mx-auto block max-h-[70vh] max-w-full rounded-[18px] object-contain shadow-2xl" src="${escapeHtml(modal.imageUrl ?? "")}" />
+          <div class="relative mx-auto w-fit max-w-full">
+            <img alt="${escapeHtml(modal.label ?? "저장할 이미지")}" class="block max-h-[70vh] max-w-full rounded-[18px] object-contain shadow-2xl" src="${escapeHtml(modal.imageUrl ?? "")}" />
+            ${modal.showWatermark ? renderWatermarkOverlay() : ""}
+          </div>
         </div>
         <div class="rounded-[22px] bg-white px-4 py-4 text-[#3a2a2e] shadow-2xl">
-          <p class="text-base font-bold">이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요.</p>
+          <p class="text-base font-bold">${modal.showWatermark ? "무료 제작 이미지는 워터마크가 포함된 미리보기입니다." : "이미지를 길게 눌러 ‘사진에 저장’ 또는 ‘이미지 저장’을 선택해 주세요."}</p>
           <p class="mt-1 text-sm leading-6 text-[#6f5b60]">앱에 따라 메뉴 이름이 다를 수 있어요.</p>
           <p class="mt-3 rounded-[16px] bg-[#f8eef1] px-3 py-2 text-sm leading-6 text-[#701e34]">저장 메뉴가 보이지 않으면 외부 브라우저로 열어 다시 시도해 주세요.</p>
         </div>
@@ -245,7 +249,10 @@ function renderImageModal(imageModal) {
               <span class="material-symbols-outlined">chevron_right</span>
             </button>
           ` : ""}
-          <img alt="${escapeHtml(imageModal.label ?? "확대 이미지")}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none" src="${imageModal.url}" />
+          <div class="relative max-w-full max-h-full">
+            <img alt="${escapeHtml(imageModal.label ?? "확대 이미지")}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none" src="${imageModal.url}" />
+            ${imageModal.showWatermark ? renderWatermarkOverlay() : ""}
+          </div>
         </div>
         ${hasNavigation ? `
           <div class="flex items-center justify-center gap-3">

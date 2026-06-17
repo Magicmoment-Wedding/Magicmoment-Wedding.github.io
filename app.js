@@ -24,7 +24,6 @@ import { getCredits, testChargeCredits } from "./services/credits-api.js";
 import {
   completeOnboarding,
   fetchCurrentUser,
-  hasFreeGeneration,
   isAdminUser,
   isFirstTimeOnboardingTarget,
   normalizeUser,
@@ -306,10 +305,6 @@ async function refreshCurrentUser() {
   }
 }
 
-function startFreeGenerationFlow() {
-  navigate(ROUTES.CREATE);
-}
-
 function startPaidGenerationFlow() {
   navigate(ROUTES.CREATE);
 }
@@ -352,11 +347,6 @@ function handleCreateClick() {
     return;
   }
 
-  if (hasFreeGeneration(state.currentUser)) {
-    startFreeGenerationFlow();
-    return;
-  }
-
   if ((state.currentUser.creditBalance || 0) < 25) {
     openCreditsModal("shortage", { requiredCredits: 25 });
     return;
@@ -388,7 +378,7 @@ async function completeFirstTimeOnboarding() {
       pendingGenerate: false,
     });
     navigate(ROUTES.CREATE);
-    showToast("이용안내가 완료되었습니다. 첫 1회 무료 제작을 시작할 수 있어요.");
+    showToast("가입 선물 25크레딧이 지급되었습니다.");
   } catch (error) {
     console.error("[onboarding] complete failed", error);
     updateState({
@@ -549,7 +539,7 @@ async function performGeneration() {
     if (error?.isInsufficientCredits || error?.code === "INSUFFICIENT_CREDITS" || error?.statusCode === 402) {
       updateState({
         isGenerating: false,
-        creditStatusMessage: error.publicMessage || "크레딧이 부족합니다. 충전 후 이용해 주세요.",
+        creditStatusMessage: error.publicMessage || "크레딧이 부족합니다. 크레딧을 충전해 주세요.",
         creditStatusType: "error",
         activeModal: {
           type: "credits",

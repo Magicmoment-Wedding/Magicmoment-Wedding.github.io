@@ -4,11 +4,6 @@ export const CREDIT_PRICING = {
   upscale: 50,
 };
 
-export const FREE_POLICY = {
-  totalGenerations: 3,
-  adsPerLockedFreeGeneration: 2,
-};
-
 export const CREDIT_PACKAGES = [
   {
     id: "pack-200",
@@ -74,33 +69,13 @@ export function getCreditBreakdown(state) {
   };
 }
 
-export function getRemainingFreeGenerations(freeGenerationsUsed) {
-  return Math.max(0, FREE_POLICY.totalGenerations - freeGenerationsUsed);
-}
-
 export function getGenerationAccess(state) {
   const cost = getCreditBreakdown(state).total;
-  const freeRemaining = getRemainingFreeGenerations(state.freeGenerationsUsed);
-
-  if (freeRemaining > 0) {
-    const nextFreeNumber = state.freeGenerationsUsed + 1;
-
-    return {
-      mode: "free",
-      cost,
-      freeRemaining,
-      nextFreeNumber,
-      requiresAds: nextFreeNumber > 1,
-      adsToWatch: nextFreeNumber > 1 ? FREE_POLICY.adsPerLockedFreeGeneration : 0,
-      canAfford: true,
-      shortfall: 0,
-    };
-  }
 
   return {
     mode: "paid",
     cost,
-    freeRemaining,
+    freeRemaining: 0,
     nextFreeNumber: null,
     requiresAds: false,
     adsToWatch: 0,

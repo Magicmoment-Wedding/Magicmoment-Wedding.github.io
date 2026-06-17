@@ -28,7 +28,6 @@ const defaultState = {
   chargingCreditPackageId: null,
   creditStatusMessage: "",
   creditStatusType: "",
-  freeGenerationsUsed: 0,
   useUpscale: false,
   isGenerating: false,
   activeModal: null,

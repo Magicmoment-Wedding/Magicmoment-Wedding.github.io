@@ -26,7 +26,7 @@ function getCreditTitle(modal) {
   }
 
   if (modal.reason === "post-free") {
-    return "무료 생성이 모두 완료되었습니다";
+    return "가입 선물 크레딧을 모두 사용했습니다";
   }
 
   if (modal.reason === "shortage") {
@@ -42,7 +42,7 @@ function getCreditDescription(modal, credits) {
   }
 
   if (modal.reason === "post-free") {
-    return "이제부터는 크레딧으로 생성, 비율 변환, 업스케일을 이어갈 수 있습니다.";
+    return "이제부터는 보유 크레딧으로 생성, 비율 변환, 업스케일을 이어갈 수 있습니다.";
   }
 
   if (modal.reason === "shortage") {
@@ -62,7 +62,7 @@ function renderAdsModal(modal) {
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">AD MOCK</p>
         <h3 class="font-display text-[30px] leading-none text-primary">${isComplete ? "광고 시청 완료" : "광고 시청 중..."}</h3>
         <p class="text-sm text-on-surface">
-          ${isComplete ? `무료 생성 조건이 충족되었습니다. 잠시 후 자동으로 생성이 시작됩니다.` : `${modal.step}/${modal.total} 광고를 mock으로 재생하고 있습니다.`}
+          ${isComplete ? `생성 조건이 충족되었습니다. 잠시 후 자동으로 생성이 시작됩니다.` : `${modal.step}/${modal.total} 단계를 확인하고 있습니다.`}
         </p>
       </div>
       <div class="w-full rounded-full bg-white/60 h-2 overflow-hidden">
@@ -120,8 +120,8 @@ function renderPaywallModal() {
   return renderShell(`
     <div class="flex flex-col gap-5 text-center">
       <div class="space-y-2">
-        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">FREE LIMIT</p>
-        <h3 class="font-display text-[32px] leading-none text-on-surface">무료 생성이 모두 완료되었습니다</h3>
+        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">CREDIT LIMIT</p>
+        <h3 class="font-display text-[32px] leading-none text-on-surface">가입 선물 크레딧을 모두 사용했습니다</h3>
         <p class="text-sm text-on-surface-variant">이제부터는 크레딧 충전 후 같은 생성 흐름을 이어갈 수 있습니다.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="open-credits" data-modal-reason="post-free">
@@ -208,7 +208,7 @@ function renderLoginRequiredModal() {
       <div class="space-y-2">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">LOGIN REQUIRED</p>
         <h3 class="font-display text-[30px] leading-none text-on-surface">로그인이 필요합니다</h3>
-        <p class="text-sm text-on-surface-variant">첫 1회 무료 제작과 크레딧 상태 확인을 위해 로그인 후 다시 시도해 주세요.</p>
+        <p class="text-sm text-on-surface-variant">가입 선물 크레딧과 보유 크레딧 확인을 위해 로그인 후 다시 시도해 주세요.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="close-modal">
         확인

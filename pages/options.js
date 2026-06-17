@@ -109,7 +109,7 @@ export function renderOptionsPage(state, credits) {
         <button class="w-full rounded-DEFAULT border border-white/50 ${state.useUpscale ? "bg-primary text-on-primary" : "bg-white/50 text-on-surface"} p-4 flex items-center justify-between transition-all active:scale-[0.98]" data-action="toggle-upscale">
           <div class="text-left">
             <p class="font-display text-[26px] leading-none">${state.useUpscale ? "고해상도 포함" : "기본 해상도"}</p>
-            <p class="text-sm mt-2 ${state.useUpscale ? "text-white/80" : "text-on-surface-variant"}">${state.useUpscale ? "결과 화면에서 바로 업스케일 포함 상태로 표시됩니다." : "워터마크 포함 720p 미리보기로 생성합니다."}</p>
+            <p class="text-sm mt-2 ${state.useUpscale ? "text-white/80" : "text-on-surface-variant"}">${state.useUpscale ? "결과 화면에서 바로 업스케일 포함 상태로 표시됩니다." : "워터마크 없이 720p 미리보기로 생성합니다."}</p>
           </div>
           <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' ${state.useUpscale ? 1 : 0};">auto_awesome</span>
         </button>

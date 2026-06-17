@@ -72,17 +72,17 @@ export function renderResultPage(state) {
     generatedCount: state.results.length || 4,
     billedCredits: 0,
     regularCredits: 25,
-    usedFreeGeneration: true,
-    freeGenerationNumber: 1,
+    usedFreeGeneration: false,
+    freeGenerationNumber: null,
     remainingCredits: state.credits,
     qualityLabel: "720p 미리보기",
     recommendedIndex,
   };
   const billingHeadline = generationMeta.billingTitle ?? (generationMeta.usedFreeGeneration
-    ? `${generationMeta.freeGenerationNumber}번째 무료 생성이 적용되었습니다`
+    ? `가입 선물 크레딧이 적용되었습니다`
     : `${formatNumber(generationMeta.billedCredits ?? generationMeta.totalCredits)} 크레딧이 차감되었습니다`);
   const billingDescription = generationMeta.billingDescription ?? (generationMeta.usedFreeGeneration
-    ? `정가 ${formatNumber(generationMeta.regularCredits ?? generationMeta.totalCredits)} 크레딧 기준이며 무료 정책이 적용되었습니다.`
+    ? `가입 선물 25크레딧으로 워터마크 없이 제작되었습니다.`
     : `생성 후 잔액은 ${formatNumber(generationMeta.remainingCredits ?? state.credits)} 크레딧입니다.`);
 
   return `
@@ -186,7 +186,7 @@ export function renderResultPage(state) {
       <div class="flex flex-col gap-1">
         <div class="flex items-center gap-2 text-on-surface">
           <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">water_drop</span>
-          <span class="font-body-large text-body-large">워터마크 포함 (Watermarked)</span>
+          <span class="font-body-large text-body-large">워터마크 없음</span>
         </div>
         <div class="flex items-center gap-2 text-on-surface">
           <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">sd</span>

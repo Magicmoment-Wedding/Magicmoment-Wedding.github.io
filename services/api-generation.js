@@ -98,6 +98,7 @@ export async function generateImages(prompt, options = {}) {
   formData.append("mode", generationMode);
   formData.append("presetKey", backendPresetKey);
   formData.append("count", String(count));
+  formData.append("generationType", "paid");
   if (typeof prompt === "string" && prompt.trim()) {
     formData.append("prompt", prompt.trim());
   }
@@ -148,15 +149,15 @@ export async function generateImages(prompt, options = {}) {
     error.rawPreview = parsed.rawText?.slice(0, 300);
     error.isInsufficientCredits = isInsufficientCredits;
     if (isInsufficientCredits) {
-      error.publicMessage = payload?.message || "크레딧이 부족합니다. 충전 후 이용해 주세요.";
+      error.publicMessage = payload?.message || "크레딧이 부족합니다. 크레딧을 충전해 주세요.";
       error.requiredCredits = payload?.requiredCredits;
       error.currentCredits = payload?.currentCredits;
     } else if (error.code === "INVALID_SERVER_RESPONSE") {
       error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     } else if (error.code === "WATERMARK_FAILED") {
-      error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
+      error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
     } else if (error.code === "GENERATION_FAILED") {
-      error.publicMessage = "생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+      error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
     }
     throw error;
   }

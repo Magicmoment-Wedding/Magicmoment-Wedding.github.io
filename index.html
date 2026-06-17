@@ -1527,6 +1527,19 @@
         line-height: 1.2;
       }
 
+      .admin-status-badge.is-soft {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.12);
+        color: #705e61;
+      }
+
+      .admin-badge-stack {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
       .admin-main-title {
         color: #4f2630;
         font-size: 15px;
@@ -1581,6 +1594,34 @@
         margin-top: 10px;
         padding-top: 10px;
         border-top: 1px solid rgba(129, 80, 92, 0.12);
+      }
+
+      .admin-detail-block {
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.64);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        padding: 10px;
+        color: #4f2630;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .admin-detail-block strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--rose-deep);
+        font-size: 11px;
+      }
+
+      .admin-json-preview {
+        max-height: 180px;
+        margin: 0;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #705e61;
+        font-size: 11px;
+        line-height: 1.55;
       }
 
       .admin-detail-toggle {
@@ -5720,6 +5761,7 @@
       const TERMS_CONSENT_STORAGE_KEY = "magic_terms_consent";
       const SIGNUP_CONSENT_STORAGE_KEY = "magic_signup_consents";
       const AUTH_MODE_STORAGE_KEY = "magic_auth_mode";
+      const AUTH_INTENT_STORAGE_KEY = "magic_auth_intent";
       const AUTH_PROVIDER_STORAGE_KEY = "magic_auth_provider";
       const SIGNUP_PROCESSING_STORAGE_KEY = "magic_signup_processing";
       const AUTH_FLOW_MODE_STORAGE_KEY = "auth_flow_mode";
@@ -6555,6 +6597,7 @@ Important:
       const loginUserEmail = document.getElementById("loginUserEmail");
       const loginUserCredit = document.getElementById("loginUserCredit");
       const loginModalLogoutButton = document.getElementById("loginModalLogoutButton");
+      const authTabList = document.querySelector(".auth-tab-list");
       const authTabButtons = Array.from(document.querySelectorAll("[data-auth-tab]"));
       const authTabPanels = Array.from(document.querySelectorAll("[data-auth-panel]"));
       const authTabSwitchButtons = Array.from(document.querySelectorAll("[data-auth-tab-switch]"));
@@ -6979,6 +7022,7 @@ Important:
         const now = Date.now();
         try {
           window.sessionStorage.setItem(AUTH_MODE_STORAGE_KEY, authMode);
+          window.sessionStorage.setItem(AUTH_INTENT_STORAGE_KEY, authMode);
           window.sessionStorage.setItem(AUTH_FLOW_MODE_STORAGE_KEY, authMode);
           window.sessionStorage.setItem(AUTH_FLOW_PROCESSING_STORAGE_KEY, "true");
           window.sessionStorage.setItem(AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY, "true");
@@ -6986,6 +7030,7 @@ Important:
           if (authMode === "signup") {
             window.sessionStorage.setItem(SIGNUP_PROCESSING_STORAGE_KEY, "true");
           } else {
+            window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
             window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
           }
           if (safeProvider) {
@@ -7005,6 +7050,8 @@ Important:
 
       function getStoredAuthMode() {
         try {
+          const authIntent = window.sessionStorage.getItem(AUTH_INTENT_STORAGE_KEY);
+          if (authIntent === "signup" || authIntent === "login") return authIntent;
           const flowMode = window.sessionStorage.getItem(AUTH_FLOW_MODE_STORAGE_KEY);
           if (flowMode === "signup" || flowMode === "login") return flowMode;
           return window.sessionStorage.getItem(AUTH_MODE_STORAGE_KEY) === "signup" ? "signup" : "login";
@@ -7014,7 +7061,7 @@ Important:
       }
 
       function getAuthModeFromParams(searchParams = new URLSearchParams(window.location.search)) {
-        const queryMode = String(searchParams.get("mode") || searchParams.get("auth_mode") || "").trim().toLowerCase();
+        const queryMode = String(searchParams.get("mode") || searchParams.get("auth_mode") || searchParams.get("intent") || "").trim().toLowerCase();
         if (queryMode === "signup" || queryMode === "login") return queryMode;
         return getStoredAuthMode();
       }
@@ -7107,6 +7154,7 @@ Important:
         try {
           window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_MODE_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_INTENT_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_PROVIDER_STORAGE_KEY);
           window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_FLOW_MODE_STORAGE_KEY);
@@ -7230,13 +7278,15 @@ Important:
       }
 
       function syncAuthTabUi() {
+        const hasUser = Boolean(getAuthenticatedUserId(currentUser));
+        authTabList?.classList.toggle("hidden", hasUser);
         authTabButtons.forEach((button) => {
           const isActive = button.dataset.authTab === authTab;
           button.classList.toggle("is-active", isActive);
           button.setAttribute("aria-selected", isActive ? "true" : "false");
         });
         authTabPanels.forEach((panel) => {
-          panel.classList.toggle("hidden", panel.dataset.authPanel !== authTab);
+          panel.classList.toggle("hidden", hasUser || panel.dataset.authPanel !== authTab);
         });
       }
 
@@ -7573,6 +7623,7 @@ Important:
           }
         }
 
+        syncAuthTabUi();
         syncAccountMenuUi();
       }
 
@@ -7895,14 +7946,34 @@ Important:
             ...(options.headers || {}),
           },
         });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || payload?.ok === false) {
-          const error = new Error(payload?.message || payload?.error || `Admin request failed: ${response.status}`);
+        const parsed = await parseJsonResponseBody(response);
+        const payload = parsed.data || {};
+        if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+          const error = new Error(payload?.message || payload?.error || parsed.message || `Admin request failed: ${response.status}`);
           error.statusCode = response.status;
+          error.code = payload?.code;
+          error.stage = payload?.stage;
           error.response = payload;
+          error.rawPreview = parsed.rawText?.slice(0, 300);
           throw error;
         }
         return payload;
+      }
+
+      async function fetchAdminGenerations() {
+        try {
+          const payload = await fetchAdminJson("/api/admin/generations");
+          return normalizeAdminGenerationsPayload(payload);
+        } catch (error) {
+          console.error("[admin/generations] failed", {
+            status: error.statusCode || error.status,
+            code: error.code,
+            stage: error.stage,
+            message: error.message,
+            rawPreview: error.rawPreview,
+          });
+          throw error;
+        }
       }
 
       function getAdminPayloadArray(payload = {}, keys = []) {
@@ -7914,6 +7985,16 @@ Important:
         if (Array.isArray(payload?.items)) return payload.items;
         if (Array.isArray(payload?.rows)) return payload.rows;
         return [];
+      }
+
+      function getAdminPayloadWarnings(payload = {}) {
+        const warnings = payload?.warnings ?? payload?.data?.warnings;
+        return Array.isArray(warnings) ? warnings.filter(Boolean).map((warning) => String(warning)) : [];
+      }
+
+      function getAdminPayloadFailedSections(payload = {}) {
+        const failedSections = payload?.failedSections ?? payload?.failed_sections ?? payload?.data?.failedSections ?? payload?.data?.failed_sections;
+        return Array.isArray(failedSections) ? failedSections.filter(Boolean).map((section) => String(section)) : [];
       }
 
       function normalizeAdminUsersPayload(payload = {}) {
@@ -7939,6 +8020,44 @@ Important:
         }
         if (payload?.data && typeof payload.data === "object" && !Array.isArray(payload.data)) return payload.data;
         return payload && typeof payload === "object" ? payload : {};
+      }
+
+      function normalizeAdminGenerationItem(item = {}) {
+        return {
+          ...item,
+          id: item.id ?? item.generationId ?? item.generation_id ?? item.jobId ?? item.job_id ?? "",
+          jobId: item.jobId ?? item.job_id ?? item.id ?? item.generationId ?? item.generation_id ?? "",
+          userName: item.userName || item.user_name || item.user?.name || item.user?.nickname || item.userEmail || item.user_email || "알 수 없음",
+          userEmail: item.userEmail || item.user_email || item.user?.email || item.email || "",
+          status: item.status || item.generationStatus || item.generation_status || "unknown",
+          generationType: item.generationType || item.generation_type || (item.useFreeGeneration || item.use_free_generation || item.watermarkRequired || item.watermark_required ? "free" : "unknown"),
+          mode: item.mode || item.generationMode || item.generation_mode || "-",
+          preset: item.preset || item.presetName || item.preset_name || item.presetKey || item.preset_key || item.locationPreset || item.location_preset || "-",
+          imageCount: Number(item.imageCount || item.image_count || item.images?.length || item.resultImages?.length || item.result_images?.length || 0),
+          errorCode: item.errorCode || item.error_code || item.error?.code || null,
+          errorStage: item.errorStage || item.error_stage || item.stage || item.error?.stage || null,
+          errorMessage: item.errorMessage || item.error_message || item.message || item.error?.message || null,
+          createdAt: item.createdAt || item.created_at || null,
+          startedAt: item.startedAt || item.started_at || null,
+          completedAt: item.completedAt || item.completed_at || item.finishedAt || item.finished_at || null,
+          representativeImageUrl: item.representativeImageUrl || item.representative_image_url || item.thumbnailUrl || item.thumbnail_url || item.imageUrl || item.image_url || item.resultUrl || item.result_url || null,
+          requestPayload: item.requestPayload || item.request_payload || item.payload || item.request || null,
+          resultPayload: item.resultPayload || item.result_payload || item.result || item.response || null,
+        };
+      }
+
+      function normalizeAdminGenerationsPayload(payload = {}) {
+        const items = getAdminPayloadArray(payload, ["items", "generations"]).map(normalizeAdminGenerationItem);
+        const total = Number(payload.total ?? payload.data?.total ?? items.length ?? 0);
+        return {
+          ...payload,
+          items,
+          generations: items,
+          total: Number.isFinite(total) ? total : items.length,
+          summary: getAdminPayloadObject(payload, ["summary"]),
+          warnings: getAdminPayloadWarnings(payload),
+          failedSections: getAdminPayloadFailedSections(payload),
+        };
       }
 
       function getAdminValue(item = {}, keys = [], fallback = "제공되지 않음") {
@@ -8427,15 +8546,40 @@ Important:
       function getAdminGenerationStatusLabel(value) {
         const token = normalizeAdminToken(value || "unknown");
         const labels = {
-          success: "생성완료",
-          completed: "생성완료",
-          pending: "생성대기",
+          queued: "대기중",
+          pending: "대기중",
           processing: "생성중",
-          failed: "생성실패",
-          error: "생성실패",
-          unknown: "확인필요",
+          watermark: "워터마크",
+          saving: "저장중",
+          succeeded: "성공",
+          success: "성공",
+          completed: "성공",
+          failed: "실패",
+          error: "실패",
+          unknown: "알 수 없음",
         };
         return labels[token] || labels.unknown;
+      }
+
+      function getAdminGenerationTypeLabel(value) {
+        const token = normalizeAdminToken(value || "unknown");
+        const labels = {
+          free: "무료 제작",
+          paid: "크레딧 제작",
+          credit: "크레딧 제작",
+          unknown: "알 수 없음",
+        };
+        return labels[token] || labels.unknown;
+      }
+
+      function renderAdminJsonPreview(value, emptyLabel = "없음") {
+        if (value === undefined || value === null || value === "") return escapeHtml(emptyLabel);
+        try {
+          const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+          return `<pre class="admin-json-preview">${escapeHtml(text.slice(0, 1200))}</pre>`;
+        } catch (error) {
+          return escapeHtml(String(value));
+        }
       }
 
       function formatAdminBooleanLabel(value, trueLabel = "예", falseLabel = "아니오") {
@@ -8573,49 +8717,69 @@ Important:
       }
 
       function renderAdminGenerationCard(generation = {}) {
-        const generationId = getAdminNestedValue(generation, ["id", "generationId", "generation_id", "uuid"], "생성 ID 없음");
-        const modeRaw = getAdminNestedValue(generation, ["mode", "generationMode", "generation_mode"], "없음");
-        const presetRaw = getAdminNestedValue(generation, ["preset", "presetName", "preset_name", "presetKey", "preset_key", "location", "locationPreset", "location_preset"], "없음");
-        const statusRaw = getAdminNestedValue(generation, ["status", "generationStatus", "generation_status"], "unknown");
-        const isFreeGeneration = generation.freeGeneration ?? generation.free_generation ?? generation.usedFreeCredit ?? generation.used_free_credit ?? generation.isFree ?? generation.is_free;
+        const normalized = normalizeAdminGenerationItem(generation);
+        const generationId = normalized.id || "생성 ID 없음";
+        const jobId = normalized.jobId || "job id 없음";
+        const statusRaw = normalized.status;
+        const isFailed = normalizeAdminToken(statusRaw) === "failed" || normalizeAdminToken(statusRaw) === "error";
+        const generationTypeLabel = getAdminGenerationTypeLabel(normalized.generationType);
         const hasWatermark = generation.watermarked ?? generation.hasWatermark ?? generation.has_watermark ?? generation.watermark;
-        const thumbnailUrl = getAdminNestedValue(generation, ["thumbnailUrl", "thumbnail_url", "imageUrl", "image_url", "resultUrl", "result_url"], "");
+        const thumbnailUrl = normalized.representativeImageUrl || "";
         return `
           <details class="admin-data-row admin-list-card admin-generation-item">
             <summary>
               <div class="admin-card-summary">
                 <div>
-                  <div class="admin-main-title">회원: ${escapeHtml(getAdminMemberName(generation))}</div>
-                  <div class="admin-summary-subtext">${escapeHtml(getAdminGenerationStyleLabel(generation))} · ${escapeHtml(getAdminGenerationPresetLabel(generation))}</div>
+                  <div class="admin-main-title">회원: ${escapeHtml(normalized.userName || getAdminMemberName(generation))}</div>
+                  <div class="admin-summary-subtext">${escapeHtml(normalized.userEmail || getAdminMemberEmail(generation))}</div>
                 </div>
-                <span class="admin-status-badge">${escapeHtml(getAdminGenerationStatusLabel(statusRaw))}</span>
+                <div class="admin-badge-stack">
+                  <span class="admin-status-badge">${escapeHtml(getAdminGenerationStatusLabel(statusRaw))}</span>
+                  <span class="admin-status-badge is-soft">${escapeHtml(generationTypeLabel)}</span>
+                </div>
               </div>
               <div class="admin-summary-lines mt-2">
-                <div class="admin-meta-row"><span class="admin-meta-label">생성일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(generation.createdAt ?? generation.created_at))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationStatusLabel(statusRaw))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">스타일/프리셋</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationStyleLabel(generation))} · ${escapeHtml(normalized.preset || getAdminGenerationPresetLabel(generation))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">이미지 수</span><span class="admin-meta-value">${escapeHtml(String(normalized.imageCount || 0))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">생성일시</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
+                ${isFailed ? `
+                  <div class="admin-meta-row"><span class="admin-meta-label">실패 코드</span><span class="admin-meta-value">${escapeHtml(normalized.errorCode || "없음")}</span></div>
+                  <div class="admin-meta-row"><span class="admin-meta-label">실패 단계</span><span class="admin-meta-value">${escapeHtml(normalized.errorStage || "없음")}</span></div>
+                  <div class="admin-meta-row"><span class="admin-meta-label">실패 메시지</span><span class="admin-meta-value">${escapeHtml(normalized.errorMessage || "생성 중 문제가 발생했습니다.")}</span></div>
+                ` : ""}
               </div>
               <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
             </summary>
             <div class="admin-detail-panel">
               <div class="admin-meta-list">
-                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminMemberEmail(generation))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">mode 원문</span><span class="admin-meta-value">${escapeHtml(modeRaw)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">preset 원문</span><span class="admin-meta-value">${escapeHtml(presetRaw)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">무료 생성</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(isFreeGeneration))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(normalized.userEmail || getAdminMemberEmail(generation))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">mode</span><span class="admin-meta-value">${escapeHtml(normalized.mode || "-")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">preset</span><span class="admin-meta-value">${escapeHtml(normalized.preset || "-")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">제작 유형</span><span class="admin-meta-value">${escapeHtml(generationTypeLabel)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">워터마크</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(hasWatermark, "포함", "없음"))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">createdAt 원문</span><span class="admin-meta-value">${escapeHtml(String(generation.createdAt ?? generation.created_at ?? "없음"))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">시작</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.startedAt))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">완료</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.completedAt))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">status 원문</span><span class="admin-meta-value">${escapeHtml(statusRaw)}</span></div>
                 ${thumbnailUrl ? `<div class="admin-meta-row"><span class="admin-meta-label">결과</span><span class="admin-meta-value"><a class="text-primary font-bold" href="${escapeHtml(thumbnailUrl)}" target="_blank" rel="noopener noreferrer">보기</a></span></div>` : ""}
               </div>
               <div class="admin-id-text admin-generation-id mt-2">생성 ID: ${escapeHtml(generationId)}</div>
+              <div class="admin-id-text mt-2">job id: ${escapeHtml(jobId)}</div>
+              <div class="admin-detail-block mt-2">
+                <strong>request payload</strong>
+                ${renderAdminJsonPreview(normalized.requestPayload)}
+              </div>
+              <div class="admin-detail-block mt-2">
+                <strong>result payload</strong>
+                ${renderAdminJsonPreview(normalized.resultPayload)}
+              </div>
             </div>
           </details>
         `;
       }
 
-      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, errors = [] } = {}) {
+      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, errors = [] } = {}) {
         if (!adminContent) return;
-        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, errors };
+        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, errors };
         const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
         const normalizedUsers = usersError ? { users: [], total: 0 } : normalizeAdminUsersPayload(usersPayload);
         const users = normalizedUsers.users;
@@ -8623,14 +8787,31 @@ Important:
         const visibleUsers = displayUsers.slice(0, adminVisibleUsersCount);
         const payments = getAdminPayloadArray(paymentsPayload, ["payments"]);
         const visiblePayments = payments.slice(0, adminVisiblePaymentsCount);
-        const generations = getAdminPayloadArray(generationsPayload, ["generations"]);
+        const normalizedGenerations = normalizeAdminGenerationsPayload(generationsPayload);
+        const generations = generationsError ? [] : normalizedGenerations.items;
         const visibleGenerations = generations.slice(0, adminVisibleGenerationsCount);
+        const payloadWarnings = [
+          ...getAdminPayloadWarnings(summaryPayload),
+          ...getAdminPayloadWarnings(usersPayload),
+          ...getAdminPayloadWarnings(paymentsPayload),
+          ...getAdminPayloadWarnings(generationsPayload),
+        ];
+        const payloadFailedSections = [
+          ...getAdminPayloadFailedSections(summaryPayload),
+          ...getAdminPayloadFailedSections(usersPayload),
+          ...getAdminPayloadFailedSections(paymentsPayload),
+          ...getAdminPayloadFailedSections(generationsPayload),
+        ];
+        const allErrors = [...new Set([...errors, ...payloadFailedSections])];
         const totalUsers = summary.activeUsers ?? summary.activeUserCount ?? summary.totalActiveUsers ?? summary.totalUsers ?? summary.users ?? summary.userCount ?? displayUsers.length;
         const totalPayments = summary.totalPayments ?? summary.payments ?? summary.paymentCount ?? paymentsPayload.total ?? payments.length;
         const totalRevenue = summary.totalRevenue ?? summary.revenue ?? summary.paymentAmount ?? summary.amount ?? 0;
-        const totalGenerations = summary.totalGenerations ?? summary.generations ?? summary.generationCount ?? generationsPayload.total ?? generations.length;
-        const errorNotice = errors.length
-          ? `<div class="admin-empty">관리자 데이터를 불러오지 못했습니다. 실패한 항목: ${escapeHtml(errors.join(", "))}</div>`
+        const totalGenerations = summary.totalGenerations ?? summary.generations ?? summary.generationCount ?? normalizedGenerations.total ?? generations.length;
+        const errorNotice = allErrors.length
+          ? `<div class="admin-empty">일부 관리자 데이터를 불러오지 못했습니다. 실패한 항목: ${escapeHtml(allErrors.join(", "))}</div>`
+          : "";
+        const warningNotice = payloadWarnings.length
+          ? `<div class="admin-empty">${payloadWarnings.map((warning) => escapeHtml(warning)).join("<br />")}</div>`
           : "";
         const operationNotice = adminOperationStatusMessage
           ? `<div class="admin-empty" id="adminOperationStatus" style="border-style: ${adminOperationStatusType === "success" ? "solid" : "dashed"};">${escapeHtml(adminOperationStatusMessage)}</div>`
@@ -8646,6 +8827,7 @@ Important:
             <h1 class="mt-2 font-display text-[30px] leading-tight text-on-surface">관리자 대시보드</h1>
             <p class="mt-2 text-sm leading-6 text-on-surface-variant">회원, 결제, 크레딧, 생성 내역을 확인하고 운영 작업을 처리합니다.</p>
             ${errorNotice}
+            ${warningNotice}
             ${operationNotice}
           </section>
 
@@ -8696,8 +8878,12 @@ Important:
             <section class="admin-panel-card">
               <h2 class="font-display text-[22px] leading-tight text-on-surface">생성 내역</h2>
               <div class="admin-data-list">
-                ${generations.length ? visibleGenerations.map(renderAdminGenerationCard).join("") : `<div class="admin-empty">생성 데이터가 없습니다.</div>`}
-                ${renderAdminMoreButton("generations", adminVisibleGenerationsCount, generations.length)}
+                ${generationsError
+                  ? `<div class="admin-empty">생성내역을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div><button class="admin-more-button" data-admin-reload-generations type="button">다시 불러오기</button>`
+                  : generations.length
+                    ? visibleGenerations.map(renderAdminGenerationCard).join("")
+                    : `<div class="admin-empty">아직 생성내역이 없습니다.</div>`}
+                ${!generationsError ? renderAdminMoreButton("generations", adminVisibleGenerationsCount, generations.length) : ""}
               </div>
             </section>
           </div>
@@ -8761,7 +8947,7 @@ Important:
           ["요약", fetchAdminJson("/api/admin/summary")],
           ["회원 관리", fetchAdminJson(getAdminUsersUrl())],
           ["결제 내역", fetchAdminJson("/api/admin/payments")],
-          ["생성 내역", fetchAdminJson("/api/admin/generations")],
+          ["생성내역", fetchAdminGenerations()],
         ];
         const results = await Promise.allSettled(requests.map(([, request]) => request));
         const errors = results
@@ -8774,6 +8960,7 @@ Important:
           usersError: results[1].status === "rejected" ? results[1].reason : null,
           paymentsPayload: results[2].status === "fulfilled" ? results[2].value : {},
           generationsPayload: results[3].status === "fulfilled" ? results[3].value : {},
+          generationsError: results[3].status === "rejected" ? results[3].reason : null,
           errors,
         });
       }
@@ -8790,7 +8977,7 @@ Important:
         ];
         if (includeActivity) {
           requests.push(fetchAdminJson("/api/admin/payments"));
-          requests.push(fetchAdminJson("/api/admin/generations"));
+          requests.push(fetchAdminGenerations());
         }
         const [summaryResult, usersResult, paymentsResult, generationsResult] = await Promise.allSettled(requests);
         const nextArgs = {
@@ -8800,11 +8987,12 @@ Important:
           usersError: usersResult.status === "rejected" ? usersResult.reason : null,
           paymentsPayload: paymentsResult?.status === "fulfilled" ? paymentsResult.value : lastAdminDashboardRenderArgs.paymentsPayload,
           generationsPayload: generationsResult?.status === "fulfilled" ? generationsResult.value : lastAdminDashboardRenderArgs.generationsPayload,
+          generationsError: generationsResult?.status === "rejected" ? generationsResult.reason : null,
           errors: [
             ...(summaryResult.status === "rejected" ? ["요약"] : []),
             ...(usersResult.status === "rejected" ? ["회원 관리"] : []),
             ...(paymentsResult?.status === "rejected" ? ["결제 내역"] : []),
-            ...(generationsResult?.status === "rejected" ? ["생성 내역"] : []),
+            ...(generationsResult?.status === "rejected" ? ["생성내역"] : []),
           ],
         };
 
@@ -8841,6 +9029,36 @@ Important:
         };
         if (lastAdminDashboardRenderArgs) {
           renderAdminDashboard(lastAdminDashboardRenderArgs);
+        }
+      }
+
+      async function refreshAdminGenerationsOnly() {
+        if (!lastAdminDashboardRenderArgs) {
+          await refreshAdminDashboard();
+          return;
+        }
+
+        const loadingArgs = {
+          ...lastAdminDashboardRenderArgs,
+          generationsError: null,
+          errors: (lastAdminDashboardRenderArgs.errors || []).filter((item) => item !== "생성내역"),
+        };
+        renderAdminDashboard(loadingArgs);
+
+        try {
+          const generationsPayload = await fetchAdminGenerations();
+          renderAdminDashboard({
+            ...loadingArgs,
+            generationsPayload,
+            generationsError: null,
+            errors: (loadingArgs.errors || []).filter((item) => item !== "생성내역"),
+          });
+        } catch (error) {
+          renderAdminDashboard({
+            ...loadingArgs,
+            generationsError: error,
+            errors: [...new Set([...(loadingArgs.errors || []), "생성내역"])],
+          });
         }
       }
 
@@ -9685,13 +9903,13 @@ Important:
           return "로그인 정보를 확인하지 못했어요.";
         }
         if (normalizedCode === "ACCOUNT_NOT_FOUND") {
-          return "가입된 계정이 없습니다. 회원가입을 먼저 진행해 주세요.";
+          return "가입된 계정이 없습니다. 회원가입으로 진행해 주세요.";
         }
         if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
-          return "이미 가입된 계정입니다. 로그인으로 이용해 주세요.";
+          return "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
         }
         if (normalizedCode === "CONSENT_REQUIRED") {
-          return "회원가입을 위해 필수 약관 전체동의가 필요합니다.";
+          return "회원가입을 위해 필수 약관 동의가 필요합니다.";
         }
         if (normalizedCode === "LOGIN_FAILED") {
           return "로그인 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
@@ -9726,17 +9944,24 @@ Important:
           return false;
         }
         if (normalizedCode === "ACCOUNT_NOT_FOUND") {
-          setAuthTab("signup", "가입된 계정이 없습니다. 회원가입을 먼저 진행해 주세요.");
-          openLoginModal(null, { tab: "signup" });
+          const message = "가입된 계정이 없습니다. 회원가입으로 진행해 주세요.";
+          setAuthTab("login", message);
+          openLoginModal(null, { tab: "login", message });
+          showAccountMenuToast(message);
           return true;
         }
         if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
-          setAuthTab("login", "이미 가입된 계정입니다. 로그인으로 이용해 주세요.");
-          openLoginModal(null, { tab: "login" });
+          const message = "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
+          setAuthTab("login", message);
+          openLoginModal(null, { tab: "login", message });
+          showAccountMenuToast(message);
           return true;
         }
         if (normalizedCode === "CONSENT_REQUIRED") {
-          showRequiredConsentPrompt();
+          const message = "회원가입을 위해 필수 약관 동의가 필요합니다.";
+          setAuthTab("signup", message);
+          openLoginModal(null, { tab: "signup", message });
+          showAccountMenuToast(message);
           return true;
         }
         if (normalizedCode === "LOGIN_FAILED") {
@@ -14826,14 +15051,21 @@ ${modeExample}`;
       function openLoginModal(trigger, options = {}) {
         if (!loginModalOverlay || !loginModalPanel) return;
         if (getAuthenticatedUserId(currentUser) && options.forceAuthForm !== true) {
-          showAccountMenuToast("이미 로그인되어 있습니다.");
+          activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
+          syncAuthUi();
           syncAccountMenuUi();
+          loginModalOverlay.classList.add("is-open");
+          loginModalOverlay.setAttribute("aria-hidden", "false");
+
+          window.requestAnimationFrame(() => {
+            loginModalLogoutButton?.focus({ preventScroll: true });
+          });
           return;
         }
 
         rememberLoginReturnView();
         activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
-        setAuthTab(options.tab || authTab || "login");
+        setAuthTab(options.tab || authTab || "login", options.message || "");
         loginModalOverlay.classList.add("is-open");
         loginModalOverlay.setAttribute("aria-hidden", "false");
 
@@ -15090,6 +15322,12 @@ ${modeExample}`;
         }
 
         const authMode = mode === "signup" ? "signup" : "login";
+        if (getAuthenticatedUserId(currentUser)) {
+          showAccountMenuToast("새 계정으로 로그인하려면 먼저 로그아웃해 주세요.");
+          openLoginModal(button);
+          return;
+        }
+
         if (authMode === "signup" && !requireSignupConsents()) {
           return;
         }
@@ -15310,6 +15548,13 @@ ${modeExample}`;
         if (restoreUserButton) {
           event.preventDefault();
           void handleAdminRestoreUser(restoreUserButton.dataset.adminRestoreUser);
+          return;
+        }
+
+        const reloadGenerationsButton = event.target.closest?.("[data-admin-reload-generations]");
+        if (reloadGenerationsButton) {
+          event.preventDefault();
+          void refreshAdminGenerationsOnly();
           return;
         }
 

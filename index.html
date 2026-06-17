@@ -5560,7 +5560,7 @@
               <h3 class="text-sm font-bold text-on-surface">심사용 로그인</h3>
               <p class="mt-1 text-xs leading-5 text-on-surface-variant">PG사 및 카드사 심사를 위한 일반 고객 계정 로그인입니다.</p>
             </div>
-            <form class="mt-3 grid gap-3" id="nicepayReviewLoginForm">
+            <form class="mt-3 grid gap-3" id="nicepayReviewLoginForm" data-review-login-form="true">
               <label class="grid gap-1 text-xs font-bold text-on-surface">
                 이메일
                 <input class="h-11 rounded-[16px] border border-primary/10 bg-white/85 px-3 text-sm font-medium text-on-surface outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10" id="nicepayReviewEmail" name="email" type="email" autocomplete="username" value="nicepay-review@magicaistudio.co.kr" placeholder="nicepay-review@magicaistudio.co.kr" />
@@ -5570,7 +5570,7 @@
                 <input class="h-11 rounded-[16px] border border-primary/10 bg-white/85 px-3 text-sm font-medium text-on-surface outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10" id="nicepayReviewPassword" name="password" type="password" autocomplete="current-password" placeholder="심사용 비밀번호 입력" />
               </label>
               <p class="hidden rounded-[14px] bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-600" id="nicepayReviewLoginMessage" role="alert" aria-live="polite"></p>
-              <button class="h-11 rounded-full bg-primary text-sm font-bold text-on-primary disabled:cursor-wait disabled:opacity-60" id="nicepayReviewLoginButton" type="submit">심사용 로그인</button>
+              <button class="h-11 rounded-full bg-primary text-sm font-bold text-on-primary disabled:cursor-wait disabled:opacity-60" id="nicepayReviewLoginButton" type="button">심사용 로그인</button>
             </form>
           </section>
           <p class="login-modal-terms">회원가입 시 필수 동의 항목은 서비스 회원정보, 사진, 생성 결과, 결제/이용권 처리에 필요한 고지입니다.</p>
@@ -6809,6 +6809,7 @@ Important:
       let adminOperationStatusType = "";
       const FRONT_ADMIN_EMAIL = "vamprub@gmail.com";
       let duplicateProviderLoginState = null;
+      let isNicepayReviewLoginLoading = false;
       const guideSteps = [
         {
           title: "사진 올리기",
@@ -9453,7 +9454,9 @@ Important:
 
       async function handleNicepayReviewLogin(event) {
         event?.preventDefault();
+        event?.stopPropagation();
         if (!IS_NICEPAY_REVIEW_MODE || !nicepayReviewLoginForm) return;
+        if (isNicepayReviewLoginLoading) return;
 
         const email = String(nicepayReviewEmail?.value || "").trim();
         const password = String(nicepayReviewPassword?.value || "");
@@ -9462,7 +9465,9 @@ Important:
           return;
         }
 
+        console.info("[review-login] submit", { email });
         setNicepayReviewLoginMessage("");
+        isNicepayReviewLoginLoading = true;
         if (nicepayReviewLoginButton) {
           nicepayReviewLoginButton.disabled = true;
           nicepayReviewLoginButton.textContent = "로그인 중...";
@@ -9477,11 +9482,29 @@ Important:
             },
             body: JSON.stringify({ email, password }),
           });
-          const parsed = await parseJsonResponseBody(response);
-          const payload = parsed.data || {};
+          const contentType = response.headers.get("content-type") || "";
+          const text = await response.text();
+          let payload = null;
 
-          if (!response.ok || !parsed.parseOk || payload?.ok === false || payload?.authenticated === false) {
-            const error = new Error(payload?.message || parsed.message || "심사용 로그인 정보가 올바르지 않습니다.");
+          try {
+            payload = text ? JSON.parse(text) : {};
+          } catch (parseError) {
+            console.warn("[review-login] invalid json", {
+              status: response.status,
+              contentType,
+              preview: text.slice(0, 300),
+            });
+            payload = {};
+          }
+
+          console.info("[review-login] response", {
+            status: response.status,
+            ok: response.ok,
+            code: payload?.code || payload?.error,
+          });
+
+          if (!response.ok || payload?.ok === false || payload?.authenticated === false) {
+            const error = new Error(payload?.message || "심사용 로그인 정보가 올바르지 않습니다.");
             error.statusCode = response.status;
             error.code = payload?.code || payload?.error || "";
             throw error;
@@ -9489,17 +9512,19 @@ Important:
 
           const normalizedPayload = normalizeReviewLoginPayload(payload);
           applyAuthSession(normalizedPayload);
+          await refreshAuthState({ showError: false });
           closeLoginModal();
           openAccountMenuAfterAuth();
           showAccountMenuToast("심사용 계정으로 로그인되었습니다.");
         } catch (error) {
-          console.warn("[auth][review-login] failed", {
+          console.warn("[review-login] failed", {
             status: error?.statusCode,
             code: error?.code,
             message: error?.message,
           });
           setNicepayReviewLoginMessage("심사용 로그인 정보가 올바르지 않습니다.");
         } finally {
+          isNicepayReviewLoginLoading = false;
           if (nicepayReviewLoginButton) {
             nicepayReviewLoginButton.disabled = false;
             nicepayReviewLoginButton.textContent = "심사용 로그인";
@@ -15091,6 +15116,13 @@ ${modeExample}`;
       }
 
       document.addEventListener("submit", (event) => {
+        const reviewLoginForm = event.target?.closest?.("[data-review-login-form='true']");
+        if (reviewLoginForm) {
+          event.preventDefault();
+          event.stopPropagation();
+          void handleNicepayReviewLogin(event);
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         const adminDeleteForm = event.target?.closest?.("#adminDeleteUserForm");
@@ -15989,6 +16021,7 @@ ${modeExample}`;
         });
       });
       nicepayReviewLoginForm?.addEventListener("submit", handleNicepayReviewLogin);
+      nicepayReviewLoginButton?.addEventListener("click", handleNicepayReviewLogin);
       syncAuthTabUi();
       syncSignupConsentUi();
 

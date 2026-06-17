@@ -9559,9 +9559,34 @@ Important:
           });
 
           if (!response.ok || payload?.ok === false || payload?.authenticated === false) {
-            const error = new Error(payload?.message || "심사용 로그인 정보가 올바르지 않습니다.");
+            let message = payload?.message || "심사용 로그인에 실패했습니다.";
+            const code = String(payload?.code || payload?.error || "").trim().toUpperCase();
+
+            if (response.status === 404) {
+              message = "심사용 로그인 API가 아직 배포되지 않았습니다. 관리자에게 문의해 주세요.";
+              console.warn("[review-login] API route not found. Check WedBack deployment.", {
+                url: getAuthApiUrl("/api/auth/review-login"),
+                status: response.status,
+              });
+            } else if (response.status === 403 && code === "REVIEW_LOGIN_DISABLED") {
+              message = "심사용 로그인이 비활성화되어 있습니다.";
+            } else if (response.status === 401) {
+              message = "심사용 로그인 정보가 올바르지 않습니다.";
+            }
+
+            if (response.status >= 500) {
+              console.warn("[review-login] server failed", {
+                status: response.status,
+                code,
+                stage: payload?.stage,
+                debugMessage: payload?.debugMessage,
+              });
+            }
+
+            const error = new Error(message);
             error.statusCode = response.status;
-            error.code = payload?.code || payload?.error || "";
+            error.code = code;
+            error.publicMessage = message;
             throw error;
           }
 
@@ -9577,7 +9602,7 @@ Important:
             code: error?.code,
             message: error?.message,
           });
-          setNicepayReviewLoginMessage("심사용 로그인 정보가 올바르지 않습니다.");
+          setNicepayReviewLoginMessage(error?.publicMessage || error?.message || "심사용 로그인에 실패했습니다.");
         } finally {
           isNicepayReviewLoginLoading = false;
           if (nicepayReviewLoginButton) {

@@ -561,6 +561,9 @@ async function performGeneration() {
     }
 
     updateState({ isGenerating: false });
+    if (error?.publicMessage || error?.message) {
+      showToast(error.publicMessage || error.message, "error");
+    }
   }
 }
 

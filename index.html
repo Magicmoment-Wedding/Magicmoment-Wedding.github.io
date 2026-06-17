@@ -1264,6 +1264,40 @@
         align-items: stretch;
       }
 
+      .site-guide-copy {
+        display: grid;
+        gap: 9px;
+        margin-top: 12px;
+      }
+
+      .site-guide-copy p {
+        margin: 0;
+        color: #514346;
+        font-size: 14px;
+        line-height: 1.72;
+        word-break: keep-all;
+      }
+
+      .site-guide-copy strong,
+      .site-guide-note strong {
+        color: var(--rose-deep);
+        font-weight: 900;
+      }
+
+      .site-guide-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 9999px;
+        padding: 3px 10px;
+        color: var(--rose-deep);
+        background: rgba(129, 80, 92, 0.1);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.3;
+        white-space: nowrap;
+      }
+
       .onboarding-footer {
         display: flex;
         align-items: center;
@@ -6577,14 +6611,24 @@ Important:
       const guideSteps = [
         {
           title: "사진 올리기",
-          description: "편집 화면에서 사진 영역을 눌러 웨딩사진을 올려주세요. 얼굴이 잘 보이고, 너무 어둡지 않은 사진일수록 결과가 더 자연스럽습니다.",
+          paragraphs: [
+            "좋은 결과는 원본 사진에서 시작돼요.",
+            "고화질 사진, 밝은 조명, 흰색 또는 단순한 배경일수록 AI가 얼굴을 더 정확하게 인식해요.",
+            "이미 보정이 많이 들어간 사진보다는 원본에 가까운 사진을 올리면 더 자연스럽고 멋진 결과가 나와요.",
+          ],
+          highlights: ["고화질 사진", "흰색 또는 단순한 배경", "원본에 가까운 사진", "더 자연스럽고 멋진 결과"],
           icon: "add_a_photo",
           image: null,
           notes: [],
         },
         {
           title: "스타일 선택하기",
-          description: "Europe Style, Korea Style, Disney Style, Studio Style 중 원하는 분위기를 선택하고, 하위 배경 또는 샷 카드를 골라주세요.",
+          paragraphs: [
+            "원하는 스타일에 어울리는 사진을 고르면 결과가 더 좋아져요.",
+            "예를 들어 소파샷은 앉아있는 사진, 꽃잎샷은 가까운 커플 사진처럼 원본 포즈와 스타일이 잘 맞을수록 자연스럽게 완성돼요.",
+            "스타일마다 예쁨단계가 있어요. 유럽배경은 1단계, 디즈니배경은 3단계처럼 콘셉트에 따라 의상, 분위기, 약간의 예쁨 보정이 들어갈 수 있어요.",
+          ],
+          highlights: ["스타일에 어울리는 사진", "원본 포즈와 스타일", "예쁨단계", "약간의 예쁨 보정"],
           icon: "style",
           image: null,
           notes: [],
@@ -6614,11 +6658,17 @@ Important:
           ],
         },
         {
-          title: "스타일 갤러리에 올리기",
-          description: "마음에 드는 결과 1장을 스타일 갤러리에 올릴 수 있어요. 다른 고객들이 스타일을 참고할 수 있는 공개 갤러리에 표시됩니다.",
+          title: "6. 스타일 갤러리에 올리기",
+          badge: "5크레딧 지급",
+          paragraphs: [
+            "완성된 사진 중 마음에 드는 1장을 스타일 갤러리에 올릴 수 있어요.",
+            "갤러리에 업로드하면 5크레딧을 지급해드려요.",
+            "다른 예비 신랑신부가 스타일을 고르는 데 도움이 되고, 추가 크레딧도 받을 수 있어요.",
+          ],
+          highlights: ["1장", "5크레딧", "5크레딧 지급", "추가 크레딧"],
           icon: "cloud_upload",
           image: null,
-          notes: ["4장 중 1장만 업로드 가능", "1인 최대 10장까지 업로드 가능", "스타일 갤러리에 업로드하면 5크레딧 지급", "공개해도 괜찮은 사진만 올려주세요."],
+          notes: [],
         },
       ];
       const guideFaqItems = [
@@ -9921,7 +9971,7 @@ Important:
       function getFirstOnboardingPages() {
         return [
           [guideSteps[0], guideSteps[1]],
-          [guideSteps[3], guideSteps[4]],
+          [guideSteps[4], guideSteps[5]],
           [{
             title: "첫 1회 무료 제작 안내",
             description: "이용안내를 완료하면 바로 사진편집 화면에서 첫 1회 무료 제작을 시작할 수 있어요.",
@@ -9931,8 +9981,43 @@ Important:
         ];
       }
 
+      function renderGuideCopyText(text = "", highlights = []) {
+        const tokens = [...highlights].sort((a, b) => b.length - a.length);
+        let result = "";
+        let index = 0;
+        const value = String(text || "");
+
+        while (index < value.length) {
+          const match = tokens.find((highlight) => value.startsWith(highlight, index));
+          if (match) {
+            result += `<strong>${escapeHtml(match)}</strong>`;
+            index += match.length;
+            continue;
+          }
+
+          result += escapeHtml(value[index]);
+          index += 1;
+        }
+
+        return result;
+      }
+
+      function renderGuideDescription(step = {}) {
+        const highlights = Array.isArray(step.highlights) ? step.highlights : [];
+        const paragraphs = Array.isArray(step.paragraphs) && step.paragraphs.length
+          ? step.paragraphs
+          : [step.description || ""].filter(Boolean);
+
+        return `
+          <div class="site-guide-copy">
+            ${paragraphs.map((paragraph) => `<p>${renderGuideCopyText(paragraph, highlights)}</p>`).join("")}
+          </div>
+        `;
+      }
+
       function renderGuideStepCard(step, stepNumber) {
         const notes = Array.isArray(step?.notes) ? step.notes : [];
+        const titleIncludesNumber = /^\s*\d+\./.test(step?.title || "");
         return `
           <article class="site-guide-step">
             <div class="site-guide-illustration" aria-hidden="true">
@@ -9942,13 +10027,14 @@ Important:
             </div>
             <div class="site-guide-step-body">
               <div class="flex items-center gap-3">
-                <span class="site-guide-step-number">${stepNumber}</span>
+                ${titleIncludesNumber ? "" : `<span class="site-guide-step-number">${stepNumber}</span>`}
                 <h3 class="text-[18px] font-bold leading-6 text-on-surface">${escapeHtml(step?.title || "")}</h3>
+                ${step?.badge ? `<span class="site-guide-badge">${escapeHtml(step.badge)}</span>` : ""}
               </div>
-              <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(step?.description || "")}</p>
+              ${renderGuideDescription(step)}
               ${notes.length ? `
                 <div class="site-guide-note-list">
-                  ${notes.map((note) => `<p class="site-guide-note">${escapeHtml(note)}</p>`).join("")}
+                  ${notes.map((note) => `<p class="site-guide-note">${renderGuideCopyText(note, step.highlights || [])}</p>`).join("")}
                 </div>
               ` : ""}
             </div>
@@ -9981,7 +10067,11 @@ Important:
           <div class="onboarding-page is-first-onboarding">
             <div class="first-onboarding-scroll">
               <div class="onboarding-cards-grid">
-                ${pageSteps.map((step, offset) => renderGuideStepCard(step, currentPage === 2 ? 3 : currentPage * 2 + offset + 1)).join("")}
+                ${pageSteps.map((step, offset) => {
+                  const guideIndex = guideSteps.indexOf(step);
+                  const stepNumber = guideIndex >= 0 ? guideIndex + 1 : guideSteps.length + offset + 1;
+                  return renderGuideStepCard(step, stepNumber);
+                }).join("")}
               </div>
             </div>
             <div class="onboarding-footer">
@@ -11012,24 +11102,63 @@ Important:
         }
       }
 
-      async function readResponseBody(response) {
-        try {
-          return await response.clone().text();
-        } catch (error) {
-          return "";
-        }
-      }
+      async function parseJsonResponseBody(response) {
+        const contentType = response.headers.get("content-type") || "";
+        const text = await response.text();
 
-      function parseJsonResponseBody(responseBody, fallbackMessage) {
-        try {
-          return responseBody ? JSON.parse(responseBody) : {};
-        } catch (error) {
-          console.error("[client][api][invalid-json-response]", error);
+        if (!text) {
           return {
             ok: false,
-            status: 502,
-            error: "INVALID_JSON_RESPONSE",
-            message: fallbackMessage,
+            parseOk: false,
+            data: null,
+            rawText: "",
+            message: "서버 응답이 비어 있습니다.",
+          };
+        }
+
+        const trimmed = text.trim();
+        const looksLikeJson =
+          contentType.includes("application/json") ||
+          trimmed.startsWith("{") ||
+          trimmed.startsWith("[");
+
+        if (!looksLikeJson) {
+          console.error("[client][api][invalid-json-response]", {
+            status: response.status,
+            contentType,
+            preview: text.slice(0, 300),
+          });
+
+          return {
+            ok: false,
+            parseOk: false,
+            data: null,
+            rawText: text,
+            message: "서버가 올바르지 않은 응답을 반환했습니다.",
+          };
+        }
+
+        try {
+          return {
+            ok: true,
+            parseOk: true,
+            data: JSON.parse(text),
+            rawText: text,
+          };
+        } catch (error) {
+          console.error("[client][api][json-parse-failed]", {
+            status: response.status,
+            contentType,
+            preview: text.slice(0, 300),
+            error,
+          });
+
+          return {
+            ok: false,
+            parseOk: false,
+            data: null,
+            rawText: text,
+            message: "서버 응답을 읽지 못했습니다.",
           };
         }
       }
@@ -11475,8 +11604,8 @@ Important:
           throw uploadError;
         }
 
-        const responseBody = await readResponseBody(response);
-        const data = parseJsonResponseBody(responseBody, SIGNED_UPLOAD_FAILED_MESSAGE);
+        const parsed = await parseJsonResponseBody(response);
+        const data = parsed.data || {};
 
         if (!response.ok || !data.ok || !data.signedUrl || !data.path || !data.token) {
           logMobileDebug("signed url request fail", {
@@ -11486,6 +11615,7 @@ Important:
             hasToken: Boolean(data.token),
             path: data.path || null,
             message: data.message,
+            rawPreview: parsed.rawText?.slice(0, 300),
             body: data,
           }, "error");
           console.error("[upload] signed upload url failed", {
@@ -11495,11 +11625,13 @@ Important:
             hasToken: Boolean(data.token),
             path: data.path || null,
             message: data.message,
+            rawPreview: parsed.rawText?.slice(0, 300),
           });
-          const error = new Error(data.message || SIGNED_UPLOAD_FAILED_MESSAGE);
+          const error = new Error(data.message || parsed.message || SIGNED_UPLOAD_FAILED_MESSAGE);
           error.statusCode = data.status || response.status;
-          error.code = data.code || data.error || "";
+          error.code = data.code || data.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "");
           error.response = data;
+          error.rawPreview = parsed.rawText?.slice(0, 300);
           error.publicMessage = SIGNED_UPLOAD_FAILED_MESSAGE;
           error.stage = "signed-upload-url";
           throw error;
@@ -12038,7 +12170,6 @@ ${modeExample}`;
           generateError.cause = error;
           throw generateError;
         }
-        const responseBody = await readResponseBody(response);
         logMobileDebug("generate response status", {
           status: response.status,
           ok: response.ok,
@@ -12054,14 +12185,15 @@ ${modeExample}`;
           requestUrl,
           status: response.status,
         });
-        const data = await response.clone().json().catch(() => parseJsonResponseBody(responseBody, "서버 응답을 읽지 못했습니다."));
+        const parsed = await parseJsonResponseBody(response);
+        const data = parsed.data || {};
         logMobileDebug("generate response body", data, response.ok ? "log" : "error");
         console.log("[generate] response body or message", sanitizeLogValue(data));
 
-        if (!response.ok || !data.ok) {
-          const responseCode = String(data.code || data.error || "").toUpperCase();
+        if (!response.ok || !parsed.parseOk || !data?.ok) {
+          const responseCode = String(data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED")).toUpperCase();
           const responseStage = String(data.stage || data.step || data.phase || "").trim();
-          const responseMessage = data.message || data.errorMessage || data.error || "";
+          const responseMessage = data?.message || data?.errorMessage || data?.error || parsed.message || "";
           const isInsufficientCredits =
             response.status === 402 ||
             data.status === 402 ||
@@ -12074,6 +12206,7 @@ ${modeExample}`;
             code: responseCode,
             stage: responseStage,
             message: responseMessage,
+            rawPreview: parsed.rawText?.slice(0, 300),
             requestedMode: mode,
             generationMode,
             presetKey: config.presetKey,
@@ -12083,7 +12216,7 @@ ${modeExample}`;
             generationPlaceLabel: selectedLandmark?.label || "",
             hasImage: Boolean(imageFile),
             data: sanitizeLogValue(data),
-            errorBody: sanitizeLogValue(responseBody),
+            errorBody: sanitizeLogValue(parsed.rawText),
             response: sanitizeLogValue(data),
           });
           const error = new Error(responseMessage || "이미지 생성 실패");
@@ -12093,6 +12226,7 @@ ${modeExample}`;
           error.stage = responseStage;
           error.messageFromServer = responseMessage;
           error.response = data;
+          error.rawPreview = parsed.rawText?.slice(0, 300);
           if (responseCode === "LOGIN_REQUIRED" || responseCode === "AUTH_REQUIRED") {
             error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
             error.isLoginRequired = true;
@@ -12107,6 +12241,10 @@ ${modeExample}`;
           } else if (responseCode === "WATERMARK_FAILED" || responseCode === "WATERMARK_LOGO_NOT_FOUND") {
             error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
             error.isWatermarkFailed = true;
+          } else if (responseCode === "INVALID_SERVER_RESPONSE") {
+            error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+          } else if (responseCode === "GENERATION_FAILED") {
+            error.publicMessage = "생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
           } else if (responseMessage) {
             error.publicMessage = responseMessage;
           } else {
@@ -15301,7 +15439,15 @@ ${modeExample}`;
             code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
             stage: effectiveError.stage || effectiveError.response?.stage,
             message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
+            rawPreview: effectiveError.rawPreview,
             data: sanitizeLogValue(effectiveError.response || null),
+          });
+          console.error("[client][generate][failed]", {
+            status: effectiveError.status || effectiveError.statusCode,
+            code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
+            stage: effectiveError.stage || effectiveError.response?.stage,
+            message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
+            rawPreview: effectiveError.rawPreview,
           });
           if (effectiveError.response) {
             console.error("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
@@ -15337,6 +15483,8 @@ ${modeExample}`;
           const isConsentRequiredError = effectiveError.isConsentRequired || generationErrorCode === "CONSENT_REQUIRED";
           const isCreditsRequiredError = effectiveError.isInsufficientCredits || generationErrorCode === "CREDITS_REQUIRED" || generationErrorCode === "INSUFFICIENT_CREDITS";
           const isWatermarkError = effectiveError.isWatermarkFailed || generationErrorCode === "WATERMARK_FAILED" || generationErrorCode === "WATERMARK_LOGO_NOT_FOUND";
+          const isInvalidServerResponseError = generationErrorCode === "INVALID_SERVER_RESPONSE";
+          const isGenerationFailedError = generationErrorCode === "GENERATION_FAILED";
 
           if (isLoginRequiredError) {
             setStatus("");
@@ -15391,6 +15539,22 @@ ${modeExample}`;
             const watermarkMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
             showError(`${watermarkMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
             showAccountMenuToast(watermarkMessage);
+            return;
+          }
+
+          if (isInvalidServerResponseError) {
+            setStatus("");
+            const invalidResponseMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+            showError(`${invalidResponseMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
+            showAccountMenuToast(invalidResponseMessage);
+            return;
+          }
+
+          if (isGenerationFailedError) {
+            setStatus("");
+            const generationFailedMessage = "생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+            showError(`${generationFailedMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
+            showAccountMenuToast(generationFailedMessage);
             return;
           }
 

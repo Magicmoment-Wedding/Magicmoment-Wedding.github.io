@@ -121,7 +121,14 @@ async function generateParisEiffelResults(state, mockPayload) {
 
     return createRealPayload(state, mockPayload, generatedImages, analysisMeta, prompt);
   } catch (error) {
-    if (error?.isInsufficientCredits || error?.code === "INSUFFICIENT_CREDITS" || error?.statusCode === 402) {
+    if (
+      error?.isInsufficientCredits ||
+      error?.code === "INSUFFICIENT_CREDITS" ||
+      error?.code === "INVALID_SERVER_RESPONSE" ||
+      error?.code === "WATERMARK_FAILED" ||
+      error?.code === "GENERATION_FAILED" ||
+      error?.statusCode === 402
+    ) {
       throw error;
     }
 
@@ -165,7 +172,14 @@ export async function generateResults(state) {
 
         return generateParisEiffelResults(state, mockPayload);
       } catch (error) {
-        if (error?.isInsufficientCredits || error?.code === "INSUFFICIENT_CREDITS" || error?.statusCode === 402) {
+        if (
+          error?.isInsufficientCredits ||
+          error?.code === "INSUFFICIENT_CREDITS" ||
+          error?.code === "INVALID_SERVER_RESPONSE" ||
+          error?.code === "WATERMARK_FAILED" ||
+          error?.code === "GENERATION_FAILED" ||
+          error?.statusCode === 402
+        ) {
           throw error;
         }
 

@@ -31,8 +31,6 @@ export function normalizeUser(user) {
     freeGenerationEligible: toBoolean(user.freeGenerationEligible ?? user.free_generation_eligible, false),
     freeGenerationUsed: toBoolean(user.freeGenerationUsed ?? user.free_generation_used, false),
     freeGenerationAvailable: toBoolean(user.freeGenerationAvailable ?? user.free_generation_available, false),
-    signupBonusGranted: toBoolean(user.signupBonusGranted ?? user.signup_bonus_granted, false),
-    signupBonusCredits: Number(user.signupBonusCredits ?? user.signup_bonus_credits ?? 0) || 0,
     creditBalance: Number.isFinite(creditBalance) ? creditBalance : 0,
   };
 
@@ -53,18 +51,11 @@ export function isFirstTimeOnboardingTarget(user) {
     return false;
   }
 
-  return (
-    user.onboardingCompleted === false &&
-    (
-      user.signupBonusGranted !== true ||
-      user.signupBonusCredits > 0 ||
-      user.freeGenerationEligible === true
-    )
-  );
+  return user.onboardingCompleted === false;
 }
 
 export function hasFreeGeneration(user) {
-  return false;
+  return Boolean(user?.freeGenerationAvailable === true);
 }
 
 export async function fetchCurrentUser() {

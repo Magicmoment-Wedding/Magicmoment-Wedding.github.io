@@ -87,6 +87,7 @@ export async function generateImages(prompt, options = {}) {
     sourceImageUrl,
     count = 4,
     presetKey = "default",
+    useFreeGeneration = false,
   } = options;
 
   assertApiBaseUrlConfigured();
@@ -98,7 +99,11 @@ export async function generateImages(prompt, options = {}) {
   formData.append("mode", generationMode);
   formData.append("presetKey", backendPresetKey);
   formData.append("count", String(count));
-  formData.append("generationType", "paid");
+  formData.append("generationType", useFreeGeneration ? "free" : "paid");
+  if (useFreeGeneration) {
+    formData.append("useFreeGeneration", "true");
+    formData.append("watermarkRequired", "true");
+  }
   if (typeof prompt === "string" && prompt.trim()) {
     formData.append("prompt", prompt.trim());
   }
@@ -155,7 +160,7 @@ export async function generateImages(prompt, options = {}) {
     } else if (error.code === "INVALID_SERVER_RESPONSE") {
       error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     } else if (error.code === "WATERMARK_FAILED") {
-      error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
+      error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
     } else if (error.code === "GENERATION_FAILED") {
       error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
     }
@@ -187,7 +192,7 @@ export async function generateImages(prompt, options = {}) {
   });
 }
 
-export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetKey = "paris_eiffel", analyzedMeta, ratioOption, customText, count = 4 }) {
+export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetKey = "paris_eiffel", analyzedMeta, ratioOption, customText, count = 4, useFreeGeneration = false }) {
   console.log("[generation] api request start", {
     presetKey,
     ratioOption,
@@ -199,6 +204,7 @@ export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetK
     sourceImageUrl,
     count,
     presetKey,
+    useFreeGeneration,
   });
 
   console.log("[generation] api request complete", {

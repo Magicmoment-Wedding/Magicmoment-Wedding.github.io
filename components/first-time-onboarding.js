@@ -10,7 +10,7 @@ export function renderFirstTimeOnboarding(state) {
   const stepIndex = Math.min(Math.max(state.firstTimeOnboardingStep ?? 0, 0), STEPS.length - 1);
   const step = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
-  const ctaLabel = isLastStep ? "이용안내 완료하고 가입 선물 받기" : "다음";
+  const ctaLabel = isLastStep ? "이용안내 완료하고 무료 제작 시작하기" : "다음";
 
   return `
     <div class="first-onboarding-page fixed inset-0 z-[80] bg-[#fbf7f8]/95 backdrop-blur-xl overflow-y-auto px-4 pt-20">
@@ -41,7 +41,7 @@ export function renderFirstTimeOnboarding(state) {
             </div>
           </div>
           <h2 class="font-display text-[32px] leading-none text-on-surface">첫 제작 전 이용안내</h2>
-          <p class="text-sm leading-6 text-on-surface-variant">가입 선물 25크레딧으로 제작을 시작하기 전에 핵심 흐름만 빠르게 확인해 주세요.</p>
+          <p class="text-sm leading-6 text-on-surface-variant">무료 1회 제작을 시작하기 전에 핵심 흐름만 빠르게 확인해 주세요.</p>
         </section>
 
         <section class="glass-panel glow-shadow rounded-DEFAULT p-6 min-h-[430px] flex flex-col justify-center text-center">
@@ -71,7 +71,7 @@ export function renderFirstTimeOnboarding(state) {
           ${state.onboardingCompleting ? "disabled" : ""}
         >
           <span class="material-symbols-outlined">${isLastStep ? "check_circle" : "arrow_forward"}</span>
-          <span>${state.onboardingCompleting ? "완료 처리 중..." : ctaLabel}</span>
+          <span>${state.onboardingCompleting ? "이용안내 완료 처리 중..." : ctaLabel}</span>
         </button>
       </div>
     </div>

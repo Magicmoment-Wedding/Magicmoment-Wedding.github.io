@@ -11,10 +11,10 @@ export function renderSiteGuidePage() {
     </section>
 
     <section class="grid grid-cols-1 gap-3">
-      ${guideItems.map((item) => `
+      ${guideItems.map((item, index) => `
         <article class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex gap-4">
           <div class="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-            <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">${item.icon}</span>
+            <span class="font-bold text-sm">${index + 1}</span>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">

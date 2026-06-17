@@ -6639,8 +6639,6 @@ Important:
       let freeGenerationUsed = false;
       let freeGenerationEligible = false;
       let freeGenerationAvailable = false;
-      let signupBonusGranted = false;
-      let signupBonusCredits = 0;
       let openEventEligible = false;
       let isNewUser = false;
       let siteGuidePageIndex = 0;
@@ -6689,13 +6687,6 @@ Important:
           notes: [],
         },
         {
-          title: "AI 웨딩사진 만들기",
-          description: "가입 선물 25크레딧으로 첫 제작을 시작할 수 있어요. 생성은 일반 크레딧 제작과 동일하게 진행됩니다.",
-          icon: "auto_awesome",
-          image: null,
-          notes: ["가입 선물 25크레딧이 지급되면 일반 제작처럼 워터마크 없이 생성됩니다.", "기본 생성은 25크레딧이 사용됩니다."],
-        },
-        {
           title: "결과 확인하기",
           description: "생성된 결과 4장을 확인하고, 크게보기를 눌러 마음에 드는 사진을 자세히 확인하세요. AI 추천 사진도 함께 표시됩니다.",
           icon: "grid_view",
@@ -6713,14 +6704,15 @@ Important:
           ],
         },
         {
-          title: "6. 스타일 갤러리에 올리기",
+          title: "스타일 갤러리에 올리기",
           badge: "5크레딧 지급",
           paragraphs: [
             "완성된 사진 중 마음에 드는 1장을 스타일 갤러리에 올릴 수 있어요.",
             "갤러리에 업로드하면 5크레딧을 지급해드려요.",
             "다른 예비 신랑신부가 스타일을 고르는 데 도움이 되고, 추가 크레딧도 받을 수 있어요.",
+            "신규회원은 이용안내 완료 후 워터마크가 포함된 무료 1회 제작을 시작할 수 있어요.",
           ],
-          highlights: ["1장", "5크레딧", "5크레딧 지급", "추가 크레딧"],
+          highlights: ["1장", "5크레딧", "5크레딧 지급", "추가 크레딧", "무료 1회 제작", "워터마크"],
           icon: "cloud_upload",
           image: null,
           notes: [],
@@ -7085,12 +7077,6 @@ Important:
           normalizedUser.freeGenerationUsed ?? normalizedUser.free_generation_used,
           normalizedUser.freeGenerationUsed,
         );
-        normalizedUser.signupBonusGranted = normalizeBooleanField(
-          normalizedUser.signupBonusGranted ?? normalizedUser.signup_bonus_granted,
-          normalizedUser.signupBonusGranted,
-        );
-        const normalizedSignupBonusCredits = Number(normalizedUser.signupBonusCredits ?? normalizedUser.signup_bonus_credits ?? 0);
-        normalizedUser.signupBonusCredits = Number.isFinite(normalizedSignupBonusCredits) ? normalizedSignupBonusCredits : 0;
         normalizedUser.isAdmin = normalizeBooleanField(
           normalizedUser.isAdmin ?? normalizedUser.is_admin,
           false,
@@ -7359,8 +7345,6 @@ Important:
         const freeUsedValue = pickAuthField(payload, user, ["freeGenerationUsed", "free_generation_used"]);
         const freeEligibleValue = pickAuthField(payload, user, ["freeGenerationEligible", "free_generation_eligible", "freeEligible", "free_eligible"]);
         const freeAvailableValue = pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
-        const signupBonusGrantedValue = pickAuthField(payload, user, ["signupBonusGranted", "signup_bonus_granted"]);
-        const signupBonusCreditsValue = pickAuthField(payload, user, ["signupBonusCredits", "signup_bonus_credits"]);
         const openEventValue = pickAuthField(payload, user, ["openEventEligible", "open_event_eligible", "firstPurchaseEligible", "first_purchase_eligible"]);
         const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
 
@@ -7369,9 +7353,6 @@ Important:
         freeGenerationUsed = normalizeBooleanField(freeUsedValue, false);
         freeGenerationEligible = normalizeBooleanField(freeEligibleValue, normalizedIsNewUser);
         freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, freeGenerationEligible === true && freeGenerationUsed !== true);
-        signupBonusGranted = normalizeBooleanField(signupBonusGrantedValue, false);
-        const normalizedSignupBonusCredits = Number(signupBonusCreditsValue ?? 0);
-        signupBonusCredits = Number.isFinite(normalizedSignupBonusCredits) ? normalizedSignupBonusCredits : 0;
         openEventEligible = normalizeBooleanField(openEventValue, false);
         isNewUser = normalizeBooleanField(isNewUserValue, !onboardingCompleted);
         if (user && typeof user === "object") {
@@ -7379,8 +7360,6 @@ Important:
           user.freeGenerationUsed = freeGenerationUsed;
           user.freeGenerationEligible = freeGenerationEligible;
           user.freeGenerationAvailable = freeGenerationAvailable;
-          user.signupBonusGranted = signupBonusGranted;
-          user.signupBonusCredits = signupBonusCredits;
           user.openEventEligible = openEventEligible;
           user.isNewUser = isNewUser;
           user.creditBalance = creditBalance;
@@ -8216,7 +8195,7 @@ Important:
                 <div class="admin-empty">
                   이 작업을 실행하면 해당 회원의 로그인 정보와 관련 데이터가 삭제됩니다.
                   삭제 후 같은 소셜 계정으로 다시 로그인하면 신규 가입자처럼 다시 생성됩니다.
-                  안내카드와 가입 선물 25크레딧 제작 흐름을 다시 테스트할 수 있습니다.
+                  안내카드와 무료 1회 제작 흐름을 다시 테스트할 수 있습니다.
                   <br /><br />
                   이 작업은 되돌릴 수 없습니다. 테스트 계정에만 사용하는 것을 권장합니다.
                 </div>
@@ -9072,17 +9051,17 @@ Important:
         let detailText = "잠시만 기다려 주세요.";
 
         if (authChecked && !hasUser) {
-          labelText = "로그인 후 사진 제작 시작";
-          detailText = "가입 선물 25크레딧 지급";
+          labelText = "로그인 후 무료 제작 시작";
+          detailText = "가입 후 첫 1회 무료";
         } else if (hasUser && !onboardingCompleted) {
           labelText = "사이트 이용안내 보기";
-          detailText = "완료 후 가입 선물 크레딧 지급";
-        } else if (hasUser && signupBonusGranted && Number(creditBalance) >= 25) {
-          labelText = "가입 선물 1회 제작 시작";
-          detailText = "가입 선물 25크레딧 사용";
+          detailText = "이용안내 후 첫 제작 가능";
+        } else if (hasUser && hasFreeGeneration(currentUser)) {
+          labelText = "무료 1회 제작 시작";
+          detailText = "가입 선물 · 워터마크 포함";
         } else if (hasUser && Number(creditBalance) < 25) {
           labelText = "크레딧 충전하기";
-          detailText = "크레딧이 부족합니다";
+          detailText = "두 번째 제작부터 크레딧 필요";
         } else if (hasUser) {
           labelText = "AI 배경 바꾸기";
           detailText = "AI 배경 바꾸기 · 25크레딧";
@@ -9720,7 +9699,7 @@ Important:
           siteGuideMode = "firstOnboarding";
           siteGuidePageIndex = 0;
           navigateToScreen("siteGuide");
-          showAccountMenuToast("먼저 이용안내를 확인하면 가입 선물 25크레딧을 받을 수 있어요.");
+          showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
           return;
         }
 
@@ -10030,25 +10009,14 @@ Important:
           user
           && user.isAdmin !== true
           && onboardingCompleted === false
-          && (
-            isNewUser === true ||
-            signupBonusGranted !== true ||
-            signupBonusCredits > 0 ||
-            freeGenerationEligible === true
-          )
         );
       }
 
       function getFirstOnboardingPages() {
         return [
           [guideSteps[0], guideSteps[1]],
-          [guideSteps[4], guideSteps[5]],
-          [{
-            title: "가입 선물 25크레딧 안내",
-            description: "이용안내를 완료하면 가입 선물 25크레딧이 지급돼요. 사진편집 화면에서 가입 선물 1회 제작을 시작해 주세요.",
-            icon: "redeem",
-            notes: ["가입 선물 크레딧으로 만든 사진은 일반 제작과 동일하게 워터마크 없이 제공됩니다."],
-          }],
+          [guideSteps[2], guideSteps[3]],
+          [guideSteps[4]],
         ];
       }
 
@@ -10088,7 +10056,6 @@ Important:
 
       function renderGuideStepCard(step, stepNumber) {
         const notes = Array.isArray(step?.notes) ? step.notes : [];
-        const titleIncludesNumber = /^\s*\d+\./.test(step?.title || "");
         return `
           <article class="site-guide-step">
             <div class="site-guide-illustration" aria-hidden="true">
@@ -10098,7 +10065,7 @@ Important:
             </div>
             <div class="site-guide-step-body">
               <div class="flex items-center gap-3">
-                ${titleIncludesNumber ? "" : `<span class="site-guide-step-number">${stepNumber}</span>`}
+                <span class="site-guide-step-number">${stepNumber}</span>
                 <h3 class="text-[18px] font-bold leading-6 text-on-surface">${escapeHtml(step?.title || "")}</h3>
                 ${step?.badge ? `<span class="site-guide-badge">${escapeHtml(step.badge)}</span>` : ""}
               </div>
@@ -10131,16 +10098,16 @@ Important:
         const currentPage = Math.min(Math.max(siteGuidePageIndex, 0), pageCount - 1);
         const pageSteps = pages[currentPage];
         const buttonLabel = currentPage === pageCount - 1
-          ? (isCompletingOnboarding ? "크레딧 준비 중..." : "이용안내 완료하고 가입 선물 받기")
+          ? (isCompletingOnboarding ? "이용안내 완료 처리 중..." : "이용안내 완료하고 무료 제작 시작하기")
           : "다음";
+        const priorStepCount = pages.slice(0, currentPage).reduce((total, page) => total + page.length, 0);
 
         siteGuideStepsContainer.innerHTML = `
           <div class="onboarding-page is-first-onboarding">
             <div class="first-onboarding-scroll">
               <div class="onboarding-cards-grid">
                 ${pageSteps.map((step, offset) => {
-                  const guideIndex = guideSteps.indexOf(step);
-                  const stepNumber = guideIndex >= 0 ? guideIndex + 1 : guideSteps.length + offset + 1;
+                  const stepNumber = priorStepCount + offset + 1;
                   return renderGuideStepCard(step, stepNumber);
                 }).join("")}
               </div>
@@ -10154,7 +10121,7 @@ Important:
             ${isCompletingOnboarding ? `
               <div class="onboarding-processing-overlay" role="status" aria-live="polite">
                 <div class="onboarding-processing-spinner" aria-hidden="true"></div>
-                <strong class="text-primary">가입 선물 크레딧을 준비하고 있어요. 잠시만 기다려 주세요.</strong>
+                <strong class="text-primary">이용안내 완료 처리 중입니다. 잠시만 기다려 주세요.</strong>
               </div>
             ` : ""}
           </div>
@@ -10220,15 +10187,15 @@ Important:
         if (!isFirstTimeOnboardingTarget(currentUser)) {
           clearPendingAction();
           navigateToScreen("editor");
-          setStatus(Number(creditBalance) >= 25
-            ? "가입 선물 1회 제작을 시작해 주세요."
+          setStatus(hasFreeGeneration(currentUser)
+            ? "무료 1회 제작을 시작해 주세요."
             : "사진 제작을 시작해 주세요.");
           return;
         }
 
         isCompletingOnboarding = true;
         renderSiteGuideScreen();
-        showAccountMenuToast("가입 선물 크레딧을 준비하고 있어요. 잠시만 기다려 주세요.");
+        showAccountMenuToast("이용안내 완료 처리 중입니다. 잠시만 기다려 주세요.");
 
         try {
           await completeOnboarding();
@@ -10238,12 +10205,10 @@ Important:
           }
           clearPendingAction();
           syncEditorGenerationCopy();
-          showAccountMenuToast(Number(creditBalance) >= 25
-            ? "가입 선물 25크레딧이 지급되었습니다."
-            : "가입 선물 크레딧을 확인 중입니다. 잠시 후 다시 확인해 주세요.");
+          showAccountMenuToast("무료 1회 제작을 시작할 수 있어요.");
           navigateToScreen("editor");
-          setStatus(Number(creditBalance) >= 25
-            ? "가입 선물 1회 제작을 시작해 주세요."
+          setStatus(hasFreeGeneration(currentUser)
+            ? "무료 1회 제작을 시작해 주세요."
             : "사진 제작을 시작해 주세요.");
         } catch (error) {
           if (DEBUG_MODE) {
@@ -10296,7 +10261,7 @@ Important:
       }
 
       function hasFreeGeneration(user = currentUser) {
-        return false;
+        return Boolean(user?.freeGenerationAvailable === true || (freeGenerationAvailable === true && freeGenerationUsed !== true));
       }
 
       function shouldShowOnboardingCards() {
@@ -10314,8 +10279,6 @@ Important:
           onboardingCompleted,
           freeGenerationEligible,
           freeGenerationUsed,
-          signupBonusGranted,
-          signupBonusCredits,
         });
 
         if (authChecked !== true) {
@@ -10335,17 +10298,16 @@ Important:
         if (shouldShowOnboarding(currentUser)) {
           siteGuideMode = "firstOnboarding";
           siteGuidePageIndex = 0;
-          showAccountMenuToast("먼저 이용안내를 확인하면 가입 선물 25크레딧을 받을 수 있어요.");
+          showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
           navigateToScreen("siteGuide");
           return false;
         }
 
+        if (hasFreeGeneration(currentUser)) {
+          return true;
+        }
+
         if (Number(creditBalance) < 25) {
-          if (signupBonusGranted !== true && !onboardingCompleted) {
-            showAccountMenuToast("가입 선물 크레딧을 준비하고 있어요. 잠시만 기다려 주세요.");
-            void refreshAuthState({ showError: false });
-            return false;
-          }
           showCreditRequiredForGeneration();
           navigateToScreen("credits");
           return false;
@@ -10374,6 +10336,10 @@ Important:
           error.isOnboardingRequired = true;
           error.isOnboardingEligible = true;
           throw error;
+        }
+
+        if (hasFreeGeneration(currentUser)) {
+          return;
         }
 
         if (Number(creditBalance) < 25) {
@@ -12158,7 +12124,12 @@ ${modeExample}`;
         formData.append("presetKey", config.presetKey);
         formData.append("prompt", buildGenerationPrompt(generationMode));
         formData.append("count", "4");
-        formData.append("generationType", "paid");
+        const useFreeGeneration = lastGenerationUsedFreeCredit === true;
+        formData.append("generationType", useFreeGeneration ? "free" : "paid");
+        if (useFreeGeneration) {
+          formData.append("useFreeGeneration", "true");
+          formData.append("watermarkRequired", "true");
+        }
         if (selectedLandmark) {
           formData.append("category", getLocationCategoryForMode(generationMode));
           formData.append("locationPreset", selectedLandmark.value);
@@ -12184,6 +12155,7 @@ ${modeExample}`;
           generationPlace: selectedLandmark?.value || "",
           generationPlaceLabel: selectedLandmark?.label || "",
           hasImage: Boolean(imageFile),
+          generationType: useFreeGeneration ? "free" : "paid",
           fileName: imageFile?.name,
           fileType: imageFile?.type,
           fileSize: imageFile?.size,
@@ -12202,6 +12174,8 @@ ${modeExample}`;
           generationPlace: selectedLandmark?.value || "",
           generationPlaceLabel: selectedLandmark?.label || "",
           imagePath,
+          generationType: useFreeGeneration ? "free" : "paid",
+          useFreeGeneration,
           hasAnonymousId: Boolean(anonymousId),
           ...fileInfo,
         });
@@ -12216,6 +12190,8 @@ ${modeExample}`;
           generationPlaceLabel: selectedLandmark?.label || "",
           hasAnonymousId: Boolean(anonymousId),
           imagePath,
+          generationType: useFreeGeneration ? "free" : "paid",
+          useFreeGeneration,
           ...fileInfo,
         });
         console.log("[generate] anonymous id", {
@@ -12287,6 +12263,8 @@ ${modeExample}`;
             generationPlace: selectedLandmark?.value || "",
             generationPlaceLabel: selectedLandmark?.label || "",
             hasImage: Boolean(imageFile),
+            generationType: useFreeGeneration ? "free" : "paid",
+            useFreeGeneration,
             data: sanitizeLogValue(data),
             errorBody: sanitizeLogValue(parsed.rawText),
             response: sanitizeLogValue(data),
@@ -12311,7 +12289,8 @@ ${modeExample}`;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
           } else if (responseCode === "WATERMARK_FAILED" || responseCode === "WATERMARK_LOGO_NOT_FOUND") {
-            error.publicMessage = "생성 중 문제가 발생했습니다. 크레딧은 차감되지 않았으니 잠시 후 다시 시도해 주세요.";
+            error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
+            error.isWatermarkFailed = true;
           } else if (responseCode === "INVALID_SERVER_RESPONSE") {
             error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
           } else if (responseCode === "GENERATION_FAILED") {
@@ -12378,6 +12357,9 @@ ${modeExample}`;
           generationMeta: {
             ...(data.generationMeta || {}),
             generationId,
+            usedFreeGeneration: useFreeGeneration,
+            freeGenerationNumber: useFreeGeneration ? 1 : null,
+            hasWatermark: Boolean(data.hasWatermark ?? data.has_watermark ?? useFreeGeneration),
             locationPreset: selectedLandmark?.value || "",
             category: getLocationCategoryForMode(generationMode),
             generationPlace: selectedLandmark?.value || "",
@@ -12807,7 +12789,12 @@ ${modeExample}`;
       }
 
       function getDownloadPolicy() {
-        const shouldWatermark = false;
+        const shouldWatermark = Boolean(
+          generationMeta?.hasWatermark === true ||
+          generationMeta?.has_watermark === true ||
+          generationMeta?.usedFreeGeneration === true ||
+          lastGenerationUsedFreeCredit === true
+        );
 
         return {
           shouldWatermark,
@@ -15470,7 +15457,7 @@ ${modeExample}`;
 
         hideError();
         isGenerating = true;
-        lastGenerationUsedFreeCredit = false;
+        lastGenerationUsedFreeCredit = hasFreeGeneration(currentUser);
         generateButton.disabled = true;
         activeGenerationMode = getGenerationMode();
         clearResults();
@@ -15539,7 +15526,7 @@ ${modeExample}`;
           const isOnboardingRequiredError = effectiveError.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";
           const isConsentRequiredError = effectiveError.isConsentRequired || generationErrorCode === "CONSENT_REQUIRED";
           const isCreditsRequiredError = effectiveError.isInsufficientCredits || generationErrorCode === "CREDITS_REQUIRED" || generationErrorCode === "INSUFFICIENT_CREDITS";
-          const isWatermarkError = false;
+          const isWatermarkError = effectiveError.isWatermarkFailed || generationErrorCode === "WATERMARK_FAILED" || generationErrorCode === "WATERMARK_LOGO_NOT_FOUND";
           const isInvalidServerResponseError = generationErrorCode === "INVALID_SERVER_RESPONSE";
           const isGenerationFailedError = generationErrorCode === "GENERATION_FAILED";
 
@@ -15588,6 +15575,17 @@ ${modeExample}`;
             );
             showAccountMenuToast("두 번째 제작부터는 크레딧이 필요합니다.");
             setAppScreen("credits", { replaceHistory: true });
+            return;
+          }
+
+          if (isWatermarkError) {
+            setStatus("");
+            const watermarkFailedMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
+            showError(`${watermarkFailedMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
+            showAccountMenuToast(watermarkFailedMessage);
+            void refreshAuthState({ showError: false }).then(() => {
+              syncEditorGenerationCopy();
+            });
             return;
           }
 

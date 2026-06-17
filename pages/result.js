@@ -79,10 +79,10 @@ export function renderResultPage(state) {
     recommendedIndex,
   };
   const billingHeadline = generationMeta.billingTitle ?? (generationMeta.usedFreeGeneration
-    ? `가입 선물 크레딧이 적용되었습니다`
+    ? `무료 1회 제작이 적용되었습니다`
     : `${formatNumber(generationMeta.billedCredits ?? generationMeta.totalCredits)} 크레딧이 차감되었습니다`);
   const billingDescription = generationMeta.billingDescription ?? (generationMeta.usedFreeGeneration
-    ? `가입 선물 25크레딧으로 워터마크 없이 제작되었습니다.`
+    ? `무료 제작 결과에는 워터마크가 포함됩니다.`
     : `생성 후 잔액은 ${formatNumber(generationMeta.remainingCredits ?? state.credits)} 크레딧입니다.`);
 
   return `
@@ -186,7 +186,7 @@ export function renderResultPage(state) {
       <div class="flex flex-col gap-1">
         <div class="flex items-center gap-2 text-on-surface">
           <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">water_drop</span>
-          <span class="font-body-large text-body-large">워터마크 없음</span>
+          <span class="font-body-large text-body-large">${generationMeta.usedFreeGeneration ? "워터마크 포함" : "워터마크 없음"}</span>
         </div>
         <div class="flex items-center gap-2 text-on-surface">
           <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">sd</span>

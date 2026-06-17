@@ -24,6 +24,7 @@ import { getCredits, testChargeCredits } from "./services/credits-api.js";
 import {
   completeOnboarding,
   fetchCurrentUser,
+  hasFreeGeneration,
   isAdminUser,
   isFirstTimeOnboardingTarget,
   normalizeUser,
@@ -309,6 +310,10 @@ function startPaidGenerationFlow() {
   navigate(ROUTES.CREATE);
 }
 
+function startFreeGenerationFlow() {
+  navigate(ROUTES.CREATE);
+}
+
 function handleCreateClick() {
   const state = getState();
   console.log("[generate] before click", {
@@ -347,6 +352,11 @@ function handleCreateClick() {
     return;
   }
 
+  if (hasFreeGeneration(state.currentUser)) {
+    startFreeGenerationFlow();
+    return;
+  }
+
   if ((state.currentUser.creditBalance || 0) < 25) {
     openCreditsModal("shortage", { requiredCredits: 25 });
     return;
@@ -378,7 +388,7 @@ async function completeFirstTimeOnboarding() {
       pendingGenerate: false,
     });
     navigate(ROUTES.CREATE);
-    showToast("가입 선물 25크레딧이 지급되었습니다.");
+    showToast("무료 1회 제작을 시작할 수 있어요.");
   } catch (error) {
     console.error("[onboarding] complete failed", error);
     updateState({
@@ -483,6 +493,7 @@ function moveImageModal(direction) {
 async function performGeneration() {
   const state = getState();
   const generationCost = getCreditBreakdown(state).total;
+  const useFreeGeneration = hasFreeGeneration(state.currentUser);
   const requestState = {
     ...state,
   };
@@ -522,12 +533,15 @@ async function performGeneration() {
         ...resultPayload.generationMeta,
         billedCredits: 0,
         regularCredits: generationCost,
-        usedFreeGeneration: false,
-        freeGenerationNumber: null,
+        usedFreeGeneration: useFreeGeneration,
+        freeGenerationNumber: useFreeGeneration ? 1 : null,
+        hasWatermark: useFreeGeneration,
         remainingCredits: state.credits,
         qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
-        billingTitle: "크레딧 차감 없이 생성되었습니다",
-        billingDescription: `현재 단계에서는 생성 비용 ${formatNumber(generationCost)} 크레딧 차감이 아직 연결되지 않았습니다.`,
+        billingTitle: useFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "크레딧 차감 없이 생성되었습니다",
+        billingDescription: useFreeGeneration
+          ? "무료 제작 결과에는 워터마크가 포함됩니다."
+          : `현재 단계에서는 생성 비용 ${formatNumber(generationCost)} 크레딧 차감이 아직 연결되지 않았습니다.`,
         originRoute: ROUTES.OPTIONS,
       },
     });

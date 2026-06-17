@@ -71,6 +71,20 @@ export function getCreditBreakdown(state) {
 
 export function getGenerationAccess(state) {
   const cost = getCreditBreakdown(state).total;
+  const canUseFreeGeneration = state.currentUser?.freeGenerationAvailable === true;
+
+  if (canUseFreeGeneration) {
+    return {
+      mode: "free",
+      cost: 0,
+      freeRemaining: 1,
+      nextFreeNumber: 1,
+      requiresAds: false,
+      adsToWatch: 0,
+      canAfford: true,
+      shortfall: 0,
+    };
+  }
 
   return {
     mode: "paid",

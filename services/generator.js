@@ -109,6 +109,7 @@ async function generateParisEiffelResults(state, mockPayload) {
       customText: state.customPresetDraft?.style?.trim() ?? "",
       prompt,
       count: DEFAULT_GENERATION_COUNT,
+      useFreeGeneration: state.currentUser?.freeGenerationAvailable === true,
     });
 
     if (!generatedImages.length) {

@@ -26,7 +26,7 @@ function getCreditTitle(modal) {
   }
 
   if (modal.reason === "post-free") {
-    return "가입 선물 크레딧을 모두 사용했습니다";
+    return "무료 생성이 모두 완료되었습니다";
   }
 
   if (modal.reason === "shortage") {
@@ -121,7 +121,7 @@ function renderPaywallModal() {
     <div class="flex flex-col gap-5 text-center">
       <div class="space-y-2">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">CREDIT LIMIT</p>
-        <h3 class="font-display text-[32px] leading-none text-on-surface">가입 선물 크레딧을 모두 사용했습니다</h3>
+        <h3 class="font-display text-[32px] leading-none text-on-surface">무료 생성이 모두 완료되었습니다</h3>
         <p class="text-sm text-on-surface-variant">이제부터는 크레딧 충전 후 같은 생성 흐름을 이어갈 수 있습니다.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="open-credits" data-modal-reason="post-free">
@@ -208,7 +208,7 @@ function renderLoginRequiredModal() {
       <div class="space-y-2">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">LOGIN REQUIRED</p>
         <h3 class="font-display text-[30px] leading-none text-on-surface">로그인이 필요합니다</h3>
-        <p class="text-sm text-on-surface-variant">가입 선물 크레딧과 보유 크레딧 확인을 위해 로그인 후 다시 시도해 주세요.</p>
+        <p class="text-sm text-on-surface-variant">무료 제작 가능 여부와 보유 크레딧 확인을 위해 로그인 후 다시 시도해 주세요.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="close-modal">
         확인

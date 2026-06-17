@@ -5760,10 +5760,14 @@
       const PRIVACY_VERSION = "2026-06-15";
       const TERMS_CONSENT_STORAGE_KEY = "magic_terms_consent";
       const SIGNUP_CONSENT_STORAGE_KEY = "magic_signup_consents";
+      const SIGNUP_TERMS_ACCEPTED_STORAGE_KEY = "magic_signup_terms_accepted";
+      const SIGNUP_PRIVACY_ACCEPTED_STORAGE_KEY = "magic_signup_privacy_accepted";
+      const SIGNUP_AGE_ACCEPTED_STORAGE_KEY = "magic_signup_age_accepted";
       const AUTH_MODE_STORAGE_KEY = "magic_auth_mode";
       const AUTH_INTENT_STORAGE_KEY = "magic_auth_intent";
       const AUTH_PROVIDER_STORAGE_KEY = "magic_auth_provider";
       const SIGNUP_PROCESSING_STORAGE_KEY = "magic_signup_processing";
+      const AUTH_PROCESSING_STORAGE_KEY = "magic_auth_processing";
       const AUTH_FLOW_MODE_STORAGE_KEY = "auth_flow_mode";
       const AUTH_FLOW_PROCESSING_STORAGE_KEY = "auth_flow_processing";
       const AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY = "auth_open_account_menu";
@@ -7010,8 +7014,14 @@ Important:
         const safeProvider = sanitizeOAuthProvider(provider);
         if (!safeProvider) return "";
 
+        const authMode = mode === "signup" ? "signup" : "login";
         const url = new URL(getAuthApiUrl(`/api/auth/${safeProvider}/start`), window.location.origin);
-        url.searchParams.set("mode", mode === "signup" ? "signup" : "login");
+        url.searchParams.set("mode", authMode);
+        if (authMode === "signup") {
+          url.searchParams.set("termsAccepted", "1");
+          url.searchParams.set("privacyAccepted", "1");
+          url.searchParams.set("ageAccepted", "1");
+        }
         url.searchParams.set("returnTo", sanitizeLoginReturnView(returnView));
         return url.toString();
       }
@@ -7024,13 +7034,20 @@ Important:
           window.sessionStorage.setItem(AUTH_MODE_STORAGE_KEY, authMode);
           window.sessionStorage.setItem(AUTH_INTENT_STORAGE_KEY, authMode);
           window.sessionStorage.setItem(AUTH_FLOW_MODE_STORAGE_KEY, authMode);
+          window.sessionStorage.setItem(AUTH_PROCESSING_STORAGE_KEY, "true");
           window.sessionStorage.setItem(AUTH_FLOW_PROCESSING_STORAGE_KEY, "true");
           window.sessionStorage.setItem(AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY, "true");
           window.sessionStorage.setItem(AUTH_PENDING_STARTED_AT_STORAGE_KEY, String(now));
           if (authMode === "signup") {
+            window.sessionStorage.setItem(SIGNUP_TERMS_ACCEPTED_STORAGE_KEY, "true");
+            window.sessionStorage.setItem(SIGNUP_PRIVACY_ACCEPTED_STORAGE_KEY, "true");
+            window.sessionStorage.setItem(SIGNUP_AGE_ACCEPTED_STORAGE_KEY, "true");
             window.sessionStorage.setItem(SIGNUP_PROCESSING_STORAGE_KEY, "true");
           } else {
             window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
+            window.sessionStorage.removeItem(SIGNUP_TERMS_ACCEPTED_STORAGE_KEY);
+            window.sessionStorage.removeItem(SIGNUP_PRIVACY_ACCEPTED_STORAGE_KEY);
+            window.sessionStorage.removeItem(SIGNUP_AGE_ACCEPTED_STORAGE_KEY);
             window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
           }
           if (safeProvider) {
@@ -7068,7 +7085,8 @@ Important:
 
       function getPendingAuthProcessingMode() {
         try {
-          const flowProcessing = window.sessionStorage.getItem(AUTH_FLOW_PROCESSING_STORAGE_KEY) === "true";
+          const flowProcessing = window.sessionStorage.getItem(AUTH_FLOW_PROCESSING_STORAGE_KEY) === "true"
+            || window.sessionStorage.getItem(AUTH_PROCESSING_STORAGE_KEY) === "true";
           const flowMode = window.sessionStorage.getItem(AUTH_FLOW_MODE_STORAGE_KEY);
           if (flowProcessing && (flowMode === "signup" || flowMode === "login")) return flowMode;
           const storedMode = window.sessionStorage.getItem(AUTH_MODE_STORAGE_KEY);
@@ -7153,10 +7171,14 @@ Important:
       function clearAuthStartState() {
         try {
           window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_TERMS_ACCEPTED_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_PRIVACY_ACCEPTED_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_AGE_ACCEPTED_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_MODE_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_INTENT_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_PROVIDER_STORAGE_KEY);
           window.sessionStorage.removeItem(SIGNUP_PROCESSING_STORAGE_KEY);
+          window.sessionStorage.removeItem(AUTH_PROCESSING_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_FLOW_MODE_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_FLOW_PROCESSING_STORAGE_KEY);
           window.sessionStorage.removeItem(AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY);
@@ -7266,6 +7288,9 @@ Important:
 
       function persistSignupConsent() {
         try {
+          window.sessionStorage.setItem(SIGNUP_TERMS_ACCEPTED_STORAGE_KEY, "true");
+          window.sessionStorage.setItem(SIGNUP_PRIVACY_ACCEPTED_STORAGE_KEY, "true");
+          window.sessionStorage.setItem(SIGNUP_AGE_ACCEPTED_STORAGE_KEY, "true");
           window.sessionStorage.setItem(SIGNUP_CONSENT_STORAGE_KEY, JSON.stringify({
             termsVersion: TERMS_VERSION,
             privacyVersion: PRIVACY_VERSION,
@@ -7274,6 +7299,25 @@ Important:
           }));
         } catch (error) {
           return;
+        }
+      }
+
+      function resetSignupConsentState(message = "") {
+        allRequiredConsentsChecked = false;
+        if (signupAllRequiredConsents) {
+          signupAllRequiredConsents.checked = false;
+        }
+        try {
+          window.sessionStorage.removeItem(SIGNUP_CONSENT_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_TERMS_ACCEPTED_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_PRIVACY_ACCEPTED_STORAGE_KEY);
+          window.sessionStorage.removeItem(SIGNUP_AGE_ACCEPTED_STORAGE_KEY);
+        } catch (error) {
+          // Optional UI/session cleanup.
+        }
+        syncSignupConsentUi();
+        if (message && signupConsentMessage) {
+          signupConsentMessage.textContent = message;
         }
       }
 
@@ -9909,7 +9953,7 @@ Important:
           return "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
         }
         if (normalizedCode === "CONSENT_REQUIRED") {
-          return "회원가입을 위해 필수 약관 동의가 필요합니다.";
+          return "회원가입을 위해 필수 약관 동의가 필요합니다. 전체동의 후 다시 시도해 주세요.";
         }
         if (normalizedCode === "LOGIN_FAILED") {
           return "로그인 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
@@ -9958,8 +10002,9 @@ Important:
           return true;
         }
         if (normalizedCode === "CONSENT_REQUIRED") {
-          const message = "회원가입을 위해 필수 약관 동의가 필요합니다.";
+          const message = "회원가입을 위해 필수 약관 동의가 필요합니다. 전체동의 후 다시 시도해 주세요.";
           setAuthTab("signup", message);
+          resetSignupConsentState(message);
           openLoginModal(null, { tab: "signup", message });
           showAccountMenuToast(message);
           return true;

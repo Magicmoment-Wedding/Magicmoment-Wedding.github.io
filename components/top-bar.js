@@ -5,8 +5,9 @@ import { formatNumber } from "../services/format.js";
 export function renderTopBar({ route, title, credits }) {
   const canGoBack = route !== "home";
   const navigationAttribute = canGoBack ? 'data-action="back"' : 'data-route="home"';
+  const remainingUses = Math.max(0, Math.floor(Number(credits || 0) / 25));
 
-  // When on the home route, show a compact credit entry button on the left.
+  // When on the home route, show a compact pass entry button on the left.
   const leftButton = canGoBack
     ? `<button
         aria-label="Back"
@@ -16,12 +17,12 @@ export function renderTopBar({ route, title, credits }) {
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
       </button>`
     : `<button
-        aria-label="Credits"
+        aria-label="이용권"
         class="glass-panel rounded-full px-3 py-1 flex items-center gap-2 text-primary text-sm shadow-sm active:scale-95 transition-transform"
         data-route="credits"
       >
         <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
-        <span class="font-medium">크레딧</span>
+        <span class="font-medium">이용권</span>
       </button>`;
 
   return `
@@ -39,12 +40,12 @@ export function renderTopBar({ route, title, credits }) {
       </button>
       <div class="flex items-center gap-2">
         <button
-          aria-label="Credits balance"
+          aria-label="남은 제작 횟수"
           class="glass-panel rounded-full px-3 py-2 flex items-center gap-1.5 text-primary text-sm shadow-sm active:scale-95 transition-transform"
           data-route="credits"
         >
           <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
-          <span>${formatNumber(credits ?? 0)}</span>
+          <span>${formatNumber(remainingUses)}회</span>
         </button>
         <button
           aria-label="Settings"

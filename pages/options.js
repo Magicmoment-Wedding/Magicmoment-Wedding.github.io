@@ -9,10 +9,10 @@ export function renderOptionsPage(state, credits) {
   const isCustomPreset = state.selectedPresetId === "custom";
   const nextFlowTitle = isCustomPreset
     ? "자동 생성 대신 전문가 대행으로 연결됩니다"
-    : "크레딧 차감 없이 생성 테스트";
+    : "이용권 사용 없이 생성 테스트";
   const nextFlowDescription = isCustomPreset
     ? "원하는 스타일과 추가 요청을 남기면 매니저가 직접 배경 제작을 진행합니다."
-    : `현재 선택 조합의 예정 비용은 ${formatNumber(credits.total)} 크레딧입니다. 이번 단계에서는 잔액 확인이나 차감 없이 생성됩니다.`;
+    : `현재 선택 조합은 이용권 1회 사용 기준으로 제작됩니다. 이번 단계에서는 잔액 확인이나 사용 처리 없이 생성됩니다.`;
   const ctaLabel = isCustomPreset
     ? "전문가에게 맡기기"
     : "AI 사진 생성 시작";
@@ -23,14 +23,14 @@ export function renderOptionsPage(state, credits) {
       <div class="flex-1">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">STEP 2</p>
         <h1 class="font-display text-[30px] leading-none text-on-surface mt-2">생성 옵션을 선택하세요</h1>
-        <p class="text-sm text-on-surface-variant mt-2">${sourceImage.title} 기준으로 생성 비용이 계산됩니다.</p>
+        <p class="text-sm text-on-surface-variant mt-2">${sourceImage.title} 기준으로 제작 옵션을 선택합니다.</p>
       </div>
     </section>
 
     <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">NEXT ACCESS</span>
-        <span class="font-label-caps text-label-caps text-primary">${formatNumber(state.credits)} CREDIT</span>
+        <span class="font-label-caps text-label-caps text-primary">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</span>
       </div>
       <h2 class="font-display text-[28px] leading-none text-on-surface">${nextFlowTitle}</h2>
       <p class="text-sm text-on-surface-variant">${nextFlowDescription}</p>
@@ -74,7 +74,7 @@ export function renderOptionsPage(state, credits) {
       <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
         <div class="flex items-center justify-between">
           <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">RATIO</span>
-          <span class="font-label-caps text-label-caps text-primary">변환 시 +10</span>
+          <span class="font-label-caps text-label-caps text-primary">선택 옵션</span>
         </div>
         <div class="flex flex-wrap gap-2">
           ${RATIO_OPTIONS.map(
@@ -104,7 +104,7 @@ export function renderOptionsPage(state, credits) {
       <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
         <div class="flex items-center justify-between">
           <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">UPSCALE</span>
-          <span class="font-label-caps text-label-caps text-primary">+50</span>
+          <span class="font-label-caps text-label-caps text-primary">고해상도</span>
         </div>
         <button class="w-full rounded-DEFAULT border border-white/50 ${state.useUpscale ? "bg-primary text-on-primary" : "bg-white/50 text-on-surface"} p-4 flex items-center justify-between transition-all active:scale-[0.98]" data-action="toggle-upscale">
           <div class="text-left">
@@ -117,25 +117,25 @@ export function renderOptionsPage(state, credits) {
 
       <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-3">
         <div class="flex items-center justify-between">
-          <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">CREDITS</span>
-          <span class="font-label-caps text-label-caps text-primary">예정 비용</span>
+          <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PASS</span>
+          <span class="font-label-caps text-label-caps text-primary">예정 사용</span>
         </div>
         <div class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
             <span>기본 생성</span>
-            <span>25</span>
+            <span>이용권 1회</span>
           </div>
           <div class="flex items-center justify-between">
             <span>비율 변환</span>
-            <span>${credits.ratio}</span>
+            <span>포함</span>
           </div>
           <div class="flex items-center justify-between">
             <span>업스케일</span>
-            <span>${credits.upscale}</span>
+            <span>${state.useUpscale ? "포함" : "미포함"}</span>
           </div>
           <div class="flex items-center justify-between border-t border-white/40 pt-3 font-semibold text-primary">
-            <span>총 크레딧</span>
-            <span>${credits.total}</span>
+            <span>총 사용</span>
+            <span>이용권 1회</span>
           </div>
         </div>
       </section>
@@ -148,7 +148,7 @@ export function renderOptionsPage(state, credits) {
       </button>
       <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="open-credits" data-modal-reason="header">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">diamond</span>
-        크레딧 충전하기
+        이용권 구매하기
       </button>
     </section>
   `;

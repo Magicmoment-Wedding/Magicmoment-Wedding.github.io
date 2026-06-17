@@ -22,7 +22,7 @@ function renderShell(content, dismissable = true) {
 
 function getCreditTitle(modal) {
   if (modal.reason === "upscale") {
-    return "고해상도 변환에는 추가 크레딧이 필요합니다";
+    return "고해상도 변환에는 추가 이용권이 필요합니다";
   }
 
   if (modal.reason === "post-free") {
@@ -30,26 +30,27 @@ function getCreditTitle(modal) {
   }
 
   if (modal.reason === "shortage") {
-    return "크레딧이 부족합니다";
+    return "남은 제작 횟수가 부족합니다";
   }
 
-  return "크레딧을 충전하고 계속 생성해보세요";
+  return "이용권을 구매하고 계속 생성해보세요";
 }
 
 function getCreditDescription(modal, credits) {
+  const remainingUses = Math.max(0, Math.floor(Number(credits || 0) / 25));
   if (modal.reason === "upscale") {
-    return `업스케일에는 50 크레딧이 필요합니다. 현재 잔액은 ${formatNumber(credits)} 크레딧입니다.`;
+    return `고해상도 변환에는 추가 이용권이 필요합니다. 현재 남은 제작 횟수는 ${formatNumber(remainingUses)}회입니다.`;
   }
 
   if (modal.reason === "post-free") {
-    return "이제부터는 보유 크레딧으로 생성, 비율 변환, 업스케일을 이어갈 수 있습니다.";
+    return "이제부터는 이용권으로 AI 웨딩사진 제작을 이어갈 수 있습니다.";
   }
 
   if (modal.reason === "shortage") {
-    return `현재 작업에는 ${formatNumber(modal.requiredCredits ?? 0)} 크레딧이 필요합니다. 부족한 크레딧을 충전해 주세요.`;
+    return "남은 제작 횟수가 부족합니다. 이용권을 구매해 주세요.";
   }
 
-  return "실제 결제 연동 전 테스트 충전으로 잔액을 확인할 수 있습니다.";
+  return "이용권 구매 후 AI 웨딩사진 제작을 이어갈 수 있습니다.";
 }
 
 function renderAdsModal(modal) {
@@ -79,13 +80,13 @@ function renderCreditsModal(modal, state) {
   return renderShell(`
     <div class="flex flex-col gap-5">
       <div class="space-y-2">
-        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">CREDIT SHOP</p>
+        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PASS SHOP</p>
         <h3 class="font-display text-[30px] leading-none text-on-surface">${getCreditTitle(modal)}</h3>
         <p class="text-sm text-on-surface-variant">${getCreditDescription(modal, state.credits)}</p>
       </div>
       <div class="rounded-DEFAULT bg-white/45 p-4 flex items-center justify-between">
-        <span class="text-sm text-on-surface-variant">현재 보유 크레딧</span>
-        <span class="text-lg font-semibold text-primary">${formatNumber(state.credits)}</span>
+        <span class="text-sm text-on-surface-variant">남은 제작 횟수</span>
+        <span class="text-lg font-semibold text-primary">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</span>
       </div>
       <div class="space-y-3">
         ${CREDIT_PACKAGES.map((pack) => {
@@ -103,7 +104,7 @@ function renderCreditsModal(modal, state) {
               data-credit-package="${pack.id}"
               ${state.chargingCreditPackageId ? "disabled" : ""}
             >
-              ${isCharging ? "충전 중..." : "테스트 충전"}
+              ${isCharging ? "구매 준비 중..." : `${escapeHtml(pack.name)} 구매하기`}
             </button>
           </div>
           `;
@@ -120,12 +121,12 @@ function renderPaywallModal() {
   return renderShell(`
     <div class="flex flex-col gap-5 text-center">
       <div class="space-y-2">
-        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">CREDIT LIMIT</p>
+        <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PASS LIMIT</p>
         <h3 class="font-display text-[32px] leading-none text-on-surface">무료 생성이 모두 완료되었습니다</h3>
-        <p class="text-sm text-on-surface-variant">이제부터는 크레딧 충전 후 같은 생성 흐름을 이어갈 수 있습니다.</p>
+        <p class="text-sm text-on-surface-variant">이제부터는 이용권 구매 후 같은 생성 흐름을 이어갈 수 있습니다.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="open-credits" data-modal-reason="post-free">
-        크레딧 충전하기
+        이용권 구매하기
       </button>
       <button class="w-full h-12 rounded-full glass-panel text-primary font-button" data-action="close-modal">
         나중에 하기
@@ -208,7 +209,7 @@ function renderLoginRequiredModal() {
       <div class="space-y-2">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">LOGIN REQUIRED</p>
         <h3 class="font-display text-[30px] leading-none text-on-surface">로그인이 필요합니다</h3>
-        <p class="text-sm text-on-surface-variant">무료 제작 가능 여부와 보유 크레딧 확인을 위해 로그인 후 다시 시도해 주세요.</p>
+        <p class="text-sm text-on-surface-variant">무료 제작 가능 여부와 남은 제작 횟수 확인을 위해 로그인 후 다시 시도해 주세요.</p>
       </div>
       <button class="w-full h-12 rounded-full bg-primary text-on-primary font-button" data-action="close-modal">
         확인

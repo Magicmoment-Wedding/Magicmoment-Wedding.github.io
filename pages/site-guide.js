@@ -7,7 +7,7 @@ export function renderSiteGuidePage() {
     <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-3">
       <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">SITE GUIDE</span>
       <h1 class="font-display text-[32px] leading-none text-on-surface">사이트 이용안내</h1>
-      <p class="text-sm text-on-surface-variant">Magic Ai Studio의 기본 사용 흐름과 크레딧 안내를 확인할 수 있습니다.</p>
+      <p class="text-sm text-on-surface-variant">Magic Ai Studio의 기본 사용 흐름과 이용권 안내를 확인할 수 있습니다.</p>
     </section>
 
     <section class="grid grid-cols-1 gap-3">

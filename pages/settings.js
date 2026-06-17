@@ -16,11 +16,11 @@ export function renderSettingsPage(state) {
 
         <button class="rounded-DEFAULT p-4 glass-panel flex items-center justify-between" data-route="credits">
           <div>
-            <p class="font-display">보유 크레딧</p>
-            <p class="text-sm text-on-surface-variant mt-1">현재 보유 크레딧을 확인하세요</p>
+            <p class="font-display">남은 제작 횟수</p>
+            <p class="text-sm text-on-surface-variant mt-1">현재 남은 이용권을 확인하세요</p>
           </div>
           <div class="text-right">
-            <div class="font-medium text-primary">${state.credits ?? 0}</div>
+            <div class="font-medium text-primary">${Math.max(0, Math.floor(Number(state.credits || 0) / 25))}회</div>
             <span class="material-symbols-outlined">chevron_right</span>
           </div>
         </button>

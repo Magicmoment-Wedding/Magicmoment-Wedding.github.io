@@ -6,18 +6,18 @@ export const CREDIT_PRICING = {
 
 export const CREDIT_PACKAGES = [
   {
-    id: "pack-200",
+    id: "bridal_mood_pass_8",
     credits: 200,
     price: 19800,
-    name: "200 크레딧",
-    description: "테스트 충전용 기본 패키지",
+    name: "브라이덜 무드 패스",
+    description: "AI 웨딩사진 제작 8회 · 구매일로부터 3개월간 사용 가능",
   },
   {
-    id: "pack-500",
+    id: "wedding_photo_pass_20",
     credits: 500,
     price: 39800,
-    name: "500 크레딧",
-    description: "더 많은 웨딩사진을 만들 수 있는 테스트 패키지",
+    name: "웨딩 화보 패스",
+    description: "AI 웨딩사진 제작 20회 · 구매일로부터 3개월간 사용 가능",
   },
 ];
 

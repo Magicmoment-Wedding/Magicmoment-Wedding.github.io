@@ -14,7 +14,7 @@ export function renderMorePage() {
       <div>
         <p class="font-label-caps text-label-caps text-primary tracking-widest">GUIDE</p>
         <p class="font-display text-[28px] leading-none text-on-surface mt-2">사이트 이용안내</p>
-        <p class="text-sm text-on-surface-variant mt-3">업로드, 스타일 선택, 저장, 크레딧 안내를 확인합니다.</p>
+        <p class="text-sm text-on-surface-variant mt-3">업로드, 스타일 선택, 저장, 이용권 안내를 확인합니다.</p>
       </div>
       <button class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0" data-route="site-guide" aria-label="사이트 이용안내 보기">
         <span class="material-symbols-outlined">arrow_forward</span>

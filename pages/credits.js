@@ -11,12 +11,12 @@ export function renderCreditsPage(state) {
     <section class="w-full flex flex-col gap-4">
       <div class="glass-panel rounded-DEFAULT p-4 flex items-center justify-between">
         <div>
-          <h2 class="font-display text-[20px]">크레딧 충전</h2>
-          <p class="text-sm text-on-surface-variant mt-1">사진 1회 제작에는 25 크레딧이 사용됩니다.</p>
+          <h2 class="font-display text-[20px]">이용권 구매</h2>
+          <p class="text-sm text-on-surface-variant mt-1">사진 제작 1회마다 이용권 1회가 사용됩니다.</p>
         </div>
         <div class="text-right">
-          <div class="text-xs text-on-surface-variant">보유 크레딧</div>
-          <div class="font-display text-[20px] text-primary">${state.isCreditsLoading ? "..." : formatNumber(state.credits)}</div>
+          <div class="text-xs text-on-surface-variant">남은 제작 횟수</div>
+          <div class="font-display text-[20px] text-primary">${state.isCreditsLoading ? "..." : `${formatNumber(Math.floor((state.credits || 0) / 25))}회`}</div>
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export function renderCreditsPage(state) {
                   data-credit-package="${pack.id}"
                   ${state.chargingCreditPackageId ? "disabled" : ""}
                 >
-                  ${isCharging ? "충전 중..." : "무료 테스트 충전"}
+                  ${isCharging ? "구매 준비 중..." : `${escapeHtml(pack.name)} 구매하기`}
                 </button>
               </div>
             </article>
@@ -60,8 +60,8 @@ export function renderCreditsPage(state) {
         <div class="flex items-start gap-2">
           <span class="material-symbols-outlined text-primary text-[18px] mt-0.5" style="font-variation-settings: 'FILL' 0;">info</span>
           <div>
-            <p class="mb-2">현재는 테스트 기간으로, 결제 없이 무료로 크레딧을 충전할 수 있습니다.</p>
-            <p>실제 카드결제와 간편결제는 로그인 시스템 구축 후 연결됩니다.</p>
+            <p class="mb-2">모든 패스는 구매일로부터 3개월간 사용 가능해요.</p>
+            <p>사진 제작 1회마다 결과 4장이 생성됩니다.</p>
           </div>
         </div>
       </div>

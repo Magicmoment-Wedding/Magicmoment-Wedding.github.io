@@ -80,10 +80,10 @@ export function renderResultPage(state) {
   };
   const billingHeadline = generationMeta.billingTitle ?? (generationMeta.usedFreeGeneration
     ? `무료 1회 제작이 적용되었습니다`
-    : `${formatNumber(generationMeta.billedCredits ?? generationMeta.totalCredits)} 크레딧이 차감되었습니다`);
+    : `이용권 1회가 사용되었습니다`);
   const billingDescription = generationMeta.billingDescription ?? (generationMeta.usedFreeGeneration
     ? `무료 제작 결과에는 워터마크가 포함됩니다.`
-    : `생성 후 잔액은 ${formatNumber(generationMeta.remainingCredits ?? state.credits)} 크레딧입니다.`);
+    : `남은 제작 횟수는 ${formatNumber(Math.max(0, Math.floor(Number(generationMeta.remainingCredits ?? state.credits ?? 0) / 25)))}회입니다.`);
 
   return `
     <section class="result-recommendation-layout w-full flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_8.5rem] gap-3">
@@ -206,7 +206,7 @@ export function renderResultPage(state) {
       <div class="absolute inset-0 bg-gradient-to-br from-secondary-container to-surface-container-high opacity-80 z-0"></div>
       <div class="relative z-10 p-6 flex items-center justify-between">
         <div class="flex flex-col gap-1 w-2/3">
-          <span class="font-label-caps text-label-caps text-on-secondary-container tracking-wider">CREDIT SUMMARY</span>
+          <span class="font-label-caps text-label-caps text-on-secondary-container tracking-wider">PASS SUMMARY</span>
           <h3 class="font-display text-[22px] leading-tight text-on-surface font-semibold">${billingHeadline}</h3>
           <p class="text-sm text-on-secondary-container">${billingDescription}</p>
         </div>
@@ -225,12 +225,12 @@ export function renderResultPage(state) {
       <p class="px-2 text-xs leading-5 text-on-surface-variant">모바일에서는 공유창에서 ‘이미지 저장’을 선택해 주세요. 데스크톱에서는 이미지가 다운로드됩니다.</p>
       <button class="w-full h-14 rounded-full ${generationMeta.upscaleIncluded ? "glass-panel text-primary" : "bg-primary/90 text-on-primary shadow-[0_8px_20px_rgba(129,80,92,0.3)]"} font-button text-button backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95 group" data-action="purchase-upscale">
         <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-        ${generationMeta.upscaleIncluded ? "고해상도 변환 완료" : `고해상도 변환 (${CREDIT_PRICING.upscale} 크레딧)`}
+        ${generationMeta.upscaleIncluded ? "고해상도 변환 완료" : `고해상도 변환`}
       </button>
       <div class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
         <div class="flex items-center justify-between">
           <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PRINT SERVICE</span>
-          <span class="font-label-caps text-label-caps text-primary">${formatNumber(state.credits)} CREDIT</span>
+          <span class="font-label-caps text-label-caps text-primary">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</span>
         </div>
         ${PRINT_PRODUCTS.map((product) => `
           <div class="rounded-DEFAULT bg-white/45 p-4 border border-white/50 flex flex-col gap-3">
@@ -253,7 +253,7 @@ export function renderResultPage(state) {
     <section class="w-full flex flex-col gap-3 mt-2">
       <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="open-credits" data-modal-reason="header">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">diamond</span>
-        크레딧 충전하기
+        이용권 구매하기
       </button>
       <button class="w-full h-14 rounded-full bg-primary/90 hover:bg-primary text-on-primary font-button text-button shadow-[0_8px_20px_rgba(129,80,92,0.3)] backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95 group" data-route="options">
         <span class="material-symbols-outlined group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>

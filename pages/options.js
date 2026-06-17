@@ -9,13 +9,13 @@ export function renderOptionsPage(state, credits) {
   const isCustomPreset = state.selectedPresetId === "custom";
   const nextFlowTitle = isCustomPreset
     ? "자동 생성 대신 전문가 대행으로 연결됩니다"
-    : "이용권 사용 없이 생성 테스트";
+    : "AI 사진 제작하기";
   const nextFlowDescription = isCustomPreset
     ? "원하는 스타일과 추가 요청을 남기면 매니저가 직접 배경 제작을 진행합니다."
-    : `현재 선택 조합은 이용권 1회 사용 기준으로 제작됩니다. 이번 단계에서는 잔액 확인이나 사용 처리 없이 생성됩니다.`;
+    : `사진 제작 1회마다 이용권 1회가 사용되며, 결과 이미지 4장이 생성됩니다.`;
   const ctaLabel = isCustomPreset
     ? "전문가에게 맡기기"
-    : "AI 사진 생성 시작";
+    : "AI 사진 제작하기";
 
   return `
     <section class="relative w-full rounded-xl overflow-hidden glass-panel glow-shadow p-4 flex gap-4 items-center">

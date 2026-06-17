@@ -23,7 +23,7 @@ function renderShell(content, dismissable = true) {
 
 function getCreditTitle(modal) {
   if (modal.reason === "upscale") {
-    return "고해상도 변환에는 추가 이용권이 필요합니다";
+    return "고해상도 변환에는 이용권 구매가 필요합니다";
   }
 
   if (modal.reason === "post-free") {
@@ -40,7 +40,7 @@ function getCreditTitle(modal) {
 function getCreditDescription(modal, credits) {
   const remainingUses = Math.max(0, Math.floor(Number(credits || 0) / 25));
   if (modal.reason === "upscale") {
-    return `고해상도 변환에는 추가 이용권이 필요합니다. 현재 남은 제작 횟수는 ${formatNumber(remainingUses)}회입니다.`;
+    return `현재 남은 제작 횟수는 ${formatNumber(remainingUses)}회입니다. 필요한 경우 이용권을 구매해 주세요.`;
   }
 
   if (modal.reason === "post-free") {
@@ -96,8 +96,10 @@ function renderCreditsModal(modal, state) {
           return `
           <div class="rounded-DEFAULT bg-white/55 border border-white/50 p-4 flex items-center justify-between gap-4">
             <div>
+              <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">${escapeHtml(pack.badge)}</p>
               <p class="font-display text-[24px] leading-none text-on-surface">${escapeHtml(pack.name)}</p>
               <p class="text-sm text-on-surface-variant mt-2">${escapeHtml(pack.description)}</p>
+              <p class="text-xs font-semibold text-primary mt-2">서비스 제공기간: ${escapeHtml(pack.servicePeriodLabel)}</p>
               <p class="text-sm text-primary mt-2">${formatCurrency(pack.price)}</p>
             </div>
             <button
@@ -105,11 +107,14 @@ function renderCreditsModal(modal, state) {
               data-credit-package="${pack.id}"
               ${state.chargingCreditPackageId ? "disabled" : ""}
             >
-              ${isCharging ? "구매 준비 중..." : `${escapeHtml(pack.name)} 구매하기`}
+              ${isCharging ? "구매 준비 중..." : escapeHtml(pack.cta)}
             </button>
           </div>
           `;
         }).join("")}
+      </div>
+      <div class="rounded-DEFAULT bg-primary/10 border border-primary/15 px-4 py-3 text-sm leading-6 text-primary">
+        서비스 제공기간: 모든 이용권은 구매일로부터 3개월입니다.
       </div>
       <button class="w-full h-12 rounded-full glass-panel text-primary font-button" data-action="close-modal">
         나중에 하기

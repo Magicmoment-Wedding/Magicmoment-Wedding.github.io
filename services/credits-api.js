@@ -13,7 +13,7 @@ async function parseJsonResponse(response) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || payload?.ok === false) {
-    throw new Error(payload?.message || `Credit API request failed: ${response.status}`);
+    throw new Error(payload?.message || `Pass API request failed: ${response.status}`);
   }
 
   return {
@@ -32,11 +32,11 @@ export async function getCredits() {
   return parseJsonResponse(response);
 }
 
-export async function testChargeCredits(amount) {
+export async function testChargeCredits(amount, product = {}) {
   const creditAmount = Number(amount);
 
   if (!Number.isFinite(creditAmount) || creditAmount <= 0) {
-    throw new Error("Invalid credit charge amount");
+    throw new Error("Invalid pass purchase amount");
   }
 
   const response = await fetch(getApiUrl("/api/credits/test-charge"), {
@@ -45,7 +45,14 @@ export async function testChargeCredits(amount) {
       "Content-Type": "application/json",
       "X-Anonymous-Id": getAnonymousId(),
     },
-    body: JSON.stringify({ amount: creditAmount }),
+    body: JSON.stringify({
+      amount: creditAmount,
+      productCode: product.productCode || product.id,
+      productName: product.name,
+      orderName: product.orderName,
+      passUses: product.passUses,
+      servicePeriodMonths: product.servicePeriodMonths,
+    }),
   });
 
   return parseJsonResponse(response);

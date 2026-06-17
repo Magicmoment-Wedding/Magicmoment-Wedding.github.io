@@ -129,7 +129,7 @@ function renderRoute(route, state) {
 function getPage(route, state) {
   switch (route) {
     case ROUTES.CREDITS:
-      return { title: "크레딧", content: renderCreditsPage(state) };
+      return { title: "이용권 구매", content: renderCreditsPage(state) };
     case ROUTES.SETTINGS:
       return { title: "설정", content: renderSettingsPage(state) };
     case ROUTES.CREATE:
@@ -196,7 +196,7 @@ async function refreshCredits({ clearMessage = false } = {}) {
 
     updateState({
       isCreditsLoading: false,
-      creditStatusMessage: "크레딧 정보를 불러오지 못했습니다. 어시스턴트에게 문의하세요.",
+      creditStatusMessage: "이용권 정보를 불러오지 못했습니다. 어시스턴트에게 문의하세요.",
       creditStatusType: "error",
     });
   }
@@ -552,10 +552,10 @@ async function performGeneration() {
         watermarkStrategy: resultPayload.generationMeta?.watermarkStrategy || "",
         remainingCredits: state.credits,
         qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
-        billingTitle: useFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "크레딧 차감 없이 생성되었습니다",
+        billingTitle: useFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "사진 제작이 완료되었습니다",
         billingDescription: useFreeGeneration
           ? "무료 제작 결과에는 워터마크가 포함됩니다."
-          : `현재 단계에서는 생성 비용 ${formatNumber(generationCost)} 크레딧 차감이 아직 연결되지 않았습니다.`,
+          : `사진 제작 1회마다 이용권 1회가 사용됩니다.`,
         originRoute: ROUTES.OPTIONS,
       },
     });
@@ -567,7 +567,7 @@ async function performGeneration() {
     if (error?.isInsufficientCredits || error?.code === "INSUFFICIENT_CREDITS" || error?.statusCode === 402) {
       updateState({
         isGenerating: false,
-        creditStatusMessage: error.publicMessage || "크레딧이 부족합니다. 크레딧을 충전해 주세요.",
+        creditStatusMessage: error.publicMessage || "남은 제작 횟수가 부족합니다. 이용권을 구매해 주세요.",
         creditStatusType: "error",
         activeModal: {
           type: "credits",
@@ -628,7 +628,6 @@ async function performStudioGeneration() {
   }
 }
 
-// TODO: Disable free test charge before real payment launch
 async function handleCreditPurchase(packageId) {
   const creditPack = CREDIT_PACKAGES.find((item) => item.id === packageId);
 
@@ -643,31 +642,31 @@ async function handleCreditPurchase(packageId) {
   });
 
   try {
-    const payload = await testChargeCredits(creditPack.credits);
+    const payload = await testChargeCredits(creditPack.credits, creditPack);
     const nextCredits = payload.credits ?? getState().credits + creditPack.credits;
     const isCreditsRoute = getState().route === ROUTES.CREDITS;
 
     updateState({
       credits: nextCredits,
       chargingCreditPackageId: null,
-      creditStatusMessage: "테스트 크레딧이 충전되었습니다.",
+      creditStatusMessage: `${creditPack.name}가 등록되었습니다. 구매일로부터 3개월간 사용할 수 있습니다.`,
       creditStatusType: "success",
       activeModal: isCreditsRoute
         ? getState().activeModal
         : {
             type: "success",
-            title: "테스트 크레딧이 충전되었습니다.",
-            description: `${formatNumber(creditPack.credits)} 크레딧이 추가되어 현재 잔액은 ${formatNumber(nextCredits)}입니다.`,
+            title: `${creditPack.name}가 등록되었습니다.`,
+            description: "구매일로부터 3개월간 사용할 수 있습니다.",
           },
     });
   } catch (error) {
     console.error("[credits] test charge failed", error);
     updateState({
       chargingCreditPackageId: null,
-      creditStatusMessage: "크레딧 충전에 실패했습니다. 어시스턴트에게 문의하세요.",
+      creditStatusMessage: "이용권 구매에 실패했습니다. 어시스턴트에게 문의하세요.",
       creditStatusType: "error",
     });
-    window.alert("크레딧 충전에 실패했습니다. 어시스턴트에게 문의하세요.");
+    window.alert("이용권 구매에 실패했습니다. 어시스턴트에게 문의하세요.");
   }
 }
 
@@ -1022,7 +1021,7 @@ async function handleAction(action, target) {
       activeModal: {
         type: "success",
         title: "고해상도 변환이 완료되었습니다",
-        description: `50 크레딧이 차감되어 현재 잔액은 ${formatNumber(nextCredits)}입니다. 이미지는 mock 상태로 고해상도 표시만 변경했습니다.`,
+        description: `고해상도 변환이 완료되었습니다. 남은 제작 횟수는 ${formatNumber(Math.max(0, Math.floor(Number(nextCredits || 0) / 25)))}회입니다.`,
       },
     });
     return;

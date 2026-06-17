@@ -5860,6 +5860,8 @@
       const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao", "apple"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
         "home",
+        "landing",
+        "stay",
         "editor",
         "gallery",
         "myPhotoBox",
@@ -7033,23 +7035,29 @@ Important:
         return ALLOWED_LOGIN_RETURN_VIEWS.has(view) ? view : LOGIN_RETURN_VIEW_FALLBACK;
       }
 
+      function normalizeLoginReturnView(value) {
+        const view = sanitizeLoginReturnView(value);
+        if (view === "home" || view === "stay") return "landing";
+        return view;
+      }
+
       function getLoginReturnViewFromScreen(screen = appScreen) {
         const normalizedScreen = String(screen || "").trim();
         if (normalizedScreen === "siteGuide") return "guide";
         if (normalizedScreen === "generating" || normalizedScreen === "result") return "editor";
-        if (normalizedScreen === "landing") return "home";
-        return sanitizeLoginReturnView(normalizedScreen || LOGIN_RETURN_VIEW_FALLBACK);
+        if (normalizedScreen === "landing" || normalizedScreen === "home") return "landing";
+        return normalizeLoginReturnView(normalizedScreen || LOGIN_RETURN_VIEW_FALLBACK);
       }
 
       function getScreenFromLoginReturnView(view) {
-        const returnView = sanitizeLoginReturnView(view);
+        const returnView = normalizeLoginReturnView(view);
         if (returnView === "guide") return "siteGuide";
         if (returnView === "assistant") return "home";
         return returnView;
       }
 
       function rememberLoginReturnView(view = getLoginReturnViewFromScreen()) {
-        const returnView = sanitizeLoginReturnView(view);
+        const returnView = normalizeLoginReturnView(view);
         try {
           window.sessionStorage.setItem(LOGIN_RETURN_VIEW_STORAGE_KEY, returnView);
           window.sessionStorage.setItem(LOGIN_STARTED_STORAGE_KEY, "true");
@@ -7061,7 +7069,7 @@ Important:
 
       function getStoredLoginReturnView() {
         try {
-          return sanitizeLoginReturnView(window.sessionStorage.getItem(LOGIN_RETURN_VIEW_STORAGE_KEY));
+          return normalizeLoginReturnView(window.sessionStorage.getItem(LOGIN_RETURN_VIEW_STORAGE_KEY));
         } catch (error) {
           return LOGIN_RETURN_VIEW_FALLBACK;
         }
@@ -7078,7 +7086,7 @@ Important:
 
       function getLoginRedirectReturnView() {
         const queryReturnTo = new URLSearchParams(window.location.search).get("returnTo");
-        return sanitizeLoginReturnView(queryReturnTo || getStoredLoginReturnView());
+        return normalizeLoginReturnView(queryReturnTo || getStoredLoginReturnView());
       }
 
       function sanitizeOAuthProvider(provider) {
@@ -7098,7 +7106,7 @@ Important:
           url.searchParams.set("privacyAccepted", "1");
           url.searchParams.set("ageAccepted", "1");
         }
-        url.searchParams.set("returnTo", sanitizeLoginReturnView(returnView));
+        url.searchParams.set("returnTo", normalizeLoginReturnView(returnView));
         return url.toString();
       }
 
@@ -9593,6 +9601,7 @@ Important:
           const normalizedPayload = normalizeReviewLoginPayload(payload);
           applyAuthSession(normalizedPayload);
           await refreshAuthState({ showError: false });
+          navigateToScreen("landing");
           closeLoginModal();
           openAccountMenuAfterAuth();
           showAccountMenuToast("심사용 계정으로 로그인되었습니다.");
@@ -10395,9 +10404,26 @@ Important:
         }
       }
 
-      function handlePostLoginExperience(returnView) {
+      function handlePostLoginExperience(returnView, options = {}) {
         if (!currentUser) return;
-        console.log("[auth] route after login:", { returnView, screen: appScreen, onboardingCompleted, freeGenerationEligible });
+        const rawReturnTo = String(returnView || "").trim();
+        const normalizedReturnTo = normalizeLoginReturnView(returnView);
+        const currentViewBefore = appScreen;
+        const shouldStayLanding = normalizedReturnTo === "landing";
+        console.info("[auth] route after login", {
+          rawReturnTo,
+          normalizedReturnTo,
+          currentViewBefore,
+          nextView: shouldStayLanding ? "landing" : getScreenFromLoginReturnView(normalizedReturnTo),
+        });
+
+        if (shouldStayLanding && options.authMode !== "signup") {
+          clearPendingAction();
+          navigateToScreen("landing");
+          closeLoginModal();
+          openAccountMenuAfterAuth();
+          return;
+        }
 
         if (shouldShowOnboardingCards()) {
           clearPendingAction();
@@ -10416,7 +10442,7 @@ Important:
           return;
         }
 
-        navigateToLoginReturnView(returnView);
+        navigateToLoginReturnView(normalizedReturnTo);
       }
 
       function openAccountMenuAfterAuth() {
@@ -10511,7 +10537,7 @@ Important:
           showAccountMenuToast(authMode === "signup"
             ? `${displayName}님 회원가입이 완료되었습니다.`
             : `${displayName}님 로그인 되었습니다.`);
-          handlePostLoginExperience(returnView);
+          handlePostLoginExperience(returnView, { authMode });
           return user;
         } finally {
           clearAuthStartState();
@@ -10637,7 +10663,7 @@ Important:
                 showAccountMenuToast(pendingAuthProcessingMode === "signup"
                   ? `${displayName}님 회원가입이 완료되었습니다.`
                   : `${displayName}님 로그인 되었습니다.`);
-                handlePostLoginExperience(loginReturnView);
+                handlePostLoginExperience(loginReturnView, { authMode: pendingAuthProcessingMode });
               } catch (error) {
                 if (DEBUG_MODE) {
                   console.warn("[auth] pending signup recovery failed:", error);
@@ -15458,7 +15484,7 @@ ${modeExample}`;
           return;
         }
 
-        openLoginModal(landingAuthButton, { tab: "login" });
+        openLoginModal(landingAuthButton, { tab: "login", returnView: "landing" });
       }
 
       function showAccountMenuToast(message) {
@@ -15491,7 +15517,7 @@ ${modeExample}`;
           return;
         }
 
-        rememberLoginReturnView();
+        rememberLoginReturnView(options.returnView || getLoginReturnViewFromScreen());
         activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
         setAuthTab(options.tab || authTab || "login", options.message || "");
         loginModalOverlay.classList.add("is-open");

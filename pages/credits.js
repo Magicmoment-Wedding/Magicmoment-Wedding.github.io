@@ -1,5 +1,6 @@
 import { CREDIT_PACKAGES } from "../services/credit.js";
-import { escapeHtml, formatCurrency, formatNumber } from "../services/format.js";
+import { escapeHtml, formatCurrency } from "../services/format.js";
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
 
 export function renderCreditsPage(state) {
   const statusClass = state.creditStatusType === "error"
@@ -15,7 +16,7 @@ export function renderCreditsPage(state) {
         </div>
         <div class="text-right">
           <div class="text-xs text-on-surface-variant">남은 제작 횟수</div>
-          <div class="font-display text-[20px] text-primary">${state.isCreditsLoading ? "..." : `${formatNumber(Math.floor((state.credits || 0) / 25))}회`}</div>
+          <div class="font-display text-[20px] text-primary">${state.isCreditsLoading ? "..." : formatRemainingGenerationUses(state)}</div>
         </div>
       </div>
 

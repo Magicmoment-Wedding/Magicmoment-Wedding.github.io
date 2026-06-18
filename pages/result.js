@@ -2,6 +2,7 @@ import { getSourceImage } from "../mock/sources.js";
 import { renderWatermarkedImage, shouldShowWatermarkOverlay } from "../components/watermarked-image.js";
 import { CREDIT_PRICING, PRINT_PRODUCTS } from "../services/credit.js";
 import { escapeHtml, formatNumber } from "../services/format.js";
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
 
 export function markRecommendedImage(bestIndex, index, status = "success") {
   if (!Number.isInteger(bestIndex) || bestIndex !== index) {
@@ -76,16 +77,20 @@ export function renderResultPage(state) {
     regularCredits: 25,
     usedFreeGeneration: false,
     freeGenerationNumber: null,
-    remainingCredits: state.credits,
+    remainingGenerationUses: state.currentUser?.generationUsage?.remainingGenerationUses ?? null,
     qualityLabel: "720p 미리보기",
     recommendedIndex,
   };
+  const remainingGenerationUses = Number(generationMeta.remainingGenerationUses);
+  const remainingUsesText = Number.isFinite(remainingGenerationUses)
+    ? `남은 제작 횟수는 ${formatNumber(Math.max(0, Math.floor(remainingGenerationUses)))}회입니다.`
+    : "남은 제작 횟수를 확인 중입니다.";
   const billingHeadline = generationMeta.billingTitle ?? (generationMeta.usedFreeGeneration
     ? `무료 1회 제작이 적용되었습니다`
     : `이용권 1회가 사용되었습니다`);
   const billingDescription = generationMeta.billingDescription ?? (generationMeta.usedFreeGeneration
     ? `무료 제작 결과에는 워터마크가 포함됩니다.`
-    : `남은 제작 횟수는 ${formatNumber(Math.max(0, Math.floor(Number(generationMeta.remainingCredits ?? state.credits ?? 0) / 25)))}회입니다.`);
+    : remainingUsesText);
 
   return `
     ${shouldShowFreeNotice ? `
@@ -254,7 +259,7 @@ export function renderResultPage(state) {
       <div class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-4">
         <div class="flex items-center justify-between">
           <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PRINT SERVICE</span>
-          <span class="font-label-caps text-label-caps text-primary">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</span>
+          <span class="font-label-caps text-label-caps text-primary">${formatRemainingGenerationUses(state)}</span>
         </div>
         ${PRINT_PRODUCTS.map((product) => `
           <div class="rounded-DEFAULT bg-white/45 p-4 border border-white/50 flex flex-col gap-3">

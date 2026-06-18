@@ -11,6 +11,10 @@ import { getPresetPromptIntent } from "./prompt-intents.js";
 const DEFAULT_GENERATION_COUNT = 4;
 const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
 
+function hasFreeGeneration(user) {
+  return user?.generationUsage?.freeGenerationAvailable === true;
+}
+
 function buildSafeMockPayload(state) {
   try {
     return buildMockResults(state);
@@ -49,9 +53,9 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       isRecommended: index === recommendedIndex,
       status: isFailed ? "failed" : "success",
       errorMessage: imageUrl?.errorMessage || "",
-      generationType: imageUrl?.generationType || imageUrl?.generation_type || (state.currentUser?.freeGenerationAvailable === true ? "free" : "paid"),
-      isFreeGeneration: imageUrl?.isFreeGeneration === true || imageUrl?.is_free_generation === true || state.currentUser?.freeGenerationAvailable === true,
-      hasWatermark: imageUrl?.hasWatermark === true || imageUrl?.has_watermark === true || state.currentUser?.freeGenerationAvailable === true,
+      generationType: imageUrl?.generationType || imageUrl?.generation_type || (hasFreeGeneration(state.currentUser) ? "free" : "paid"),
+      isFreeGeneration: imageUrl?.isFreeGeneration === true || imageUrl?.is_free_generation === true || hasFreeGeneration(state.currentUser),
+      hasWatermark: imageUrl?.hasWatermark === true || imageUrl?.has_watermark === true || hasFreeGeneration(state.currentUser),
       watermarkStrategy: imageUrl?.watermarkStrategy || imageUrl?.watermark_strategy || "",
     };
   });
@@ -68,9 +72,9 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       analysisMeta,
       resultMode: "real",
       resultProvider: "next-api",
-      generationType: firstGeneratedImage.generationType || firstGeneratedImage.generation_type || (state.currentUser?.freeGenerationAvailable === true ? "free" : "paid"),
-      isFreeGeneration: firstGeneratedImage.isFreeGeneration === true || firstGeneratedImage.is_free_generation === true || state.currentUser?.freeGenerationAvailable === true,
-      hasWatermark: firstGeneratedImage.hasWatermark === true || firstGeneratedImage.has_watermark === true || state.currentUser?.freeGenerationAvailable === true,
+      generationType: firstGeneratedImage.generationType || firstGeneratedImage.generation_type || (hasFreeGeneration(state.currentUser) ? "free" : "paid"),
+      isFreeGeneration: firstGeneratedImage.isFreeGeneration === true || firstGeneratedImage.is_free_generation === true || hasFreeGeneration(state.currentUser),
+      hasWatermark: firstGeneratedImage.hasWatermark === true || firstGeneratedImage.has_watermark === true || hasFreeGeneration(state.currentUser),
       watermarkStrategy: firstGeneratedImage.watermarkStrategy || firstGeneratedImage.watermark_strategy || "",
     },
   };
@@ -118,7 +122,7 @@ async function generateParisEiffelResults(state, mockPayload) {
       customText: state.customPresetDraft?.style?.trim() ?? "",
       prompt,
       count: DEFAULT_GENERATION_COUNT,
-      useFreeGeneration: state.currentUser?.freeGenerationAvailable === true,
+      useFreeGeneration: hasFreeGeneration(state.currentUser),
     });
 
     if (!generatedImages.length) {
@@ -134,6 +138,10 @@ async function generateParisEiffelResults(state, mockPayload) {
     if (
       error?.isInsufficientCredits ||
       error?.code === "INSUFFICIENT_CREDITS" ||
+      error?.code === "NO_REMAINING_GENERATION_USES" ||
+      error?.code === "FREE_GENERATION_ALREADY_USED" ||
+      error?.code === "STORAGE_UPLOAD_FAILED" ||
+      error?.code === "GENERATION_JOB_TIMEOUT" ||
       error?.code === "INVALID_SERVER_RESPONSE" ||
       error?.code === "WATERMARK_FAILED" ||
       error?.code === "GENERATION_FAILED" ||
@@ -185,6 +193,10 @@ export async function generateResults(state) {
         if (
           error?.isInsufficientCredits ||
           error?.code === "INSUFFICIENT_CREDITS" ||
+          error?.code === "NO_REMAINING_GENERATION_USES" ||
+          error?.code === "FREE_GENERATION_ALREADY_USED" ||
+          error?.code === "STORAGE_UPLOAD_FAILED" ||
+          error?.code === "GENERATION_JOB_TIMEOUT" ||
           error?.code === "INVALID_SERVER_RESPONSE" ||
           error?.code === "WATERMARK_FAILED" ||
           error?.code === "GENERATION_FAILED" ||

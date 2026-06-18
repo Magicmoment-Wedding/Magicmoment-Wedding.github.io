@@ -1,5 +1,6 @@
 import { CREDIT_PACKAGES } from "../services/credit.js";
-import { escapeHtml, formatCurrency, formatNumber } from "../services/format.js";
+import { escapeHtml, formatCurrency } from "../services/format.js";
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
 import { renderWatermarkOverlay } from "./watermarked-image.js";
 
 function renderShell(content, dismissable = true) {
@@ -37,10 +38,10 @@ function getCreditTitle(modal) {
   return "이용권을 구매하고 계속 생성해보세요";
 }
 
-function getCreditDescription(modal, credits) {
-  const remainingUses = Math.max(0, Math.floor(Number(credits || 0) / 25));
+function getCreditDescription(modal, state) {
+  const remainingUsesText = formatRemainingGenerationUses(state);
   if (modal.reason === "upscale") {
-    return `현재 남은 제작 횟수는 ${formatNumber(remainingUses)}회입니다. 필요한 경우 이용권을 구매해 주세요.`;
+    return `현재 남은 제작 횟수는 ${remainingUsesText}입니다. 필요한 경우 이용권을 구매해 주세요.`;
   }
 
   if (modal.reason === "post-free") {
@@ -83,11 +84,11 @@ function renderCreditsModal(modal, state) {
       <div class="space-y-2">
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PASS SHOP</p>
         <h3 class="font-display text-[30px] leading-none text-on-surface">${getCreditTitle(modal)}</h3>
-        <p class="text-sm text-on-surface-variant">${getCreditDescription(modal, state.credits)}</p>
+        <p class="text-sm text-on-surface-variant">${getCreditDescription(modal, state)}</p>
       </div>
       <div class="rounded-DEFAULT bg-white/45 p-4 flex items-center justify-between">
         <span class="text-sm text-on-surface-variant">남은 제작 횟수</span>
-        <span class="text-lg font-semibold text-primary">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</span>
+        <span class="text-lg font-semibold text-primary">${formatRemainingGenerationUses(state)}</span>
       </div>
       <div class="space-y-3">
         ${CREDIT_PACKAGES.map((pack) => {

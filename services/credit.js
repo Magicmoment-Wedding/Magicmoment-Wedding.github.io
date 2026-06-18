@@ -99,7 +99,11 @@ export function getCreditBreakdown(state) {
 
 export function getGenerationAccess(state) {
   const cost = getCreditBreakdown(state).total;
-  const canUseFreeGeneration = state.currentUser?.freeGenerationAvailable === true;
+  const remainingUsesValue = state.currentUser?.generationUsage?.remainingGenerationUses;
+  const remainingUses = Number.isFinite(Number(remainingUsesValue))
+    ? Math.max(0, Math.floor(Number(remainingUsesValue)))
+    : null;
+  const canUseFreeGeneration = state.currentUser?.generationUsage?.freeGenerationAvailable === true;
 
   if (canUseFreeGeneration) {
     return {
@@ -121,7 +125,7 @@ export function getGenerationAccess(state) {
     nextFreeNumber: null,
     requiresAds: false,
     adsToWatch: 0,
-    canAfford: state.credits >= cost,
-    shortfall: Math.max(0, cost - state.credits),
+    canAfford: remainingUses !== null && remainingUses > 0,
+    shortfall: remainingUses === null || remainingUses < 1 ? 1 : 0,
   };
 }

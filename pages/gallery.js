@@ -1,5 +1,5 @@
 import { STYLE_GALLERY } from "../mock/gallery.js";
-import { formatNumber } from "../services/format.js";
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
 
 export function renderGalleryPage(state) {
   return `
@@ -42,7 +42,7 @@ export function renderGalleryPage(state) {
     <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex items-center justify-between">
       <div>
         <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">REMAINING PASSES</p>
-        <p class="font-display text-[28px] leading-none text-on-surface mt-2">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</p>
+        <p class="font-display text-[28px] leading-none text-on-surface mt-2">${formatRemainingGenerationUses(state)}</p>
       </div>
       <button class="h-12 px-5 rounded-full glass-panel text-primary font-button" data-route="create">
         생성 플로우 열기

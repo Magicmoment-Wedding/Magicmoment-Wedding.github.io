@@ -2,6 +2,7 @@ import { getCompatiblePresets } from "../mock/presets.js";
 import { getSourceImage } from "../mock/sources.js";
 import { RATIO_OPTIONS } from "../services/credit.js";
 import { escapeHtml, formatNumber } from "../services/format.js";
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
 
 export function renderOptionsPage(state, credits) {
   const sourceImage = getSourceImage(state.sourceImageId);
@@ -30,7 +31,7 @@ export function renderOptionsPage(state, credits) {
     <section class="w-full glass-panel glow-shadow rounded-DEFAULT p-5 flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">NEXT ACCESS</span>
-        <span class="font-label-caps text-label-caps text-primary">${formatNumber(Math.max(0, Math.floor(Number(state.credits || 0) / 25)))}회</span>
+        <span class="font-label-caps text-label-caps text-primary">${formatRemainingGenerationUses(state)}</span>
       </div>
       <h2 class="font-display text-[28px] leading-none text-on-surface">${nextFlowTitle}</h2>
       <p class="text-sm text-on-surface-variant">${nextFlowDescription}</p>

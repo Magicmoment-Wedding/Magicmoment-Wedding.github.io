@@ -10,12 +10,45 @@ function toBoolean(value, fallback = false) {
   return fallback;
 }
 
+function toNullableUses(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? Math.max(0, Math.floor(numericValue)) : null;
+}
+
+function normalizeGenerationUsage(user) {
+  const source = user?.generationUsage ?? user?.generation_usage ?? {};
+  const remainingGenerationUses = toNullableUses(
+    source.remainingGenerationUses ?? source.remaining_generation_uses,
+  );
+  const paidRemainingGenerationUses = toNullableUses(
+    source.paidRemainingGenerationUses ?? source.paid_remaining_generation_uses,
+  );
+
+  return {
+    ...source,
+    remainingGenerationUses,
+    paidRemainingGenerationUses,
+    freeGenerationAvailable: toBoolean(
+      source.freeGenerationAvailable ?? source.free_generation_available,
+      false,
+    ),
+    freeGenerationUsed: toBoolean(
+      source.freeGenerationUsed ?? source.free_generation_used,
+      false,
+    ),
+    nearestPassExpiresAt: source.nearestPassExpiresAt ?? source.nearest_pass_expires_at ?? "",
+  };
+}
+
 export function normalizeUser(user) {
   if (!user || typeof user !== "object") {
     return null;
   }
 
-  const creditBalance = Number(user.creditBalance ?? user.credit_balance ?? user.credits ?? 0);
+  const generationUsage = normalizeGenerationUsage(user);
   const isAdmin = toBoolean(user.isAdmin ?? user.is_admin, false);
   const isLegacyUser = toBoolean(user.isLegacyUser ?? user.is_legacy_user, false);
   const consentRequired = toBoolean(user.consentRequired ?? user.consent_required, false);
@@ -29,9 +62,9 @@ export function normalizeUser(user) {
       : toBoolean(user.hasRequiredConsents ?? user.has_required_consents, true),
     onboardingCompleted: toBoolean(user.onboardingCompleted ?? user.onboarding_completed, false),
     freeGenerationEligible: toBoolean(user.freeGenerationEligible ?? user.free_generation_eligible, false),
-    freeGenerationUsed: toBoolean(user.freeGenerationUsed ?? user.free_generation_used, false),
-    freeGenerationAvailable: toBoolean(user.freeGenerationAvailable ?? user.free_generation_available, false),
-    creditBalance: Number.isFinite(creditBalance) ? creditBalance : 0,
+    freeGenerationUsed: generationUsage.freeGenerationUsed,
+    freeGenerationAvailable: generationUsage.freeGenerationAvailable,
+    generationUsage,
   };
 
   return normalized;
@@ -55,7 +88,7 @@ export function isFirstTimeOnboardingTarget(user) {
 }
 
 export function hasFreeGeneration(user) {
-  return Boolean(user?.freeGenerationAvailable === true);
+  return Boolean(user?.generationUsage?.freeGenerationAvailable === true);
 }
 
 export async function fetchCurrentUser() {
@@ -74,7 +107,18 @@ export async function fetchCurrentUser() {
     throw new Error(data?.message || "사용자 정보를 불러오지 못했습니다.");
   }
 
-  return normalizeUser(data?.user ?? data);
+  const rawUser = data?.user ?? data?.data?.user ?? data;
+  const generationUsage = rawUser?.generationUsage
+    ?? rawUser?.generation_usage
+    ?? data?.generationUsage
+    ?? data?.generation_usage
+    ?? data?.data?.generationUsage
+    ?? data?.data?.generation_usage;
+
+  return normalizeUser({
+    ...rawUser,
+    generationUsage,
+  });
 }
 
 export async function completeOnboarding() {

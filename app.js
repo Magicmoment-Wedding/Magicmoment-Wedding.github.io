@@ -21,7 +21,7 @@ import { openAssistantChat } from "./services/assistant-chat.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
 import { generateResults, generateStudioResults } from "./services/generator.js";
-import { getCredits, testChargeCredits } from "./services/credits-api.js";
+import { testChargeCredits } from "./services/credits-api.js";
 import {
   completeOnboarding,
   fetchCurrentUser,
@@ -177,14 +177,14 @@ async function refreshCredits({ clearMessage = false } = {}) {
   });
 
   try {
-    const payload = await getCredits();
+    const user = await fetchCurrentUser();
 
     if (latestCreditsRequestId !== requestId) {
       return;
     }
 
     updateState({
-      credits: payload.credits ?? 0,
+      currentUser: user,
       isCreditsLoading: false,
     });
   } catch (error) {
@@ -278,14 +278,44 @@ function showToast(message, type = "success") {
   });
 }
 
+function getGenerationErrorCopy(error = {}) {
+  const code = String(error.code || error.response?.code || error.response?.error || "").trim().toUpperCase();
+  const copies = {
+    GENERATION_JOB_TIMEOUT: {
+      title: "생성 지연",
+      description: "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.",
+    },
+    STORAGE_UPLOAD_FAILED: {
+      title: "생성 결과 저장 실패",
+      description: "생성 결과 저장 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.",
+    },
+    NO_REMAINING_GENERATION_USES: {
+      title: "남은 제작 횟수 없음",
+      description: "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.",
+    },
+    FREE_GENERATION_ALREADY_USED: {
+      title: "무료 제작 사용 완료",
+      description: "무료 제작은 계정당 1회만 이용할 수 있습니다.",
+    },
+  };
+  return copies[code] || {
+    title: "생성 실패",
+    description: "제작에 실패했습니다. 이용권은 사용 처리되지 않았습니다.",
+  };
+}
+
 function applyAuthSession(user) {
   const normalizedUser = normalizeUser(user);
 
   updateState({
     currentUser: normalizedUser,
-    credits: normalizedUser?.creditBalance ?? getState().credits,
     authLoading: false,
   });
+}
+
+function getRemainingGenerationUses(user) {
+  const value = user?.generationUsage?.remainingGenerationUses;
+  return Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : null;
 }
 
 async function refreshCurrentUser() {
@@ -321,13 +351,12 @@ function handleCreateClick() {
   console.log("[generate] before click", {
     hasCurrentUser: Boolean(state.currentUser),
     email: state.currentUser?.email || "",
-    creditBalance: state.currentUser?.creditBalance ?? state.credits ?? 0,
+    remainingGenerationUses: getRemainingGenerationUses(state.currentUser),
+    freeGenerationAvailable: hasFreeGeneration(state.currentUser),
     hasRequiredConsents: state.currentUser?.hasRequiredConsents,
     consentRequired: state.currentUser?.consentRequired,
     isLegacyUser: state.currentUser?.isLegacyUser,
     onboardingCompleted: state.currentUser?.onboardingCompleted,
-    freeGenerationEligible: state.currentUser?.freeGenerationEligible,
-    freeGenerationUsed: state.currentUser?.freeGenerationUsed,
   });
 
   if (state.authLoading) {
@@ -359,8 +388,9 @@ function handleCreateClick() {
     return;
   }
 
-  if ((state.currentUser.creditBalance || 0) < 25) {
-    openCreditsModal("shortage", { requiredCredits: 25 });
+  const remainingGenerationUses = getRemainingGenerationUses(state.currentUser);
+  if (remainingGenerationUses === null || remainingGenerationUses < 1) {
+    openCreditsModal("shortage", { requiredUses: 1 });
     return;
   }
 
@@ -534,8 +564,13 @@ async function performGeneration() {
     });
 
     const recommendedIndex = getRecommendedResultIndex(resultPayload);
+    const refreshedUser = await fetchCurrentUser().catch((error) => {
+      console.warn("[generation] account summary refresh after success failed", error);
+      return getState().currentUser;
+    });
 
     updateState({
+      currentUser: refreshedUser,
       isGenerating: false,
       activePreviewMode: "after",
       selectedThumbnailIndex: recommendedIndex ?? 0,
@@ -550,7 +585,9 @@ async function performGeneration() {
         isFreeGeneration: resultPayload.generationMeta?.isFreeGeneration === true || useFreeGeneration,
         hasWatermark: resultPayload.generationMeta?.hasWatermark === true || useFreeGeneration,
         watermarkStrategy: resultPayload.generationMeta?.watermarkStrategy || "",
-        remainingCredits: state.credits,
+        remainingGenerationUses: resultPayload.generationMeta?.remainingGenerationUses
+          ?? resultPayload.generationUsage?.remainingGenerationUses
+          ?? getRemainingGenerationUses(refreshedUser),
         qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
         billingTitle: useFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "사진 제작이 완료되었습니다",
         billingDescription: useFreeGeneration
@@ -564,10 +601,16 @@ async function performGeneration() {
     navigate(ROUTES.RESULT);
   } catch (error) {
     console.error("[generation] 결과 처리 실패", error);
-    if (error?.isInsufficientCredits || error?.code === "INSUFFICIENT_CREDITS" || error?.statusCode === 402) {
+    const generationErrorCopy = getGenerationErrorCopy(error);
+    const refreshedUser = await fetchCurrentUser().catch(() => getState().currentUser);
+    if (error?.isInsufficientCredits
+      || error?.code === "INSUFFICIENT_CREDITS"
+      || error?.code === "NO_REMAINING_GENERATION_USES"
+      || error?.statusCode === 402) {
       updateState({
+        currentUser: refreshedUser,
         isGenerating: false,
-        creditStatusMessage: error.publicMessage || "남은 제작 횟수가 부족합니다. 이용권을 구매해 주세요.",
+        creditStatusMessage: error.publicMessage || generationErrorCopy.description,
         creditStatusType: "error",
         activeModal: {
           type: "credits",
@@ -578,10 +621,15 @@ async function performGeneration() {
       return;
     }
 
-    updateState({ isGenerating: false });
-    if (error?.publicMessage || error?.message) {
-      showToast(error.publicMessage || error.message, "error");
-    }
+    updateState({
+      currentUser: refreshedUser,
+      isGenerating: false,
+      activeModal: {
+        type: "success",
+        title: generationErrorCopy.title,
+        description: error?.publicMessage || generationErrorCopy.description,
+      },
+    });
   }
 }
 
@@ -642,12 +690,15 @@ async function handleCreditPurchase(packageId) {
   });
 
   try {
-    const payload = await testChargeCredits(creditPack.credits, creditPack);
-    const nextCredits = payload.credits ?? getState().credits + creditPack.credits;
+    await testChargeCredits(creditPack.credits, creditPack);
+    const refreshedUser = await fetchCurrentUser().catch((error) => {
+      console.warn("[passes] account summary refresh after purchase failed", error);
+      return getState().currentUser;
+    });
     const isCreditsRoute = getState().route === ROUTES.CREDITS;
 
     updateState({
-      credits: nextCredits,
+      currentUser: refreshedUser,
       chargingCreditPackageId: null,
       creditStatusMessage: `${creditPack.name}가 등록되었습니다. 구매일로부터 3개월간 사용할 수 있습니다.`,
       creditStatusType: "success",
@@ -1001,27 +1052,27 @@ async function handleAction(action, target) {
       return;
     }
 
-    if (state.credits < CREDIT_PRICING.upscale) {
+    const remainingGenerationUses = getRemainingGenerationUses(state.currentUser);
+    if (remainingGenerationUses === null || remainingGenerationUses < 1) {
       openCreditsModal("upscale");
       return;
     }
 
-    const nextCredits = state.credits - CREDIT_PRICING.upscale;
+    const nextRemainingGenerationUses = Math.max(0, remainingGenerationUses - 1);
 
     updateState({
-      credits: nextCredits,
       generationMeta: {
         ...state.generationMeta,
         upscaleIncluded: true,
         totalCredits: (state.generationMeta.totalCredits ?? 0) + CREDIT_PRICING.upscale,
         billedCredits: (state.generationMeta.billedCredits ?? 0) + CREDIT_PRICING.upscale,
-        remainingCredits: nextCredits,
+        remainingGenerationUses: nextRemainingGenerationUses,
         qualityLabel: "고해상도",
       },
       activeModal: {
         type: "success",
         title: "고해상도 변환이 완료되었습니다",
-        description: `고해상도 변환이 완료되었습니다. 남은 제작 횟수는 ${formatNumber(Math.max(0, Math.floor(Number(nextCredits || 0) / 25)))}회입니다.`,
+        description: `고해상도 변환이 완료되었습니다. 남은 제작 횟수는 ${formatNumber(nextRemainingGenerationUses)}회입니다.`,
       },
     });
     return;

@@ -248,7 +248,9 @@ export async function generateImages(prompt, options = {}) {
     const isInsufficientCredits =
       response.status === 402 ||
       payload?.status === 402 ||
-      payload?.code === "INSUFFICIENT_CREDITS";
+      payload?.code === "INSUFFICIENT_CREDITS" ||
+      payload?.code === "CREDITS_REQUIRED" ||
+      payload?.code === "NO_REMAINING_GENERATION_USES";
     const code = response.status === 504 ? "SERVER_TIMEOUT" : (payload?.code || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"));
     const message =
       (response.status === 504 ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요." : "") ||
@@ -270,7 +272,7 @@ export async function generateImages(prompt, options = {}) {
     error.rawPreview = parsed.rawText?.slice(0, 300);
     error.isInsufficientCredits = isInsufficientCredits;
     if (isInsufficientCredits) {
-      error.publicMessage = payload?.message || "남은 제작 횟수가 부족합니다. 이용권을 구매해 주세요.";
+      error.publicMessage = payload?.message || "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.";
       error.requiredCredits = payload?.requiredCredits;
       error.currentCredits = payload?.currentCredits;
     } else if (error.code === "INVALID_SERVER_RESPONSE") {

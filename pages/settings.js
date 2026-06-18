@@ -1,3 +1,5 @@
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
+
 export function renderSettingsPage(state) {
   return `
     <section class="w-full flex flex-col gap-4">
@@ -20,7 +22,7 @@ export function renderSettingsPage(state) {
             <p class="text-sm text-on-surface-variant mt-1">현재 남은 이용권을 확인하세요</p>
           </div>
           <div class="text-right">
-            <div class="font-medium text-primary">${Math.max(0, Math.floor(Number(state.credits || 0) / 25))}회</div>
+            <div class="font-medium text-primary">${formatRemainingGenerationUses(state)}</div>
             <span class="material-symbols-outlined">chevron_right</span>
           </div>
         </button>

@@ -6,7 +6,7 @@ import { renderTopBar } from "./top-bar.js";
 
 export function renderLayout({ route, title, content, state }) {
   return `
-    ${renderTopBar({ route, title, credits: state.credits })}
+    ${renderTopBar({ route, title, currentUser: state.currentUser })}
     <main class="w-full max-w-md mx-auto pt-20 pb-32 px-container-padding flex flex-col gap-stack-gap-lg relative z-10">
       ${content}
     </main>

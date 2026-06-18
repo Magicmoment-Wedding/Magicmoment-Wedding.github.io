@@ -3018,26 +3018,50 @@
         top: calc(20px + env(safe-area-inset-top, 0px));
         right: 24px;
         z-index: 50;
-        min-height: 40px;
+        min-height: 44px;
         border-radius: 999px;
-        padding: 9px 16px;
-        border: 1px solid rgba(129, 80, 92, 0.18);
-        background: rgba(255, 255, 255, 0.74);
+        padding: 10px 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 1px solid rgba(145, 76, 96, 0.25);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 248, 246, 0.76));
         color: var(--rose-deep);
         font-size: 14px;
         line-height: 1;
-        font-weight: 800;
+        font-weight: 600;
         letter-spacing: 0;
-        box-shadow: 0 8px 24px rgba(82, 40, 58, 0.08);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+        white-space: nowrap;
+        box-shadow:
+          0 12px 30px rgba(82, 40, 58, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+      }
+
+      .landing-auth-button .material-symbols-outlined {
+        font-size: 18px;
+        line-height: 1;
+        color: #914c60;
       }
 
       .landing-auth-button:hover {
         transform: translateY(-1px);
-        background: rgba(255, 255, 255, 0.86);
-        box-shadow: 0 12px 30px rgba(82, 40, 58, 0.12);
+        border-color: rgba(145, 76, 96, 0.36);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 241, 239, 0.86));
+        box-shadow:
+          0 16px 36px rgba(82, 40, 58, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .landing-auth-button:active {
+        transform: translateY(0) scale(0.98);
+        background:
+          linear-gradient(180deg, rgba(255, 246, 245, 0.94), rgba(255, 235, 236, 0.86));
       }
 
       .landing-auth-button:focus-visible {
@@ -3430,8 +3454,8 @@
         .landing-auth-button {
           top: calc(14px + env(safe-area-inset-top, 0px));
           right: 14px;
-          min-height: 37px;
-          padding: 8px 13px;
+          min-height: 40px;
+          padding: 9px 14px;
           font-size: 13px;
         }
 
@@ -4313,8 +4337,9 @@
   >
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
-        <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
-          로그인
+        <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인/회원가입 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
+          <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+          <span>Login / Join</span>
         </button>
         <div class="landing-sections" id="landingSections" aria-label="Magic Ai Studio 랜딩 소개">
           <section class="landing-section landing-hero-section" aria-label="Before After 쇼케이스">
@@ -6856,6 +6881,8 @@ Important:
       let selectedMyPhotoFilter = "all";
       let creditBalance = 0;
       let isCreditsLoading = false;
+      let generationUsageSummary = null;
+      let generationUsageStatus = "idle";
       let isPaymentLoading = false;
       let activePaymentPackageId = null;
       let autoLogoutIntervalId = null;
@@ -7344,6 +7371,10 @@ Important:
         if (normalizedCreditBalance !== null) {
           normalizedUser.creditBalance = normalizedCreditBalance;
         }
+        const normalizedGenerationUsage = normalizeAuthGenerationUsage(payload, normalizedUser);
+        if (normalizedGenerationUsage) {
+          normalizedUser.generationUsage = normalizedGenerationUsage;
+        }
         normalizedUser.onboardingCompleted = normalizeBooleanField(
           normalizedUser.onboardingCompleted ?? normalizedUser.onboarding_completed,
           normalizedUser.onboardingCompleted,
@@ -7625,6 +7656,108 @@ Important:
         return Number.isFinite(numericValue) ? numericValue : null;
       }
 
+      function normalizeGenerationUsageNumber(value) {
+        if (value === undefined || value === null || value === "") return null;
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? Math.max(0, Math.floor(numericValue)) : null;
+      }
+
+      function normalizeGenerationUsageBoolean(value) {
+        if (value === undefined || value === null || value === "") return null;
+        if (value === true || value === "true" || value === 1 || value === "1") return true;
+        if (value === false || value === "false" || value === 0 || value === "0") return false;
+        return null;
+      }
+
+      function pickGenerationUsageValue(source = {}, keys = []) {
+        if (!source || typeof source !== "object") return undefined;
+        for (const key of keys) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            return source[key];
+          }
+        }
+        return undefined;
+      }
+
+      function normalizeAuthGenerationUsage(payload = {}, user = null) {
+        const containers = [
+          payload?.generationUsage,
+          payload?.generation_usage,
+          payload?.data?.generationUsage,
+          payload?.data?.generation_usage,
+          payload?.accountSummary?.generationUsage,
+          payload?.account_summary?.generation_usage,
+          payload?.data?.accountSummary?.generationUsage,
+          payload?.data?.account_summary?.generation_usage,
+          payload?.summary?.generationUsage,
+          payload?.summary?.generation_usage,
+          payload?.data?.summary?.generationUsage,
+          payload?.data?.summary?.generation_usage,
+          user?.generationUsage,
+          user?.generation_usage,
+          user?.accountSummary?.generationUsage,
+          user?.account_summary?.generation_usage,
+          user?.summary?.generationUsage,
+          user?.summary?.generation_usage,
+        ].filter((item) => item && typeof item === "object");
+
+        const source = containers[0] || {};
+        const fieldContainers = [
+          source,
+          payload,
+          payload?.data,
+          user,
+          payload?.user,
+          payload?.data?.user,
+        ].filter((item) => item && typeof item === "object");
+
+        const readValue = (keys) => {
+          for (const container of fieldContainers) {
+            const value = pickGenerationUsageValue(container, keys);
+            if (value !== undefined) return value;
+          }
+          return undefined;
+        };
+
+        const remainingGenerationUses = normalizeGenerationUsageNumber(readValue([
+          "remainingGenerationUses",
+          "remaining_generation_uses",
+        ]));
+        const paidRemainingGenerationUses = normalizeGenerationUsageNumber(readValue([
+          "paidRemainingGenerationUses",
+          "paid_remaining_generation_uses",
+        ]));
+        const freeGenerationAvailableValue = normalizeGenerationUsageBoolean(readValue([
+          "freeGenerationAvailable",
+          "free_generation_available",
+        ]));
+        const freeGenerationUsedValue = normalizeGenerationUsageBoolean(readValue([
+          "freeGenerationUsed",
+          "free_generation_used",
+        ]));
+        const nearestPassExpiresAt = readValue([
+          "nearestPassExpiresAt",
+          "nearest_pass_expires_at",
+        ]);
+
+        const hasAnyGenerationUsageValue = remainingGenerationUses !== null
+          || paidRemainingGenerationUses !== null
+          || freeGenerationAvailableValue !== null
+          || freeGenerationUsedValue !== null
+          || Boolean(nearestPassExpiresAt);
+
+        if (!hasAnyGenerationUsageValue && !containers.length) return null;
+
+        return {
+          ...source,
+          remainingGenerationUses,
+          paidRemainingGenerationUses,
+          freeGenerationAvailable: freeGenerationAvailableValue,
+          freeGenerationUsed: freeGenerationUsedValue,
+          nearestPassExpiresAt: nearestPassExpiresAt || source.nearestPassExpiresAt || source.nearest_pass_expires_at || "",
+        };
+      }
+
       function normalizeBooleanField(value, fallback = false) {
         if (value === true || value === "true" || value === 1 || value === "1") return true;
         if (value === false || value === "false" || value === 0 || value === "0") return false;
@@ -7644,6 +7777,7 @@ Important:
       }
 
       function applyUserEntitlements(payload = {}, user = currentUser) {
+        const usage = normalizeAuthGenerationUsage(payload, user);
         const onboardingValue = pickAuthField(payload, user, [
           "onboardingCompleted",
           "onboarding_completed",
@@ -7654,13 +7788,13 @@ Important:
         ]);
         const freeUsedValue = pickAuthField(payload, user, ["freeGenerationUsed", "free_generation_used"]);
         const freeEligibleValue = pickAuthField(payload, user, ["freeGenerationEligible", "free_generation_eligible", "freeEligible", "free_eligible"]);
-        const freeAvailableValue = pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
+        const freeAvailableValue = usage?.freeGenerationAvailable ?? pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
         const openEventValue = pickAuthField(payload, user, ["openEventEligible", "open_event_eligible", "firstPurchaseEligible", "first_purchase_eligible"]);
         const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
 
         const normalizedIsNewUser = normalizeBooleanField(isNewUserValue, false);
         onboardingCompleted = normalizeBooleanField(onboardingValue, normalizedIsNewUser ? false : true);
-        freeGenerationUsed = normalizeBooleanField(freeUsedValue, false);
+        freeGenerationUsed = normalizeBooleanField(usage?.freeGenerationUsed ?? freeUsedValue, false);
         freeGenerationEligible = normalizeBooleanField(freeEligibleValue, normalizedIsNewUser);
         freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, freeGenerationEligible === true && freeGenerationUsed !== true);
         openEventEligible = normalizeBooleanField(openEventValue, false);
@@ -7672,6 +7806,9 @@ Important:
           user.freeGenerationAvailable = freeGenerationAvailable;
           user.openEventEligible = openEventEligible;
           user.isNewUser = isNewUser;
+          if (usage) {
+            user.generationUsage = usage;
+          }
           user.creditBalance = creditBalance;
         }
       }
@@ -7758,7 +7895,7 @@ Important:
           accountMenuUserName.textContent = `${getAuthUserName(currentUser)}님`;
         }
         if (accountMenuUserCredit) {
-          accountMenuUserCredit.textContent = `남은 제작 횟수 ${formatRemainingUses()}`;
+          accountMenuUserCredit.textContent = getRemainingUsesDisplayText();
         }
         renderAccountAvatar(accountMenuUserAvatar, currentUser);
       }
@@ -7767,8 +7904,10 @@ Important:
         if (!landingAuthButton) return;
         const hasUser = Boolean(getAuthenticatedUserId(currentUser));
         landingAuthButton.classList.toggle("hidden", appScreen !== "landing");
-        landingAuthButton.textContent = hasUser ? "내 계정" : "로그인";
-        landingAuthButton.setAttribute("aria-label", hasUser ? "내 계정 열기" : "로그인 열기");
+        landingAuthButton.innerHTML = hasUser
+          ? `<span class="material-symbols-outlined" aria-hidden="true">person</span><span>내 계정</span>`
+          : `<span class="material-symbols-outlined" aria-hidden="true">person_add</span><span>Login / Join</span>`;
+        landingAuthButton.setAttribute("aria-label", hasUser ? "내 계정 열기" : "로그인/회원가입 열기");
         landingAuthButton.setAttribute("aria-controls", hasUser ? "accountMenuPanel" : "loginModalPanel");
         landingAuthButton.setAttribute("aria-expanded", hasUser && isAccountMenuOpen() ? "true" : "false");
       }
@@ -7788,7 +7927,7 @@ Important:
         }
 
         if (loginUserCredit) {
-          loginUserCredit.textContent = `남은 제작 횟수 ${formatRemainingUses()}`;
+          loginUserCredit.textContent = getRemainingUsesDisplayText();
         }
 
         if (loginUserAvatar) {
@@ -7821,6 +7960,12 @@ Important:
         currentAdmin = null;
         if (currentUser) {
           currentUser.isAdmin = isAllowedAdminUser;
+        }
+        const authGenerationUsage = normalizeAuthGenerationUsage(payload, currentUser);
+        generationUsageSummary = currentUser ? authGenerationUsage : null;
+        generationUsageStatus = currentUser ? (authGenerationUsage ? "ready" : "error") : "idle";
+        if (currentUser && authGenerationUsage) {
+          currentUser.generationUsage = authGenerationUsage;
         }
         applyUserEntitlements(payload, currentUser);
         if (currentUser) {
@@ -9572,6 +9717,11 @@ Important:
       async function refreshAuthState(options = {}) {
         const { showError = false } = options;
         isAuthLoading = true;
+        if (currentUser) {
+          generationUsageStatus = "loading";
+          syncAuthUi();
+          updateCreditUi();
+        }
 
         try {
           const payload = await fetchCurrentUser({ silent: !showError });
@@ -9792,22 +9942,33 @@ Important:
         return Number(value ?? 0).toLocaleString("ko-KR");
       }
 
+      function getCurrentGenerationUsage(user = currentUser) {
+        return user?.generationUsage || user?.generation_usage || generationUsageSummary || null;
+      }
+
       function getRemainingUses(user = currentUser) {
-        const explicitValue = user?.remainingUses
-          ?? user?.remaining_uses
-          ?? user?.passesRemaining
-          ?? user?.passes_remaining
-          ?? user?.availableUses
-          ?? user?.available_uses;
-        const explicitNumber = Number(explicitValue);
-        if (Number.isFinite(explicitNumber)) {
-          return Math.max(0, Math.floor(explicitNumber));
-        }
-        return Math.max(0, Math.floor(Number(creditBalance || 0) / 25));
+        const usage = getCurrentGenerationUsage(user);
+        return normalizeGenerationUsageNumber(
+          usage?.remainingGenerationUses ?? usage?.remaining_generation_uses,
+        );
       }
 
       function formatRemainingUses(user = currentUser) {
-        return `${formatCreditNumber(getRemainingUses(user))}회`;
+        const remainingUses = getRemainingUses(user);
+        if (remainingUses === null) {
+          return generationUsageStatus === "error" ? "불러오지 못했어요" : "확인 중...";
+        }
+        return `${formatCreditNumber(remainingUses)}회`;
+      }
+
+      function getRemainingUsesDisplayText(user = currentUser) {
+        const remainingUses = getRemainingUses(user);
+        if (remainingUses === null) {
+          return generationUsageStatus === "error"
+            ? "남은 제작 횟수를 불러오지 못했어요"
+            : "남은 제작 횟수 확인 중...";
+        }
+        return `남은 제작 횟수 ${formatCreditNumber(remainingUses)}회`;
       }
 
       const PAYMENT_PASS_PRODUCTS = {
@@ -9888,6 +10049,9 @@ Important:
         } else if (hasUser && hasFreeGeneration(currentUser)) {
           labelText = "무료 1회 제작 시작";
           detailText = "가입 선물 · 워터마크 포함";
+        } else if (hasUser && getRemainingUses() === null) {
+          labelText = "남은 제작 횟수 확인 중";
+          detailText = "잠시만 기다려 주세요";
         } else if (hasUser && getRemainingUses() < 1) {
           labelText = "이용권 구매하기";
           detailText = "남은 제작 횟수가 부족해요";
@@ -9927,7 +10091,7 @@ Important:
 
         syncAccountMenuUi();
         if (loginUserCredit) {
-          loginUserCredit.textContent = `남은 제작 횟수 ${formatRemainingUses()}`;
+          loginUserCredit.textContent = getRemainingUsesDisplayText();
         }
       }
 
@@ -10154,10 +10318,9 @@ Important:
         updateCreditUi();
 
         try {
-          const payload = await getCredits();
-          creditBalance = payload.credits ?? 0;
+          await refreshAuthState({ showError: false });
         } catch (error) {
-          console.error("[credits] balance fetch failed", error);
+          console.error("[passes] account summary fetch failed", error);
           showCreditStatus("이용권 정보를 불러오지 못했습니다. 어시스턴트에게 문의하세요.", "error");
         } finally {
           isCreditsLoading = false;
@@ -11174,7 +11337,8 @@ Important:
       }
 
       function hasFreeGeneration(user = currentUser) {
-        return Boolean(user?.freeGenerationAvailable === true || (freeGenerationAvailable === true && freeGenerationUsed !== true));
+        const usage = getCurrentGenerationUsage(user);
+        return usage?.freeGenerationAvailable === true;
       }
 
       function shouldShowOnboardingCards() {
@@ -11185,13 +11349,12 @@ Important:
         console.log("[generate] before click", {
           hasCurrentUser: Boolean(currentUser),
           email: currentUser?.email || "",
-          creditBalance,
+          remainingGenerationUses: getRemainingUses(currentUser),
+          freeGenerationAvailable: hasFreeGeneration(currentUser),
           hasRequiredConsents: currentUser?.hasRequiredConsents,
           consentRequired: currentUser?.consentRequired,
           isLegacyUser: currentUser?.isLegacyUser,
           onboardingCompleted,
-          freeGenerationEligible,
-          freeGenerationUsed,
         });
 
         if (authChecked !== true) {
@@ -11220,7 +11383,13 @@ Important:
           return true;
         }
 
-        if (getRemainingUses() < 1) {
+        const remainingUses = getRemainingUses();
+        if (remainingUses === null) {
+          showAccountMenuToast("남은 제작 횟수를 확인 중입니다. 잠시 후 다시 시도해 주세요.");
+          return false;
+        }
+
+        if (remainingUses < 1) {
           showCreditRequiredForGeneration();
           navigateToScreen("credits");
           return false;
@@ -11255,9 +11424,17 @@ Important:
           return;
         }
 
-        if (getRemainingUses() < 1) {
-          const error = new Error("CREDITS_REQUIRED");
-          error.code = "CREDITS_REQUIRED";
+        const remainingUses = getRemainingUses();
+        if (remainingUses === null) {
+          const error = new Error("GENERATION_USAGE_UNAVAILABLE");
+          error.code = "GENERATION_USAGE_UNAVAILABLE";
+          error.publicMessage = "남은 제작 횟수를 확인 중입니다. 잠시 후 다시 시도해 주세요.";
+          throw error;
+        }
+
+        if (remainingUses < 1) {
+          const error = new Error("NO_REMAINING_GENERATION_USES");
+          error.code = "NO_REMAINING_GENERATION_USES";
           error.publicMessage = "남은 제작 횟수가 부족합니다. 이용권을 구매해 주세요.";
           error.isInsufficientCredits = true;
           throw error;
@@ -11284,6 +11461,7 @@ Important:
         isGenerating = false;
         generateButton.disabled = false;
         void refreshAuthState({ showError: false });
+        void refreshMyPhotosCache();
         setAppScreen("result", { replaceHistory: true });
         return true;
       }
@@ -11711,6 +11889,23 @@ Important:
         } finally {
           isLoadingMyPhotos = false;
           renderMyPhotoBoxScreen();
+        }
+      }
+
+      async function refreshMyPhotosCache() {
+        if (!currentUser) return;
+
+        try {
+          myPhotos = await fetchMyPhotos();
+          myPhotosError = "";
+        } catch (error) {
+          if (DEBUG_MODE) {
+            console.warn("[client][my-photo-box] cache refresh failed:", error);
+          }
+        } finally {
+          if (appScreen === "myPhotoBox") {
+            renderMyPhotoBoxScreen();
+          }
         }
       }
 
@@ -12601,6 +12796,41 @@ Important:
         return `\n\n오류 코드: ${code || "-"}${stage ? ` / 단계: ${stage}` : ""}`;
       }
 
+      function getGenerationErrorCopy(error = {}) {
+        const code = String(error.code || error.response?.code || error.response?.error || "").trim().toUpperCase();
+        const copies = {
+          GENERATION_JOB_TIMEOUT: {
+            title: "생성 지연",
+            body: "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.",
+          },
+          STORAGE_UPLOAD_FAILED: {
+            title: "생성 결과 저장 실패",
+            body: "생성 결과 저장 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.",
+          },
+          NO_REMAINING_GENERATION_USES: {
+            title: "남은 제작 횟수 없음",
+            body: "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.",
+            showCreditButton: true,
+          },
+          FREE_GENERATION_ALREADY_USED: {
+            title: "무료 제작 사용 완료",
+            body: "무료 제작은 계정당 1회만 이용할 수 있습니다.",
+          },
+          GENERATION_FAILED: {
+            title: "생성 실패",
+            body: "제작에 실패했습니다. 이용권은 사용 처리되지 않았습니다.",
+          },
+          GENERATION_USAGE_UNAVAILABLE: {
+            title: "남은 제작 횟수 확인 중",
+            body: "남은 제작 횟수를 확인 중입니다. 잠시 후 다시 시도해 주세요.",
+          },
+        };
+        return copies[code] || {
+          title: "생성 실패",
+          body: "제작에 실패했습니다. 이용권은 사용 처리되지 않았습니다.",
+        };
+      }
+
       function readFileAsDataUrl(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -13399,7 +13629,8 @@ ${modeExample}`;
             response.status === 402 ||
             data.status === 402 ||
             responseCode === "INSUFFICIENT_CREDITS" ||
-            responseCode === "CREDITS_REQUIRED";
+            responseCode === "CREDITS_REQUIRED" ||
+            responseCode === "NO_REMAINING_GENERATION_USES";
           console.error("[client][generate][failed]", {
             API_BASE_URL: FRONT_API_BASE_URL,
             requestUrl,
@@ -13439,7 +13670,7 @@ ${modeExample}`;
             error.publicMessage = "사이트 이용안내를 먼저 확인해 주세요.";
             error.isOnboardingRequired = true;
           } else if (isInsufficientCredits) {
-            error.publicMessage = "남은 제작 횟수가 부족합니다. 이용권을 구매해 주세요.";
+            error.publicMessage = "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.";
             error.isInsufficientCredits = true;
             error.requiredCredits = data.requiredCredits;
             error.currentCredits = data.currentCredits;
@@ -15659,6 +15890,9 @@ ${modeExample}`;
         accountMenuOverlay.classList.add("is-open");
         accountMenuOverlay.setAttribute("aria-hidden", "false");
         setAccountMenuExpanded(true);
+        if (getAuthenticatedUserId(currentUser)) {
+          void refreshAuthState({ showError: false });
+        }
 
         window.requestAnimationFrame(() => {
           const focusTarget = Array.from(accountMenuPanel.querySelectorAll("button"))
@@ -16729,6 +16963,7 @@ ${modeExample}`;
           isGenerating = false;
           generateButton.disabled = false;
           await refreshAuthState({ showError: false });
+          void refreshMyPhotosCache();
           setAppScreen("result", { replaceHistory: true });
         } catch (error) {
           let effectiveError = error;
@@ -16786,7 +17021,10 @@ ${modeExample}`;
           const isLoginRequiredError = effectiveError.isLoginRequired || generationErrorCode === "LOGIN_REQUIRED" || generationErrorCode === "AUTH_REQUIRED";
           const isOnboardingRequiredError = effectiveError.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";
           const isConsentRequiredError = effectiveError.isConsentRequired || generationErrorCode === "CONSENT_REQUIRED";
-          const isCreditsRequiredError = effectiveError.isInsufficientCredits || generationErrorCode === "CREDITS_REQUIRED" || generationErrorCode === "INSUFFICIENT_CREDITS";
+          const isCreditsRequiredError = effectiveError.isInsufficientCredits
+            || generationErrorCode === "CREDITS_REQUIRED"
+            || generationErrorCode === "INSUFFICIENT_CREDITS"
+            || generationErrorCode === "NO_REMAINING_GENERATION_USES";
           const isWatermarkError = effectiveError.isWatermarkFailed || generationErrorCode === "WATERMARK_FAILED" || generationErrorCode === "WATERMARK_LOGO_NOT_FOUND";
           const isInvalidServerResponseError = generationErrorCode === "INVALID_SERVER_RESPONSE";
           const isGenerationFailedError = generationErrorCode === "GENERATION_FAILED";
@@ -16829,13 +17067,28 @@ ${modeExample}`;
           }
 
           if (isCreditsRequiredError) {
-            setStatus("이용권을 구매하고 계속 이용해 주세요.");
-            showError(
-              "남은 제작 횟수가 부족합니다.\n이용권을 구매하고 계속 이용해 주세요.",
-              { title: "이용권 안내", showCreditButton: true },
-            );
-            showAccountMenuToast("남은 제작 횟수가 부족합니다.");
+            const copy = getGenerationErrorCopy({ ...effectiveError, code: "NO_REMAINING_GENERATION_USES" });
+            setStatus(copy.body);
+            showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, {
+              title: copy.title,
+              showCreditButton: true,
+            });
+            showAccountMenuToast(copy.body);
             setAppScreen("credits", { replaceHistory: true });
+            return;
+          }
+
+          if (generationErrorCode === "GENERATION_JOB_TIMEOUT"
+            || generationErrorCode === "STORAGE_UPLOAD_FAILED"
+            || generationErrorCode === "FREE_GENERATION_ALREADY_USED"
+            || generationErrorCode === "GENERATION_USAGE_UNAVAILABLE") {
+            const copy = getGenerationErrorCopy(effectiveError);
+            setStatus("");
+            showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, {
+              title: copy.title,
+              showCreditButton: copy.showCreditButton === true,
+            });
+            showAccountMenuToast(copy.body);
             return;
           }
 
@@ -16860,17 +17113,17 @@ ${modeExample}`;
 
           if (isGenerationFailedError) {
             setStatus("");
-            const generationFailedMessage = "생성 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
-            showError(`${generationFailedMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
-            showAccountMenuToast(generationFailedMessage);
+            const copy = getGenerationErrorCopy(effectiveError);
+            showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, { title: copy.title, showCreditButton: false });
+            showAccountMenuToast(copy.body);
             return;
           }
 
           setStatus("");
-          const fallbackGenerationMessage = effectiveError.publicMessage || effectiveError.response?.message || GENERAL_GENERATION_FAILURE_MESSAGE;
+          const fallbackCopy = getGenerationErrorCopy(effectiveError);
           showError(
-            `${fallbackGenerationMessage}${getGenerationErrorDebugText(effectiveError)}`,
-            { showCreditButton: false },
+            `${fallbackCopy.body}${getGenerationErrorDebugText(effectiveError)}`,
+            { title: fallbackCopy.title, showCreditButton: false },
           );
         } finally {
           isGenerating = false;

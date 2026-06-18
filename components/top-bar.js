@@ -1,11 +1,11 @@
 import { PROFILE_IMAGE } from "../mock/wedding-data.js";
 import { renderBrandLogo } from "./brand-logo.js";
-import { formatNumber } from "../services/format.js";
+import { formatRemainingGenerationUses } from "../services/generation-usage.js";
 
-export function renderTopBar({ route, title, credits }) {
+export function renderTopBar({ route, title, currentUser }) {
   const canGoBack = route !== "home";
   const navigationAttribute = canGoBack ? 'data-action="back"' : 'data-route="home"';
-  const remainingUses = Math.max(0, Math.floor(Number(credits || 0) / 25));
+  const remainingUsesText = formatRemainingGenerationUses({ currentUser });
 
   // When on the home route, show a compact pass entry button on the left.
   const leftButton = canGoBack
@@ -45,7 +45,7 @@ export function renderTopBar({ route, title, credits }) {
           data-route="credits"
         >
           <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
-          <span>${formatNumber(remainingUses)}회</span>
+          <span>${remainingUsesText}</span>
         </button>
         <button
           aria-label="Settings"

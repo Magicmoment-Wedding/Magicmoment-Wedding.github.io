@@ -4523,6 +4523,14 @@
                 <button class="mt-3 hidden h-10 w-full rounded-full bg-primary text-on-primary text-sm font-semibold" id="viewportAlertCreditButton" type="button">
                   이용권 구매하러 가기
                 </button>
+                <div class="mt-3 hidden grid grid-cols-1 gap-2 sm:grid-cols-2" id="viewportAlertDelayedActions">
+                  <button class="h-10 rounded-full bg-primary text-on-primary text-sm font-semibold" id="viewportAlertMyPhotoButton" type="button">
+                    마이포토박스 보기
+                  </button>
+                  <button class="h-10 rounded-full bg-white/80 text-primary text-sm font-semibold border border-primary/15" id="viewportAlertRetryStatusButton" type="button">
+                    다시 확인하기
+                  </button>
+                </div>
               </div>
               <button class="h-8 w-8 shrink-0 rounded-full bg-white/70 text-on-surface-variant flex items-center justify-center" id="viewportAlertClose" type="button" aria-label="알림 닫기">
                 <span class="material-symbols-outlined text-[18px]">close</span>
@@ -4836,7 +4844,7 @@
               <div class="editor-option-grid mt-3">
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/studio-style/studio-white-bg.jpg'), url('public/images/studio-style/studio-white-bg.jpg'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
+                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_white_bg" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4845,7 +4853,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/studio-style/studio-sofa.jpg'), url('public/images/studio-style/studio-sofa.jpg'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
+                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_sofa" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4854,7 +4862,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/studio-style/studio-petals.jpg'), url('public/images/studio-style/studio-petals.jpg'); --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
+                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_petals" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4863,7 +4871,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview"
-                  style="--preset-image: url('/images/studio-style/studio-hanbok.jpg'), url('public/images/studio-style/studio-hanbok.jpg'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
+                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_hanbok" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -6762,6 +6770,9 @@ Important:
       const viewportAlertTitle = document.getElementById("viewportAlertTitle");
       const viewportAlertMessage = document.getElementById("viewportAlertMessage");
       const viewportAlertCreditButton = document.getElementById("viewportAlertCreditButton");
+      const viewportAlertDelayedActions = document.getElementById("viewportAlertDelayedActions");
+      const viewportAlertMyPhotoButton = document.getElementById("viewportAlertMyPhotoButton");
+      const viewportAlertRetryStatusButton = document.getElementById("viewportAlertRetryStatusButton");
       const viewportAlertClose = document.getElementById("viewportAlertClose");
       const generationModeInputs = Array.from(document.querySelectorAll("input[name='generationMode']"));
       const generationPlaceInputs = Array.from(document.querySelectorAll("input[name='generationPlace']"));
@@ -6899,6 +6910,7 @@ Important:
       let siteGuidePageIndex = 0;
       let isCompletingOnboarding = false;
       let lastGenerationUsedFreeCredit = false;
+      let lastDelayedGenerationJobId = "";
       const ADMIN_LIST_PAGE_SIZE = 5;
       let adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
       let adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
@@ -7367,10 +7379,6 @@ Important:
         if (!user || typeof user !== "object") return null;
 
         const normalizedUser = { ...user };
-        const normalizedCreditBalance = normalizeAuthCreditBalance({ user: normalizedUser });
-        if (normalizedCreditBalance !== null) {
-          normalizedUser.creditBalance = normalizedCreditBalance;
-        }
         const normalizedGenerationUsage = normalizeAuthGenerationUsage(payload, normalizedUser);
         if (normalizedGenerationUsage) {
           normalizedUser.generationUsage = normalizedGenerationUsage;
@@ -7633,7 +7641,8 @@ Important:
       }
 
       function getAuthUserAvatar(user) {
-        return String(user?.profileImageUrl || user?.profile_image_url || user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || user?.picture || "").trim();
+        const url = String(user?.profileImageUrl || user?.profile_image_url || user?.profileImage || user?.profile_image || user?.avatarUrl || user?.avatar_url || user?.picture || "").trim();
+        return url.replace(/^http:\/\//i, "https://");
       }
 
       function normalizeAuthCreditBalance(payload = {}) {
@@ -7809,7 +7818,6 @@ Important:
           if (usage) {
             user.generationUsage = usage;
           }
-          user.creditBalance = creditBalance;
         }
       }
 
@@ -7819,6 +7827,9 @@ Important:
         const avatar = getAuthUserAvatar(user);
         if (avatar) {
           target.innerHTML = `<img src="${escapeHtml(avatar)}" alt="" decoding="async" />`;
+          target.querySelector("img")?.addEventListener("error", () => {
+            target.innerHTML = `<span class="material-symbols-outlined text-[22px]">person</span>`;
+          }, { once: true });
           return;
         }
 
@@ -7879,6 +7890,9 @@ Important:
           customerInfoPhoto.innerHTML = info.profileImageUrl
             ? `<img src="${escapeHtml(info.profileImageUrl)}" alt="" decoding="async" />`
             : `<span class="material-symbols-outlined text-[28px]">person</span>`;
+          customerInfoPhoto.querySelector("img")?.addEventListener("error", () => {
+            customerInfoPhoto.innerHTML = `<span class="material-symbols-outlined text-[28px]">person</span>`;
+          }, { once: true });
         }
       }
 
@@ -7934,8 +7948,13 @@ Important:
           const avatar = hasUser ? getAuthUserAvatar(currentUser) : "";
           if (avatar) {
             loginUserAvatar.src = avatar;
+            loginUserAvatar.onerror = () => {
+              loginUserAvatar.removeAttribute("src");
+              loginUserAvatar.classList.add("hidden");
+            };
             loginUserAvatar.classList.remove("hidden");
           } else {
+            loginUserAvatar.onerror = null;
             loginUserAvatar.removeAttribute("src");
             loginUserAvatar.classList.add("hidden");
           }
@@ -7948,7 +7967,6 @@ Important:
 
       function applyAuthSession(payload = {}) {
         const user = normalizeAuthUser(payload);
-        const authCreditBalance = normalizeAuthCreditBalance(payload);
         const authIsAdmin = normalizeExplicitAdminFlag(payload);
         resetAdminDashboardState({ clearContent: true });
         currentUser = isAuthenticatedUser(user) ? user : null;
@@ -7984,13 +8002,6 @@ Important:
           }
         }
         console.log("[auth] currentUser updated");
-
-        if (isLoggedIn && authCreditBalance !== null) {
-          creditBalance = authCreditBalance;
-          currentUser.creditBalance = creditBalance;
-          console.log("[auth] credit balance updated");
-          updateCreditUi();
-        }
 
         if (isLoggedIn) {
           startAutoLogoutTracking();
@@ -9963,12 +9974,14 @@ Important:
 
       function getRemainingUsesDisplayText(user = currentUser) {
         const remainingUses = getRemainingUses(user);
+        const freeGenerationText = hasFreeGeneration(user) ? " · 무료 제작 1회 이용 가능" : "";
         if (remainingUses === null) {
-          return generationUsageStatus === "error"
+          const baseText = generationUsageStatus === "error"
             ? "남은 제작 횟수를 불러오지 못했어요"
             : "남은 제작 횟수 확인 중...";
+          return `${baseText}${freeGenerationText}`;
         }
-        return `남은 제작 횟수 ${formatCreditNumber(remainingUses)}회`;
+        return `남은 제작 횟수 ${formatCreditNumber(remainingUses)}회${freeGenerationText}`;
       }
 
       const PAYMENT_PASS_PRODUCTS = {
@@ -10401,7 +10414,6 @@ Important:
           console.log("[payment] current user before ready", {
             id: currentUser?.id,
             email: currentUser?.email,
-            creditBalance: currentUser?.creditBalance,
             hasRequiredConsents: currentUser?.hasRequiredConsents,
             consentRequired: currentUser?.consentRequired,
             isLegacyUser: currentUser?.isLegacyUser,
@@ -11338,7 +11350,8 @@ Important:
 
       function hasFreeGeneration(user = currentUser) {
         const usage = getCurrentGenerationUsage(user);
-        return usage?.freeGenerationAvailable === true;
+        if (usage?.freeGenerationAvailable === true) return true;
+        return usage?.freeGenerationUsed === false && user?.freeGenerationUsed === false;
       }
 
       function shouldShowOnboardingCards() {
@@ -12436,6 +12449,43 @@ Important:
         });
       }
 
+      async function fetchGenerationJobStatus(jobId) {
+        const requestUrl = `${FRONT_API_BASE_URL}/api/generate/status?jobId=${encodeURIComponent(jobId)}`;
+        const response = await fetch(requestUrl, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+        const parsed = await parseJsonResponseBody(response);
+        const payload = parsed.data || {};
+        return {
+          response,
+          parsed,
+          payload,
+          status: getGenerationJobStatus(payload),
+          code: String(payload?.code || payload?.error || payload?.data?.code || "").trim().toUpperCase(),
+        };
+      }
+
+      function createGenerationStatusError({ response = null, parsed = {}, payload = {}, code = "", fallbackCode = "GENERATION_JOB_FAILED" } = {}) {
+        const normalizedCode = String(code || payload?.code || payload?.error || payload?.data?.code || fallbackCode).trim().toUpperCase();
+        const message = getGenerationJobFailureMessage(
+          normalizedCode,
+          payload?.message || payload?.data?.message || parsed?.message || "",
+        );
+        const error = new Error(message);
+        error.status = response?.status;
+        error.statusCode = response?.status;
+        error.code = normalizedCode;
+        error.publicMessage = message;
+        error.response = payload;
+        error.rawPreview = parsed?.rawText?.slice?.(0, 300);
+        if (normalizedCode === "WATERMARK_FAILED" || normalizedCode === "WATERMARK_LOGO_NOT_FOUND") {
+          error.isWatermarkFailed = true;
+        }
+        return error;
+      }
+
       async function pollGenerationJobStatus(jobId) {
         const startedAt = Date.now();
         const timeoutMs = 180000;
@@ -12447,43 +12497,33 @@ Important:
         while (Date.now() - startedAt < timeoutMs) {
           await wait(intervalMs);
           const elapsedMs = Date.now() - startedAt;
-          const requestUrl = `${FRONT_API_BASE_URL}/api/generate/status?jobId=${encodeURIComponent(jobId)}`;
-          let response;
+          let statusResult;
           try {
-            response = await fetch(requestUrl, {
-              method: "GET",
-              credentials: "include",
-              cache: "no-store",
-            });
+            statusResult = await fetchGenerationJobStatus(jobId);
           } catch (error) {
             console.warn("[client][generate-status] network failed", { jobId, error });
             setStatus(getGenerationJobProgressMessage("processing", elapsedMs));
             continue;
           }
 
-          const parsed = await parseJsonResponseBody(response);
-          const payload = parsed.data || {};
-          const status = getGenerationJobStatus(payload) || "processing";
+          const { response, parsed, payload, code } = statusResult;
+          const status = statusResult.status || "processing";
           console.log("[client][generate-status]", {
             jobId,
             status,
+            code,
             httpStatus: response.status,
             ok: response.ok,
           });
 
           if (!response.ok || !parsed.parseOk || payload?.ok === false) {
-            const code = String(payload?.code || payload?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED")).toUpperCase();
-            const message = response.status === 504
-              ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요."
-              : getGenerationJobFailureMessage(code, payload?.message || parsed.message);
-            const error = new Error(message);
-            error.status = response.status;
-            error.statusCode = response.status;
-            error.code = response.status === 504 ? "SERVER_TIMEOUT" : code;
-            error.publicMessage = message;
-            error.response = payload;
-            error.rawPreview = parsed.rawText?.slice(0, 300);
-            throw error;
+            throw createGenerationStatusError({
+              response,
+              parsed,
+              payload,
+              code: response.status === 504 ? "GENERATION_JOB_TIMEOUT" : code,
+              fallbackCode: !parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED",
+            });
           }
 
           if (status === "succeeded" || status === "success" || status === "completed" || status === "complete") {
@@ -12500,16 +12540,7 @@ Important:
           }
 
           if (status === "failed" || status === "error" || status === "canceled" || status === "cancelled") {
-            const code = String(payload?.code || payload?.error || payload?.data?.code || "GENERATION_JOB_FAILED").toUpperCase();
-            const message = getGenerationJobFailureMessage(code, payload?.message || payload?.data?.message || "");
-            const error = new Error(message);
-            error.code = code;
-            error.publicMessage = message;
-            error.response = payload;
-            if (code === "WATERMARK_FAILED" || code === "WATERMARK_LOGO_NOT_FOUND") {
-              error.isWatermarkFailed = true;
-            }
-            throw error;
+            throw createGenerationStatusError({ response, parsed, payload, code });
           }
 
           setStatus(getGenerationJobProgressMessage(status, elapsedMs));
@@ -12520,6 +12551,97 @@ Important:
         error.publicMessage = "생성이 지연되고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.";
         error.jobId = jobId;
         throw error;
+      }
+
+      async function handleDelayedGenerationStatusRetry(jobId) {
+        const safeJobId = String(jobId || currentGenerationJobId || lastDelayedGenerationJobId || "").trim();
+        if (!safeJobId) {
+          showError("확인할 생성 작업을 찾지 못했습니다. 마이포토박스에서 결과를 확인해 주세요.", {
+            title: "상태 확인 안내",
+            showDelayedActions: true,
+          });
+          return;
+        }
+
+        if (viewportAlertRetryStatusButton) {
+          viewportAlertRetryStatusButton.disabled = true;
+          viewportAlertRetryStatusButton.textContent = "확인 중...";
+        }
+
+        try {
+          const { response, parsed, payload, status, code } = await fetchGenerationJobStatus(safeJobId);
+          console.log("[client][generate-status][manual-check]", {
+            jobId: safeJobId,
+            status,
+            code,
+            httpStatus: response.status,
+            ok: response.ok,
+          });
+
+          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+            throw createGenerationStatusError({
+              response,
+              parsed,
+              payload,
+              code,
+              fallbackCode: !parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED",
+            });
+          }
+
+          if (status === "succeeded" || status === "success" || status === "completed" || status === "complete") {
+            hideError();
+            lastDelayedGenerationJobId = "";
+            await refreshAuthState({ showError: false });
+            await refreshMyPhotosCache();
+            showAccountMenuToast("생성이 완료되었습니다. 마이포토박스에서 확인해 주세요.");
+            navigateToScreen("myPhotoBox");
+            return;
+          }
+
+          if (status === "failed" || status === "error" || status === "canceled" || status === "cancelled") {
+            throw createGenerationStatusError({ response, parsed, payload, code });
+          }
+
+          if (status === "processing" || status === "queued" || status === "pending" || status === "running" || status === "saving" || status === "storing" || status === "watermark" || status === "watermarking") {
+            const copy = getGenerationErrorCopy({ code: "GENERATION_JOB_TIMEOUT" });
+            showError(copy.body, {
+              title: copy.title,
+              showDelayedActions: true,
+              retryJobId: safeJobId,
+            });
+            showAccountMenuToast("아직 생성 중입니다. 잠시 후 다시 확인해 주세요.");
+            return;
+          }
+
+          showError("상태 확인 중 문제가 발생했습니다. 잠시 후 마이포토박스에서 확인해 주세요.", {
+            title: "상태 확인 안내",
+            showDelayedActions: true,
+            retryJobId: safeJobId,
+          });
+        } catch (error) {
+          const code = String(error.code || error.response?.code || error.response?.error || "").toUpperCase();
+          if (code === "GENERATION_JOB_TIMEOUT") {
+            const copy = getGenerationErrorCopy(error);
+            showError(copy.body, {
+              title: copy.title,
+              showDelayedActions: true,
+              retryJobId: safeJobId,
+            });
+          } else {
+            const copy = getGenerationErrorCopy(error);
+            showError(copy.body, {
+              title: copy.title,
+              showDelayedActions: false,
+              showCreditButton: copy.showCreditButton === true,
+            });
+          }
+        } finally {
+          if (viewportAlertRetryStatusButton) {
+            viewportAlertRetryStatusButton.disabled = false;
+            viewportAlertRetryStatusButton.textContent = "다시 확인하기";
+            viewportAlertRetryStatusButton.dataset.jobId = safeJobId;
+          }
+        }
       }
 
       function sanitizeLogValue(value, depth = 0) {
@@ -12592,6 +12714,12 @@ Important:
       function hideViewportAlert() {
         viewportAlert?.classList.add("hidden");
         viewportAlertCreditButton?.classList.add("hidden");
+        viewportAlertDelayedActions?.classList.add("hidden");
+        if (viewportAlertRetryStatusButton) {
+          viewportAlertRetryStatusButton.dataset.jobId = "";
+          viewportAlertRetryStatusButton.disabled = false;
+          viewportAlertRetryStatusButton.textContent = "다시 확인하기";
+        }
       }
 
       function showViewportAlert(message, options = {}) {
@@ -12600,6 +12728,10 @@ Important:
         viewportAlertTitle.textContent = options.title || "생성 실패";
         viewportAlertMessage.textContent = message;
         viewportAlertCreditButton?.classList.toggle("hidden", !options.showCreditButton);
+        viewportAlertDelayedActions?.classList.toggle("hidden", !options.showDelayedActions);
+        if (viewportAlertRetryStatusButton) {
+          viewportAlertRetryStatusButton.dataset.jobId = options.retryJobId || "";
+        }
         viewportAlert.classList.remove("hidden");
       }
 
@@ -12781,6 +12913,8 @@ Important:
         showViewportAlert(message, {
           title: options.title || "생성 실패",
           showCreditButton: options.showCreditButton,
+          showDelayedActions: options.showDelayedActions,
+          retryJobId: options.retryJobId,
         });
       }
 
@@ -12798,10 +12932,20 @@ Important:
 
       function getGenerationErrorCopy(error = {}) {
         const code = String(error.code || error.response?.code || error.response?.error || "").trim().toUpperCase();
+        const wasFreeGeneration = error.isFreeGeneration === true
+          || error.response?.isFreeGeneration === true
+          || error.response?.is_free_generation === true
+          || error.response?.generationType === "free"
+          || error.response?.generation_type === "free"
+          || lastGenerationUsedFreeCredit === true;
+        const failedUsageBody = wasFreeGeneration
+          ? "제작에 실패했습니다. 무료 제작권은 성공 시에만 사용 처리됩니다."
+          : "제작에 실패했습니다. 이용권은 성공 시에만 사용 처리됩니다.";
         const copies = {
           GENERATION_JOB_TIMEOUT: {
             title: "생성 지연",
             body: "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.",
+            showDelayedActions: true,
           },
           STORAGE_UPLOAD_FAILED: {
             title: "생성 결과 저장 실패",
@@ -12818,7 +12962,11 @@ Important:
           },
           GENERATION_FAILED: {
             title: "생성 실패",
-            body: "제작에 실패했습니다. 이용권은 사용 처리되지 않았습니다.",
+            body: failedUsageBody,
+          },
+          GENERATION_JOB_FAILED: {
+            title: "생성 실패",
+            body: failedUsageBody,
           },
           GENERATION_USAGE_UNAVAILABLE: {
             title: "남은 제작 횟수 확인 중",
@@ -12827,7 +12975,7 @@ Important:
         };
         return copies[code] || {
           title: "생성 실패",
-          body: "제작에 실패했습니다. 이용권은 사용 처리되지 않았습니다.",
+          body: failedUsageBody,
         };
       }
 
@@ -13622,7 +13770,7 @@ ${modeExample}`;
         }
 
         if (!response.ok || !parsed.parseOk || !data?.ok) {
-          const responseCode = String(response.status === 504 ? "SERVER_TIMEOUT" : (data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"))).toUpperCase();
+          const responseCode = String(response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"))).toUpperCase();
           const responseStage = String(data.stage || data.step || data.phase || "").trim();
           const responseMessage = data?.message || data?.errorMessage || data?.error || parsed.message || "";
           const isInsufficientCredits =
@@ -13631,9 +13779,10 @@ ${modeExample}`;
             responseCode === "INSUFFICIENT_CREDITS" ||
             responseCode === "CREDITS_REQUIRED" ||
             responseCode === "NO_REMAINING_GENERATION_USES";
-          console.error("[client][generate][failed]", {
+          console[responseCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"](responseCode === "GENERATION_JOB_TIMEOUT" ? "[client][generate][delayed]" : "[client][generate][failed]", {
             API_BASE_URL: FRONT_API_BASE_URL,
             requestUrl,
+            jobId: responseJobId || "",
             status: response.status,
             code: responseCode,
             stage: responseStage,
@@ -13653,16 +13802,17 @@ ${modeExample}`;
             errorBody: sanitizeLogValue(parsed.rawText),
             response: sanitizeLogValue(data),
           });
-          const error = new Error(response.status === 504 ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요." : (responseMessage || "이미지 생성 실패"));
+          const error = new Error(response.status === 504 ? "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요." : (responseMessage || "이미지 생성 실패"));
           error.status = response.status;
           error.statusCode = data.status || response.status;
           error.code = responseCode || (isInsufficientCredits ? "INSUFFICIENT_CREDITS" : "");
           error.stage = responseStage;
+          error.jobId = responseJobId || "";
           error.messageFromServer = responseMessage;
           error.response = data;
           error.rawPreview = parsed.rawText?.slice(0, 300);
-          if (responseCode === "SERVER_TIMEOUT") {
-            error.publicMessage = "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요.";
+          if (responseCode === "GENERATION_JOB_TIMEOUT") {
+            error.publicMessage = "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.";
           } else if (responseCode === "LOGIN_REQUIRED" || responseCode === "AUTH_REQUIRED") {
             error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
             error.isLoginRequired = true;
@@ -15586,6 +15736,10 @@ ${modeExample}`;
           imageFile,
         });
 
+        applyGenerationResultData(data, mode);
+      }
+
+      function applyGenerationResultData(data, mode = activeGenerationMode) {
         activeGenerationMode = normalizeGenerationMode(data.generationMode || mode);
         resultLocationPreset = !isDisneyMode(activeGenerationMode)
           ? (data.locationPreset || data.generationMeta?.locationPreset || selectedLocationPreset || "eiffel")
@@ -15828,6 +15982,16 @@ ${modeExample}`;
       viewportAlertCreditButton?.addEventListener("click", () => {
         hideError();
         navigateToScreen("credits");
+      });
+
+      viewportAlertMyPhotoButton?.addEventListener("click", () => {
+        hideError();
+        navigateToScreen("myPhotoBox");
+        void refreshMyPhotoBoxScreen();
+      });
+
+      viewportAlertRetryStatusButton?.addEventListener("click", () => {
+        void handleDelayedGenerationStatusRetry(viewportAlertRetryStatusButton.dataset.jobId || lastDelayedGenerationJobId);
       });
 
       viewportAlertClose?.addEventListener("click", () => {
@@ -16967,8 +17131,18 @@ ${modeExample}`;
           setAppScreen("result", { replaceHistory: true });
         } catch (error) {
           let effectiveError = error;
-          console.error("[client][grok-edit] generation failed:", effectiveError);
-          console.error("[client][grok-edit] generation failed details:", {
+          const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
+          const initialGenerationJobId = String(effectiveError.jobId || effectiveError.response?.jobId || effectiveError.response?.job_id || currentGenerationJobId || "").trim();
+          if (initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT") {
+            lastDelayedGenerationJobId = initialGenerationJobId;
+            console.warn("[client][generate][delayed]", {
+              jobId: initialGenerationJobId,
+              code: "GENERATION_JOB_TIMEOUT",
+            });
+          } else {
+            console.error("[client][grok-edit] generation failed:", effectiveError);
+          }
+          console[initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"]("[client][grok-edit] generation details:", {
             status: effectiveError.status || effectiveError.statusCode,
             code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
             stage: effectiveError.stage || effectiveError.response?.stage,
@@ -16976,17 +17150,18 @@ ${modeExample}`;
             rawPreview: effectiveError.rawPreview,
             data: sanitizeLogValue(effectiveError.response || null),
           });
-          console.error("[client][generate][failed]", {
-            status: effectiveError.status || effectiveError.statusCode,
-            code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
-            stage: effectiveError.stage || effectiveError.response?.stage,
-            message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
-            rawPreview: effectiveError.rawPreview,
-          });
-          if (effectiveError.response) {
-            console.error("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
+          if (initialGenerationErrorCode !== "GENERATION_JOB_TIMEOUT") {
+            console.error("[client][generate][failed]", {
+              status: effectiveError.status || effectiveError.statusCode,
+              code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
+              stage: effectiveError.stage || effectiveError.response?.stage,
+              message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
+              rawPreview: effectiveError.rawPreview,
+            });
           }
-          const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
+          if (effectiveError.response) {
+            console[initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"]("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
+          }
           const shouldRefreshAuthBeforeLoginPrompt = authChecked && isAuthenticatedUser() && (
             effectiveError.isLoginRequired ||
             initialGenerationErrorCode === "LOGIN_REQUIRED" ||
@@ -17083,10 +17258,16 @@ ${modeExample}`;
             || generationErrorCode === "FREE_GENERATION_ALREADY_USED"
             || generationErrorCode === "GENERATION_USAGE_UNAVAILABLE") {
             const copy = getGenerationErrorCopy(effectiveError);
+            const retryJobId = String(effectiveError.jobId || lastDelayedGenerationJobId || "").trim();
+            if (generationErrorCode === "GENERATION_JOB_TIMEOUT") {
+              lastDelayedGenerationJobId = retryJobId;
+            }
             setStatus("");
             showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, {
               title: copy.title,
               showCreditButton: copy.showCreditButton === true,
+              showDelayedActions: copy.showDelayedActions === true,
+              retryJobId,
             });
             showAccountMenuToast(copy.body);
             return;

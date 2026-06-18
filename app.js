@@ -600,7 +600,14 @@ async function performGeneration() {
     console.log("[generation] 결과 화면 이동");
     navigate(ROUTES.RESULT);
   } catch (error) {
-    console.error("[generation] 결과 처리 실패", error);
+    if (error?.code === "GENERATION_JOB_TIMEOUT") {
+      console.warn("[client][generate][delayed]", {
+        jobId: error.jobId || "",
+        code: "GENERATION_JOB_TIMEOUT",
+      });
+    } else {
+      console.error("[generation] 결과 처리 실패", error);
+    }
     const generationErrorCopy = getGenerationErrorCopy(error);
     const refreshedUser = await fetchCurrentUser().catch(() => getState().currentUser);
     if (error?.isInsufficientCredits

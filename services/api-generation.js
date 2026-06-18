@@ -153,9 +153,9 @@ async function pollGenerationStatus(jobId) {
     const status = getJobStatus(payload) || "processing";
 
     if (!response.ok || !parsed.parseOk || payload?.ok === false) {
-      const code = String(response.status === 504 ? "SERVER_TIMEOUT" : (payload?.code || payload?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED"))).toUpperCase();
+      const code = String(response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (payload?.code || payload?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED"))).toUpperCase();
       const message = response.status === 504
-        ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요."
+        ? "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요."
         : getJobFailureMessage(code, payload?.message || parsed.message);
       const error = new Error(message);
       error.statusCode = response.status;
@@ -189,6 +189,7 @@ async function pollGenerationStatus(jobId) {
   const error = new Error("생성이 지연되고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.");
   error.code = "GENERATION_JOB_TIMEOUT";
   error.publicMessage = error.message;
+  error.jobId = jobId;
   throw error;
 }
 
@@ -251,13 +252,13 @@ export async function generateImages(prompt, options = {}) {
       payload?.code === "INSUFFICIENT_CREDITS" ||
       payload?.code === "CREDITS_REQUIRED" ||
       payload?.code === "NO_REMAINING_GENERATION_USES";
-    const code = response.status === 504 ? "SERVER_TIMEOUT" : (payload?.code || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"));
+    const code = response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (payload?.code || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"));
     const message =
-      (response.status === 504 ? "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요." : "") ||
+      (response.status === 504 ? "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요." : "") ||
       payload?.message ||
       parsed.message ||
       "생성 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-    console.error("[client][generate][failed]", {
+    console[code === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"](code === "GENERATION_JOB_TIMEOUT" ? "[client][generate][delayed]" : "[client][generate][failed]", {
       status: response.status,
       code,
       stage: payload?.stage,
@@ -277,8 +278,8 @@ export async function generateImages(prompt, options = {}) {
       error.currentCredits = payload?.currentCredits;
     } else if (error.code === "INVALID_SERVER_RESPONSE") {
       error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-    } else if (error.code === "SERVER_TIMEOUT") {
-      error.publicMessage = "서버 작업 시간이 초과되었습니다. 다시 시도해 주세요.";
+    } else if (error.code === "GENERATION_JOB_TIMEOUT") {
+      error.publicMessage = "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.";
     } else if (error.code === "FREE_GENERATION_NOT_AVAILABLE") {
       error.publicMessage = "무료 제작을 사용할 수 없습니다. 계정 상태를 다시 확인해 주세요.";
     } else if (error.code === "WATERMARK_FAILED") {

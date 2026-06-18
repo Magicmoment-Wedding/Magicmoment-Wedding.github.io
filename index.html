@@ -2493,42 +2493,35 @@
         bottom: clamp(14px, 3%, 24px);
         z-index: 18;
         display: none;
-        width: auto;
-        max-width: none;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.68);
-        color: #8f4f62;
-        font-size: 12px;
-        font-weight: 800;
-        line-height: 1.1;
-        text-align: center;
-        opacity: 1;
+        width: clamp(90px, 14%, 120px);
+        max-width: 34%;
+        padding: 0;
+        opacity: 0.84;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
         pointer-events: none;
         user-select: none;
       }
 
       .logo-watermark img {
-        display: none;
+        display: block;
+        width: 100%;
+        height: auto;
       }
 
-      .logo-watermark::before {
-        content: "Magic AI Studio";
-        display: block;
-      }
-
-      .logo-watermark::after {
-        content: "Free Preview";
-        display: block;
-        font-size: 10px;
-        font-weight: 800;
+      .logo-watermark.is-logo-missing {
+        display: none !important;
       }
 
       .result-comparison-slider .logo-watermark {
-        z-index: 8;
+        z-index: 1;
+      }
+
+      .result-comparison-slider #comparisonAfterImage {
+        z-index: 0;
+      }
+
+      .result-comparison-slider #comparisonBeforeClip {
+        z-index: 2;
       }
 
       .result-comparison-slider .soft-chip,
@@ -2539,15 +2532,15 @@
       .result-card .logo-watermark {
         right: 12px;
         bottom: 12px;
-        padding: 6px 9px;
-        font-size: 10px;
-      }
-
-      .result-card .logo-watermark::after {
-        display: none;
+        width: clamp(64px, 32%, 86px);
+        max-width: 38%;
       }
 
       .has-logo-watermark .logo-watermark {
+        display: block;
+      }
+
+      .logo-watermark.is-visible {
         display: block;
       }
 
@@ -2581,9 +2574,9 @@
       .image-modal-image-frame .logo-watermark {
         right: clamp(16px, 3%, 24px);
         bottom: clamp(16px, 3%, 24px);
-        width: clamp(58px, 12%, 120px);
-        max-width: 14%;
-        opacity: 0.17;
+        width: clamp(90px, 12%, 120px);
+        max-width: 18%;
+        opacity: 0.84;
       }
 
       .image-modal-original-thumb {
@@ -4855,7 +4848,7 @@
               <div class="editor-option-grid mt-3">
                 <label
                   class="editor-option-card has-preview studio-preview"
-                  style="--preset-image: url('/images/studio-style/studio-white-bg.jpg'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-white-bg.png'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_white_bg" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4864,7 +4857,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview studio-preview"
-                  style="--preset-image: url('/images/studio-style/studio-sofa.jpg'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-sofa.png'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_sofa" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4882,7 +4875,7 @@
                 </label>
                 <label
                   class="editor-option-card has-preview studio-preview"
-                  style="--preset-image: url('/images/studio-style/studio-hanbok.jpg'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
+                  style="--preset-image: url('/images/studio-style/studio-hanbok.png'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_hanbok" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4987,7 +4980,7 @@
                 AI 추천
               </div>
               <span class="logo-watermark" aria-hidden="true">
-                <img src="public/branding/ai-studio-logo-vertical.png" alt="" decoding="async" />
+                <img src="/images/brand/magic-ai-studio-logo-watermark.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
               </span>
             </div>
               <button
@@ -5822,7 +5815,7 @@
           <div class="image-modal-image-frame">
             <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
             <span class="logo-watermark" aria-hidden="true">
-              <img src="public/branding/ai-studio-logo-vertical.png" alt="" decoding="async" />
+              <img src="/images/brand/magic-ai-studio-logo-watermark.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
             </span>
             <span class="image-modal-original-thumb hidden" id="imageModalOriginalThumb" aria-hidden="true">
               <img alt="" decoding="async" draggable="false" loading="lazy" id="imageModalOriginalThumbImg" />
@@ -5954,7 +5947,7 @@
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
-      const WATERMARK_LOGO_SRC = LOGO_VERTICAL_SRC;
+      const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-logo-watermark.png";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
       const ONE_MB_BYTES = 1024 * 1024;
       const MOBILE_MAX_UPLOAD_IMAGE_BYTES = 50 * ONE_MB_BYTES;
@@ -11721,10 +11714,10 @@ Important:
           isRecommended: Boolean(representativeImage.isRecommended),
           galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery") || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
           source: rawItem.source || rawItem.origin || "",
-          hasWatermark: normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, false),
-          isFreeGeneration: normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, false),
-          generationType: rawItem.generationType || rawItem.generation_type || "",
-          watermarkStrategy: rawItem.watermarkStrategy || rawItem.watermark_strategy || "",
+          hasWatermark: normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, representativeImage.hasWatermark === true),
+          isFreeGeneration: normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, representativeImage.isFreeGeneration === true),
+          generationType: rawItem.generationType || rawItem.generation_type || representativeImage.generationType || "",
+          watermarkStrategy: rawItem.watermarkStrategy || rawItem.watermark_strategy || representativeImage.watermarkStrategy || "",
           images,
         };
       }
@@ -11813,6 +11806,7 @@ Important:
           const presetLabel = photo.presetLabel || "웨딩사진";
           const createdAtLabel = photo.createdAtLabel || "생성일 준비 중";
           const title = `${styleLabel} · ${presetLabel}`;
+          const shouldShowLogoWatermark = shouldShowWatermarkOverlay(photo);
 
           return `
             <article class="my-photo-card">
@@ -11823,6 +11817,7 @@ Important:
                       <span class="material-symbols-outlined text-[34px]">photo</span>
                     </div>
                   `}
+                  ${shouldShowLogoWatermark ? getLogoWatermarkMarkup("is-visible") : ""}
                   ${photo.isRecommended ? `<span class="my-photo-badge">AI 추천</span>` : ""}
                 </div>
                 <div class="my-photo-card-body">
@@ -11959,8 +11954,10 @@ Important:
             url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
             label: item.resultLabel || photo?.resultLabel || photo?.presetLabel || `마이포토박스 사진 ${index + 1}`,
             isRecommended: Boolean(item.isRecommended),
-            hasWatermark: item.hasWatermark === true,
-            isFreeGeneration: false,
+            hasWatermark: item.hasWatermark === true || photo?.hasWatermark === true,
+            isFreeGeneration: item.isFreeGeneration === true || photo?.isFreeGeneration === true,
+            generationType: item.generationType || photo?.generationType || "",
+            watermarkStrategy: item.watermarkStrategy || photo?.watermarkStrategy || "",
             index,
             generationId: photo?.generationId || item.generationId || photo?.id || "",
             myPhotoSource: true,
@@ -14380,7 +14377,7 @@ ${modeExample}`;
           itemOrResult?.result_payload?.watermarkStrategy ||
           itemOrResult?.resultPayload?.watermarkStrategy;
 
-        if (generationType === "paid" && hasWatermark !== true && watermarkStrategy !== "frontend_overlay") {
+        if (generationType === "paid") {
           return false;
         }
 
@@ -14392,6 +14389,15 @@ ${modeExample}`;
           generationType === "free";
 
         return isFree || hasWatermark || watermarkStrategy === "frontend_overlay";
+      }
+
+      function getLogoWatermarkMarkup(extraClass = "") {
+        const className = `logo-watermark${extraClass ? ` ${extraClass}` : ""}`;
+        return `
+          <span class="${className}" aria-hidden="true">
+            <img src="${WATERMARK_LOGO_SRC}" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
+          </span>
+        `;
       }
 
       function shouldShowWatermarkForModalItem(item = {}) {
@@ -14480,7 +14486,7 @@ ${modeExample}`;
         const y = Math.max(margin, canvasHeight - logoHeight - margin);
 
         ctx.save();
-        ctx.globalAlpha = 0.17;
+        ctx.globalAlpha = 0.84;
         ctx.drawImage(logoImage, x, y, logoWidth, logoHeight);
         ctx.restore();
         return true;
@@ -15672,9 +15678,7 @@ ${modeExample}`;
               <article class="result-card relative min-w-[188px] max-w-[220px] overflow-hidden border ${index === selectedIndex ? "border-primary" : "border-white/70"} transition">
                 <button class="relative block w-full aspect-[4/5] group overflow-hidden rounded-t-[28px]" data-zoom-index="${index}" type="button">
                   <img alt="Candidate ${index + 1}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" src="${toDisplayUrl(url)}" />
-                  <span class="logo-watermark" aria-hidden="true">
-                    <img src="${WATERMARK_LOGO_SRC}" alt="" decoding="async" />
-                  </span>
+                  ${getLogoWatermarkMarkup()}
                   ${isRecommended ? `
                     <span class="absolute top-3 left-3 rounded-full bg-primary text-on-primary px-3 py-1 font-label-caps text-label-caps uppercase shadow-md">${FEATURED_BADGE_TEXT}</span>
                   ` : ""}

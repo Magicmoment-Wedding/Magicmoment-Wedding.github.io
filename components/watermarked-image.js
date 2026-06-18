@@ -1,5 +1,7 @@
 import { escapeHtml } from "../services/format.js";
 
+export const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-logo-watermark.png";
+
 export function shouldShowWatermarkOverlay(itemOrResult = {}) {
   const generationType =
     itemOrResult?.generationType ||
@@ -19,13 +21,15 @@ export function shouldShowWatermarkOverlay(itemOrResult = {}) {
     itemOrResult?.result_payload?.watermarkStrategy ||
     itemOrResult?.resultPayload?.watermarkStrategy;
 
-  if (generationType === "paid" && hasWatermark !== true && watermarkStrategy !== "frontend_overlay") {
+  if (generationType === "paid") {
     return false;
   }
 
   const isFree =
     itemOrResult?.isFreeGeneration === true ||
     itemOrResult?.is_free_generation === true ||
+    itemOrResult?.usedFreeGeneration === true ||
+    itemOrResult?.used_free_generation === true ||
     generationType === "free";
 
   return isFree || hasWatermark || watermarkStrategy === "frontend_overlay";
@@ -33,13 +37,18 @@ export function shouldShowWatermarkOverlay(itemOrResult = {}) {
 
 export function renderWatermarkOverlay({ compact = false } = {}) {
   const style = compact
-    ? "right:8px;bottom:8px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,0.68);color:#8f4f62;font-size:10px;font-weight:800;line-height:1;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,0.12);pointer-events:none;"
-    : "right:14px;bottom:14px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.68);color:#8f4f62;font-size:12px;font-weight:800;line-height:1.1;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,0.12);pointer-events:none;";
+    ? "right:8px;bottom:8px;width:72px;max-width:38%;opacity:.84;filter:drop-shadow(0 8px 18px rgba(0,0,0,.16));pointer-events:none;"
+    : "right:14px;bottom:14px;width:112px;max-width:34%;opacity:.84;filter:drop-shadow(0 8px 18px rgba(0,0,0,.16));pointer-events:none;";
 
   return `
-    <div class="free-watermark-overlay absolute z-20 flex flex-col items-center justify-center text-center" style="${style}">
-      <strong class="block">Magic AI Studio</strong>
-      ${compact ? "" : `<span class="block text-[10px] font-extrabold">Free Preview</span>`}
+    <div class="free-watermark-overlay absolute z-20" style="${style}">
+      <img
+        src="${WATERMARK_LOGO_SRC}"
+        alt=""
+        decoding="async"
+        class="block w-full h-auto"
+        onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.free-watermark-overlay')?.remove();"
+      />
     </div>
   `;
 }

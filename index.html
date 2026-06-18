@@ -2316,6 +2316,17 @@
         background: linear-gradient(140deg, rgba(255, 255, 255, 0.14), transparent 48%, rgba(0, 0, 0, 0.2));
       }
 
+      .editor-option-card.has-preview.studio-preview::before {
+        background-image:
+          linear-gradient(180deg, rgba(31, 26, 27, 0.04), rgba(31, 26, 27, 0.36)),
+          var(--preset-image),
+          var(--preset-fallback);
+      }
+
+      .editor-option-card.has-preview.studio-preview::after {
+        background: linear-gradient(140deg, rgba(255, 255, 255, 0.1), transparent 54%, rgba(0, 0, 0, 0.1));
+      }
+
       .editor-option-card.has-preview .editor-option-title {
         position: relative;
         z-index: 1;
@@ -4843,8 +4854,8 @@
               </div>
               <div class="editor-option-grid mt-3">
                 <label
-                  class="editor-option-card has-preview"
-                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
+                  class="editor-option-card has-preview studio-preview"
+                  style="--preset-image: url('/images/studio-style/studio-white-bg.jpg'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_white_bg" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4852,8 +4863,8 @@
                   <span class="editor-option-description">화이트 배경과 정면 포즈의 대표 스튜디오 샷</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
-                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
+                  class="editor-option-card has-preview studio-preview"
+                  style="--preset-image: url('/images/studio-style/studio-sofa.jpg'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_sofa" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4861,8 +4872,8 @@
                   <span class="editor-option-description">흰 소파와 핑크 드레스가 펼쳐지는 신부 단독샷</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
-                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
+                  class="editor-option-card has-preview studio-preview"
+                  style="--preset-image: url('/images/studio-style/studio-petals.png'); --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_petals" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
@@ -4870,8 +4881,8 @@
                   <span class="editor-option-description">화이트하우스 배경과 꽃잎이 흩날리는 키스샷</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
-                  style="--preset-image: none; --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
+                  class="editor-option-card has-preview studio-preview"
+                  style="--preset-image: url('/images/studio-style/studio-hanbok.jpg'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_hanbok" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>

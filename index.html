@@ -2707,9 +2707,71 @@
           z-index: 24;
           left: 0;
           right: 0;
-          bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 148px);
           min-height: 0;
           pointer-events: none;
+        }
+
+        .image-modal-thumbnail-strip {
+          position: fixed;
+          z-index: 26;
+          left: 10px;
+          right: 10px;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 78px);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 8px;
+          border-radius: 20px;
+          background: rgba(18, 16, 17, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .image-modal-thumbnail-strip::-webkit-scrollbar {
+          display: none;
+        }
+
+        .image-modal-thumbnail-button {
+          position: relative;
+          flex: 0 0 auto;
+          width: 62px;
+          aspect-ratio: 4 / 5;
+          overflow: hidden;
+          border-radius: 16px;
+          border: 2px solid transparent;
+          background: rgba(255, 255, 255, 0.12);
+          transition: transform 180ms ease, border-color 180ms ease, opacity 180ms ease;
+        }
+
+        .image-modal-thumbnail-button.is-active {
+          border-color: rgba(255, 255, 255, 0.92);
+          transform: translateY(-1px);
+        }
+
+        .image-modal-thumbnail-button img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .image-modal-thumbnail-button .image-modal-thumbnail-recommended {
+          position: absolute;
+          top: 6px;
+          left: 6px;
+          border-radius: 9999px;
+          padding: 3px 7px;
+          background: rgba(129, 80, 92, 0.92);
+          color: #fff;
+          font-size: 9px;
+          font-weight: 700;
+          line-height: 1;
         }
 
         #imageModalCount {
@@ -2823,7 +2885,7 @@
           position: fixed;
           left: 12px;
           right: 12px;
-          bottom: calc(env(safe-area-inset-bottom, 0px) + 140px);
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 228px);
           z-index: 32;
           max-width: 430px;
           min-height: 0;
@@ -2939,9 +3001,28 @@
           padding: 12px 16px;
         }
 
+        .image-modal-thumbnail-strip {
+          position: static;
+          grid-column: 2;
+          grid-row: 2;
+          left: auto;
+          right: auto;
+          bottom: auto;
+          padding: 12px;
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+        }
+
+        .image-modal-thumbnail-button {
+          width: 88px;
+          border-radius: 18px;
+        }
+
         .image-modal-actions {
           grid-column: 2;
-          grid-row: 2 / 4;
+          grid-row: 3;
           align-self: start;
           max-height: calc(100dvh - 148px);
           overflow-y: auto;
@@ -5094,7 +5175,7 @@
                   <div class="my-photo-icon" aria-hidden="true">
                     <span class="material-symbols-outlined text-[26px]">photo_library</span>
                   </div>
-                  <h2 class="mt-4 font-display text-[27px] leading-tight text-on-surface">아직 보관된 사진이 없어요</h2>
+                  <h2 class="mt-4 font-display text-[27px] leading-tight text-on-surface">아직 저장된 사진이 없어요.</h2>
                   <p class="mt-3 text-sm leading-6 text-on-surface-variant">최근 7일 내 만든 AI 웨딩사진이 이곳에 표시됩니다.</p>
                   <button class="mt-5 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="myPhotoBoxCreateButton" type="button">
                     사진 만들러 가기
@@ -5834,6 +5915,7 @@
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
+        <div class="image-modal-thumbnail-strip hidden" id="imageModalThumbnailStrip" aria-label="같은 생성 결과 썸네일"></div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
           <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
             <button class="hidden h-14 min-w-0 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalPhotoSave" type="button">
@@ -6824,6 +6906,7 @@ Important:
       const imageModalPrevMobile = document.getElementById("imageModalPrevMobile");
       const imageModalNextMobile = document.getElementById("imageModalNextMobile");
       const imageModalCount = document.getElementById("imageModalCount");
+      const imageModalThumbnailStrip = document.getElementById("imageModalThumbnailStrip");
       const imageSaveModal = document.getElementById("imageSaveModal");
       const imageSaveModalImg = document.getElementById("imageSaveModalImg");
       const imageSaveModalCount = document.getElementById("imageSaveModalCount");
@@ -11538,15 +11621,154 @@ Important:
         }).format(date);
       }
 
-      function getMyPhotoGenerationId(rawItem = {}, fallback = "") {
+      function getMyPhotoGroupId(rawItem = {}, fallback = "") {
         return String(
-          rawItem.generationId
+          rawItem.generationJobId
+            || rawItem.generation_job_id
+            || rawItem.jobId
+            || rawItem.job_id
+            || rawItem.generationId
             || rawItem.generation_id
+            || rawItem.parentGenerationId
+            || rawItem.parent_generation_id
+            || rawItem.generation?.jobId
+            || rawItem.generation?.job_id
             || rawItem.generation?.id
+            || rawItem.metadata?.generationJobId
+            || rawItem.metadata?.generation_job_id
+            || rawItem.metadata?.jobId
+            || rawItem.metadata?.job_id
+            || rawItem.metadata?.generationId
+            || rawItem.metadata?.generation_id
             || rawItem.id
             || fallback
             || "",
         ).trim();
+      }
+
+      function getMyPhotoGenerationId(rawItem = {}, fallback = "") {
+        return getMyPhotoGroupId(rawItem, fallback);
+      }
+
+      function getMyPhotoImageKey(rawImage = {}, fallback = "") {
+        return String(
+          rawImage.id
+            || rawImage.photoId
+            || rawImage.photo_id
+            || rawImage.imageId
+            || rawImage.image_id
+            || rawImage.resultImageId
+            || rawImage.result_image_id
+            || rawImage.path
+            || rawImage.imagePath
+            || rawImage.image_path
+            || rawImage.resultImagePath
+            || rawImage.result_image_path
+            || rawImage.url
+            || rawImage.imageUrl
+            || rawImage.image_url
+            || rawImage.resultImageUrl
+            || rawImage.result_image_url
+            || fallback
+            || "",
+        ).trim();
+      }
+
+      function parseMyPhotoRecommendationRank(...values) {
+        for (const value of values) {
+          const parsed = Number.parseInt(value, 10);
+          if (Number.isInteger(parsed) && parsed > 0) return parsed;
+        }
+        return null;
+      }
+
+      function getMyPhotoRecommendationRank(rawImage = {}, generation = {}, index = 0) {
+        const explicitRank = parseMyPhotoRecommendationRank(
+          rawImage.rank,
+          rawImage.recommendationRank,
+          rawImage.recommendation_rank,
+          rawImage.metadata?.rank,
+          rawImage.metadata?.recommendationRank,
+          rawImage.metadata?.recommendation_rank,
+        );
+        if (explicitRank !== null) return explicitRank;
+
+        const isRecommendedFlag = normalizeMyPhotoBoolean(
+          rawImage.isRecommended
+            ?? rawImage.is_recommended
+            ?? rawImage.recommended
+            ?? rawImage.metadata?.isRecommended
+            ?? rawImage.metadata?.is_recommended
+            ?? rawImage.metadata?.recommended,
+          false,
+        );
+        if (isRecommendedFlag) return 1;
+
+        const recommendedIndexValue = Number(
+          generation.recommendedIndex
+            ?? generation.recommended_index
+            ?? generation.metadata?.recommendedIndex
+            ?? generation.metadata?.recommended_index,
+        );
+        if (Number.isInteger(recommendedIndexValue) && index === recommendedIndexValue) {
+          return 1;
+        }
+
+        return Number.POSITIVE_INFINITY;
+      }
+
+      function chooseRepresentativeMyPhotoImage(images = []) {
+        if (!Array.isArray(images) || !images.length) return null;
+
+        return [...images].sort((left, right) => {
+          const leftRank = Number.isFinite(left.recommendationRank) ? left.recommendationRank : Number.POSITIVE_INFINITY;
+          const rightRank = Number.isFinite(right.recommendationRank) ? right.recommendationRank : Number.POSITIVE_INFINITY;
+          if (leftRank !== rightRank) return leftRank - rightRank;
+          return (left.index ?? 0) - (right.index ?? 0);
+        })[0] || images[0];
+      }
+
+      function groupMyPhotoRawItems(items = []) {
+        const grouped = new Map();
+
+        items.forEach((rawItem, index) => {
+          if (!rawItem || typeof rawItem !== "object") return;
+
+          const fallbackKey = `photo-group-${getMyPhotoCreatedAtValue(rawItem) || index}`;
+          const groupKey = getMyPhotoGroupId(rawItem, fallbackKey);
+          const groupImages = getMyPhotoRawImages(rawItem);
+
+          if (!grouped.has(groupKey)) {
+            grouped.set(groupKey, {
+              ...rawItem,
+              id: rawItem.id || groupKey,
+              images: [],
+            });
+          }
+
+          const existing = grouped.get(groupKey);
+          const knownImageKeys = new Set(existing.images.map((image, imageIndex) => getMyPhotoImageKey(image, `${groupKey}-${imageIndex}`)));
+          groupImages.forEach((image, imageIndex) => {
+            if (!image || typeof image !== "object") return;
+            const imageKey = getMyPhotoImageKey(image, `${groupKey}-${imageIndex}`);
+            if (knownImageKeys.has(imageKey)) return;
+            existing.images.push(image);
+            knownImageKeys.add(imageKey);
+          });
+
+          const existingCreatedAtTime = new Date(getMyPhotoCreatedAtValue(existing) || 0).getTime();
+          const nextCreatedAtTime = new Date(getMyPhotoCreatedAtValue(rawItem) || 0).getTime();
+          if (!Number.isFinite(existingCreatedAtTime) || (Number.isFinite(nextCreatedAtTime) && nextCreatedAtTime > existingCreatedAtTime)) {
+            existing.createdAt = rawItem.createdAt || rawItem.created_at || existing.createdAt || "";
+            existing.created_at = rawItem.created_at || rawItem.createdAt || existing.created_at || "";
+          }
+          existing.generationJobId = existing.generationJobId || rawItem.generationJobId || rawItem.generation_job_id || rawItem.jobId || rawItem.job_id || groupKey;
+          existing.generationId = existing.generationId || rawItem.generationId || rawItem.generation_id || groupKey;
+          existing.generation_id = existing.generation_id || rawItem.generation_id || rawItem.generationId || groupKey;
+          existing.jobId = existing.jobId || rawItem.jobId || rawItem.job_id || rawItem.generationJobId || rawItem.generation_job_id || groupKey;
+        });
+
+        return Array.from(grouped.values());
       }
 
       function getMyPhotoRawImages(rawItem = {}) {
@@ -11640,22 +11862,26 @@ Important:
           rawImage.thumb_url,
           imageUrl,
         );
-        const generationId = getMyPhotoGenerationId(generation, rawImage.generationId || rawImage.generation_id || "");
-        const recommendedIndexValue = Number(generation.recommendedIndex ?? generation.recommended_index);
-        const isRecommended = normalizeMyPhotoBoolean(
-          rawImage.isRecommended ?? rawImage.is_recommended ?? rawImage.recommended,
-          Number.isInteger(recommendedIndexValue) ? index === recommendedIndexValue : index === 0,
+        const generationId = getMyPhotoGenerationId(
+          {
+            ...generation,
+            ...rawImage,
+          },
+          rawImage.generationId || rawImage.generation_id || "",
         );
+        const recommendationRank = getMyPhotoRecommendationRank(rawImage, generation, index);
+        const isRecommended = recommendationRank === 1;
 
         if (!imageUrl && !thumbnailUrl) return null;
 
         return {
-          id: rawImage.id || rawImage.photoId || rawImage.photo_id || rawImage.imageId || rawImage.image_id || `${generationId || "generation"}-${index}`,
+          id: getMyPhotoImageKey(rawImage, `${generationId || "generation"}-${index}`),
           generationId,
           imageUrl,
           thumbnailUrl,
           resultLabel: rawImage.resultLabel || rawImage.result_label || rawImage.label || `AI 생성 결과 ${index + 1}`,
           isRecommended,
+          recommendationRank,
           galleryUploaded: normalizeMyPhotoBoolean(rawImage.galleryUploaded ?? rawImage.gallery_uploaded, normalizeMyPhotoBoolean(generation.galleryUploaded ?? generation.gallery_uploaded, false)),
           source: rawImage.source || rawImage.origin || generation.source || generation.origin || "",
           hasWatermark,
@@ -11696,14 +11922,21 @@ Important:
         const generationId = getMyPhotoGenerationId(rawItem, `${createdAt || "photo"}-${index}`);
         const images = getMyPhotoRawImages(rawItem)
           .map((image, imageIndex) => normalizeMyPhotoImage(image, { ...rawItem, id: generationId }, imageIndex))
-          .filter(Boolean);
-        const representativeImage = images.find((image) => image.isRecommended) || images[0] || null;
+          .filter(Boolean)
+          .sort((left, right) => {
+            const leftRank = Number.isFinite(left.recommendationRank) ? left.recommendationRank : Number.POSITIVE_INFINITY;
+            const rightRank = Number.isFinite(right.recommendationRank) ? right.recommendationRank : Number.POSITIVE_INFINITY;
+            if (leftRank !== rightRank) return leftRank - rightRank;
+            return (left.index ?? 0) - (right.index ?? 0);
+          });
+        const representativeImage = chooseRepresentativeMyPhotoImage(images);
 
         if (!representativeImage) return null;
 
         return {
           id: generationId,
           generationId,
+          generationJobId: generationId,
           imageUrl: representativeImage.imageUrl,
           thumbnailUrl: representativeImage.thumbnailUrl,
           styleLabel,
@@ -11712,6 +11945,7 @@ Important:
           createdAt,
           createdAtLabel: formatMyPhotoDate(createdAt),
           isRecommended: Boolean(representativeImage.isRecommended),
+          recommendedPhoto: representativeImage,
           galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery") || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
           source: rawItem.source || rawItem.origin || "",
           hasWatermark: normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, representativeImage.hasWatermark === true),
@@ -11743,10 +11977,24 @@ Important:
           });
           existing.galleryUploaded = existing.galleryUploaded || item.galleryUploaded;
           existing.isRecommended = existing.isRecommended || item.isRecommended;
-          const representativeImage = existing.images.find((image) => image.isRecommended) || existing.images[0] || null;
+          existing.images.sort((left, right) => {
+            const leftRank = Number.isFinite(left.recommendationRank) ? left.recommendationRank : Number.POSITIVE_INFINITY;
+            const rightRank = Number.isFinite(right.recommendationRank) ? right.recommendationRank : Number.POSITIVE_INFINITY;
+            if (leftRank !== rightRank) return leftRank - rightRank;
+            return (left.index ?? 0) - (right.index ?? 0);
+          });
+          const representativeImage = chooseRepresentativeMyPhotoImage(existing.images);
           if (representativeImage) {
             existing.imageUrl = representativeImage.imageUrl;
             existing.thumbnailUrl = representativeImage.thumbnailUrl;
+            existing.isRecommended = Boolean(representativeImage.isRecommended);
+            existing.recommendedPhoto = representativeImage;
+          }
+          const existingCreatedAtTime = new Date(existing.createdAt || 0).getTime();
+          const nextCreatedAtTime = new Date(item.createdAt || 0).getTime();
+          if (Number.isFinite(nextCreatedAtTime) && nextCreatedAtTime > (Number.isFinite(existingCreatedAtTime) ? existingCreatedAtTime : 0)) {
+            existing.createdAt = item.createdAt;
+            existing.createdAtLabel = item.createdAtLabel;
           }
         });
 
@@ -11769,8 +12017,11 @@ Important:
           throw new Error(payload?.message || `My photos request failed: ${response.status}`);
         }
 
-        const normalizedItems = extractMyPhotoItems(payload)
+        const groupedRawItems = groupMyPhotoRawItems(
+          extractMyPhotoItems(payload)
           .filter(isRecentSevenDayPhoto)
+        );
+        const normalizedItems = groupedRawItems
           .map(normalizeMyPhotoItem)
           .filter((photo) => photo && (photo.imageUrl || photo.thumbnailUrl));
 
@@ -14244,6 +14495,32 @@ ${modeExample}`;
         imageModalGalleryUpload?.classList.toggle("flex", isVisible);
       }
 
+      function renderImageModalThumbnailStrip(items = getImageModalItems(), activeIndex = activeImageModalIndex) {
+        if (!imageModalThumbnailStrip) return;
+
+        const safeItems = Array.isArray(items) ? items.filter((item) => item?.url) : [];
+        const shouldShow = safeItems.length > 1;
+
+        imageModalThumbnailStrip.classList.toggle("hidden", !shouldShow);
+        if (!shouldShow) {
+          imageModalThumbnailStrip.innerHTML = "";
+          return;
+        }
+
+        imageModalThumbnailStrip.innerHTML = safeItems.map((modalItem, index) => `
+          <button
+            class="image-modal-thumbnail-button ${index === activeIndex ? "is-active" : ""}"
+            data-image-modal-thumb-index="${index}"
+            type="button"
+            aria-label="${escapeHtml(modalItem.label || `결과 ${index + 1}`)} 보기"
+            aria-pressed="${index === activeIndex ? "true" : "false"}"
+          >
+            <img src="${escapeHtml(modalItem.url)}" alt="${escapeHtml(modalItem.label || `결과 ${index + 1}`)}" loading="lazy" decoding="async" />
+            ${modalItem.isRecommended ? `<span class="image-modal-thumbnail-recommended">AI 추천</span>` : ""}
+          </button>
+        `).join("");
+      }
+
       function setImageModalStatus(message = "") {
         imageModalStatus.textContent = message;
       }
@@ -14376,8 +14653,18 @@ ${modeExample}`;
           itemOrResult?.watermark_strategy ||
           itemOrResult?.result_payload?.watermarkStrategy ||
           itemOrResult?.resultPayload?.watermarkStrategy;
+        const hasExplicitPaidType = generationType === "paid";
+        const hasExplicitFreeFalse =
+          itemOrResult?.isFreeGeneration === false ||
+          itemOrResult?.is_free_generation === false ||
+          itemOrResult?.usedFreeGeneration === false ||
+          itemOrResult?.used_free_generation === false ||
+          itemOrResult?.result_payload?.isFreeGeneration === false ||
+          itemOrResult?.result_payload?.is_free_generation === false ||
+          itemOrResult?.resultPayload?.isFreeGeneration === false ||
+          itemOrResult?.resultPayload?.is_free_generation === false;
 
-        if (generationType === "paid") {
+        if (hasExplicitPaidType || (hasExplicitFreeFalse && watermarkStrategy !== "frontend_overlay")) {
           return false;
         }
 
@@ -15467,6 +15754,7 @@ ${modeExample}`;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
         imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
+        renderImageModalThumbnailStrip(items, activeImageModalIndex);
         setImageModalActionsVisible(Boolean(item.url) && !isGallerySource);
         if (imageModalGalleryUpload) {
           const showGalleryUpload = Boolean(item.url) && !isGallerySource;
@@ -15583,6 +15871,7 @@ ${modeExample}`;
         imageModalImg.removeAttribute("src");
         imageModalImageFrame?.classList.remove("has-logo-watermark");
         hideImageModalOriginalThumbnail();
+        renderImageModalThumbnailStrip([], 0);
         setImageModalActionsVisible(false);
         setImageModalStatus("");
         modalItemsOverride = null;
@@ -17415,6 +17704,18 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         openPhotoSaveModal();
+      });
+      imageModalThumbnailStrip?.addEventListener("click", (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest("[data-image-modal-thumb-index]")
+          : null;
+        if (!target) return;
+
+        const index = Number.parseInt(target.dataset.imageModalThumbIndex || "", 10);
+        if (!Number.isInteger(index)) return;
+
+        activeImageModalIndex = index;
+        renderImageModal();
       });
       imageModalGalleryUpload?.addEventListener("click", (event) => {
         event.preventDefault();

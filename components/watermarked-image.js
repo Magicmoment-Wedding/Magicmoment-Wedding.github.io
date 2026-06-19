@@ -20,8 +20,18 @@ export function shouldShowWatermarkOverlay(itemOrResult = {}) {
     itemOrResult?.watermark_strategy ||
     itemOrResult?.result_payload?.watermarkStrategy ||
     itemOrResult?.resultPayload?.watermarkStrategy;
+  const hasExplicitPaidType = generationType === "paid";
+  const hasExplicitFreeFalse =
+    itemOrResult?.isFreeGeneration === false ||
+    itemOrResult?.is_free_generation === false ||
+    itemOrResult?.usedFreeGeneration === false ||
+    itemOrResult?.used_free_generation === false ||
+    itemOrResult?.result_payload?.isFreeGeneration === false ||
+    itemOrResult?.result_payload?.is_free_generation === false ||
+    itemOrResult?.resultPayload?.isFreeGeneration === false ||
+    itemOrResult?.resultPayload?.is_free_generation === false;
 
-  if (generationType === "paid") {
+  if (hasExplicitPaidType || (hasExplicitFreeFalse && watermarkStrategy !== "frontend_overlay")) {
     return false;
   }
 

@@ -7572,16 +7572,7 @@ Important:
       }
 
       function getGoogleOAuthCallbackOrigin() {
-        try {
-          const origin = new URL(APP_ORIGIN).origin.replace(/\/+$/, "");
-          const isLocalOrigin = origin === "http://localhost:3000"
-            || origin === "http://127.0.0.1:3000"
-            || origin === "http://localhost:5173"
-            || origin === "http://127.0.0.1:5173";
-          return isLocalOrigin ? PRODUCTION_APP_ORIGIN : origin;
-        } catch (error) {
-          return PRODUCTION_APP_ORIGIN;
-        }
+        return String(APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
       }
 
       function normalizeGoogleReturnTo(value) {
@@ -18234,7 +18225,8 @@ ${modeExample}`;
         }
 
         const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
-        const redirectTo = getGoogleOAuthRedirectTo(normalizedReturnTo);
+        const appOrigin = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
+        const redirectTo = `${appOrigin}/auth/callback?returnTo=${encodeURIComponent(normalizedReturnTo)}`;
         const isInAppBrowser = isInAppBrowserForGoogleOAuth();
 
         if (isInAppBrowser) {
@@ -18265,8 +18257,9 @@ ${modeExample}`;
         const supabaseClient = getSupabaseAuthClient();
         console.info("[auth][google][start]", {
           origin: window.location.origin,
-          appOrigin: APP_ORIGIN,
+          appOrigin,
           redirectTo,
+          returnTo: normalizedReturnTo,
           hasSupabaseUrl: Boolean(supabaseUrl),
           hasSupabaseAnonKey: Boolean(supabaseAnonKey),
           hasSupabaseClient: Boolean(supabaseClient),

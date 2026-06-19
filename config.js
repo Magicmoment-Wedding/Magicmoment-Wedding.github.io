@@ -5,12 +5,7 @@
 
   function normalizeAppOrigin(value) {
     try {
-      const origin = new URL(String(value || ONLINE_APP_ORIGIN)).origin;
-      const isLocalOrigin = origin === "http://localhost:3000"
-        || origin === "http://127.0.0.1:3000"
-        || origin === "http://localhost:5173"
-        || origin === "http://127.0.0.1:5173";
-      return isLocalOrigin ? ONLINE_APP_ORIGIN : origin;
+      return new URL(String(value || ONLINE_APP_ORIGIN)).origin;
     } catch (error) {
       return ONLINE_APP_ORIGIN;
     }

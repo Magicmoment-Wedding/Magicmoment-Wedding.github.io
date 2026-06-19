@@ -3215,19 +3215,19 @@
         z-index: 50;
         min-height: 44px;
         border-radius: 999px;
-        padding: 10px 18px;
+        padding: 8px 14px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 7px;
-        border: 1px solid rgba(145, 76, 96, 0.25);
+        gap: 6px;
+        border: 1px solid rgba(154, 90, 106, 0.18);
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 248, 246, 0.76));
-        color: var(--rose-deep);
-        font-size: 14px;
+          linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 245, 247, 0.72));
+        color: #7b4a5a;
+        font-size: 12px;
         line-height: 1;
         font-weight: 600;
-        letter-spacing: 0;
+        letter-spacing: 0.04em;
         white-space: nowrap;
         box-shadow:
           0 12px 30px rgba(82, 40, 58, 0.12),
@@ -3238,7 +3238,7 @@
       }
 
       .landing-auth-button .material-symbols-outlined {
-        font-size: 18px;
+        font-size: 14px;
         line-height: 1;
         color: #914c60;
       }
@@ -4629,8 +4629,7 @@
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
         <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인/회원가입 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
-          <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
-          <span>로그인</span>
+          <span>LOGIN / JOIN</span>
         </button>
         <div class="landing-sections" id="landingSections" aria-label="Magic Ai Studio 랜딩 소개">
           <section class="landing-section landing-hero-section" aria-label="Before After 쇼케이스">
@@ -7558,15 +7557,103 @@ Important:
         return normalizeLoginReturnView(queryReturnTo || getStoredLoginReturnView());
       }
 
+      function isLocalAuthOrigin(origin = window.location.origin) {
+        try {
+          const url = new URL(origin);
+          return url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]";
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function getGoogleOAuthCallbackOrigin() {
+        return isLocalAuthOrigin() ? window.location.origin : "https://magicaistudio.co.kr";
+      }
+
       function normalizeGoogleReturnTo(value) {
         const returnTo = normalizeLoginReturnView(value);
         return GOOGLE_LOGIN_RETURN_VIEWS.has(returnTo) ? returnTo : LOGIN_RETURN_VIEW_FALLBACK;
       }
 
       function getGoogleOAuthRedirectTo(returnTo) {
-        const callbackUrl = new URL("/auth/callback", window.location.origin);
+        const callbackUrl = new URL("/auth/callback", getGoogleOAuthCallbackOrigin());
         callbackUrl.searchParams.set("returnTo", normalizeGoogleReturnTo(returnTo));
         return callbackUrl.toString();
+      }
+
+      function serializeAuthErrorValue(value) {
+        if (value == null) return value;
+        if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return value;
+        if (value instanceof Error) {
+          return {
+            name: value.name || "",
+            message: value.message || "",
+            status: value.status || value.statusCode || "",
+            code: value.code || "",
+          };
+        }
+        try {
+          return JSON.parse(JSON.stringify(value));
+        } catch (error) {
+          return String(value);
+        }
+      }
+
+      function getAuthErrorDetails(error, fallback = {}) {
+        const details = {
+          name: error?.name || fallback.name || "",
+          message: error?.message || fallback.message || "",
+          status: error?.status || error?.statusCode || fallback.status || "",
+          code: error?.code || error?.errorCode || fallback.code || "",
+          cause: serializeAuthErrorValue(error?.cause || fallback.cause || ""),
+          stack: error?.stack || fallback.stack || "",
+        };
+        return details;
+      }
+
+      function stringifyAuthErrorDetails(details = {}) {
+        try {
+          return JSON.stringify(details, null, 2);
+        } catch (error) {
+          return String(details?.message || details?.code || "Unknown auth error");
+        }
+      }
+
+      function getGoogleAuthFailureCategory(details = {}) {
+        const haystack = `${details.name || ""} ${details.message || ""} ${details.code || ""} ${details.status || ""}`.toLowerCase();
+        if (haystack.includes("provider") && (haystack.includes("disabled") || haystack.includes("not enabled") || haystack.includes("unsupported"))) {
+          return "provider_disabled";
+        }
+        if (haystack.includes("provider_disabled") || haystack.includes("unsupported_provider")) {
+          return "provider_disabled";
+        }
+        if (
+          haystack.includes("redirect")
+          || haystack.includes("redirect_to")
+          || haystack.includes("callback")
+          || haystack.includes("site url")
+          || haystack.includes("not allowed")
+          || haystack.includes("invalid_request")
+          || haystack.includes("origin")
+        ) {
+          return "redirect";
+        }
+        return "unknown";
+      }
+
+      function getGoogleAuthStartFailureMessage(details = {}) {
+        const category = getGoogleAuthFailureCategory(details);
+        if (category === "provider_disabled") {
+          return "Google 로그인이 아직 활성화되지 않았습니다. 관리자에게 문의해 주세요.";
+        }
+        if (category === "redirect") {
+          return "Google 로그인 연결 주소가 올바르지 않습니다. 관리자에게 문의해 주세요.";
+        }
+        return "Google 로그인 설정을 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+      }
+
+      function logGoogleAuthError(label, details = {}) {
+        console.error(label, stringifyAuthErrorDetails(details));
       }
 
       function isGoogleLoginEnabled() {
@@ -7612,10 +7699,17 @@ Important:
 
       function logGoogleCallbackError(searchParams = new URLSearchParams(window.location.search)) {
         const { error, errorCode, errorDescription } = getGoogleCallbackErrorParams(searchParams);
-        console.error("[auth][google][callback-error]", {
-          error,
-          errorCode,
-          errorDescription,
+        logGoogleAuthError("[auth][google][callback-error]", {
+          name: "GoogleOAuthCallbackQueryError",
+          message: errorDescription || error || "Google OAuth callback returned an error.",
+          status: "",
+          code: errorCode || error,
+          cause: {
+            error,
+            errorCode,
+            errorDescription,
+          },
+          stack: "",
         });
       }
 
@@ -8400,7 +8494,7 @@ Important:
         landingAuthButton.classList.toggle("hidden", appScreen !== "landing");
         landingAuthButton.innerHTML = hasUser
           ? `<span class="material-symbols-outlined" aria-hidden="true">person</span><span>내 계정</span>`
-          : `<span class="material-symbols-outlined" aria-hidden="true">person_add</span><span>로그인</span>`;
+          : `<span>LOGIN / JOIN</span>`;
         landingAuthButton.setAttribute("aria-label", hasUser ? "내 계정 열기" : "로그인/회원가입 열기");
         landingAuthButton.setAttribute("aria-controls", hasUser ? "accountMenuPanel" : "loginModalPanel");
         landingAuthButton.setAttribute("aria-expanded", hasUser && isAccountMenuOpen() ? "true" : "false");
@@ -11803,12 +11897,20 @@ Important:
         const authCode = loginParams.get("code");
         const supabaseClient = getSupabaseAuthClient();
         if (!authCode || !supabaseClient?.auth?.exchangeCodeForSession) {
-          console.error("[auth][google][callback-error]", {
-            error: "missing_supabase_callback_config",
-            errorCode: "",
-            errorDescription: !authCode
+          logGoogleAuthError("[auth][google][callback-error]", {
+            name: "GoogleOAuthCallbackConfigurationError",
+            message: !authCode
               ? "Supabase callback did not include an auth code."
               : "Supabase client is not configured on the frontend.",
+            status: "",
+            code: !authCode ? "SUPABASE_AUTH_CODE_MISSING" : "SUPABASE_FRONTEND_CONFIG_MISSING",
+            cause: {
+              hasAuthCode: Boolean(authCode),
+              hasSupabaseClient: Boolean(supabaseClient),
+              hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
+              returnTo: normalizedReturnTo,
+            },
+            stack: "",
           });
           applyAuthUser(null);
           authFlowState = "error";
@@ -11827,11 +11929,13 @@ Important:
           if (error) throw error;
           return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo);
         } catch (error) {
-          console.error("[auth][google][callback-error]", {
-            error: error?.name || "exchange_failed",
-            errorCode: error?.code || error?.status || "",
-            errorDescription: error?.message || "",
-          });
+          logGoogleAuthError("[auth][google][callback-error]", getAuthErrorDetails(error, {
+            name: "GoogleOAuthExchangeError",
+            code: "EXCHANGE_CODE_FOR_SESSION_FAILED",
+            cause: {
+              returnTo: normalizedReturnTo,
+            },
+          }));
           applyAuthUser(null);
           authFlowState = "error";
           setAuthTab(authMode);
@@ -17917,12 +18021,13 @@ ${modeExample}`;
         const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
         const redirectTo = getGoogleOAuthRedirectTo(normalizedReturnTo);
         const isInAppBrowser = isInAppBrowserForGoogleOAuth();
-        console.info("[auth][google][start]", {
+        console.info("[auth][google][start]", stringifyAuthErrorDetails({
           origin: window.location.origin,
           redirectTo,
           returnTo: normalizedReturnTo,
+          apiBaseUrl: FRONT_API_BASE_URL,
           isInAppBrowser,
-        });
+        }));
 
         if (isInAppBrowser) {
           openGoogleInAppBrowserModal();
@@ -17930,19 +18035,44 @@ ${modeExample}`;
         }
 
         if (!isGoogleLoginEnabled()) {
-          showAccountMenuToast("Google 로그인은 현재 점검 중입니다. 잠시 후 다시 시도해 주세요.");
+          const details = {
+            name: "GoogleOAuthProviderDisabled",
+            message: "Google login feature flag is disabled on the frontend.",
+            status: "",
+            code: "GOOGLE_LOGIN_DISABLED",
+            cause: {
+              redirectTo,
+              returnTo: normalizedReturnTo,
+            },
+            stack: "",
+          };
+          logGoogleAuthError("[auth][google][start-error]", details);
+          showAccountMenuToast(getGoogleAuthStartFailureMessage(details));
           return;
         }
 
         const supabaseClient = getSupabaseAuthClient();
         if (!supabaseClient?.auth?.signInWithOAuth) {
-          console.error("[auth][google][start-error]", {
-            error: "missing_supabase_frontend_config",
+          const configError = new Error("Supabase frontend configuration is missing or the Supabase SDK was not loaded.");
+          configError.name = "GoogleOAuthConfigurationError";
+          configError.code = !window.supabase?.createClient ? "SUPABASE_SDK_MISSING" : "SUPABASE_FRONTEND_CONFIG_MISSING";
+          const details = getAuthErrorDetails(configError, {
+            status: "",
+            cause: {
+              hasSupabaseSdk: Boolean(window.supabase?.createClient),
+              hasSupabaseUrl: Boolean(PUBLIC_SUPABASE_URL),
+              hasSupabaseAnonKey: Boolean(PUBLIC_SUPABASE_ANON_KEY),
+              redirectTo,
+              returnTo: normalizedReturnTo,
+            },
+          });
+          logGoogleAuthError("[auth][google][start-error]", {
+            ...details,
             hasSupabaseSdk: Boolean(window.supabase?.createClient),
             hasSupabaseUrl: Boolean(PUBLIC_SUPABASE_URL),
             hasSupabaseAnonKey: Boolean(PUBLIC_SUPABASE_ANON_KEY),
           });
-          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          showAccountMenuToast(getGoogleAuthStartFailureMessage(details));
           return;
         }
 
@@ -17953,23 +18083,36 @@ ${modeExample}`;
         showAccountMenuToast(`Google ${actionLabel}으로 이동 중...`);
 
         try {
-          const { error } = await supabaseClient.auth.signInWithOAuth({
+          const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: "google",
             options: {
               redirectTo,
             },
           });
           if (error) throw error;
+          if (data?.url) {
+            console.info("[auth][google][oauth-url-created]", {
+              hasUrl: true,
+              redirectTo,
+              returnTo: normalizedReturnTo,
+            });
+          }
         } catch (error) {
-          console.error("[auth][google][start-error]", {
-            error: error?.name || "sign_in_with_oauth_failed",
-            errorCode: error?.code || error?.status || "",
-            errorDescription: error?.message || "",
+          const details = getAuthErrorDetails(error, {
+            name: "GoogleOAuthStartError",
+            code: "SIGN_IN_WITH_OAUTH_FAILED",
+            cause: {
+              redirectTo,
+              returnTo: normalizedReturnTo,
+              apiBaseUrl: FRONT_API_BASE_URL,
+              isInAppBrowser,
+            },
           });
+          logGoogleAuthError("[auth][google][start-error]", details);
           clearAuthStartState();
           hideAuthProcessingOverlay();
           setSocialLoginButtonLoading(button, false);
-          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          showAccountMenuToast(getGoogleAuthStartFailureMessage(details));
         }
       }
 

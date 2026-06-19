@@ -1597,6 +1597,47 @@
         color: #705e61;
       }
 
+      .admin-gallery-thumb,
+      .admin-gallery-preview {
+        overflow: hidden;
+        border: 1px solid rgba(129, 80, 92, 0.12);
+        background: rgba(255, 248, 250, 0.82);
+      }
+
+      .admin-gallery-thumb {
+        display: grid;
+        place-items: center;
+        width: 56px;
+        height: 56px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        color: #8a6b72;
+        font-size: 11px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .admin-gallery-thumb img,
+      .admin-gallery-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .admin-gallery-preview {
+        display: grid;
+        place-items: center;
+        min-height: 180px;
+        border-radius: 16px;
+        color: #8a6b72;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .admin-gallery-preview img {
+        max-height: 320px;
+      }
+
       .admin-badge-stack {
         display: flex;
         flex-wrap: wrap;
@@ -9231,6 +9272,74 @@ Important:
 
       function normalizeAdminGalleryItem(item = {}) {
         const normalizedBase = normalizeGalleryItem(item) || {};
+        const imageUrl = firstUrlValue(
+          item.thumbnailUrl,
+          item.thumbnail_url,
+          item.imageUrl,
+          item.image_url,
+          item.publicUrl,
+          item.public_url,
+          item.url,
+          normalizedBase.thumbnailUrl,
+          normalizedBase.displayUrl,
+          normalizedBase.imageUrl,
+        );
+        const fullImageUrl = firstUrlValue(
+          item.imageUrl,
+          item.image_url,
+          item.publicUrl,
+          item.public_url,
+          item.url,
+          normalizedBase.imageUrl,
+          normalizedBase.displayUrl,
+          imageUrl,
+        );
+        const resultLabel = String(item.resultLabel || item.result_label || normalizedBase.resultLabel || item.title || item.label || "").trim();
+        const styleLabel = String(
+          item.styleLabel
+          || item.style_label
+          || item.style
+          || item.styleCategory
+          || item.style_category
+          || item.category
+          || item.styleCategoryLabel
+          || item.style_category_label
+          || getAdminGenerationStyleLabel(item)
+          || "",
+        ).trim();
+        const presetLabel = String(
+          item.presetLabel
+          || item.preset_label
+          || item.preset
+          || item.presetKey
+          || item.preset_key
+          || normalizedBase.presetLabel
+          || "",
+        ).trim();
+        const title = resultLabel || presetLabel || "갤러리 사진";
+        const userName = String(
+          item.userName
+          || item.user_name
+          || item.displayName
+          || item.display_name
+          || item.nickname
+          || item.user?.name
+          || item.user?.displayName
+          || item.user?.display_name
+          || item.user?.nickname
+          || item.profile?.name
+          || item.profile?.displayName
+          || item.profile?.display_name
+          || "이름 미등록",
+        ).trim();
+        const userEmail = String(
+          item.userEmail
+          || item.user_email
+          || item.email
+          || item.user?.email
+          || item.profile?.email
+          || "이메일 없음",
+        ).trim();
         const galleryItemId = String(
           item.galleryItemId
             || item.gallery_item_id
@@ -9244,10 +9353,17 @@ Important:
           ...normalizedBase,
           id: galleryItemId || normalizedBase.id || "",
           galleryItemId: galleryItemId || normalizedBase.id || "",
-          styleLabel: item.styleLabel || item.style_label || item.styleCategoryLabel || item.style_category_label || getAdminGenerationStyleLabel(item),
-          presetLabel: normalizedBase.presetLabel || item.preset || item.presetName || item.preset_name || "-",
-          userEmail: item.userEmail || item.user_email || item.email || item.user?.email || item.profile?.email || "이메일 없음",
-          userName: item.userName || item.user_name || item.nickname || item.user?.name || item.user?.nickname || item.profile?.name || "이름 미등록",
+          imageUrl: fullImageUrl,
+          thumbnailUrl: imageUrl,
+          displayUrl: imageUrl || fullImageUrl,
+          publicUrl: item.publicUrl || item.public_url || "",
+          imagePath: item.imagePath || item.image_path || item.path || item.storagePath || item.storage_path || normalizedBase.imagePath || "",
+          title,
+          resultLabel,
+          styleLabel,
+          presetLabel,
+          userEmail,
+          userName,
           createdAt: item.createdAt || item.created_at || item.uploadedAt || item.uploaded_at || item.publishedAt || item.published_at || "",
           isRecommended: item.isRecommended === true || item.is_recommended === true || item.recommended === true,
           status: getGalleryItemStatusToken(item),
@@ -9256,7 +9372,9 @@ Important:
       }
 
       function normalizeAdminGalleryPayload(payload = {}) {
-        const items = getAdminGalleryPayloadItems(payload).map(normalizeAdminGalleryItem);
+        const rawItems = getAdminGalleryPayloadItems(payload);
+        console.debug("[admin/gallery][first-item]", rawItems?.[0]);
+        const items = rawItems.map(normalizeAdminGalleryItem);
         const total = Number(payload.total ?? payload.data?.total ?? items.length ?? 0);
         return {
           ...payload,
@@ -9570,7 +9688,7 @@ Important:
           return {
             ...item,
             status: "deleted",
-            statusLabel: "삭제됨",
+            statusLabel: "숨김",
             isDeleted: true,
             is_deleted: true,
             deletedAt: new Date().toISOString(),
@@ -10157,21 +10275,53 @@ Important:
         `;
       }
 
+      function renderAdminGalleryThumb(url = "", alt = "갤러리 이미지") {
+        const displayUrl = url ? toDisplayUrl(url) : "";
+        if (!displayUrl) {
+          return `<div class="admin-gallery-thumb" aria-label="이미지 없음">이미지 없음</div>`;
+        }
+        return `
+          <div class="admin-gallery-thumb">
+            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="this.remove();this.parentElement.textContent='이미지 불러오기 실패';" />
+          </div>
+        `;
+      }
+
+      function renderAdminGalleryPreview(url = "", alt = "갤러리 이미지") {
+        const displayUrl = url ? toDisplayUrl(url) : "";
+        if (!displayUrl) {
+          return `<div class="admin-gallery-preview">이미지 없음</div>`;
+        }
+        return `
+          <div class="admin-gallery-preview">
+            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="this.remove();this.parentElement.textContent='이미지 불러오기 실패';" />
+          </div>
+        `;
+      }
+
       function renderAdminGalleryCard(item = {}) {
         const normalized = normalizeAdminGalleryItem(item);
         const itemId = normalized.galleryItemId || normalized.id || "";
         const thumbnailUrl = normalized.thumbnailUrl || normalized.displayUrl || normalized.imageUrl || "";
+        const fullImageUrl = normalized.imageUrl || normalized.displayUrl || normalized.thumbnailUrl || "";
+        const imagePath = normalized.imagePath || normalized.image_path || normalized.path || "";
+        const title = normalized.title || normalized.resultLabel || normalized.presetLabel || "갤러리 사진";
+        const styleLabel = normalized.styleLabel || "-";
+        const presetLabel = normalized.presetLabel || "-";
+        const resultLabel = normalized.resultLabel || "-";
         const memberName = normalized.userName || "이름 미등록";
         const memberEmail = normalized.userEmail || "이메일 없음";
-        const canDelete = Boolean(itemId) && normalized.status !== "deleted";
+        const deleteReason = normalized.deleteReason || normalized.delete_reason || normalized.deletedReason || normalized.deleted_reason || "";
+        const canDelete = Boolean(itemId) && normalized.status === "public";
         return `
           <details class="admin-data-row admin-list-card admin-gallery-item">
             <summary>
               <div class="admin-card-summary">
                 <div class="flex items-center gap-3 min-w-0">
-                  ${thumbnailUrl ? `<img src="${escapeHtml(toDisplayUrl(thumbnailUrl))}" alt="${escapeHtml(normalized.resultLabel || normalized.presetLabel || "갤러리 이미지")}" class="h-14 w-14 rounded-[12px] object-cover border border-white/70 shrink-0" loading="lazy" decoding="async" />` : ""}
+                  ${renderAdminGalleryThumb(thumbnailUrl, title)}
                   <div class="min-w-0">
-                    <div class="admin-main-title truncate">${escapeHtml(normalized.styleLabel || "스타일 정보 없음")} · ${escapeHtml(normalized.presetLabel || "-")}</div>
+                    <div class="admin-main-title truncate">${escapeHtml(title)}</div>
+                    <div class="admin-summary-subtext truncate">${escapeHtml(styleLabel)}${presetLabel && presetLabel !== "-" ? ` · ${escapeHtml(presetLabel)}` : ""}</div>
                     <div class="admin-summary-subtext truncate">${escapeHtml(memberName)} / ${escapeHtml(memberEmail)}</div>
                   </div>
                 </div>
@@ -10187,21 +10337,25 @@ Important:
               <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
             </summary>
             <div class="admin-detail-panel">
+              ${renderAdminGalleryPreview(fullImageUrl || thumbnailUrl, title)}
               <div class="admin-meta-list">
-                <div class="admin-meta-row"><span class="admin-meta-label">스타일명</span><span class="admin-meta-value">${escapeHtml(normalized.styleLabel || "-")}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">프리셋명</span><span class="admin-meta-value">${escapeHtml(normalized.presetLabel || "-")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">imageUrl</span><span class="admin-meta-value">${fullImageUrl ? `<a class="text-primary font-bold" href="${escapeHtml(toDisplayUrl(fullImageUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(fullImageUrl)}</a>` : escapeHtml(imagePath || "없음")}</span></div>
+                ${imagePath ? `<div class="admin-meta-row"><span class="admin-meta-label">imagePath</span><span class="admin-meta-value">${escapeHtml(imagePath)}</span></div>` : ""}
+                <div class="admin-meta-row"><span class="admin-meta-label">스타일</span><span class="admin-meta-value">${escapeHtml(styleLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">프리셋</span><span class="admin-meta-value">${escapeHtml(presetLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">결과 라벨</span><span class="admin-meta-value">${escapeHtml(resultLabel)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">등록 회원</span><span class="admin-meta-value">${escapeHtml(memberName)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(memberEmail)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">회원 이름</span><span class="admin-meta-value">${escapeHtml(memberName)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">회원 이메일</span><span class="admin-meta-value">${escapeHtml(memberEmail)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">추천 여부</span><span class="admin-meta-value">${escapeHtml(normalized.isRecommended ? "추천" : "일반")}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">현재 상태</span><span class="admin-meta-value">${escapeHtml(normalized.statusLabel || "공개")}</span></div>
-                ${thumbnailUrl ? `<div class="admin-meta-row"><span class="admin-meta-label">미리보기</span><span class="admin-meta-value"><a class="text-primary font-bold" href="${escapeHtml(toDisplayUrl(thumbnailUrl))}" target="_blank" rel="noopener noreferrer">보기</a></span></div>` : ""}
+                <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(normalized.statusLabel || "공개")}</span></div>
+                ${deleteReason ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제 사유</span><span class="admin-meta-value">${escapeHtml(deleteReason)}</span></div>` : ""}
               </div>
               <div class="admin-id-text mt-2">갤러리 ID: ${escapeHtml(itemId || "없음")}</div>
               <div class="admin-danger-zone mt-3">
                 <strong>공개 갤러리 관리</strong>
                 <p class="mt-1">삭제 시 공개 갤러리에서만 숨김 처리되며, 사용자의 마이포토박스 원본 결과는 유지됩니다.</p>
-                <button class="admin-warning-button mt-3" data-admin-gallery-delete="${escapeHtml(itemId)}" type="button" ${!canDelete || isAdminDeletingGalleryItem ? "disabled" : ""}>삭제</button>
+                <button class="admin-warning-button mt-3" data-admin-gallery-delete="${escapeHtml(itemId)}" type="button" ${!canDelete || isAdminDeletingGalleryItem ? "disabled" : ""}>${escapeHtml(canDelete ? "삭제/숨김" : "이미 숨김 처리됨")}</button>
               </div>
             </div>
           </details>
@@ -16627,7 +16781,7 @@ ${modeExample}`;
 
       function getGalleryItemStatusLabel(item = {}) {
         const token = getGalleryItemStatusToken(item);
-        if (token === "deleted") return "삭제됨";
+        if (token === "deleted") return "숨김";
         if (token === "hidden") return "숨김";
         return "공개";
       }

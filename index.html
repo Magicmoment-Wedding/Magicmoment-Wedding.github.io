@@ -7660,12 +7660,64 @@ Important:
         return GOOGLE_LOGIN_ENABLED === true;
       }
 
+      function getSupabaseJwtRole(token) {
+        if (!token || typeof token !== "string") return "";
+        const [, payload] = token.split(".");
+        if (!payload) return "";
+        try {
+          const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
+          const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "=");
+          return String(JSON.parse(atob(paddedPayload))?.role || "");
+        } catch (error) {
+          return "";
+        }
+      }
+
+      function getSupabaseFrontendConfigStatus() {
+        const hasSupabaseSdk = typeof window.supabase?.createClient === "function";
+        const hasSupabaseUrl = Boolean(PUBLIC_SUPABASE_URL);
+        const hasSupabaseAnonKey = Boolean(PUBLIC_SUPABASE_ANON_KEY);
+        const supabaseKeyRole = getSupabaseJwtRole(PUBLIC_SUPABASE_ANON_KEY);
+        const usesServiceRoleKey = supabaseKeyRole === "service_role";
+        const missingValues = [];
+        if (!hasSupabaseSdk) missingValues.push("SUPABASE_SDK");
+        if (!hasSupabaseUrl) missingValues.push("SUPABASE_URL");
+        if (!hasSupabaseAnonKey) missingValues.push("SUPABASE_ANON_KEY");
+        return {
+          hasSupabaseSdk,
+          hasSupabaseUrl,
+          hasSupabaseAnonKey,
+          supabaseKeyRole: supabaseKeyRole || "unknown",
+          usesServiceRoleKey,
+          missingValues,
+          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !usesServiceRoleKey,
+        };
+      }
+
+      function createGoogleOAuthConfigurationError(status = getSupabaseFrontendConfigStatus()) {
+        let message = "Supabase frontend configuration is missing or the Supabase SDK was not loaded.";
+        if (status.usesServiceRoleKey) {
+          message = "Supabase service_role key must never be used in frontend configuration. Use the anon public key.";
+        } else if (status.missingValues.length) {
+          message = `Supabase frontend configuration is missing: ${status.missingValues.join(", ")}.`;
+        }
+        const configError = new Error(message);
+        configError.name = "GoogleOAuthConfigurationError";
+        configError.code = status.usesServiceRoleKey
+          ? "SUPABASE_SERVICE_ROLE_KEY_FORBIDDEN"
+          : !status.hasSupabaseSdk
+            ? "SUPABASE_SDK_MISSING"
+            : "SUPABASE_FRONTEND_CONFIG_MISSING";
+        return configError;
+      }
+
       function getSupabaseAuthClient() {
         if (supabaseAuthClient) return supabaseAuthClient;
-        const supabaseFactory = window.supabase?.createClient;
-        if (typeof supabaseFactory !== "function" || !PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_ANON_KEY) {
+        const configStatus = getSupabaseFrontendConfigStatus();
+        if (!configStatus.isReady) {
           return null;
         }
+        const supabaseFactory = window.supabase?.createClient;
         supabaseAuthClient = supabaseFactory(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
           auth: {
             persistSession: true,
@@ -18018,16 +18070,10 @@ ${modeExample}`;
           return;
         }
 
-        const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
-        const redirectTo = getGoogleOAuthRedirectTo(normalizedReturnTo);
+        rememberLoginReturnView();
+        const normalizedReturnTo = LOGIN_RETURN_VIEW_FALLBACK;
+        const redirectTo = "https://magicaistudio.co.kr/auth/callback?returnTo=landing";
         const isInAppBrowser = isInAppBrowserForGoogleOAuth();
-        console.info("[auth][google][start]", stringifyAuthErrorDetails({
-          origin: window.location.origin,
-          redirectTo,
-          returnTo: normalizedReturnTo,
-          apiBaseUrl: FRONT_API_BASE_URL,
-          isInAppBrowser,
-        }));
 
         if (isInAppBrowser) {
           openGoogleInAppBrowserModal();
@@ -18051,26 +18097,40 @@ ${modeExample}`;
           return;
         }
 
+        const supabaseUrl = PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = PUBLIC_SUPABASE_ANON_KEY;
+        const configStatus = getSupabaseFrontendConfigStatus();
         const supabaseClient = getSupabaseAuthClient();
+        console.info("[auth][google][start]", {
+          origin: window.location.origin,
+          redirectTo,
+          hasSupabaseUrl: Boolean(supabaseUrl),
+          hasSupabaseAnonKey: Boolean(supabaseAnonKey),
+          hasSupabaseClient: Boolean(supabaseClient),
+        });
         if (!supabaseClient?.auth?.signInWithOAuth) {
-          const configError = new Error("Supabase frontend configuration is missing or the Supabase SDK was not loaded.");
-          configError.name = "GoogleOAuthConfigurationError";
-          configError.code = !window.supabase?.createClient ? "SUPABASE_SDK_MISSING" : "SUPABASE_FRONTEND_CONFIG_MISSING";
+          const configError = createGoogleOAuthConfigurationError(configStatus);
           const details = getAuthErrorDetails(configError, {
             status: "",
             cause: {
-              hasSupabaseSdk: Boolean(window.supabase?.createClient),
-              hasSupabaseUrl: Boolean(PUBLIC_SUPABASE_URL),
-              hasSupabaseAnonKey: Boolean(PUBLIC_SUPABASE_ANON_KEY),
+              hasSupabaseSdk: configStatus.hasSupabaseSdk,
+              hasSupabaseUrl: configStatus.hasSupabaseUrl,
+              hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
+              missingValues: configStatus.missingValues,
+              supabaseKeyRole: configStatus.supabaseKeyRole,
+              usesServiceRoleKey: configStatus.usesServiceRoleKey,
               redirectTo,
               returnTo: normalizedReturnTo,
             },
           });
           logGoogleAuthError("[auth][google][start-error]", {
             ...details,
-            hasSupabaseSdk: Boolean(window.supabase?.createClient),
-            hasSupabaseUrl: Boolean(PUBLIC_SUPABASE_URL),
-            hasSupabaseAnonKey: Boolean(PUBLIC_SUPABASE_ANON_KEY),
+            hasSupabaseSdk: configStatus.hasSupabaseSdk,
+            hasSupabaseUrl: configStatus.hasSupabaseUrl,
+            hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
+            missingValues: configStatus.missingValues,
+            supabaseKeyRole: configStatus.supabaseKeyRole,
+            usesServiceRoleKey: configStatus.usesServiceRoleKey,
           });
           showAccountMenuToast(getGoogleAuthStartFailureMessage(details));
           return;

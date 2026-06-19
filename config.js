@@ -7,8 +7,8 @@
       ? LOCAL_API_BASE_URL
       : ONLINE_API_BASE_URL;
 
-  const SUPABASE_URL = window.SUPABASE_URL || "";
-  const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
+  const SUPABASE_URL = window.SUPABASE_URL || "https://rzlvfuyzofzqghzooqsi.supabase.co";
+  const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6bHZmdXl6b2Z6cWdoem9vcXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjkwOTMsImV4cCI6MjA5NDI0NTA5M30.xww7V8foHYvaTV_bbujFF-vvWuOiCUlJ_27FXq9BA3c";
   const GOOGLE_LOGIN_ENABLED = window.GOOGLE_LOGIN_ENABLED !== false;
 
   window.API_BASE_URL = API_BASE_URL;

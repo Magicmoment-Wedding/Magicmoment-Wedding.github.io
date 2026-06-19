@@ -6297,6 +6297,8 @@
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
       let supabaseAuthClient = null;
+      let supabaseAuthSubscription = null;
+      let isHandlingSupabaseAuthStateEvent = false;
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
       const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
@@ -7733,6 +7735,125 @@ Important:
           },
         });
         return supabaseAuthClient;
+      }
+
+      function getSupabaseSessionProvider(session = null) {
+        const user = session?.user || {};
+        return String(
+          user.app_metadata?.provider
+          || user.identities?.[0]?.provider
+          || user.user_metadata?.provider
+          || "supabase",
+        ).trim();
+      }
+
+      function logAuthCallbackSession(session = null) {
+        console.info("[auth][callback][session]", {
+          hasSession: Boolean(session),
+          userId: session?.user?.id || "",
+          email: session?.user?.email || "",
+          provider: session ? getSupabaseSessionProvider(session) : "",
+        });
+      }
+
+      function logAuthCallbackError(error, fallback = {}) {
+        const details = getAuthErrorDetails(error, fallback);
+        console.error("[auth][callback][error]", {
+          name: details.name,
+          message: details.message,
+          code: details.code,
+          status: details.status,
+        });
+      }
+
+      function normalizeSupabaseSessionUser(session = null) {
+        const supabaseUser = session?.user;
+        if (!supabaseUser?.id) return null;
+        const metadata = supabaseUser.user_metadata || {};
+        const appMetadata = supabaseUser.app_metadata || {};
+        const email = String(supabaseUser.email || metadata.email || "").trim();
+        const displayName = String(
+          metadata.full_name
+          || metadata.name
+          || metadata.display_name
+          || metadata.nickname
+          || (email.includes("@") ? email.split("@")[0] : "")
+          || "회원",
+        ).trim();
+        const provider = getSupabaseSessionProvider(session);
+        return normalizeAuthUser({
+          ok: true,
+          authenticated: true,
+          user: {
+            id: supabaseUser.id,
+            userId: supabaseUser.id,
+            user_id: supabaseUser.id,
+            email,
+            displayName,
+            name: displayName,
+            avatarUrl: metadata.avatar_url || metadata.picture || "",
+            avatar_url: metadata.avatar_url || metadata.picture || "",
+            provider,
+            authProvider: provider,
+            auth_provider: provider,
+            user_metadata: metadata,
+            raw_user_meta_data: metadata,
+            app_metadata: appMetadata,
+            onboardingCompleted: true,
+            freeGenerationEligible: false,
+            freeGenerationUsed: false,
+            isAdmin: false,
+            hasRequiredConsents: true,
+            consentRequired: false,
+          },
+        });
+      }
+
+      function applySupabaseSessionFallback(session = null) {
+        const user = normalizeSupabaseSessionUser(session);
+        if (!user) return null;
+        applyAuthSession({
+          ok: true,
+          authenticated: true,
+          user,
+        });
+        return currentUser;
+      }
+
+      function subscribeSupabaseAuthState() {
+        if (supabaseAuthSubscription) return supabaseAuthSubscription;
+        const supabaseClient = getSupabaseAuthClient();
+        if (!supabaseClient?.auth?.onAuthStateChange) return null;
+        const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+          if (event === "SIGNED_OUT") {
+            applyAuthUser(null);
+            return;
+          }
+          if (!session?.user || isHandlingSupabaseAuthStateEvent) return;
+          if (!["INITIAL_SESSION", "SIGNED_IN", "TOKEN_REFRESHED"].includes(event)) return;
+
+          isHandlingSupabaseAuthStateEvent = true;
+          refreshAuthState({ showError: false })
+            .then((user) => {
+              if (!user && !duplicateProviderLoginState) {
+                applySupabaseSessionFallback(session);
+              }
+            })
+            .catch((error) => {
+              console.warn("[auth][supabase][state] account refresh failed", {
+                event,
+                status: error?.status || error?.statusCode || "",
+                code: error?.code || error?.errorCode || "",
+                message: error?.message || "",
+              });
+              applySupabaseSessionFallback(session);
+            })
+            .finally(() => {
+              isHandlingSupabaseAuthStateEvent = false;
+            });
+        });
+        supabaseAuthSubscription = data?.subscription || data || null;
+        return supabaseAuthSubscription;
       }
 
       function isAuthCallbackRoute() {
@@ -10779,6 +10900,11 @@ Important:
           }
           return currentUser;
         } catch (error) {
+          console.warn("[client][auth] /api/auth/me failed", {
+            status: error?.status || error?.statusCode || "",
+            code: error?.code || error?.errorCode || "",
+            message: error?.message || "",
+          });
           if (DEBUG_MODE || showError) {
             console.warn("[client][auth] /api/auth/me failed:", error);
           }
@@ -11513,6 +11639,13 @@ Important:
         url.searchParams.delete("error_code");
         url.searchParams.delete("error_description");
         url.searchParams.delete("code");
+        url.searchParams.delete("access_token");
+        url.searchParams.delete("refresh_token");
+        url.searchParams.delete("expires_at");
+        url.searchParams.delete("expires_in");
+        url.searchParams.delete("token_type");
+        url.searchParams.delete("provider_token");
+        url.searchParams.delete("provider_refresh_token");
         url.searchParams.delete("existing_provider");
         url.searchParams.delete("existingProvider");
         url.searchParams.delete("existing_provider_label");
@@ -11953,14 +12086,26 @@ Important:
         return true;
       }
 
-      async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
+      async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), options = {}) {
         const authMode = getAuthModeFromParams(loginParams);
+        const supabaseSession = options.session || null;
+        let usedSupabaseSessionFallback = false;
         showAuthProcessingOverlay(authMode);
         console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
         console.log("[auth] login success detected:", { mode: authMode, provider: loginParams.get("provider") || "" });
         console.log("[auth] fetchCurrentUser after success");
         try {
           let user = await refreshAuthState({ showError: false });
+          if (!user && supabaseSession && !duplicateProviderLoginState) {
+            console.warn("[auth][callback] account summary unavailable after Supabase session", {
+              hasSession: true,
+              userId: supabaseSession?.user?.id || "",
+              email: supabaseSession?.user?.email || "",
+              provider: getSupabaseSessionProvider(supabaseSession),
+            });
+            user = applySupabaseSessionFallback(supabaseSession);
+            usedSupabaseSessionFallback = Boolean(user);
+          }
           if (!user) {
             authFlowState = "error";
             setAuthTab(authMode);
@@ -11977,17 +12122,24 @@ Important:
               const refreshedUser = await refreshAuthState({ showError: false });
               if (refreshedUser) {
                 user = refreshedUser;
+                usedSupabaseSessionFallback = false;
               }
             }
           } catch (error) {
             console.warn("[auth] signup consent save failed:", error);
-            authFlowState = "error";
-            setAuthTab(authMode);
-            openLoginModal(null, { tab: authMode, forceAuthForm: true });
-            showAccountMenuToast(authMode === "signup"
-              ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
-              : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
-            return null;
+            if (!currentUser && supabaseSession) {
+              user = applySupabaseSessionFallback(supabaseSession);
+              usedSupabaseSessionFallback = Boolean(user);
+            }
+            if (!user) {
+              authFlowState = "error";
+              setAuthTab(authMode);
+              openLoginModal(null, { tab: authMode, forceAuthForm: true });
+              showAccountMenuToast(authMode === "signup"
+                ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
+                : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
+              return null;
+            }
           }
 
           closeLoginModal();
@@ -11996,9 +12148,13 @@ Important:
           console.log("[auth] display login success toast:", displayName);
           authFlowState = authMode === "signup" ? "signup-success" : "login-success";
           openAccountMenuAfterAuth();
-          showAccountMenuToast(authMode === "signup"
-            ? "환영합니다. Magic AI Studio 가입이 완료되었어요."
-            : `${displayName}님 로그인 되었습니다.`);
+          if (usedSupabaseSessionFallback) {
+            showAccountMenuToast("로그인되었습니다. 계정 정보를 불러오는 중 문제가 발생했습니다.");
+          } else {
+            showAccountMenuToast(authMode === "signup"
+              ? "환영합니다. Magic AI Studio 가입이 완료되었어요."
+              : `${displayName}님 로그인 되었습니다.`);
+          }
           handlePostLoginExperience(returnView, { authMode });
           return user;
         } finally {
@@ -12014,6 +12170,12 @@ Important:
         const authMode = getAuthModeFromParams(loginParams);
         const normalizedReturnTo = normalizeGoogleReturnTo(returnView);
         const hashParams = getSupabaseAuthCallbackHashParams();
+        console.info("[auth][callback][start]", {
+          pathname: window.location.pathname,
+          search: getSafeAuthLogParams(loginParams),
+          hasHash: Boolean(window.location.hash),
+          returnTo: normalizedReturnTo,
+        });
         const hasHashError = Boolean(
           hashParams.get("error")
           || hashParams.get("error_code")
@@ -12024,6 +12186,11 @@ Important:
 
         if (loginParams.get("error") || loginParams.get("error_code") || loginParams.get("error_description") || hasHashError) {
           logGoogleCallbackError(loginParams, hashParams);
+          logAuthCallbackError({
+            name: "GoogleOAuthCallbackError",
+            message: loginParams.get("error_description") || hashParams.get("error_description") || loginParams.get("error") || hashParams.get("error") || "Supabase auth callback returned an error.",
+            code: loginParams.get("error_code") || hashParams.get("error_code") || loginParams.get("error") || hashParams.get("error") || "SUPABASE_AUTH_CALLBACK_ERROR",
+          });
           applyAuthUser(null);
           authFlowState = "error";
           setAuthTab(authMode);
@@ -12038,41 +12205,25 @@ Important:
 
         const authCode = loginParams.get("code");
         const supabaseClient = getSupabaseAuthClient();
-        if (supabaseClient?.auth?.getSession) {
-          try {
-            const { data, error } = await supabaseClient.auth.getSession();
-            if (error) throw error;
-            if (data?.session) {
-              return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo);
-            }
-          } catch (error) {
-            logGoogleAuthError("[auth][google][callback-session-check-error]", getAuthErrorDetails(error, {
-              name: "GoogleOAuthSessionCheckError",
-              code: "GET_SUPABASE_SESSION_FAILED",
-              cause: {
-                returnTo: normalizedReturnTo,
-                hasAuthCode: Boolean(authCode),
-                hasHashTokens,
-              },
-            }));
-          }
-        }
-        if (!authCode && !hasHashTokens) {
-          logGoogleAuthError("[auth][google][callback-error]", {
+        if (!supabaseClient?.auth?.getSession) {
+          const details = {
             name: "GoogleOAuthCallbackConfigurationError",
-            message: "Supabase callback did not include an auth code or session tokens.",
+            message: "Supabase client is not configured on the frontend.",
             status: "",
-            code: "SUPABASE_AUTH_CALLBACK_MISSING",
+            code: "SUPABASE_FRONTEND_CONFIG_MISSING",
             cause: {
               hasAuthCode: Boolean(authCode),
               hasHashTokens,
               hasSupabaseClient: Boolean(supabaseClient),
+              hasGetSession: Boolean(supabaseClient?.auth?.getSession),
               hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
               hasSetSession: Boolean(supabaseClient?.auth?.setSession),
               returnTo: normalizedReturnTo,
             },
             stack: "",
-          });
+          };
+          logGoogleAuthError("[auth][google][callback-error]", details);
+          logAuthCallbackError(details);
           applyAuthUser(null);
           authFlowState = "error";
           setAuthTab(authMode);
@@ -12086,13 +12237,11 @@ Important:
         }
 
         if (authCode && !supabaseClient?.auth?.exchangeCodeForSession) {
-          logGoogleAuthError("[auth][google][callback-error]", {
+          const details = {
             name: "GoogleOAuthCallbackConfigurationError",
-            message: !authCode
-              ? "Supabase callback did not include an auth code."
-              : "Supabase client is not configured on the frontend.",
+            message: "Supabase client cannot exchange the auth code on the frontend.",
             status: "",
-            code: "SUPABASE_FRONTEND_CONFIG_MISSING",
+            code: "SUPABASE_EXCHANGE_CODE_UNAVAILABLE",
             cause: {
               hasAuthCode: Boolean(authCode),
               hasSupabaseClient: Boolean(supabaseClient),
@@ -12101,7 +12250,39 @@ Important:
               returnTo: normalizedReturnTo,
             },
             stack: "",
-          });
+          };
+          logGoogleAuthError("[auth][google][callback-error]", details);
+          logAuthCallbackError(details);
+          applyAuthUser(null);
+          authFlowState = "error";
+          setAuthTab(authMode);
+          openLoginModal(null, { tab: authMode, forceAuthForm: true });
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          clearAuthStartState();
+          cleanLoginRedirectQuery();
+          clearLoginReturnState();
+          hideAuthProcessingOverlay();
+          return null;
+        }
+
+        if (hasHashTokens && !supabaseClient?.auth?.setSession) {
+          const details = {
+            name: "GoogleOAuthCallbackConfigurationError",
+            message: "Supabase client cannot set a session from callback tokens.",
+            status: "",
+            code: "SUPABASE_SET_SESSION_UNAVAILABLE",
+            cause: {
+              hasAuthCode: Boolean(authCode),
+              hasHashTokens,
+              hasSupabaseClient: Boolean(supabaseClient),
+              hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
+              hasSetSession: Boolean(supabaseClient?.auth?.setSession),
+              returnTo: normalizedReturnTo,
+            },
+            stack: "",
+          };
+          logGoogleAuthError("[auth][google][callback-error]", details);
+          logAuthCallbackError(details);
           applyAuthUser(null);
           authFlowState = "error";
           setAuthTab(authMode);
@@ -12117,24 +12298,52 @@ Important:
         try {
           if (authCode) {
             const { error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
-            if (error) throw error;
-          } else {
+            if (error) {
+              const { data: existingSessionData, error: existingSessionError } = await supabaseClient.auth.getSession();
+              if (!existingSessionError && existingSessionData?.session) {
+                const session = existingSessionData.session;
+                logAuthCallbackSession(session);
+                return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo, { session });
+              }
+              throw error;
+            }
+          } else if (hasHashTokens) {
             const { error } = await supabaseClient.auth.setSession({
               access_token: String(hashParams.get("access_token") || ""),
               refresh_token: String(hashParams.get("refresh_token") || ""),
             });
             if (error) throw error;
           }
-          return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo);
+
+          const { data, error: sessionError } = await supabaseClient.auth.getSession();
+          if (sessionError) throw sessionError;
+          const session = data?.session || null;
+          logAuthCallbackSession(session);
+          if (!session) {
+            const missingSessionError = new Error("Supabase session was not created after OAuth callback.");
+            missingSessionError.name = "GoogleOAuthSessionMissingError";
+            missingSessionError.code = authCode || hasHashTokens
+              ? "SUPABASE_SESSION_MISSING_AFTER_CALLBACK"
+              : "SUPABASE_AUTH_CALLBACK_MISSING";
+            throw missingSessionError;
+          }
+          return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo, { session });
         } catch (error) {
-          logGoogleAuthError("[auth][google][callback-error]", getAuthErrorDetails(error, {
+          const details = getAuthErrorDetails(error, {
             name: "GoogleOAuthExchangeError",
-            code: authCode ? "EXCHANGE_CODE_FOR_SESSION_FAILED" : "SET_SESSION_FROM_HASH_FAILED",
+            code: authCode
+              ? "EXCHANGE_CODE_FOR_SESSION_FAILED"
+              : hasHashTokens
+                ? "SET_SESSION_FROM_HASH_FAILED"
+                : "GET_SUPABASE_SESSION_FAILED",
             cause: {
               returnTo: normalizedReturnTo,
+              hasAuthCode: Boolean(authCode),
               hasHashTokens,
             },
-          }));
+          });
+          logGoogleAuthError("[auth][google][callback-error]", details);
+          logAuthCallbackError(error, details);
           applyAuthUser(null);
           authFlowState = "error";
           setAuthTab(authMode);
@@ -12153,6 +12362,7 @@ Important:
       function startAuthStartupCheck() {
         if (authStartupCheckPromise) return authStartupCheckPromise;
 
+        subscribeSupabaseAuthState();
         if (DEBUG_MODE) {
           console.info("[auth] app mounted - checking me");
         }

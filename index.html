@@ -7002,6 +7002,7 @@ Important:
       let adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
       let adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
       let adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
+      let adminVisibleGalleryCount = ADMIN_LIST_PAGE_SIZE;
       let lastAdminDashboardRenderArgs = null;
       let adminIncludeDeletedUsers = false;
       let adminCreditSearchResults = [];
@@ -7010,7 +7011,9 @@ Important:
       let adminCreditSearchTimerId = null;
       let adminCreditConfirmState = null;
       let adminDeleteConfirmState = null;
+      let adminGalleryDeleteConfirmState = null;
       let isAdminDeletingUser = false;
+      let isAdminDeletingGalleryItem = false;
       let adminOperationStatusMessage = "";
       let adminOperationStatusType = "";
       const FRONT_ADMIN_EMAIL = "vamprub@gmail.com";
@@ -8399,6 +8402,22 @@ Important:
         }
       }
 
+      async function fetchAdminGalleryItems() {
+        try {
+          const payload = await fetchAdminJson("/api/admin/gallery");
+          return normalizeAdminGalleryPayload(payload);
+        } catch (error) {
+          console.error("[admin/gallery] failed", {
+            status: error.statusCode || error.status,
+            code: error.code,
+            stage: error.stage,
+            message: error.message,
+            rawPreview: error.rawPreview,
+          });
+          throw error;
+        }
+      }
+
       function getAdminPayloadArray(payload = {}, keys = []) {
         for (const key of keys) {
           const value = payload?.[key] ?? payload?.data?.[key];
@@ -8478,6 +8497,45 @@ Important:
           generations: items,
           total: Number.isFinite(total) ? total : items.length,
           summary: getAdminPayloadObject(payload, ["summary"]),
+          warnings: getAdminPayloadWarnings(payload),
+          failedSections: getAdminPayloadFailedSections(payload),
+        };
+      }
+
+      function normalizeAdminGalleryItem(item = {}) {
+        const normalizedBase = normalizeGalleryItem(item) || {};
+        const galleryItemId = String(
+          item.galleryItemId
+            || item.gallery_item_id
+            || item.id
+            || item.imageId
+            || item.image_id
+            || "",
+        ).trim();
+        return {
+          ...item,
+          ...normalizedBase,
+          id: galleryItemId || normalizedBase.id || "",
+          galleryItemId: galleryItemId || normalizedBase.id || "",
+          styleLabel: item.styleLabel || item.style_label || item.styleCategoryLabel || item.style_category_label || getAdminGenerationStyleLabel(item),
+          presetLabel: normalizedBase.presetLabel || item.preset || item.presetName || item.preset_name || "-",
+          userEmail: item.userEmail || item.user_email || item.email || item.user?.email || item.profile?.email || "이메일 없음",
+          userName: item.userName || item.user_name || item.nickname || item.user?.name || item.user?.nickname || item.profile?.name || "이름 미등록",
+          createdAt: item.createdAt || item.created_at || item.uploadedAt || item.uploaded_at || item.publishedAt || item.published_at || "",
+          isRecommended: item.isRecommended === true || item.is_recommended === true || item.recommended === true,
+          status: getGalleryItemStatusToken(item),
+          statusLabel: getGalleryItemStatusLabel(item),
+        };
+      }
+
+      function normalizeAdminGalleryPayload(payload = {}) {
+        const items = getAdminPayloadArray(payload, ["items", "gallery", "images"]).map(normalizeAdminGalleryItem);
+        const total = Number(payload.total ?? payload.data?.total ?? items.length ?? 0);
+        return {
+          ...payload,
+          items,
+          gallery: items,
+          total: Number.isFinite(total) ? total : items.length,
           warnings: getAdminPayloadWarnings(payload),
           failedSections: getAdminPayloadFailedSections(payload),
         };
@@ -8660,6 +8718,17 @@ Important:
         return messages[getAdminErrorCode(error)] || "회원 삭제에 실패했습니다.";
       }
 
+      function getAdminGalleryDeleteErrorMessage(error) {
+        const messages = {
+          GALLERY_ITEM_NOT_FOUND: "이미 삭제되었거나 갤러리 사진을 찾을 수 없습니다.",
+          GALLERY_NOT_FOUND: "이미 삭제되었거나 갤러리 사진을 찾을 수 없습니다.",
+          REASON_REQUIRED: "삭제 사유를 입력해 주세요.",
+          ADMIN_REQUIRED: "관리자 권한이 필요합니다.",
+          FORBIDDEN: "관리자 권한이 필요합니다.",
+        };
+        return messages[getAdminErrorCode(error)] || (error?.statusCode === 403 ? "관리자 권한이 필요합니다." : "갤러리 사진 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      }
+
       function getAdminUsersUrl(includeDeleted = adminIncludeDeletedUsers) {
         return `/api/admin/users${includeDeleted ? "?includeDeleted=true" : ""}`;
       }
@@ -8696,6 +8765,68 @@ Important:
         lastAdminDashboardRenderArgs = {
           ...lastAdminDashboardRenderArgs,
           usersPayload: withAdminUsersPayloadUsers(lastAdminDashboardRenderArgs.usersPayload, nextUsers),
+        };
+        renderAdminDashboard(lastAdminDashboardRenderArgs);
+      }
+
+      function withAdminGalleryPayloadItems(payload = {}, items = []) {
+        const nextTotal = items.length;
+        if (Array.isArray(payload.data?.items)) {
+          return {
+            ...payload,
+            data: {
+              ...payload.data,
+              items,
+              total: nextTotal,
+            },
+          };
+        }
+        if (Array.isArray(payload.data?.gallery)) {
+          return {
+            ...payload,
+            data: {
+              ...payload.data,
+              gallery: items,
+              total: nextTotal,
+            },
+          };
+        }
+        return {
+          ...payload,
+          items,
+          gallery: items,
+          total: nextTotal,
+        };
+      }
+
+      function findAdminRenderedGalleryItemById(galleryItemId) {
+        const targetId = String(galleryItemId || "").trim();
+        if (!targetId || !lastAdminDashboardRenderArgs) return null;
+        const items = normalizeAdminGalleryPayload(lastAdminDashboardRenderArgs.galleryPayload).items;
+        return items.find((item) => String(item.galleryItemId || item.id || "").trim() === targetId) || null;
+      }
+
+      function markAdminGalleryItemDeletedInCurrentState(galleryItemId, reason = "") {
+        if (!lastAdminDashboardRenderArgs) return;
+        const targetId = String(galleryItemId || "").trim();
+        if (!targetId) return;
+        const normalizedGallery = normalizeAdminGalleryPayload(lastAdminDashboardRenderArgs.galleryPayload);
+        const nextItems = normalizedGallery.items.map((item) => {
+          const itemId = String(item.galleryItemId || item.id || "").trim();
+          if (itemId !== targetId) return item;
+          return {
+            ...item,
+            status: "deleted",
+            statusLabel: "삭제됨",
+            isDeleted: true,
+            is_deleted: true,
+            deletedAt: new Date().toISOString(),
+            deleteReason: reason || item.deleteReason || item.delete_reason || "",
+          };
+        });
+        lastAdminDashboardRenderArgs = {
+          ...lastAdminDashboardRenderArgs,
+          galleryPayload: withAdminGalleryPayloadItems(lastAdminDashboardRenderArgs.galleryPayload, nextItems),
         };
         renderAdminDashboard(lastAdminDashboardRenderArgs);
       }
@@ -8781,13 +8912,16 @@ Important:
         adminVisibleUsersCount = ADMIN_LIST_PAGE_SIZE;
         adminVisiblePaymentsCount = ADMIN_LIST_PAGE_SIZE;
         adminVisibleGenerationsCount = ADMIN_LIST_PAGE_SIZE;
+        adminVisibleGalleryCount = ADMIN_LIST_PAGE_SIZE;
         lastAdminDashboardRenderArgs = null;
         adminCreditSearchResults = [];
         adminCreditSearchMessage = "";
         adminCreditSelectedUser = null;
         adminCreditConfirmState = null;
         adminDeleteConfirmState = null;
+        adminGalleryDeleteConfirmState = null;
         isAdminDeletingUser = false;
+        isAdminDeletingGalleryItem = false;
         adminOperationStatusMessage = "";
         adminOperationStatusType = "";
         if (adminCreditSearchTimerId) {
@@ -8897,9 +9031,47 @@ Important:
         `;
       }
 
+      function renderAdminGalleryDeleteModal() {
+        if (!adminGalleryDeleteConfirmState) return "";
+        const item = adminGalleryDeleteConfirmState.item || {};
+        const itemId = item.galleryItemId || item.id || "";
+        const title = "갤러리 사진을 삭제할까요?";
+        return `
+          <div class="login-modal-overlay is-open" aria-hidden="false" data-admin-modal="gallery-delete">
+            <section class="login-modal-panel" role="dialog" aria-modal="true" aria-labelledby="adminGalleryDeleteTitle">
+              <div class="login-modal-header">
+                <button class="login-modal-close" data-admin-modal-close type="button" aria-label="${escapeHtml(title)} 닫기">
+                  <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                </button>
+              </div>
+              <div class="login-modal-body">
+                <h2 class="login-modal-title font-display" id="adminGalleryDeleteTitle">${escapeHtml(title)}</h2>
+                <p class="login-modal-lead">이 사진은 공개 갤러리에서 숨김 처리됩니다. 사용자의 마이포토박스 원본 사진은 삭제되지 않습니다.</p>
+                <div class="customer-info-list mt-4">
+                  <section class="customer-info-row"><p class="customer-info-label">스타일</p><p class="customer-info-value">${escapeHtml(item.styleLabel || "-")}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">프리셋</p><p class="customer-info-value">${escapeHtml(item.presetLabel || "-")}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">등록 회원</p><p class="customer-info-value">${escapeHtml(item.userEmail || item.userName || "-")}</p></section>
+                  <section class="customer-info-row"><p class="customer-info-label">현재 상태</p><p class="customer-info-value">${escapeHtml(item.statusLabel || "공개")}</p></section>
+                </div>
+                <form class="mt-4 grid gap-3" id="adminGalleryDeleteForm">
+                  <textarea class="min-h-[88px] rounded-[16px] border border-primary/10 bg-white/80 px-3 py-3 text-sm" name="deleteReason" placeholder="삭제 사유를 입력해 주세요. 예: 테스트 이미지, 부적절한 이미지 등" required></textarea>
+                  <p class="text-xs font-bold text-primary hidden" id="adminGalleryDeleteValidationMessage"></p>
+                  <div class="admin-modal-actions">
+                    <button class="admin-modal-cancel" data-admin-modal-close type="button">취소</button>
+                    <button class="admin-modal-confirm is-danger" id="adminGalleryDeleteSubmitButton" type="submit" disabled>${escapeHtml(isAdminDeletingGalleryItem ? "삭제 중..." : "삭제하기")}</button>
+                  </div>
+                </form>
+                <div class="admin-id-text mt-2">갤러리 ID: ${escapeHtml(itemId || "없음")}</div>
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
       function closeAdminModal() {
         adminCreditConfirmState = null;
         adminDeleteConfirmState = null;
+        adminGalleryDeleteConfirmState = null;
         if (lastAdminDashboardRenderArgs) {
           renderAdminDashboard(lastAdminDashboardRenderArgs);
         }
@@ -9232,9 +9404,60 @@ Important:
         `;
       }
 
-      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, errors = [] } = {}) {
+      function renderAdminGalleryCard(item = {}) {
+        const normalized = normalizeAdminGalleryItem(item);
+        const itemId = normalized.galleryItemId || normalized.id || "";
+        const thumbnailUrl = normalized.thumbnailUrl || normalized.displayUrl || normalized.imageUrl || "";
+        const memberName = normalized.userName || "이름 미등록";
+        const memberEmail = normalized.userEmail || "이메일 없음";
+        const canDelete = Boolean(itemId) && normalized.status !== "deleted";
+        return `
+          <details class="admin-data-row admin-list-card admin-gallery-item">
+            <summary>
+              <div class="admin-card-summary">
+                <div class="flex items-center gap-3 min-w-0">
+                  ${thumbnailUrl ? `<img src="${escapeHtml(toDisplayUrl(thumbnailUrl))}" alt="${escapeHtml(normalized.resultLabel || normalized.presetLabel || "갤러리 이미지")}" class="h-14 w-14 rounded-[12px] object-cover border border-white/70 shrink-0" loading="lazy" decoding="async" />` : ""}
+                  <div class="min-w-0">
+                    <div class="admin-main-title truncate">${escapeHtml(normalized.styleLabel || "스타일 정보 없음")} · ${escapeHtml(normalized.presetLabel || "-")}</div>
+                    <div class="admin-summary-subtext truncate">${escapeHtml(memberName)} / ${escapeHtml(memberEmail)}</div>
+                  </div>
+                </div>
+                <div class="admin-badge-stack">
+                  <span class="admin-status-badge">${escapeHtml(normalized.statusLabel || "공개")}</span>
+                  ${normalized.isRecommended ? `<span class="admin-status-badge is-soft">추천</span>` : ""}
+                </div>
+              </div>
+              <div class="admin-summary-lines mt-2">
+                <div class="admin-meta-row"><span class="admin-meta-label">등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">회원</span><span class="admin-meta-value">${escapeHtml(memberEmail)}</span></div>
+              </div>
+              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+            </summary>
+            <div class="admin-detail-panel">
+              <div class="admin-meta-list">
+                <div class="admin-meta-row"><span class="admin-meta-label">스타일명</span><span class="admin-meta-value">${escapeHtml(normalized.styleLabel || "-")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">프리셋명</span><span class="admin-meta-value">${escapeHtml(normalized.presetLabel || "-")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">등록 회원</span><span class="admin-meta-value">${escapeHtml(memberName)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(memberEmail)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">추천 여부</span><span class="admin-meta-value">${escapeHtml(normalized.isRecommended ? "추천" : "일반")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">현재 상태</span><span class="admin-meta-value">${escapeHtml(normalized.statusLabel || "공개")}</span></div>
+                ${thumbnailUrl ? `<div class="admin-meta-row"><span class="admin-meta-label">미리보기</span><span class="admin-meta-value"><a class="text-primary font-bold" href="${escapeHtml(toDisplayUrl(thumbnailUrl))}" target="_blank" rel="noopener noreferrer">보기</a></span></div>` : ""}
+              </div>
+              <div class="admin-id-text mt-2">갤러리 ID: ${escapeHtml(itemId || "없음")}</div>
+              <div class="admin-danger-zone mt-3">
+                <strong>공개 갤러리 관리</strong>
+                <p class="mt-1">삭제 시 공개 갤러리에서만 숨김 처리되며, 사용자의 마이포토박스 원본 결과는 유지됩니다.</p>
+                <button class="admin-warning-button mt-3" data-admin-gallery-delete="${escapeHtml(itemId)}" type="button" ${!canDelete || isAdminDeletingGalleryItem ? "disabled" : ""}>삭제</button>
+              </div>
+            </div>
+          </details>
+        `;
+      }
+
+      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, galleryPayload = {}, galleryError = null, errors = [] } = {}) {
         if (!adminContent) return;
-        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, errors };
+        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, galleryPayload, galleryError, errors };
         const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
         const normalizedUsers = usersError ? { users: [], total: 0 } : normalizeAdminUsersPayload(usersPayload);
         const users = normalizedUsers.users;
@@ -9245,17 +9468,22 @@ Important:
         const normalizedGenerations = normalizeAdminGenerationsPayload(generationsPayload);
         const generations = generationsError ? [] : normalizedGenerations.items;
         const visibleGenerations = generations.slice(0, adminVisibleGenerationsCount);
+        const normalizedGallery = normalizeAdminGalleryPayload(galleryPayload);
+        const galleryItems = galleryError ? [] : normalizedGallery.items;
+        const visibleGalleryItems = galleryItems.slice(0, adminVisibleGalleryCount);
         const payloadWarnings = [
           ...getAdminPayloadWarnings(summaryPayload),
           ...getAdminPayloadWarnings(usersPayload),
           ...getAdminPayloadWarnings(paymentsPayload),
           ...getAdminPayloadWarnings(generationsPayload),
+          ...getAdminPayloadWarnings(galleryPayload),
         ];
         const payloadFailedSections = [
           ...getAdminPayloadFailedSections(summaryPayload),
           ...getAdminPayloadFailedSections(usersPayload),
           ...getAdminPayloadFailedSections(paymentsPayload),
           ...getAdminPayloadFailedSections(generationsPayload),
+          ...getAdminPayloadFailedSections(galleryPayload),
         ];
         const allErrors = [...new Set([...errors, ...payloadFailedSections])];
         const totalUsers = summary.activeUsers ?? summary.activeUserCount ?? summary.totalActiveUsers ?? summary.totalUsers ?? summary.users ?? summary.userCount ?? displayUsers.length;
@@ -9346,9 +9574,22 @@ Important:
                 ${!generationsError ? renderAdminMoreButton("generations", adminVisibleGenerationsCount, generations.length) : ""}
               </div>
             </section>
+
+            <section class="admin-panel-card">
+              <h2 class="font-display text-[22px] leading-tight text-on-surface">갤러리 관리</h2>
+              <div class="admin-data-list">
+                ${galleryError
+                  ? `<div class="admin-empty">갤러리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>`
+                  : galleryItems.length
+                    ? visibleGalleryItems.map(renderAdminGalleryCard).join("")
+                    : `<div class="admin-empty">공개 갤러리 사진이 없습니다.</div>`}
+                ${!galleryError ? renderAdminMoreButton("gallery", adminVisibleGalleryCount, galleryItems.length) : ""}
+              </div>
+            </section>
           </div>
           ${renderAdminCreditAdjustModal()}
           ${renderAdminDeleteModal()}
+          ${renderAdminGalleryDeleteModal()}
         `;
         renderAdminCreditSearchResults();
         renderAdminSelectedCreditUser();
@@ -9408,6 +9649,7 @@ Important:
           ["회원 관리", fetchAdminJson(getAdminUsersUrl())],
           ["결제 내역", fetchAdminJson("/api/admin/payments")],
           ["생성내역", fetchAdminGenerations()],
+          ["갤러리 관리", fetchAdminGalleryItems()],
         ];
         const results = await Promise.allSettled(requests.map(([, request]) => request));
         const errors = results
@@ -9421,6 +9663,8 @@ Important:
           paymentsPayload: results[2].status === "fulfilled" ? results[2].value : {},
           generationsPayload: results[3].status === "fulfilled" ? results[3].value : {},
           generationsError: results[3].status === "rejected" ? results[3].reason : null,
+          galleryPayload: results[4].status === "fulfilled" ? results[4].value : {},
+          galleryError: results[4].status === "rejected" ? results[4].reason : null,
           errors,
         });
       }
@@ -9448,6 +9692,8 @@ Important:
           paymentsPayload: paymentsResult?.status === "fulfilled" ? paymentsResult.value : lastAdminDashboardRenderArgs.paymentsPayload,
           generationsPayload: generationsResult?.status === "fulfilled" ? generationsResult.value : lastAdminDashboardRenderArgs.generationsPayload,
           generationsError: generationsResult?.status === "rejected" ? generationsResult.reason : null,
+          galleryPayload: lastAdminDashboardRenderArgs.galleryPayload,
+          galleryError: lastAdminDashboardRenderArgs.galleryError,
           errors: [
             ...(summaryResult.status === "rejected" ? ["요약"] : []),
             ...(usersResult.status === "rejected" ? ["회원 관리"] : []),
@@ -9533,6 +9779,36 @@ Important:
             ...loadingArgs,
             generationsError: error,
             errors: [...new Set([...(loadingArgs.errors || []), "생성내역"])],
+          });
+        }
+      }
+
+      async function refreshAdminGalleryOnly() {
+        if (!lastAdminDashboardRenderArgs) {
+          await refreshAdminDashboard();
+          return;
+        }
+
+        const loadingArgs = {
+          ...lastAdminDashboardRenderArgs,
+          galleryError: null,
+          errors: (lastAdminDashboardRenderArgs.errors || []).filter((item) => item !== "갤러리 관리"),
+        };
+        renderAdminDashboard(loadingArgs);
+
+        try {
+          const galleryPayload = await fetchAdminGalleryItems();
+          renderAdminDashboard({
+            ...loadingArgs,
+            galleryPayload,
+            galleryError: null,
+            errors: (loadingArgs.errors || []).filter((item) => item !== "갤러리 관리"),
+          });
+        } catch (error) {
+          renderAdminDashboard({
+            ...loadingArgs,
+            galleryError: error,
+            errors: [...new Set([...(loadingArgs.errors || []), "갤러리 관리"])],
           });
         }
       }
@@ -9760,6 +10036,75 @@ Important:
           setAdminOperationStatus("회원 복구가 완료되었습니다.", "success");
         } catch (error) {
           setAdminOperationStatus(error?.statusCode === 404 ? "회원 복구 API를 찾을 수 없습니다." : "회원 복구에 실패했습니다.");
+        }
+      }
+
+      async function handleAdminDeleteGallerySubmit(form) {
+        if (!adminGalleryDeleteConfirmState?.item || isAdminDeletingGalleryItem) return;
+        const formData = new FormData(form);
+        const reason = String(formData.get("deleteReason") || "").trim();
+        const item = adminGalleryDeleteConfirmState.item;
+        const galleryItemId = String(item.galleryItemId || item.id || "").trim();
+        const validationMessage = document.getElementById("adminGalleryDeleteValidationMessage");
+
+        if (!reason) {
+          if (validationMessage) {
+            validationMessage.textContent = "삭제 사유를 입력해 주세요.";
+            validationMessage.classList.remove("hidden");
+          }
+          return;
+        }
+        if (validationMessage) {
+          validationMessage.textContent = "";
+          validationMessage.classList.add("hidden");
+        }
+        if (!galleryItemId) {
+          setAdminOperationStatus("삭제할 갤러리 항목을 찾지 못했습니다.");
+          return;
+        }
+
+        isAdminDeletingGalleryItem = true;
+        if (lastAdminDashboardRenderArgs) {
+          renderAdminDashboard(lastAdminDashboardRenderArgs);
+        }
+
+        try {
+          try {
+            await fetchAdminJson(`/api/admin/gallery/${encodeURIComponent(galleryItemId)}`, {
+              method: "DELETE",
+              cache: "no-store",
+              body: JSON.stringify({ reason }),
+            });
+          } catch (deleteError) {
+            if (![404, 405].includes(Number(deleteError?.statusCode))) {
+              throw deleteError;
+            }
+            await fetchAdminJson(`/api/admin/gallery/${encodeURIComponent(galleryItemId)}/delete`, {
+              method: "POST",
+              cache: "no-store",
+              body: JSON.stringify({ reason }),
+            });
+          }
+
+          isAdminDeletingGalleryItem = false;
+          adminGalleryDeleteConfirmState = null;
+          markAdminGalleryItemDeletedInCurrentState(galleryItemId, reason);
+          await Promise.allSettled([
+            refreshAdminGalleryOnly(),
+            refreshGalleryScreen(),
+          ]);
+          setAdminOperationStatus("갤러리 사진이 삭제되었습니다.", "success");
+          showAccountMenuToast("갤러리 사진이 삭제되었습니다.");
+        } catch (error) {
+          isAdminDeletingGalleryItem = false;
+          if (lastAdminDashboardRenderArgs) {
+            renderAdminDashboard(lastAdminDashboardRenderArgs);
+          }
+          const message = getAdminGalleryDeleteErrorMessage(error);
+          setAdminOperationStatus(message);
+          showAccountMenuToast(message);
+        } finally {
+          isAdminDeletingGalleryItem = false;
         }
       }
 
@@ -15103,6 +15448,38 @@ ${modeExample}`;
         return Number.isFinite(ratio) && ratio > 0 ? ratio : null;
       }
 
+      function getGalleryItemStatusToken(item = {}) {
+        const rawStatus = String(
+          item.status
+            || item.galleryStatus
+            || item.gallery_status
+            || item.visibility
+            || item.state
+            || "",
+        ).trim().toLowerCase();
+        if (item.isDeleted === true || item.is_deleted === true || item.deleted === true || rawStatus === "deleted") {
+          return "deleted";
+        }
+        if (item.isHidden === true || item.is_hidden === true || item.hidden === true || rawStatus === "hidden" || rawStatus === "private") {
+          return "hidden";
+        }
+        if (rawStatus === "public" || rawStatus === "published" || rawStatus === "active" || rawStatus === "visible") {
+          return "public";
+        }
+        return rawStatus || "public";
+      }
+
+      function isGalleryItemVisiblePublic(item = {}) {
+        return getGalleryItemStatusToken(item) === "public";
+      }
+
+      function getGalleryItemStatusLabel(item = {}) {
+        const token = getGalleryItemStatusToken(item);
+        if (token === "deleted") return "삭제됨";
+        if (token === "hidden") return "숨김";
+        return "공개";
+      }
+
       function normalizeGalleryItem(rawItem, fallbackIndex = 0) {
         if (!rawItem) return null;
         const imageUrl = firstUrlValue(rawItem.imageUrl, rawItem.image_url, rawItem.url, rawItem.publicUrl, rawItem.public_url, rawItem.src);
@@ -15135,11 +15512,14 @@ ${modeExample}`;
           presetLabel,
           resultLabel,
           label: resultLabel,
+          status: getGalleryItemStatusToken(rawItem),
+          statusLabel: getGalleryItemStatusLabel(rawItem),
           url: imageUrl || displayUrl,
         };
       }
 
-      function normalizeGalleryItems(payload) {
+      function normalizeGalleryItems(payload, options = {}) {
+        const { includeNonPublic = false } = options;
         const rawItems = Array.isArray(payload)
           ? payload
           : Array.isArray(payload?.items)
@@ -15149,7 +15529,10 @@ ${modeExample}`;
               : Array.isArray(payload?.data)
                 ? payload.data
                 : [];
-        return rawItems.map(normalizeGalleryItem).filter(Boolean);
+        return rawItems
+          .map(normalizeGalleryItem)
+          .filter(Boolean)
+          .filter((item) => includeNonPublic ? true : isGalleryItemVisiblePublic(item));
       }
 
       function getGalleryImageRatioFromItem(item) {
@@ -16137,6 +16520,11 @@ ${modeExample}`;
           void handleAdminDeleteUserSubmit(adminDeleteForm);
           return;
         }
+        const adminGalleryDeleteForm = event.target?.closest?.("#adminGalleryDeleteForm");
+        if (adminGalleryDeleteForm) {
+          void handleAdminDeleteGallerySubmit(adminGalleryDeleteForm);
+          return;
+        }
         const adminCreditForm = event.target?.closest?.("#adminCreditAdjustForm");
         if (adminCreditForm) {
           void handleAdminCreditAdjustSubmit(adminCreditForm);
@@ -16167,6 +16555,21 @@ ${modeExample}`;
         const deleteForm = event.target?.closest?.("#adminDeleteUserForm");
         if (deleteForm) {
           syncAdminDeleteSubmitButton(deleteForm);
+          return;
+        }
+
+        const galleryDeleteForm = event.target?.closest?.("#adminGalleryDeleteForm");
+        if (galleryDeleteForm) {
+          const reason = String(galleryDeleteForm.elements.deleteReason?.value || "").trim();
+          const message = document.getElementById("adminGalleryDeleteValidationMessage");
+          const button = document.getElementById("adminGalleryDeleteSubmitButton");
+          if (message) {
+            message.textContent = reason ? "" : "삭제 사유를 입력해 주세요.";
+            message.classList.toggle("hidden", Boolean(reason));
+          }
+          if (button) {
+            button.disabled = isAdminDeletingGalleryItem || !reason;
+          }
         }
       });
 
@@ -16918,6 +17321,21 @@ ${modeExample}`;
           return;
         }
 
+        const deleteGalleryButton = event.target.closest?.("[data-admin-gallery-delete]");
+        if (deleteGalleryButton) {
+          event.preventDefault();
+          const item = findAdminRenderedGalleryItemById(deleteGalleryButton.dataset.adminGalleryDelete);
+          if (!item) {
+            setAdminOperationStatus("삭제할 갤러리 사진을 찾지 못했습니다.");
+            return;
+          }
+          adminGalleryDeleteConfirmState = { item };
+          if (lastAdminDashboardRenderArgs) {
+            renderAdminDashboard(lastAdminDashboardRenderArgs);
+          }
+          return;
+        }
+
         const reloadGenerationsButton = event.target.closest?.("[data-admin-reload-generations]");
         if (reloadGenerationsButton) {
           event.preventDefault();
@@ -16935,6 +17353,8 @@ ${modeExample}`;
             adminVisiblePaymentsCount += ADMIN_LIST_PAGE_SIZE;
           } else if (kind === "generations") {
             adminVisibleGenerationsCount += ADMIN_LIST_PAGE_SIZE;
+          } else if (kind === "gallery") {
+            adminVisibleGalleryCount += ADMIN_LIST_PAGE_SIZE;
           }
           if (lastAdminDashboardRenderArgs) {
             renderAdminDashboard(lastAdminDashboardRenderArgs);

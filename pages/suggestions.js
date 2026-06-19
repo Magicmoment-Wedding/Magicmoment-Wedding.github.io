@@ -7,7 +7,7 @@ export function renderSuggestionsPage(state) {
         <span class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">PRESET BOARD</span>
         <span class="font-label-caps text-label-caps text-primary">${state.suggestions.length} POSTS</span>
       </div>
-      <h1 class="font-display text-[32px] leading-none text-on-surface">원하는 웨딩 무드를 제안해주세요</h1>
+      <h1 class="font-display text-[32px] leading-none text-on-surface">원하는 분위기를 제안해주세요</h1>
       <p class="text-sm text-on-surface-variant">간단한 제안 게시판 MVP로, 작성된 항목은 local mock 상태에 저장됩니다.</p>
     </section>
 

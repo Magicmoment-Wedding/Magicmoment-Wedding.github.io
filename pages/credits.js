@@ -35,19 +35,27 @@ export function renderCreditsPage(state) {
       <div class="grid grid-cols-1 gap-3">
         ${CREDIT_PACKAGES.map((pack) => {
           const isCharging = state.chargingCreditPackageId === pack.id;
+          const descriptionLines = String(pack.description || "").split("\n").filter(Boolean);
 
           return `
             <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
-              <div class="flex items-center justify-between gap-4">
+              <div class="flex items-start justify-between gap-4">
                 <div>
                   <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">${escapeHtml(pack.badge)}</p>
                   <p class="font-display text-lg">${escapeHtml(pack.name)}</p>
-                  <p class="text-sm text-on-surface-variant mt-1">${escapeHtml(pack.description)}</p>
+                  <div class="mt-1 space-y-1">
+                    ${descriptionLines.map((line) => `<p class="text-sm text-on-surface-variant">${escapeHtml(line)}</p>`).join("")}
+                  </div>
                   <p class="text-xs font-semibold text-primary mt-1">서비스 제공기간: ${escapeHtml(pack.servicePeriodLabel)}</p>
                 </div>
                 <div class="text-right shrink-0">
-                  <div class="text-sm text-on-surface-variant">가격</div>
-                  <div class="font-medium text-primary text-[18px]">${formatCurrency(pack.price)}</div>
+                  ${pack.originalPrice ? `
+                    <div class="text-sm text-on-surface-variant line-through">${formatCurrency(pack.originalPrice)}</div>
+                    <div class="font-display text-primary text-[26px] leading-none">${formatCurrency(pack.price)}</div>
+                  ` : `
+                    <div class="text-sm text-on-surface-variant">가격</div>
+                    <div class="font-medium text-primary text-[18px]">${formatCurrency(pack.price)}</div>
+                  `}
                 </div>
               </div>
               <div class="mt-4">
@@ -63,6 +71,26 @@ export function renderCreditsPage(state) {
           `;
         }).join("")}
       </div>
+
+      <section class="rounded-DEFAULT p-4 glass-panel">
+        <h3 class="font-display text-[21px] leading-tight text-on-surface">프리미엄 커스텀 제작</h3>
+        <div class="mt-3 space-y-3">
+          <p class="text-sm text-on-surface-variant leading-6">더 높은 퀄리티와 원하는 콘셉트를 상담으로 완성해보세요.</p>
+          <p class="text-sm text-on-surface-variant leading-6">커스텀 또는 스케일업 상담</p>
+        </div>
+        <div class="mt-4 flex items-center justify-between gap-4 rounded-[18px] bg-white/55 px-4 py-3">
+          <div>
+            <p class="text-sm font-bold text-on-surface">프리미엄 커스텀 제작</p>
+            <p class="text-xs text-on-surface-variant">원하는 콘셉트를 직접 상담해 완성</p>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="font-bold text-primary text-[18px]">199,000원</p>
+          </div>
+        </div>
+        <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" data-action="open-assistant-chat" type="button">
+          커스텀 문의하기
+        </button>
+      </section>
 
       <div class="rounded-DEFAULT bg-white/45 p-4 text-sm text-on-surface-variant leading-6">
         <div class="flex items-start gap-2">

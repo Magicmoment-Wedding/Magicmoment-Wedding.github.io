@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>Magic AI Studio | 우리 사진에 감성 한 스푼</title>
+    <title>Magic AI Studio | 클릭 한 번에 만나는 감성사진</title>
     <meta name="description" content="사진 한 장으로 완성하는 AI 웨딩 이미지. 유럽, 한국, 동화, 스튜디오 감성까지 원하는 무드로 바꿔보세요." />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
@@ -337,6 +337,7 @@
         gap: 14px;
         place-items: center;
         min-height: 188px;
+        padding: 24px 18px 18px;
         border-radius: 32px;
         border: 1px dashed rgba(129, 80, 92, 0.34);
         background: linear-gradient(145deg, rgba(255, 255, 255, 0.58), rgba(242, 218, 221, 0.42));
@@ -360,6 +361,56 @@
         color: var(--rose-deep);
         background: rgba(255, 255, 255, 0.56);
         border: 1px solid rgba(255, 255, 255, 0.76);
+      }
+
+      .upload-tip-rotator {
+        width: min(100%, 320px);
+        margin-top: 2px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(154, 90, 106, 0.14);
+        background: rgba(255, 255, 255, 0.55);
+        box-shadow: 0 10px 24px rgba(129, 80, 92, 0.06);
+        pointer-events: none;
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 650ms ease, transform 650ms ease;
+        will-change: opacity, transform;
+      }
+
+      .upload-tip-rotator.is-fading {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      .upload-tip-rotator.is-hidden {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      .upload-tip-title {
+        color: #9a5a6a;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .upload-tip-lines {
+        margin-top: 6px;
+        display: grid;
+        gap: 2px;
+        color: #6f5960;
+        font-size: 13px;
+        line-height: 1.55;
+        font-weight: 500;
+        word-break: keep-all;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .upload-tip-rotator {
+          transition: none;
+        }
       }
 
       .account-menu-overlay {
@@ -2297,7 +2348,7 @@
 
       .editor-option-card.has-preview {
         position: relative;
-        min-height: 118px;
+        min-height: 122px;
         overflow: hidden;
         isolation: isolate;
         color: #fff;
@@ -2344,20 +2395,48 @@
         z-index: 1;
         margin-top: auto;
         color: #fff;
+        font-size: clamp(18px, 4.8vw, 22px);
+        line-height: 1.18;
+        font-weight: 700;
         text-shadow: 0 1px 12px rgba(0, 0, 0, 0.38);
+      }
+
+      .editor-option-card.has-preview.is-preview-toggle:where(:hover, :focus-visible, :active) .editor-option-title,
+      .editor-option-card.has-preview.is-preview-toggle.is-preview-active .editor-option-title {
+        display: none;
       }
 
       .editor-option-description {
         position: relative;
         z-index: 1;
-        display: block;
+        display: none;
         max-width: 100%;
         color: rgba(255, 255, 255, 0.86);
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 1.35;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.4;
+        margin-top: auto;
         text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
         word-break: keep-all;
+      }
+
+      .editor-option-card.has-preview:has(input:checked) .editor-option-title {
+        display: none;
+      }
+
+      .editor-option-card.has-preview:has(input:checked) .editor-option-description {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .editor-option-card.has-preview.is-preview-toggle:where(:hover, :focus-visible, :active) .editor-option-description,
+      .editor-option-card.has-preview.is-preview-toggle.is-preview-active .editor-option-description {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .editor-option-card:has(input:checked) {
@@ -3264,13 +3343,17 @@
       }
 
       .landing-title {
-        color: var(--ink);
+        color: #4a323a;
         font-family: var(--font-sans-kr);
         font-size: clamp(38px, 7.4vw, 64px);
-        line-height: 1.1;
-        font-weight: 900;
-        letter-spacing: -0.04em;
+        line-height: 1.12;
+        font-weight: 800;
+        letter-spacing: -0.045em;
         word-break: keep-all;
+        background: linear-gradient(135deg, #3b2a30 0%, #9a5a6a 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
 
       .landing-copy {
@@ -3278,12 +3361,12 @@
         color: #6f5960;
         font-size: 15px;
         line-height: 1.65;
-        font-weight: 400;
+        font-weight: 500;
         word-break: keep-all;
       }
 
       .landing-note {
-        color: #8a737a;
+        color: #7b666d;
         font-size: 13px;
         line-height: 1.55;
         font-weight: 500;
@@ -3661,17 +3744,17 @@
 
       .landing-pricing-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr);
         gap: 14px;
       }
 
       .landing-plan-card {
-        min-height: 182px;
-        padding: 18px;
+        min-height: 212px;
+        padding: 20px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 18px;
+        gap: 16px;
       }
 
       .landing-plan-card.is-featured {
@@ -4384,7 +4467,7 @@
         }
 
         .landing-pricing-grid {
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 18px;
         }
 
@@ -4572,14 +4655,14 @@
               <div class="landing-hero-copy">
                 <div>
                   <p class="landing-eyebrow">BEFORE / AFTER</p>
-                  <h1 class="landing-title mt-3">우리 사진에 감성 한 스푼</h1>
+                  <h1 class="landing-title mt-3">클릭 한 번에 만나는<br class="sm:hidden" />감성사진</h1>
                   <p class="landing-copy mt-4">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>
                 <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
-                  <span>내 사진 바꿔보기</span>
+                  <span>사진 올리고 시작하기</span>
                   <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
                 </button>
-                <p class="landing-note">딸깍 한 번으로 만나는 새로운 웨딩 무드</p>
+                <p class="landing-note">클릭 한 번으로 만나는 새로운 사진</p>
               </div>
             </div>
           </section>
@@ -4587,31 +4670,10 @@
           <section class="landing-section landing-gallery-preview-section" aria-label="스타일 갤러리 프리뷰">
             <div class="landing-section-inner">
               <div class="flex flex-col gap-4">
-                <p class="landing-eyebrow">Mood Select</p>
-                <h2 class="landing-title">어떤 감성을<br />더해볼까요?</h2>
-                <p class="landing-copy">사진 한 장에 원하는 무드를 골라보세요.</p>
-                <div class="landing-mood-grid" aria-label="웨딩 무드 스타일">
-                  <article class="landing-mood-card">
-                    <p class="landing-mood-card-title">유럽 감성</p>
-                    <p class="landing-mood-card-copy">파리, 베네치아, 아말피처럼</p>
-                  </article>
-                  <article class="landing-mood-card">
-                    <p class="landing-mood-card-title">한국 감성</p>
-                    <p class="landing-mood-card-copy">서울숲, 제주, 핑크뮬리처럼</p>
-                  </article>
-                  <article class="landing-mood-card">
-                    <p class="landing-mood-card-title">동화 감성</p>
-                    <p class="landing-mood-card-copy">주인공처럼, 사랑스럽게</p>
-                  </article>
-                  <article class="landing-mood-card">
-                    <p class="landing-mood-card-title">스튜디오 감성</p>
-                    <p class="landing-mood-card-copy">평범한 사진도 화보처럼</p>
-                  </article>
-                </div>
                 <div class="mt-2">
-                  <p class="landing-eyebrow">Gallery Preview</p>
-                  <h3 class="landing-title mt-3 text-[clamp(30px,5vw,46px)]">먼저 완성된 사진을<br />구경해보세요</h3>
-                  <p class="landing-copy mt-3">다른 사람들은 어떤 감성을 골랐을까요?</p>
+                  <p class="landing-eyebrow">STYLE GALLERY</p>
+                  <h2 class="landing-title mt-3 text-[clamp(30px,5vw,46px)]">스타일 갤러리를 둘러보세요</h2>
+                  <p class="landing-copy mt-3">다른 사진들은 어떤 분위기로 바뀌었을까요?</p>
                 </div>
                 <button class="landing-secondary-button w-full sm:w-fit" data-screen-target="gallery" type="button">
                   <span>갤러리 보러가기</span>
@@ -4665,10 +4727,10 @@
                 <img src="public/landing-gallery/landing-gallery-3.jpeg" alt="한옥 커스텀 웨딩 콘셉트" width="1000" height="553" loading="lazy" decoding="async" />
               </div>
               <div class="flex flex-col gap-5">
-                <p class="landing-eyebrow">Custom Concept</p>
-                <h2 class="landing-title">상상한 장면도 만들 수 있어요</h2>
+                <p class="landing-eyebrow">CUSTOM CONCEPT</p>
+                <h2 class="landing-title">어떤 장면도 만들 수 있어요</h2>
                 <ul class="landing-custom-copy-list" aria-label="커스터마이징 서비스 안내">
-                  <li>원하는 분위기, 장소, 콘셉트가 있다면 커스터마이징으로 더 특별하게 완성해보세요.</li>
+                  <li>원하는 장소, 분위기, 콘셉트가 있다면 커스텀 제작으로 더 특별하게 완성해보세요.</li>
                   <li>포토테이블용 사진이나 식전영상용 이미지로도 활용할 수 있어요.</li>
                 </ul>
                 <button class="landing-primary-button w-full sm:w-fit" data-action="open-assistant-chat" type="button">
@@ -4682,44 +4744,48 @@
           <section class="landing-section" aria-label="요금제">
             <div class="landing-section-inner single-column">
               <div class="text-center">
-                <p class="landing-eyebrow">Our Plans</p>
-                <h2 class="landing-title mt-3">필요한 만큼 가볍게 시작하세요</h2>
-                <p class="landing-copy mx-auto mt-3">마음에 드는 감성을 골라, 원하는 만큼 제작해보세요.</p>
+                <p class="landing-eyebrow">OUR PLANS</p>
+                <h2 class="landing-title mt-3">원하는 만큼 사진을 준비하세요</h2>
+                <p class="landing-copy mx-auto mt-3">가볍게 체험하거나, 예식에 필요한 사진까지 충분히 준비해보세요.</p>
               </div>
               <div class="landing-pricing-grid">
                 <article class="landing-plan-card">
                   <div>
                     <p class="landing-plan-eyebrow">OPEN EVENT</p>
                     <p class="landing-plan-title">첫 설렘 패스</p>
-                    <p class="landing-plan-price mt-3">1,000원</p>
-                    <p class="landing-plan-copy mt-2">첫 결제 1회 한정 · AI 웨딩사진 제작 8회</p>
+                    <div class="mt-3 flex items-end gap-3">
+                      <p class="landing-plan-copy line-through">49,800원</p>
+                      <p class="landing-plan-price">1,000원</p>
+                    </div>
+                    <p class="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">기간 한정 할인</p>
+                    <div class="mt-3 space-y-1">
+                      <p class="landing-plan-copy">처음이라면 가볍게 체험해보세요.</p>
+                      <p class="landing-plan-copy">AI 웨딩사진 제작 8회</p>
+                    </div>
                   </div>
                   <button class="landing-plan-button" data-screen-target="credits" type="button">이용권 선택하기</button>
                 </article>
                 <article class="landing-plan-card">
                   <div>
-                    <p class="landing-plan-eyebrow">STARTER</p>
-                    <p class="landing-plan-title">브라이덜 무드 패스</p>
-                    <p class="landing-plan-price mt-3">49,800원</p>
-                    <p class="landing-plan-copy mt-2">AI 웨딩사진 제작 8회</p>
-                  </div>
-                  <button class="landing-plan-button" data-screen-target="credits" type="button">이용권 선택하기</button>
-                </article>
-                <article class="landing-plan-card is-featured">
-                  <div>
                     <p class="landing-plan-eyebrow">STANDARD</p>
-                    <p class="landing-plan-title">웨딩 화보 패스</p>
+                    <p class="landing-plan-title">포토테이블 준비 패스</p>
                     <p class="landing-plan-price mt-3">99,000원</p>
-                    <p class="landing-plan-copy mt-2">AI 웨딩사진 제작 20회</p>
+                    <div class="mt-3 space-y-1">
+                      <p class="landing-plan-copy">스튜디오 사진이 부족하거나, 포토테이블용 사진이 필요할 때.</p>
+                      <p class="landing-plan-copy">AI 웨딩사진 제작 20회</p>
+                    </div>
                   </div>
                   <button class="landing-plan-button" data-screen-target="credits" type="button">이용권 선택하기</button>
                 </article>
                 <article class="landing-plan-card is-featured">
                   <div>
-                    <p class="landing-plan-eyebrow">ULTIMATE</p>
-                    <p class="landing-plan-title">프리미엄 커스텀</p>
+                    <p class="landing-plan-eyebrow">PREMIUM</p>
+                    <p class="landing-plan-title">프리미엄 커스텀 제작</p>
                     <p class="landing-plan-price mt-3">199,000원</p>
-                    <p class="landing-plan-copy mt-2">커스텀 또는 스케일업 상담</p>
+                    <div class="mt-3 space-y-1">
+                      <p class="landing-plan-copy">더 높은 퀄리티와 원하는 콘셉트를 상담으로 완성해보세요.</p>
+                      <p class="landing-plan-copy">커스텀 또는 스케일업 상담</p>
+                    </div>
                   </div>
                   <button class="landing-plan-button" data-action="open-assistant-chat" type="button">커스텀 문의하기</button>
                 </article>
@@ -4728,11 +4794,11 @@
           </section>
           <section class="landing-section" aria-label="시작하기">
             <div class="landing-final-cta">
-              <p class="landing-eyebrow">Start</p>
+              <p class="landing-eyebrow">START</p>
               <h2 class="landing-title mt-3">우리 사진도 한번 바꿔볼까요?</h2>
-              <p class="landing-copy mt-3">사진을 올리고 원하는 감성을 고르면, 새로운 웨딩 무드가 완성돼요.</p>
+              <p class="landing-copy mt-3">사진을 올리고 원하는 분위기를 고르면 새로운 웨딩 사진이 완성돼요.</p>
               <button class="landing-primary-button mt-6 w-full sm:w-fit" data-screen-target="editor" type="button">
-                <span>내 사진 바꿔보기</span>
+                <span>사진 올리고 시작하기</span>
                 <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
               </button>
             </div>
@@ -4798,8 +4864,8 @@
             </div>
             <div class="px-4 pb-8">
               <section class="pt-3">
-                <h1 class="font-display text-[26px] leading-tight text-on-surface">우리 사진에 감성 한 스푼</h1>
-                <p class="mt-2 text-sm leading-6 text-on-surface-variant">사진 한 장이면 충분해요. 원하는 분위기를 골라보세요.</p>
+                <h1 class="font-display text-[26px] leading-tight text-on-surface">클릭 한 번에 만나는<br class="sm:hidden" />감성사진</h1>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">사진 한 장이면 충분해요. 분위기는 새롭게, 추억은 더 특별하게.</p>
                 <div class="mt-5">
                   <div class="before-after-compare" data-before-after-slider>
                     <img class="before-after-after" src="mock-images/home/home_paris_couple_01.png" alt="AI 편집 후 파리 웨딩사진" draggable="false" />
@@ -4817,14 +4883,16 @@
               </section>
 
               <section class="mt-7">
-                <h2 class="text-[17px] font-semibold text-on-surface">어떤 감성을 더해볼까요?</h2>
+                <p class="font-label-caps text-label-caps text-on-surface-variant tracking-widest">STYLE GALLERY</p>
+                <h2 class="mt-2 text-[17px] font-semibold text-on-surface">스타일 갤러리를 둘러보세요</h2>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">다른 사진들은 어떤 분위기로 바뀌었을까요?</p>
                 <div class="mt-4 space-y-4">
                   <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
                     <img src="mock-images/home/home_paris_couple_01.png" alt="파리 에펠탑" class="h-40 w-full object-cover" />
                     <div class="px-5 pb-5 pt-4 text-center">
                       <h3 class="font-display text-[25px] leading-none text-on-surface">유럽 감성</h3>
                       <p class="mt-2 text-sm text-on-surface-variant">파리, 베네치아, 아말피처럼</p>
-                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="parisSnap" type="button">내 사진 바꿔보기</button>
+                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="parisSnap" type="button">사진 올리고 시작하기</button>
                     </div>
                   </article>
                   <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
@@ -4832,7 +4900,7 @@
                     <div class="px-5 pb-5 pt-4 text-center">
                       <h3 class="font-display text-[25px] leading-none text-on-surface">동화 감성</h3>
                       <p class="mt-2 text-sm text-on-surface-variant">주인공처럼, 사랑스럽게</p>
-                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="disneyLive" type="button">내 사진 바꿔보기</button>
+                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="disneyLive" type="button">사진 올리고 시작하기</button>
                     </div>
                   </article>
                 </div>
@@ -4878,6 +4946,13 @@
                 <span class="material-symbols-outlined text-[26px]">add_a_photo</span>
               </span>
               <span class="px-5 text-sm leading-6 text-on-surface-variant">여기에 사진을 올려주세요</span>
+              <div class="upload-tip-rotator" id="uploadTipRotator" aria-hidden="true">
+                <p class="upload-tip-title" id="uploadTipTitle">사진이 더 예쁘게 나오는 팁</p>
+                <div class="upload-tip-lines" id="uploadTipLines">
+                  <span>밝고 선명한 사진일수록 좋아요.</span>
+                  <span>얼굴과 표정이 잘 보이면 결과가 더 자연스러워요.</span>
+                </div>
+              </div>
             </label>
             <input accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" id="photoInput" type="file" />
 
@@ -4928,41 +5003,45 @@
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
                     예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">원본의 결은 그대로, 유럽 여행 스냅 무드를 더해요.</span>
+                  <span class="beauty-stage-copy">해외 안 가도 유럽 스냅 느낌!</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/europe-eiffel.jpg'); --preset-fallback: linear-gradient(135deg, #a8c7df 0%, #f6d9c6 46%, #6f8793 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="eiffel" checked />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">에펠탑</span>
+                  <span class="editor-option-description">파리의 대표 랜드마크를 담은 로맨틱 배경</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/europe-louvre.jpg'); --preset-fallback: linear-gradient(135deg, #c5b49e 0%, #dfe7ee 44%, #77695f 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="louvre" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">루브르 박물관</span>
+                  <span class="editor-option-description">고전적인 파리 감성이 느껴지는 배경</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/europe-venice.jpg'); --preset-fallback: linear-gradient(135deg, #7db4c7 0%, #d6b28f 48%, #586c72 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="venice" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">베네치아</span>
+                  <span class="editor-option-description">운하와 도시 풍경이 어우러진 이탈리아 스냅</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/europe-amalfi.jpg'); --preset-fallback: linear-gradient(135deg, #64b9d2 0%, #f4d49c 43%, #a97d64 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="amalfi" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold">아말피 코스트 절벽</span>
+                  <span class="editor-option-description">해안 절벽과 지중해 빛이 살아있는 배경</span>
                 </label>
               </div>
             </section>
@@ -4975,12 +5054,12 @@
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
                     예쁨단계 1
                   </span>
-                  <span class="beauty-stage-copy">원본의 결은 그대로, 한국 감성 웨딩 무드를 더해요.</span>
+                  <span class="beauty-stage-copy">우리 사진에 한국 감성 한 장!</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('/images/presets/korea-gyeongbokgung.png'), url('public/images/presets/korea-gyeongbokgung.png'); --preset-fallback: linear-gradient(135deg, #6c2f24 0%, #d7b17a 48%, #243b2e 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="gyeongbokgung" />
@@ -4989,7 +5068,7 @@
                   <span class="editor-option-description">한옥과 궁궐의 고전미를 담은 전통 스냅</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('/images/presets/korea-pink-muhly.jpg'), url('public/images/presets/korea-pink-muhly.jpg'); --preset-fallback: linear-gradient(135deg, #d997af 0%, #f3c8d3 48%, #9f6d82 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="pink_muhly" />
@@ -4998,7 +5077,7 @@
                   <span class="editor-option-description">분홍빛 들판의 로맨틱한 분위기</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('/images/presets/korea-jeju-saebyeol-oreum-stone-wall.png'), url('public/images/presets/korea-jeju-saebyeol-oreum-stone-wall.png'); --preset-fallback: linear-gradient(135deg, #7fae5d 0%, #dceeb9 48%, #4b7f3b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="jeju_saebyeol_oreum" />
@@ -5007,7 +5086,7 @@
                   <span class="editor-option-description">돌담과 초원이 어우러진 제주 오름 스냅</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('/images/presets/korea-jeju-gimnyeong-beach-basalt.png'), url('public/images/presets/korea-jeju-gimnyeong-beach-basalt.png'); --preset-fallback: linear-gradient(135deg, #ed9b69 0%, #f8d3a0 48%, #4c87a5 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="jeju_gimnyeong_beach" />
@@ -5026,49 +5105,49 @@
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
                     예쁨단계 3
                   </span>
-                  <span class="beauty-stage-copy">디즈니 실사풍 콘셉트에 맞춰 의상과 배경이 크게 바뀌며, 얼굴과 포즈는 설정에 따라 조금 변할 수 있어요.</span>
+                  <span class="beauty-stage-copy">동화 속 주인공처럼 확 바뀌어요</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <button
-                  class="editor-option-card has-preview is-disabled"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/disney-cinderella.jpg'); --preset-fallback: linear-gradient(135deg, #b9cff2 0%, #f6edf8 48%, #7787b5 100%); --preset-position: center;"
                   type="button"
-                  disabled
+                  aria-disabled="true"
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">신데렐라</span>
-                  <span class="editor-option-description">블루 드레스와 궁전 배경</span>
+                  <span class="editor-option-description">궁전 속 주인공처럼</span>
                 </button>
                 <button
-                  class="editor-option-card has-preview is-disabled"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/disney-belle.jpg'); --preset-fallback: linear-gradient(135deg, #8c6c50 0%, #e5c56e 46%, #6f5845 100%); --preset-position: center;"
                   type="button"
-                  disabled
+                  aria-disabled="true"
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">벨</span>
-                  <span class="editor-option-description">골드 드레스와 로맨틱 서재</span>
+                  <span class="editor-option-description">로맨틱한 서재 속 한 장면</span>
                 </button>
                 <button
-                  class="editor-option-card has-preview is-disabled"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/disney-aurora.jpg'); --preset-fallback: linear-gradient(135deg, #b8d5bd 0%, #f2c9d8 50%, #8a7bb5 100%); --preset-position: center;"
                   type="button"
-                  disabled
+                  aria-disabled="true"
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">오로라</span>
-                  <span class="editor-option-description">핑크 드레스와 장미 정원</span>
+                  <span class="editor-option-description">핑크빛 정원 속 공주처럼</span>
                 </button>
                 <button
-                  class="editor-option-card has-preview is-disabled"
+                  class="editor-option-card has-preview is-preview-toggle"
                   style="--preset-image: url('public/images/presets/disney-mulan.jpg'); --preset-fallback: linear-gradient(135deg, #496c54 0%, #d7b784 47%, #7f4c57 100%); --preset-position: center;"
                   type="button"
-                  disabled
+                  aria-disabled="true"
                 >
                   <span class="editor-option-badge">자동 생성</span>
                   <span class="editor-option-title font-semibold">뮬란</span>
-                  <span class="editor-option-description">한복 스타일과 한옥 정원</span>
+                  <span class="editor-option-description">한복 감성으로 동화처럼</span>
                 </button>
               </div>
             </section>
@@ -5079,14 +5158,14 @@
                 <div class="beauty-stage-note">
                   <span class="beauty-stage-badge">
                     <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
-                    예쁨단계 1
+                    예쁨단계 2
                   </span>
-                  <span class="beauty-stage-copy">흰배경, 소파, 꽃잎, 한복 등 대표 스튜디오 샷을 자연스럽게 만들어드려요.</span>
+                  <span class="beauty-stage-copy">집구석 사진이 웨딩스튜디오 사진으로 변신</span>
                 </div>
               </div>
               <div class="editor-option-grid mt-3">
                 <label
-                  class="editor-option-card has-preview studio-preview"
+                  class="editor-option-card has-preview studio-preview is-preview-toggle"
                   style="--preset-image: url('/images/studio-style/studio-white-bg.png'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_white_bg" />
@@ -5095,7 +5174,7 @@
                   <span class="editor-option-description">화이트 배경과 정면 포즈의 대표 스튜디오 샷</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview studio-preview"
+                  class="editor-option-card has-preview studio-preview is-preview-toggle"
                   style="--preset-image: url('/images/studio-style/studio-sofa.png'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_sofa" />
@@ -5104,16 +5183,16 @@
                   <span class="editor-option-description">흰 소파와 핑크 드레스가 펼쳐지는 신부 단독샷</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview studio-preview"
+                  class="editor-option-card has-preview studio-preview is-preview-toggle"
                   style="--preset-image: url('/images/studio-style/studio-petals.png'); --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_petals" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">꽃잎샷</span>
-                  <span class="editor-option-description">화이트하우스 배경과 꽃잎이 흩날리는 키스샷</span>
+                  <span class="editor-option-title font-semibold">꽃앞샷</span>
+                  <span class="editor-option-description">꽃이 가득한 웨딩 화보처럼</span>
                 </label>
                 <label
-                  class="editor-option-card has-preview studio-preview"
+                  class="editor-option-card has-preview studio-preview is-preview-toggle"
                   style="--preset-image: url('/images/studio-style/studio-hanbok.png'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="studio_hanbok" />
@@ -5403,11 +5482,11 @@
                     </div>
                     <div class="mt-4 grid grid-cols-2 gap-2">
                       <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
-                        <p class="text-xs text-on-surface-variant">브라이덜 무드 패스</p>
-                        <p class="mt-1 text-sm font-bold text-primary">49,800원</p>
+                        <p class="text-xs text-on-surface-variant">첫 설렘 패스</p>
+                        <p class="mt-1 text-sm font-bold text-primary">1,000원</p>
                       </div>
                       <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
-                        <p class="text-xs text-on-surface-variant">웨딩 화보 패스</p>
+                        <p class="text-xs text-on-surface-variant">포토테이블 준비 패스</p>
                         <p class="mt-1 text-sm font-bold text-primary">99,000원</p>
                       </div>
                     </div>
@@ -5474,82 +5553,58 @@
               <article class="rounded-DEFAULT p-4 glass-panel glow-shadow border border-primary/25" id="openEventCreditCard">
                 <div class="flex items-start justify-between gap-4">
                   <div>
-                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">첫 결제 1회 한정</p>
+                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">기간 한정 할인</p>
                     <p class="mt-3 font-display text-[23px] leading-tight text-on-surface">첫 설렘 패스</p>
-                    <p class="mt-1 text-sm text-on-surface-variant">AI 웨딩사진 제작 이용권 8회</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">처음이라면 가볍게 체험해보세요.</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">AI 웨딩사진 제작 8회</p>
                     <p class="mt-1 text-xs font-semibold text-primary">서비스 제공기간: 구매일로부터 3개월</p>
                   </div>
                   <div class="text-right shrink-0">
-                    <p class="text-xs text-on-surface-variant line-through">정가 49,800원</p>
+                    <p class="text-xs text-on-surface-variant line-through">49,800원</p>
                     <p class="font-display text-primary text-[26px] leading-none">1,000원</p>
                   </div>
                 </div>
                 <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="open_first_spark_pass_8" type="button">
-                  첫 설렘 패스 구매하기
+                  이용권 선택하기
                 </button>
               </article>
 
               <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
-                <div class="flex items-center justify-between gap-4">
+                <div class="flex items-start justify-between gap-4">
                   <div>
-                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">추천</p>
-                    <p class="font-display text-[22px] leading-tight text-on-surface">브라이덜 무드 패스</p>
-                    <p class="mt-1 text-sm text-on-surface-variant">AI 웨딩사진 제작 이용권 8회</p>
+                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">STANDARD</p>
+                    <p class="font-display text-[22px] leading-tight text-on-surface">포토테이블 준비 패스</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">스튜디오 사진이 부족하거나, 포토테이블용 사진이 필요할 때.</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">AI 웨딩사진 제작 20회</p>
                     <p class="mt-1 text-xs font-semibold text-primary">서비스 제공기간: 구매일로부터 3개월</p>
                   </div>
                   <div class="text-right shrink-0">
-                    <p class="text-sm text-on-surface-variant">정가</p>
-                    <p class="font-medium text-primary text-[18px]">49,800원</p>
-                  </div>
-                </div>
-                <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="bridal_mood_pass_8" type="button">
-                  브라이덜 무드 패스 구매하기
-                </button>
-              </article>
-
-              <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
-                <div class="flex items-center justify-between gap-4">
-                  <div>
-                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">인기</p>
-                    <p class="font-display text-[22px] leading-tight text-on-surface">웨딩 화보 패스</p>
-                    <p class="mt-1 text-sm text-on-surface-variant">AI 웨딩사진 제작 이용권 20회</p>
-                    <p class="mt-1 text-xs font-semibold text-primary">서비스 제공기간: 구매일로부터 3개월</p>
-                  </div>
-                  <div class="text-right shrink-0">
-                    <p class="text-sm text-on-surface-variant">정가</p>
+                    <p class="text-sm text-on-surface-variant">가격</p>
                     <p class="font-medium text-primary text-[18px]">99,000원</p>
                   </div>
                 </div>
                 <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="wedding_photo_pass_20" type="button">
-                  웨딩 화보 패스 구매하기
+                  이용권 선택하기
                 </button>
               </article>
 
-              <section class="rounded-DEFAULT p-4 glass-panel">
-                <h3 class="font-display text-[21px] leading-tight text-on-surface">추가 서비스</h3>
-                <div class="mt-3 space-y-3">
-                  <div class="flex items-center justify-between gap-3 rounded-[18px] bg-white/55 px-4 py-3">
-                    <div>
-                      <p class="text-sm font-bold text-on-surface">커스텀 서비스</p>
-                      <p class="text-xs text-on-surface-variant">원하는 콘셉트를 직접 제작 상담</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-sm font-bold text-primary">199,000원</p>
-                      <button class="mt-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary" data-action="open-assistant-chat" type="button">문의하기</button>
-                    </div>
+              <article class="rounded-DEFAULT p-4 glass-panel glow-shadow">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">PREMIUM</p>
+                    <p class="font-display text-[22px] leading-tight text-on-surface">프리미엄 커스텀 제작</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">더 높은 퀄리티와 원하는 콘셉트를 상담으로 완성해보세요.</p>
+                    <p class="mt-1 text-sm text-on-surface-variant">커스텀 또는 스케일업 상담</p>
                   </div>
-                  <div class="flex items-center justify-between gap-3 rounded-[18px] bg-white/55 px-4 py-3">
-                    <div>
-                      <p class="text-sm font-bold text-on-surface">스케일업 & 테이블 액자제작</p>
-                      <p class="text-xs text-on-surface-variant">고해상도 보정과 액자 제작 상담</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-sm font-bold text-primary">199,000원</p>
-                      <button class="mt-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary" data-action="open-assistant-chat" type="button">문의하기</button>
-                    </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-sm text-on-surface-variant">가격</p>
+                    <p class="font-medium text-primary text-[18px]">199,000원</p>
                   </div>
                 </div>
-              </section>
+                <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-action="open-assistant-chat" type="button">
+                  커스텀 문의하기
+                </button>
+              </article>
 
               <div class="rounded-DEFAULT bg-white/45 p-4 text-sm text-on-surface-variant leading-6">
                 <div class="flex items-start gap-2">
@@ -6475,7 +6530,7 @@ Important balance:
           fallbackLabels: [
             "흰배경샷",
             "쇼파샷",
-            "꽃잎샷",
+            "꽃앞샷",
             "한복샷",
           ],
           basePrompt: `Edit this photo into a natural Studio Style wedding portrait.
@@ -6533,9 +6588,9 @@ Important:
         "studio sofa": "쇼파샷",
         "sofa shot": "쇼파샷",
         "쇼파샷": "쇼파샷",
-        "studio petals": "꽃잎샷",
-        "petal shot": "꽃잎샷",
-        "꽃잎샷": "꽃잎샷",
+        "studio petals": "꽃앞샷",
+        "petal shot": "꽃앞샷",
+        "꽃앞샷": "꽃앞샷",
         "studio hanbok": "한복샷",
         "hanbok shot": "한복샷",
         "한복샷": "한복샷",
@@ -6593,7 +6648,7 @@ Important:
         },
         studio_petals: {
           category: "studio",
-          label: "꽃잎샷",
+          label: "꽃앞샷",
           prompt: "European white house background, many flying flower petals in foreground, groom in beige tuxedo, bride in simple white one-piece style dress, romantic kissing shot, cinematic wedding moment but still photorealistic and not fantasy, natural emotion, strong face identity preservation",
         },
         studio_hanbok: {
@@ -6667,7 +6722,7 @@ Important:
           },
           {
             title: "베네치아 로맨틱 워터프론트",
-            description: "운하변의 부드러운 빛과 웨딩 무드를 연결했습니다.",
+            description: "운하변의 부드러운 빛과 사진 분위기를 연결했습니다.",
           },
           {
             title: "베네치아 선셋 브리지",
@@ -6753,7 +6808,7 @@ Important:
           },
           {
             title: "핑크뮬리 블룸",
-            description: "자연광과 분홍빛 풀이 어우러진 포근한 웨딩 무드입니다.",
+            description: "자연광과 분홍빛 풀이 어우러진 포근한 분위기입니다.",
           },
           {
             title: "소프트 핑크 필드",
@@ -7091,6 +7146,40 @@ Important:
       const resultSaveStatus = document.getElementById("resultSaveStatus");
       const resultGalleryUploadButton = document.getElementById("resultGalleryUploadButton");
       const homeTabButtons = Array.from(document.querySelectorAll("[data-home-tab]"));
+      const uploadTipRotator = document.getElementById("uploadTipRotator");
+      const uploadTipTitle = document.getElementById("uploadTipTitle");
+      const uploadTipLines = document.getElementById("uploadTipLines");
+
+      const UPLOAD_TIPS = [
+        {
+          title: "사진이 더 예쁘게 나오는 팁",
+          lines: [
+            "밝고 선명한 사진일수록 좋아요.",
+            "얼굴과 표정이 잘 보이면 결과가 더 자연스러워요.",
+          ],
+        },
+        {
+          title: "원본에 가까운 사진 추천",
+          lines: [
+            "이미 보정이 많이 들어간 사진보다",
+            "원본에 가까운 사진이 더 자연스럽게 완성돼요.",
+          ],
+        },
+        {
+          title: "배경은 단순할수록 좋아요",
+          lines: [
+            "흰색 벽이나 깔끔한 배경일수록",
+            "AI가 인물과 얼굴을 더 정확하게 인식해요.",
+          ],
+        },
+        {
+          title: "커플 사진은 함께 보이게",
+          lines: [
+            "두 사람의 얼굴과 상반신이 잘 보이는 사진을 올려주세요.",
+            "가려진 부분이 적을수록 결과가 좋아져요.",
+          ],
+        },
+      ];
 
       let selectedFile = null;
       let selectedImageDataUrl = "";
@@ -7128,6 +7217,10 @@ Important:
       let generatingGallerySlideIndex = 0;
       let generatingGalleryIntervalId = null;
       let galleryResizeTimerId = null;
+      let uploadTipIndex = 0;
+      let uploadTipIntervalId = null;
+      let uploadTipFadeTimerId = null;
+      const prefersReducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)") ?? null;
       let comparisonSliderPosition = 50;
       let isComparisonDragging = false;
       let modalItemsOverride = null;
@@ -7221,7 +7314,7 @@ Important:
               title: "사진과 스타일 맞추기",
               paragraphs: [
                 "원하는 스타일에 어울리는 사진을 고르면 결과가 더 좋아져요.",
-                "예를 들어 소파샷은 앉아있는 사진, 꽃잎샷은 가까운 커플 사진처럼 원본 포즈와 스타일이 잘 맞을수록 자연스럽게 완성돼요.",
+                "예를 들어 소파샷은 앉아있는 사진, 꽃앞샷은 가까운 커플 사진처럼 원본 포즈와 스타일이 잘 맞을수록 자연스럽게 완성돼요.",
               ],
             },
             {
@@ -9269,9 +9362,8 @@ Important:
         const packageId = getAdminNestedValue(payment, ["packageId", "package_id", "package.id"], "");
         const goodsName = getAdminNestedValue(payment, ["goodsName", "goods_name", "productName", "product_name"], "");
         const token = normalizeAdminToken(packageId || goodsName);
-        if (token === "credits_200_open_event" || token === "open_first_spark_pass_8") return "첫 설렘 패스";
-        if (token === "credits_200" || token === "bridal_mood_pass_8") return "브라이덜 무드 패스";
-        if (token === "credits_500" || token === "wedding_photo_pass_20") return "웨딩 화보 패스";
+        if (token === "credits_200_open_event" || token === "open_first_spark_pass_8" || token === "credits_200" || token === "bridal_mood_pass_8") return "첫 설렘 패스";
+        if (token === "credits_500" || token === "wedding_photo_pass_20") return "포토테이블 준비 패스";
         if (goodsName) return goodsName;
         if (packageId) return packageId;
         return "알 수 없는 상품";
@@ -9284,7 +9376,8 @@ Important:
         if (explicit) return formatAdminUses(Math.floor(Number(explicit) / 25));
         const productName = getAdminPaymentProductName(payment);
         if (productName.includes("웨딩 화보")) return "20회";
-        if (productName.includes("첫 설렘") || productName.includes("브라이덜")) return "8회";
+        if (productName.includes("첫 설렘")) return "8회";
+        if (productName.includes("포토테이블")) return "20회";
         return "없음";
       }
 
@@ -10617,20 +10710,20 @@ Important:
         credits_200: {
           productCode: "bridal_mood_pass_8",
           legacyPackageId: "credits_200",
-          productName: "브라이덜 무드 패스",
-          orderName: "브라이덜 무드 패스 - AI 웨딩사진 제작 이용권 8회",
+          productName: "첫 설렘 패스",
+          orderName: "첫 설렘 패스 - AI 웨딩사진 제작 이용권 8회",
           passUses: 8,
           servicePeriodMonths: 3,
-          toastName: "브라이덜 무드 패스",
+          toastName: "첫 설렘 패스",
         },
         credits_500: {
           productCode: "wedding_photo_pass_20",
           legacyPackageId: "credits_500",
-          productName: "웨딩 화보 패스",
-          orderName: "웨딩 화보 패스 - AI 웨딩사진 제작 이용권 20회",
+          productName: "포토테이블 준비 패스",
+          orderName: "포토테이블 준비 패스 - AI 웨딩사진 제작 이용권 20회",
           passUses: 20,
           servicePeriodMonths: 3,
-          toastName: "웨딩 화보 패스",
+          toastName: "포토테이블 준비 패스",
         },
         open_first_spark_pass_8: {
           productCode: "open_first_spark_pass_8",
@@ -10644,20 +10737,20 @@ Important:
         bridal_mood_pass_8: {
           productCode: "bridal_mood_pass_8",
           legacyPackageId: "credits_200",
-          productName: "브라이덜 무드 패스",
-          orderName: "브라이덜 무드 패스 - AI 웨딩사진 제작 이용권 8회",
+          productName: "첫 설렘 패스",
+          orderName: "첫 설렘 패스 - AI 웨딩사진 제작 이용권 8회",
           passUses: 8,
           servicePeriodMonths: 3,
-          toastName: "브라이덜 무드 패스",
+          toastName: "첫 설렘 패스",
         },
         wedding_photo_pass_20: {
           productCode: "wedding_photo_pass_20",
           legacyPackageId: "credits_500",
-          productName: "웨딩 화보 패스",
-          orderName: "웨딩 화보 패스 - AI 웨딩사진 제작 이용권 20회",
+          productName: "포토테이블 준비 패스",
+          orderName: "포토테이블 준비 패스 - AI 웨딩사진 제작 이용권 20회",
           passUses: 20,
           servicePeriodMonths: 3,
-          toastName: "웨딩 화보 패스",
+          toastName: "포토테이블 준비 패스",
         },
       };
 
@@ -12883,6 +12976,9 @@ Important:
         appStage.classList.toggle("hidden", isLanding);
         appStage.classList.toggle("flex", !isLanding);
         appStage.classList.toggle("is-gallery-active", !isLanding && screen === "gallery");
+        if (screen !== "editor") {
+          stopUploadTipRotator();
+        }
 
         const screens = [
           { name: "home", element: homeScreen, activeClass: "" },
@@ -18097,8 +18193,92 @@ ${modeExample}`;
         photoInput.click();
       });
 
+      function getUploadTipLineNodes() {
+        return uploadTipLines ? Array.from(uploadTipLines.querySelectorAll("span")) : [];
+      }
+
+      function renderUploadTip(index = uploadTipIndex, { animate = false } = {}) {
+        if (!uploadTipRotator || !uploadTipTitle || !uploadTipLines) return;
+
+        const tip = UPLOAD_TIPS[index % UPLOAD_TIPS.length];
+        const lineNodes = getUploadTipLineNodes();
+        const reducedMotion = prefersReducedMotionQuery?.matches === true;
+
+        uploadTipTitle.textContent = tip.title;
+
+        if (lineNodes.length === tip.lines.length) {
+          lineNodes.forEach((node, lineIndex) => {
+            node.textContent = tip.lines[lineIndex] || "";
+          });
+        } else {
+          uploadTipLines.innerHTML = tip.lines.map((line) => `<span>${escapeHtml(line)}</span>`).join("");
+        }
+
+        if (reducedMotion) {
+          uploadTipRotator.classList.remove("is-fading", "is-hidden");
+          return;
+        }
+
+        if (animate) {
+          uploadTipRotator.classList.add("is-fading");
+          window.clearTimeout(uploadTipFadeTimerId);
+          uploadTipFadeTimerId = window.setTimeout(() => {
+            uploadTipRotator.classList.remove("is-fading");
+          }, 650);
+        } else {
+          uploadTipRotator.classList.remove("is-fading", "is-hidden");
+        }
+      }
+
+      function stopUploadTipRotator() {
+        if (uploadTipIntervalId) {
+          window.clearInterval(uploadTipIntervalId);
+          uploadTipIntervalId = null;
+        }
+        window.clearTimeout(uploadTipFadeTimerId);
+        uploadTipFadeTimerId = null;
+        uploadTipRotator?.classList.add("is-hidden");
+        uploadTipRotator?.classList.remove("is-fading");
+      }
+
+      function startUploadTipRotator() {
+        if (!uploadTipRotator || photoUploadBox.classList.contains("hidden") || appScreen !== "editor") return;
+
+        renderUploadTip(uploadTipIndex, { animate: false });
+        uploadTipRotator.classList.remove("is-hidden");
+
+        if (prefersReducedMotionQuery?.matches === true) {
+          stopUploadTipRotator();
+          uploadTipRotator.classList.remove("is-hidden");
+          return;
+        }
+
+        if (uploadTipIntervalId) return;
+
+        uploadTipIntervalId = window.setInterval(() => {
+          if (!uploadTipRotator || photoUploadBox.classList.contains("hidden")) {
+            stopUploadTipRotator();
+            return;
+          }
+
+          const nextIndex = (uploadTipIndex + 1) % UPLOAD_TIPS.length;
+          uploadTipRotator.classList.add("is-fading");
+          window.clearTimeout(uploadTipFadeTimerId);
+          uploadTipFadeTimerId = window.setTimeout(() => {
+            uploadTipIndex = nextIndex;
+            renderUploadTip(uploadTipIndex, { animate: false });
+            uploadTipRotator.classList.remove("is-fading");
+          }, 650);
+        }, 4500);
+      }
+
       function syncPhotoUploadUi() {
         photoUploadBox.classList.toggle("hidden", Boolean(selectedImageDataUrl));
+        if (selectedImageDataUrl) {
+          stopUploadTipRotator();
+        } else {
+          startUploadTipRotator();
+        }
       }
 
       function syncEditorScreenUi() {
@@ -18112,6 +18292,11 @@ ${modeExample}`;
           sourceSection.classList.add("hidden");
           sourcePreview.removeAttribute("src");
           generateButton.disabled = true;
+        }
+        if (hasPreviewImage) {
+          stopUploadTipRotator();
+        } else {
+          startUploadTipRotator();
         }
       }
 

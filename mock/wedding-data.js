@@ -90,7 +90,7 @@ export const PRESETS = [
   {
     id: "custom",
     name: "커스텀 요청",
-    description: "원하는 웨딩 무드를 적고 대행 서비스로 연결합니다.",
+    description: "원하는 분위기를 적고 대행 서비스로 연결합니다.",
     supportedSourceIds: ["source-outdoor", "source-studio"],
     isCustom: true,
   },
@@ -276,7 +276,7 @@ export const SERVICE_CARDS = [
     tags: ["드라마 로맨스", "디즈니 무드"],
     extra: {
       route: "assistant",
-      headline: "웨딩 무드 선택부터 출력까지 이어주는 상담형 서비스",
+      headline: "사진 분위기 선택부터 출력까지 이어주는 상담형 서비스",
       description: "파리 에펠탑, 디즈니 무드, 드라마 로맨스 중 어울리는 웨딩 톤을 바로 안내하는 서비스",
       icon: "chat",
       cta: "상담 시작",
@@ -293,7 +293,7 @@ export const SERVICE_CARDS = [
     tags: ["드라마 로맨스", "야외 웨딩 스냅"],
     extra: {
       route: "suggestions",
-      headline: "다음 웨딩 무드를 제안하는 게시판형 서비스",
+      headline: "다음 사진 분위기를 제안하는 게시판형 서비스",
       description: "웨딩 전용 프리셋 아이디어를 쌓아두는 MVP 게시판",
       icon: "forum",
       cta: "제안 보기",

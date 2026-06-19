@@ -2331,19 +2331,21 @@
       .editor-option-card {
         min-height: 96px;
         border-radius: 18px;
-        padding: 14px;
+        padding: 13px 13px 12px;
         color: #6f5b60;
         background: rgba(255, 255, 255, 0.62);
         border: 1px solid rgba(129, 80, 92, 0.18);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 10px;
+        gap: 8px;
         text-align: left;
-        font-size: 13px;
+        font-size: 12px;
         line-height: 1.35;
         word-break: keep-all;
         transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
 
       .editor-option-card.has-preview {
@@ -2363,7 +2365,7 @@
         inset: 0;
         z-index: -2;
         background-image:
-          linear-gradient(180deg, rgba(31, 26, 27, 0.08), rgba(31, 26, 27, 0.66)),
+          linear-gradient(180deg, rgba(31, 26, 27, 0.04), rgba(31, 26, 27, 0.52)),
           var(--preset-image),
           var(--preset-fallback);
         background-size: cover;
@@ -2376,18 +2378,18 @@
         position: absolute;
         inset: 0;
         z-index: -1;
-        background: linear-gradient(140deg, rgba(255, 255, 255, 0.14), transparent 48%, rgba(0, 0, 0, 0.2));
+        background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), transparent 50%, rgba(0, 0, 0, 0.14));
       }
 
       .editor-option-card.has-preview.studio-preview::before {
         background-image:
-          linear-gradient(180deg, rgba(31, 26, 27, 0.04), rgba(31, 26, 27, 0.36)),
+          linear-gradient(180deg, rgba(31, 26, 27, 0.03), rgba(31, 26, 27, 0.28)),
           var(--preset-image),
           var(--preset-fallback);
       }
 
       .editor-option-card.has-preview.studio-preview::after {
-        background: linear-gradient(140deg, rgba(255, 255, 255, 0.1), transparent 54%, rgba(0, 0, 0, 0.1));
+        background: linear-gradient(140deg, rgba(255, 255, 255, 0.08), transparent 56%, rgba(0, 0, 0, 0.08));
       }
 
       .editor-option-card.has-preview .editor-option-title {
@@ -2395,10 +2397,12 @@
         z-index: 1;
         margin-top: auto;
         color: #fff;
-        font-size: clamp(18px, 4.8vw, 22px);
-        line-height: 1.18;
+        font-family: var(--font-sans-kr);
+        font-size: 16px;
+        line-height: 1.3;
         font-weight: 700;
-        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.38);
+        letter-spacing: -0.025em;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.28);
       }
 
       .editor-option-card.has-preview.is-preview-toggle:where(:hover, :focus-visible, :active) .editor-option-title,
@@ -2412,12 +2416,18 @@
         display: none;
         max-width: 100%;
         color: rgba(255, 255, 255, 0.86);
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 1.4;
+        font-family: var(--font-sans-kr);
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.42;
+        letter-spacing: -0.02em;
         margin-top: auto;
-        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
         word-break: keep-all;
+      }
+
+      .editor-option-title.is-amalfi-break {
+        line-height: 1.08;
       }
 
       .editor-option-card.has-preview:has(input:checked) .editor-option-title {
@@ -4620,7 +4630,7 @@
         }
       })();
     </script>
-    <script src="./config.js?v=20260601"></script>
+    <script src="./config.js?v=20260619"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -4655,7 +4665,7 @@
               <div class="landing-hero-copy">
                 <div>
                   <p class="landing-eyebrow">BEFORE / AFTER</p>
-                  <h1 class="landing-title mt-3">클릭 한 번에 만나는 <br class="sm:hidden" />감성사진</h1>
+                  <h1 class="landing-title mt-3"><span>클릭 한 번에</span><br /><span>만나는 감성사진</span></h1>
                   <p class="landing-copy mt-4">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>
                 <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
@@ -4866,7 +4876,7 @@
             </div>
             <div class="px-4 pb-8">
               <section class="pt-3">
-                <h1 class="font-display text-[26px] leading-tight text-on-surface">클릭 한 번에 만나는 <br class="sm:hidden" />감성사진</h1>
+                <h1 class="font-display text-[26px] leading-tight text-on-surface"><span>클릭 한 번에</span><br /><span>만나는 감성사진</span></h1>
                 <p class="mt-2 text-sm leading-6 text-on-surface-variant">사진 한 장이면 충분해요. 분위기는 새롭게, 추억은 더 특별하게.</p>
                 <div class="mt-5">
                   <div class="before-after-compare" data-before-after-slider>
@@ -5042,7 +5052,7 @@
                 >
                   <input class="sr-only" name="generationPlace" type="radio" value="amalfi" />
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold">아말피 코스트 절벽</span>
+                  <span class="editor-option-title font-semibold is-amalfi-break">아말피 코스트<br />절벽</span>
                   <span class="editor-option-description">해안 절벽과 지중해 빛이 살아있는 배경</span>
                 </label>
               </div>
@@ -6215,7 +6225,8 @@
 
     <script>
       const FRONT_API_BASE_URL = String(window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL || "").replace(/\/+$/, "");
-      const APP_ORIGIN = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? window.location.origin : "https://magicaistudio.co.kr")).replace(/\/+$/, "");
+      const PRODUCTION_APP_ORIGIN = "https://magicaistudio.co.kr";
+      const APP_ORIGIN = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
       const PUBLIC_SUPABASE_URL = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_URL || window.SUPABASE_URL || "").trim();
       const PUBLIC_SUPABASE_ANON_KEY = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || "").trim();
       const GOOGLE_LOGIN_ENABLED = window.MAGIC_AI_STUDIO_CONFIG?.GOOGLE_LOGIN_ENABLED !== false && window.GOOGLE_LOGIN_ENABLED !== false;
@@ -7561,7 +7572,16 @@ Important:
       }
 
       function getGoogleOAuthCallbackOrigin() {
-        return APP_ORIGIN;
+        try {
+          const origin = new URL(APP_ORIGIN).origin.replace(/\/+$/, "");
+          const isLocalOrigin = origin === "http://localhost:3000"
+            || origin === "http://127.0.0.1:3000"
+            || origin === "http://localhost:5173"
+            || origin === "http://127.0.0.1:5173";
+          return isLocalOrigin ? PRODUCTION_APP_ORIGIN : origin;
+        } catch (error) {
+          return PRODUCTION_APP_ORIGIN;
+        }
       }
 
       function normalizeGoogleReturnTo(value) {
@@ -7717,7 +7737,7 @@ Important:
             flowType: "pkce",
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: false,
+            detectSessionInUrl: true,
           },
         });
         return supabaseAuthClient;
@@ -12026,6 +12046,25 @@ Important:
 
         const authCode = loginParams.get("code");
         const supabaseClient = getSupabaseAuthClient();
+        if (supabaseClient?.auth?.getSession) {
+          try {
+            const { data, error } = await supabaseClient.auth.getSession();
+            if (error) throw error;
+            if (data?.session) {
+              return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo);
+            }
+          } catch (error) {
+            logGoogleAuthError("[auth][google][callback-session-check-error]", getAuthErrorDetails(error, {
+              name: "GoogleOAuthSessionCheckError",
+              code: "GET_SUPABASE_SESSION_FAILED",
+              cause: {
+                returnTo: normalizedReturnTo,
+                hasAuthCode: Boolean(authCode),
+                hasHashTokens,
+              },
+            }));
+          }
+        }
         if (!authCode && !hasHashTokens) {
           logGoogleAuthError("[auth][google][callback-error]", {
             name: "GoogleOAuthCallbackConfigurationError",
@@ -18271,6 +18310,10 @@ ${modeExample}`;
             provider: "google",
             options: {
               redirectTo,
+              queryParams: {
+                access_type: "offline",
+                prompt: "consent",
+              },
             },
           });
           if (error) throw error;

@@ -1,16 +1,29 @@
 (() => {
   const LOCAL_API_BASE_URL = "http://localhost:3000";
   const ONLINE_API_BASE_URL = "https://api.magicaistudio.co.kr";
+  const ONLINE_APP_ORIGIN = "https://magicaistudio.co.kr";
+
+  function normalizeAppOrigin(value) {
+    try {
+      const origin = new URL(String(value || ONLINE_APP_ORIGIN)).origin;
+      const isLocalOrigin = origin === "http://localhost:3000"
+        || origin === "http://127.0.0.1:3000"
+        || origin === "http://localhost:5173"
+        || origin === "http://127.0.0.1:5173";
+      return isLocalOrigin ? ONLINE_APP_ORIGIN : origin;
+    } catch (error) {
+      return ONLINE_APP_ORIGIN;
+    }
+  }
 
   const API_BASE_URL =
     window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
       ? LOCAL_API_BASE_URL
       : ONLINE_API_BASE_URL;
 
-  const APP_ORIGIN =
-    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-      ? window.location.origin
-      : "https://magicaistudio.co.kr";
+  const APP_ORIGIN = normalizeAppOrigin(
+    window.APP_ORIGIN || window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN,
+  );
   const SUPABASE_URL = window.SUPABASE_URL || "https://rzlvfuyzofzqghzooqsi.supabase.co";
   const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6bHZmdXl6b2Z6cWdoem9vcXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjkwOTMsImV4cCI6MjA5NDI0NTA5M30.xww7V8foHYvaTV_bbujFF-vvWuCIU1l_27FXq9BA3c";
   const GOOGLE_LOGIN_ENABLED = window.GOOGLE_LOGIN_ENABLED !== false;

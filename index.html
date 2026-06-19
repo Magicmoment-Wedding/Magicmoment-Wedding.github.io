@@ -4621,6 +4621,7 @@
       })();
     </script>
     <script src="./config.js?v=20260601"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
     class="bg-background text-on-background font-body-large antialiased min-h-screen flex flex-col items-center relative overflow-x-hidden"
@@ -6076,6 +6077,28 @@
       </section>
     </div>
 
+    <div class="login-modal-overlay" id="googleInAppBrowserModalOverlay" aria-hidden="true">
+      <section class="login-modal-panel" id="googleInAppBrowserModalPanel" role="dialog" aria-modal="true" aria-labelledby="googleInAppBrowserTitle" aria-describedby="googleInAppBrowserDescription">
+        <div class="login-modal-header">
+          <button class="login-modal-close" id="googleInAppBrowserClose" type="button" aria-label="Google 로그인 안내 닫기">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <div class="login-modal-body">
+          <div class="login-modal-brand mb-4">
+            <img src="public/branding/ai-studio-logo-vertical.png" alt="" />
+          </div>
+          <h2 class="login-modal-title font-display" id="googleInAppBrowserTitle">브라우저에서 다시 열어주세요</h2>
+          <p class="login-modal-lead" id="googleInAppBrowserDescription">Google 로그인은 보안 정책상 앱 안 브라우저에서 제한될 수 있어요.</p>
+          <p class="login-modal-copy">오른쪽 위 메뉴에서 "브라우저로 열기"를 선택한 뒤 다시 시도해 주세요.</p>
+          <div class="mt-5 grid gap-2 sm:grid-cols-2">
+            <button class="rounded-[18px] border border-[#ead6dc] bg-white/70 px-4 py-3 text-sm font-bold text-[#81505c] transition hover:bg-white" id="googleInAppBrowserCopyButton" type="button">주소 복사</button>
+            <button class="rounded-[18px] bg-gradient-to-r from-[#81505c] to-[#9b6170] px-4 py-3 text-sm font-bold text-white shadow-[0_12px_24px_rgba(129,80,92,0.18)] transition hover:brightness-105" id="googleInAppBrowserConfirmButton" type="button">안내 확인</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <div class="login-modal-overlay" id="assistantKakaoModalOverlay" aria-hidden="true">
       <section class="login-modal-panel" id="assistantKakaoModalPanel" role="dialog" aria-modal="true" aria-labelledby="assistantKakaoTitle" aria-describedby="assistantKakaoDescription">
         <div class="login-modal-header">
@@ -6191,6 +6214,9 @@
 
     <script>
       const FRONT_API_BASE_URL = String(window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL || "").replace(/\/+$/, "");
+      const PUBLIC_SUPABASE_URL = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_URL || window.SUPABASE_URL || "").trim();
+      const PUBLIC_SUPABASE_ANON_KEY = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || "").trim();
+      const GOOGLE_LOGIN_ENABLED = window.MAGIC_AI_STUDIO_CONFIG?.GOOGLE_LOGIN_ENABLED !== false && window.GOOGLE_LOGIN_ENABLED !== false;
       const INITIAL_SEARCH_PARAMS = new URLSearchParams(window.location.search);
       const IS_NICEPAY_REVIEW_MODE = INITIAL_SEARCH_PARAMS.get("review") === "nicepay";
       const LOGO_HORIZONTAL_SRC = "public/branding/ai-studio-logo-horizontal.png";
@@ -6200,7 +6226,7 @@
       const APP_SCREEN_STORAGE_KEY = "magic_ai_app_screen";
       const LOGIN_RETURN_VIEW_STORAGE_KEY = "magic_login_return_view";
       const LOGIN_STARTED_STORAGE_KEY = "magic_login_started";
-      const LOGIN_RETURN_VIEW_FALLBACK = "editor";
+      const LOGIN_RETURN_VIEW_FALLBACK = "landing";
       const TERMS_VERSION = "2026-06-15";
       const PRIVACY_VERSION = "2026-06-15";
       const TERMS_CONSENT_STORAGE_KEY = "magic_terms_consent";
@@ -6236,11 +6262,14 @@
       const PENDING_ACTION_STORAGE_KEY = "magic_pending_action";
       const RETURN_TO_STORAGE_KEY = "magic_return_to";
       const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao", "apple"]);
+      const GOOGLE_LOGIN_RETURN_VIEWS = new Set(["landing", "editor", "account", "photobox"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
         "home",
         "landing",
         "stay",
         "editor",
+        "account",
+        "photobox",
         "gallery",
         "myPhotoBox",
         "guide",
@@ -6253,6 +6282,7 @@
       const IS_ONLINE_API_PLACEHOLDER = Boolean(window.MAGIC_AI_STUDIO_CONFIG?.IS_ONLINE_API_PLACEHOLDER);
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
+      let supabaseAuthClient = null;
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
       const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
@@ -7461,12 +7491,18 @@ Important:
 
       function sanitizeLoginReturnView(value) {
         const view = String(value || "").trim();
+        if (!view) return LOGIN_RETURN_VIEW_FALLBACK;
+        if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(view) || /[\\?#]/.test(view)) return LOGIN_RETURN_VIEW_FALLBACK;
+        if (view.includes("/")) return LOGIN_RETURN_VIEW_FALLBACK;
+        if (view === "home" || view === "stay") return "landing";
+        if (view === "myPhotoBox" || view === "myphotobox" || view === "photoBox") return "photobox";
         return ALLOWED_LOGIN_RETURN_VIEWS.has(view) ? view : LOGIN_RETURN_VIEW_FALLBACK;
       }
 
       function normalizeLoginReturnView(value) {
         const view = sanitizeLoginReturnView(value);
         if (view === "home" || view === "stay") return "landing";
+        if (view === "myPhotoBox") return "photobox";
         return view;
       }
 
@@ -7482,6 +7518,8 @@ Important:
         const returnView = normalizeLoginReturnView(view);
         if (returnView === "guide") return "siteGuide";
         if (returnView === "assistant") return "home";
+        if (returnView === "account") return "landing";
+        if (returnView === "photobox") return "myPhotoBox";
         return returnView;
       }
 
@@ -7516,6 +7554,74 @@ Important:
       function getLoginRedirectReturnView() {
         const queryReturnTo = new URLSearchParams(window.location.search).get("returnTo");
         return normalizeLoginReturnView(queryReturnTo || getStoredLoginReturnView());
+      }
+
+      function normalizeGoogleReturnTo(value) {
+        const returnTo = normalizeLoginReturnView(value);
+        return GOOGLE_LOGIN_RETURN_VIEWS.has(returnTo) ? returnTo : LOGIN_RETURN_VIEW_FALLBACK;
+      }
+
+      function getGoogleOAuthRedirectTo(returnTo) {
+        const callbackUrl = new URL("/auth/callback", window.location.origin);
+        callbackUrl.searchParams.set("returnTo", normalizeGoogleReturnTo(returnTo));
+        return callbackUrl.toString();
+      }
+
+      function isGoogleLoginEnabled() {
+        return GOOGLE_LOGIN_ENABLED === true;
+      }
+
+      function getSupabaseAuthClient() {
+        if (supabaseAuthClient) return supabaseAuthClient;
+        const supabaseFactory = window.supabase?.createClient;
+        if (typeof supabaseFactory !== "function" || !PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_ANON_KEY) {
+          return null;
+        }
+        supabaseAuthClient = supabaseFactory(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false,
+          },
+        });
+        return supabaseAuthClient;
+      }
+
+      function isAuthCallbackRoute() {
+        return window.location.pathname.replace(/\/+$/, "") === "/auth/callback";
+      }
+
+      function hasSupabaseAuthCallbackQuery(searchParams = new URLSearchParams(window.location.search)) {
+        return isAuthCallbackRoute() && Boolean(
+          searchParams.get("code")
+          || searchParams.get("error")
+          || searchParams.get("error_code")
+          || searchParams.get("error_description")
+        );
+      }
+
+      function getGoogleCallbackErrorParams(searchParams = new URLSearchParams(window.location.search)) {
+        return {
+          error: searchParams.get("error") || "",
+          errorCode: searchParams.get("error_code") || "",
+          errorDescription: searchParams.get("error_description") || "",
+        };
+      }
+
+      function logGoogleCallbackError(searchParams = new URLSearchParams(window.location.search)) {
+        const { error, errorCode, errorDescription } = getGoogleCallbackErrorParams(searchParams);
+        console.error("[auth][google][callback-error]", {
+          error,
+          errorCode,
+          errorDescription,
+        });
+      }
+
+      function isInAppBrowserForGoogleOAuth() {
+        const ua = String(navigator.userAgent || "");
+        return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line|WebView/i.test(ua)
+          || /\bwv\b/i.test(ua)
+          || /; wv\)/i.test(ua);
       }
 
       function sanitizeOAuthProvider(provider) {
@@ -7867,7 +7973,8 @@ Important:
         socialLoginButtons.forEach((button) => {
           const mode = button.dataset.authMode === "signup" ? "signup" : "login";
           const isPendingProvider = button.classList.contains("is-pending");
-          const shouldDisable = isPendingProvider || (mode === "signup" && !allRequiredConsentsChecked);
+          const isGoogleDisabled = button.dataset.socialLoginProvider === "google" && !isGoogleLoginEnabled();
+          const shouldDisable = isPendingProvider || isGoogleDisabled || (mode === "signup" && !allRequiredConsentsChecked);
           if (!button.classList.contains("cursor-wait")) {
             button.disabled = shouldDisable;
           }
@@ -11194,6 +11301,8 @@ Important:
         url.searchParams.delete("provider");
         url.searchParams.delete("auth_error");
         url.searchParams.delete("error");
+        url.searchParams.delete("error_code");
+        url.searchParams.delete("error_description");
         url.searchParams.delete("code");
         url.searchParams.delete("existing_provider");
         url.searchParams.delete("existingProvider");
@@ -11204,8 +11313,9 @@ Important:
         url.searchParams.delete("attempted_provider_label");
         url.searchParams.delete("attemptedProviderLabel");
         const nextSearch = url.searchParams.toString();
-        const nextUrl = `${url.pathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash}`;
-        history.replaceState(history.state || getCurrentAppHistoryState(), "", nextUrl || url.pathname);
+        const nextPathname = isAuthCallbackRoute() ? "/" : url.pathname;
+        const nextUrl = `${nextPathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash}`;
+        history.replaceState(history.state || getCurrentAppHistoryState(), "", nextUrl || nextPathname);
       }
 
       function getDuplicateProviderErrorFromParams(searchParams = new URLSearchParams(window.location.search)) {
@@ -11396,6 +11506,9 @@ Important:
         const provider = String(searchParams.get("provider") || "").toLowerCase();
         const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
         const normalizedCode = code.toUpperCase();
+        if ((provider === "google" || isAuthCallbackRoute()) && (searchParams.get("error") || searchParams.get("error_code") || searchParams.get("error_description"))) {
+          return "Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.";
+        }
         if (normalizedCode === "ACCOUNT_DISABLED" || normalizedCode === "USER_DELETED" || normalizedCode === "ACCOUNT_DELETED") {
           return "이용이 중지된 계정입니다.";
         }
@@ -11443,7 +11556,7 @@ Important:
           return "카카오 로그인에 실패했어요. 다시 시도해 주세요.";
         }
         if (reason.includes("google") || provider === "google") {
-          return "Google 로그인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+          return "Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.";
         }
         return "로그인에 실패했어요. 다시 시도해 주세요.";
       }
@@ -11666,6 +11779,70 @@ Important:
         }
       }
 
+      async function handleSupabaseAuthCallback(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
+        const authMode = getAuthModeFromParams(loginParams);
+        const normalizedReturnTo = normalizeGoogleReturnTo(returnView);
+        showAuthProcessingOverlay(authMode);
+
+        if (loginParams.get("error") || loginParams.get("error_code") || loginParams.get("error_description")) {
+          logGoogleCallbackError(loginParams);
+          applyAuthUser(null);
+          authFlowState = "error";
+          setAuthTab(authMode);
+          openLoginModal(null, { tab: authMode, forceAuthForm: true });
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          clearAuthStartState();
+          cleanLoginRedirectQuery();
+          clearLoginReturnState();
+          hideAuthProcessingOverlay();
+          return null;
+        }
+
+        const authCode = loginParams.get("code");
+        const supabaseClient = getSupabaseAuthClient();
+        if (!authCode || !supabaseClient?.auth?.exchangeCodeForSession) {
+          console.error("[auth][google][callback-error]", {
+            error: "missing_supabase_callback_config",
+            errorCode: "",
+            errorDescription: !authCode
+              ? "Supabase callback did not include an auth code."
+              : "Supabase client is not configured on the frontend.",
+          });
+          applyAuthUser(null);
+          authFlowState = "error";
+          setAuthTab(authMode);
+          openLoginModal(null, { tab: authMode, forceAuthForm: true });
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          clearAuthStartState();
+          cleanLoginRedirectQuery();
+          clearLoginReturnState();
+          hideAuthProcessingOverlay();
+          return null;
+        }
+
+        try {
+          const { error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
+          if (error) throw error;
+          return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo);
+        } catch (error) {
+          console.error("[auth][google][callback-error]", {
+            error: error?.name || "exchange_failed",
+            errorCode: error?.code || error?.status || "",
+            errorDescription: error?.message || "",
+          });
+          applyAuthUser(null);
+          authFlowState = "error";
+          setAuthTab(authMode);
+          openLoginModal(null, { tab: authMode, forceAuthForm: true });
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          clearAuthStartState();
+          cleanLoginRedirectQuery();
+          clearLoginReturnState();
+          hideAuthProcessingOverlay();
+          return null;
+        }
+      }
+
       let authStartupCheckPromise = null;
 
       function startAuthStartupCheck() {
@@ -11681,6 +11858,7 @@ Important:
         }
         const paymentStatus = getPaymentRedirectStatus();
         const loginReturnView = getLoginRedirectReturnView();
+        const hasPaymentQuery = Boolean(paymentStatus);
         const hasDuplicateProviderQuery = getDuplicateProviderErrorFromParams(loginParams);
         if (hasDuplicateProviderQuery) {
           authStartupCheckPromise = Promise.resolve().then(() => {
@@ -11693,10 +11871,22 @@ Important:
           });
           return authStartupCheckPromise;
         }
+        if (hasSupabaseAuthCallbackQuery(loginParams)) {
+          authStartupCheckPromise = handleSupabaseAuthCallback(loginParams, loginReturnView)
+            .then((user) => {
+              openCreditManagementForPaymentResult(paymentStatus);
+              return user;
+            })
+            .finally(() => {
+              if (hasPaymentQuery) {
+                cleanPaymentRedirectQuery();
+              }
+            });
+          return authStartupCheckPromise;
+        }
         const hasAuthSuccess = hasAuthSuccessQuery(loginParams);
         const hasAuthError = hasAuthErrorQuery(loginParams);
         const hasLoginQuery = handleLoginRedirectQuery();
-        const hasPaymentQuery = Boolean(paymentStatus);
 
         if (hasAuthError) {
           authStartupCheckPromise = Promise.resolve()
@@ -17159,6 +17349,11 @@ ${modeExample}`;
       const duplicateProviderLoginButton = document.getElementById("duplicateProviderLoginButton");
       const duplicateProviderLoginIcon = document.getElementById("duplicateProviderLoginIcon");
       const duplicateProviderLoginLabel = document.getElementById("duplicateProviderLoginLabel");
+      const googleInAppBrowserModalOverlay = document.getElementById("googleInAppBrowserModalOverlay");
+      const googleInAppBrowserModalPanel = document.getElementById("googleInAppBrowserModalPanel");
+      const googleInAppBrowserClose = document.getElementById("googleInAppBrowserClose");
+      const googleInAppBrowserCopyButton = document.getElementById("googleInAppBrowserCopyButton");
+      const googleInAppBrowserConfirmButton = document.getElementById("googleInAppBrowserConfirmButton");
       const assistantKakaoModalOverlay = document.getElementById("assistantKakaoModalOverlay");
       const assistantKakaoModalPanel = document.getElementById("assistantKakaoModalPanel");
       const assistantKakaoClose = document.getElementById("assistantKakaoClose");
@@ -17450,6 +17645,51 @@ ${modeExample}`;
         duplicateProviderModalOverlay.setAttribute("aria-hidden", "true");
       }
 
+      function openGoogleInAppBrowserModal() {
+        if (!googleInAppBrowserModalOverlay || !googleInAppBrowserModalPanel) {
+          showAccountMenuToast("브라우저로 열기 후 Google 로그인을 다시 시도해 주세요.");
+          return;
+        }
+
+        closeLoginModal();
+        closeAccountMenu();
+        googleInAppBrowserModalOverlay.classList.add("is-open");
+        googleInAppBrowserModalOverlay.setAttribute("aria-hidden", "false");
+
+        window.requestAnimationFrame(() => {
+          googleInAppBrowserConfirmButton?.focus({ preventScroll: true });
+        });
+      }
+
+      function closeGoogleInAppBrowserModal() {
+        if (!googleInAppBrowserModalOverlay) return;
+        googleInAppBrowserModalOverlay.classList.remove("is-open");
+        googleInAppBrowserModalOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      async function copyGoogleInAppBrowserUrl() {
+        const currentUrl = window.location.href;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(currentUrl);
+          } else {
+            const input = document.createElement("input");
+            input.value = currentUrl;
+            input.setAttribute("readonly", "");
+            input.style.position = "fixed";
+            input.style.opacity = "0";
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand("copy");
+            input.remove();
+          }
+          showAccountMenuToast("현재 사이트 주소를 복사했어요.");
+        } catch (error) {
+          console.warn("[auth][google] in-app browser url copy failed", error);
+          showAccountMenuToast("주소 복사에 실패했어요. 브라우저 주소창의 링크를 이용해 주세요.");
+        }
+      }
+
       function openAssistantKakaoModal() {
         if (!assistantKakaoModalOverlay || !assistantKakaoModalPanel) {
           openAssistantChat();
@@ -17625,6 +17865,10 @@ ${modeExample}`;
           showAccountMenuToast("소셜 로그인 연동을 준비 중입니다.");
           return;
         }
+        if (safeProvider === "google") {
+          void startGoogleOAuthLogin(button, mode);
+          return;
+        }
 
         const authMode = mode === "signup" ? "signup" : "login";
         if (getAuthenticatedUserId(currentUser)) {
@@ -17656,12 +17900,83 @@ ${modeExample}`;
         window.location.href = loginStartUrl;
       }
 
+      async function startGoogleOAuthLogin(button, mode = "login") {
+        const authMode = mode === "signup" ? "signup" : "login";
+        if (getAuthenticatedUserId(currentUser)) {
+          showAccountMenuToast("새 계정으로 로그인하려면 먼저 로그아웃해 주세요.");
+          openLoginModal(button);
+          return;
+        }
+
+        if (authMode === "signup" && !requireSignupConsents()) {
+          return;
+        }
+
+        const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
+        const redirectTo = getGoogleOAuthRedirectTo(normalizedReturnTo);
+        const isInAppBrowser = isInAppBrowserForGoogleOAuth();
+        console.info("[auth][google][start]", {
+          origin: window.location.origin,
+          redirectTo,
+          returnTo: normalizedReturnTo,
+          isInAppBrowser,
+        });
+
+        if (isInAppBrowser) {
+          openGoogleInAppBrowserModal();
+          return;
+        }
+
+        if (!isGoogleLoginEnabled()) {
+          showAccountMenuToast("Google 로그인은 현재 점검 중입니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+
+        const supabaseClient = getSupabaseAuthClient();
+        if (!supabaseClient?.auth?.signInWithOAuth) {
+          console.error("[auth][google][start-error]", {
+            error: "missing_supabase_frontend_config",
+            hasSupabaseSdk: Boolean(window.supabase?.createClient),
+            hasSupabaseUrl: Boolean(PUBLIC_SUPABASE_URL),
+            hasSupabaseAnonKey: Boolean(PUBLIC_SUPABASE_ANON_KEY),
+          });
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+
+        persistAuthStartState("google", authMode);
+        const actionLabel = authMode === "signup" ? "회원가입" : "로그인";
+        setSocialLoginButtonLoading(button, true, `Google ${actionLabel}으로 이동 중...`);
+        showAuthProcessingOverlay(authMode);
+        showAccountMenuToast(`Google ${actionLabel}으로 이동 중...`);
+
+        try {
+          const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo,
+            },
+          });
+          if (error) throw error;
+        } catch (error) {
+          console.error("[auth][google][start-error]", {
+            error: error?.name || "sign_in_with_oauth_failed",
+            errorCode: error?.code || error?.status || "",
+            errorDescription: error?.message || "",
+          });
+          clearAuthStartState();
+          hideAuthProcessingOverlay();
+          setSocialLoginButtonLoading(button, false);
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+        }
+      }
+
       function handleNaverLogin(button) {
         startOAuthLogin("naver", button, getAuthModeFromButton(button));
       }
 
       function handleGoogleLogin(button) {
-        startOAuthLogin("google", button, getAuthModeFromButton(button));
+        void startGoogleOAuthLogin(button, getAuthModeFromButton(button));
       }
 
       function handleAppleLogin() {
@@ -17963,6 +18278,24 @@ ${modeExample}`;
       duplicateProviderModalOverlay?.addEventListener("click", (event) => {
         if (event.target === duplicateProviderModalOverlay) {
           closeDuplicateProviderModal();
+        }
+      });
+
+      googleInAppBrowserClose?.addEventListener("click", () => {
+        closeGoogleInAppBrowserModal();
+      });
+
+      googleInAppBrowserConfirmButton?.addEventListener("click", () => {
+        closeGoogleInAppBrowserModal();
+      });
+
+      googleInAppBrowserCopyButton?.addEventListener("click", () => {
+        void copyGoogleInAppBrowserUrl();
+      });
+
+      googleInAppBrowserModalOverlay?.addEventListener("click", (event) => {
+        if (event.target === googleInAppBrowserModalOverlay) {
+          closeGoogleInAppBrowserModal();
         }
       });
 

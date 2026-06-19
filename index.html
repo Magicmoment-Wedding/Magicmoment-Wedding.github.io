@@ -374,7 +374,7 @@
         pointer-events: none;
         opacity: 1;
         transform: translateY(0);
-        transition: opacity 650ms ease, transform 650ms ease;
+        transition: opacity 800ms ease, transform 800ms ease;
         will-change: opacity, transform;
       }
 
@@ -7181,6 +7181,8 @@ Important:
       const uploadTipRotator = document.getElementById("uploadTipRotator");
       const uploadTipTitle = document.getElementById("uploadTipTitle");
       const uploadTipLines = document.getElementById("uploadTipLines");
+      const TIP_ROTATION_INTERVAL = 9000;
+      const TIP_FADE_DURATION = 800;
 
       const UPLOAD_TIPS = [
         {
@@ -18884,7 +18886,7 @@ ${modeExample}`;
           window.clearTimeout(uploadTipFadeTimerId);
           uploadTipFadeTimerId = window.setTimeout(() => {
             uploadTipRotator.classList.remove("is-fading");
-          }, 650);
+          }, TIP_FADE_DURATION);
         } else {
           uploadTipRotator.classList.remove("is-fading", "is-hidden");
         }
@@ -18928,8 +18930,8 @@ ${modeExample}`;
             uploadTipIndex = nextIndex;
             renderUploadTip(uploadTipIndex, { animate: false });
             uploadTipRotator.classList.remove("is-fading");
-          }, 650);
-        }, 4500);
+          }, TIP_FADE_DURATION);
+        }, TIP_ROTATION_INTERVAL);
       }
 
       function syncPhotoUploadUi() {

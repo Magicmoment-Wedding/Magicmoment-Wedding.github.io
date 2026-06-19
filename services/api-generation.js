@@ -24,6 +24,7 @@ async function loadImageAsBlob(imageUrl) {
 async function parseJsonResponseBody(response) {
   const contentType = response.headers.get("content-type") || "";
   const text = await response.text();
+  const bodyPreview = text.slice(0, 300);
 
   if (!text) {
     return {
@@ -31,7 +32,7 @@ async function parseJsonResponseBody(response) {
       parseOk: false,
       data: null,
       rawText: "",
-      message: "서버 응답이 비어 있습니다.",
+      message: response.status === 404 ? "요청한 API를 찾을 수 없습니다." : "서버 응답이 비어 있습니다.",
     };
   }
 
@@ -42,18 +43,23 @@ async function parseJsonResponseBody(response) {
     trimmed.startsWith("[");
 
   if (!looksLikeJson) {
-    console.error("[client][api][invalid-json-response]", {
+    const logPayload = {
       status: response.status,
+      statusText: response.statusText,
+      url: response.url,
       contentType,
-      preview: text.slice(0, 300),
-    });
+      bodyPreview,
+    };
+    console.error(response.ok ? "[client][api][invalid-json-response]" : "[client][api][http-error-response]", logPayload);
 
     return {
       ok: false,
       parseOk: false,
       data: null,
       rawText: text,
-      message: "서버가 올바르지 않은 응답을 반환했습니다.",
+      message: response.status === 404
+        ? "요청한 API를 찾을 수 없습니다."
+        : "서버가 올바르지 않은 응답을 반환했습니다.",
     };
   }
 
@@ -67,8 +73,10 @@ async function parseJsonResponseBody(response) {
   } catch (error) {
     console.error("[client][api][json-parse-failed]", {
       status: response.status,
+      statusText: response.statusText,
+      url: response.url,
       contentType,
-      preview: text.slice(0, 300),
+      bodyPreview,
       error,
     });
 

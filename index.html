@@ -6215,6 +6215,7 @@
 
     <script>
       const FRONT_API_BASE_URL = String(window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL || "").replace(/\/+$/, "");
+      const APP_ORIGIN = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? window.location.origin : "https://magicaistudio.co.kr")).replace(/\/+$/, "");
       const PUBLIC_SUPABASE_URL = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_URL || window.SUPABASE_URL || "").trim();
       const PUBLIC_SUPABASE_ANON_KEY = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || "").trim();
       const GOOGLE_LOGIN_ENABLED = window.MAGIC_AI_STUDIO_CONFIG?.GOOGLE_LOGIN_ENABLED !== false && window.GOOGLE_LOGIN_ENABLED !== false;
@@ -7557,17 +7558,8 @@ Important:
         return normalizeLoginReturnView(queryReturnTo || getStoredLoginReturnView());
       }
 
-      function isLocalAuthOrigin(origin = window.location.origin) {
-        try {
-          const url = new URL(origin);
-          return url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]";
-        } catch (error) {
-          return false;
-        }
-      }
-
       function getGoogleOAuthCallbackOrigin() {
-        return isLocalAuthOrigin() ? window.location.origin : "https://magicaistudio.co.kr";
+        return APP_ORIGIN;
       }
 
       function normalizeGoogleReturnTo(value) {
@@ -7720,6 +7712,7 @@ Important:
         const supabaseFactory = window.supabase?.createClient;
         supabaseAuthClient = supabaseFactory(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
           auth: {
+            flowType: "pkce",
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: false,
@@ -7732,25 +7725,29 @@ Important:
         return window.location.pathname.replace(/\/+$/, "") === "/auth/callback";
       }
 
-      function hasSupabaseAuthCallbackQuery(searchParams = new URLSearchParams(window.location.search)) {
+      function hasSupabaseAuthCallbackQuery(searchParams = new URLSearchParams(window.location.search), hashParams = getSupabaseAuthCallbackHashParams()) {
         return isAuthCallbackRoute() && Boolean(
           searchParams.get("code")
           || searchParams.get("error")
           || searchParams.get("error_code")
           || searchParams.get("error_description")
+          || hasSupabaseAuthCallbackHash(hashParams)
         );
       }
 
-      function getGoogleCallbackErrorParams(searchParams = new URLSearchParams(window.location.search)) {
+      function getGoogleCallbackErrorParams(searchParams = new URLSearchParams(window.location.search), hashParams = getSupabaseAuthCallbackHashParams()) {
+        const hashError = String(hashParams.get("error") || "").trim();
+        const hashErrorCode = String(hashParams.get("error_code") || "").trim();
+        const hashErrorDescription = String(hashParams.get("error_description") || "").trim();
         return {
-          error: searchParams.get("error") || "",
-          errorCode: searchParams.get("error_code") || "",
-          errorDescription: searchParams.get("error_description") || "",
+          error: searchParams.get("error") || hashError || "",
+          errorCode: searchParams.get("error_code") || hashErrorCode || "",
+          errorDescription: searchParams.get("error_description") || hashErrorDescription || "",
         };
       }
 
-      function logGoogleCallbackError(searchParams = new URLSearchParams(window.location.search)) {
-        const { error, errorCode, errorDescription } = getGoogleCallbackErrorParams(searchParams);
+      function logGoogleCallbackError(searchParams = new URLSearchParams(window.location.search), hashParams = getSupabaseAuthCallbackHashParams()) {
+        const { error, errorCode, errorDescription } = getGoogleCallbackErrorParams(searchParams, hashParams);
         logGoogleAuthError("[auth][google][callback-error]", {
           name: "GoogleOAuthCallbackQueryError",
           message: errorDescription || error || "Google OAuth callback returned an error.",
@@ -8911,12 +8908,17 @@ Important:
         const parsed = await parseJsonResponseBody(response);
         const payload = parsed.data || {};
         if (!response.ok || !parsed.parseOk || payload?.ok === false) {
-          const error = new Error(payload?.message || payload?.error || parsed.message || `Admin request failed: ${response.status}`);
+          const isAdminGalleryNotFound = response.status === 404 && path.startsWith("/api/admin/gallery");
+          const fallbackMessage = isAdminGalleryNotFound
+            ? "갤러리 관리 API를 찾을 수 없습니다."
+            : parsed.message || `Admin request failed: ${response.status}`;
+          const error = new Error(payload?.message || payload?.error || fallbackMessage);
           error.statusCode = response.status;
           error.code = payload?.code;
           error.stage = payload?.stage;
           error.response = payload;
           error.rawPreview = parsed.rawText?.slice(0, 300);
+          error.url = response.url;
           throw error;
         }
         return payload;
@@ -8947,6 +8949,7 @@ Important:
             status: error.statusCode || error.status,
             code: error.code,
             stage: error.stage,
+            url: error.url,
             message: error.message,
             rawPreview: error.rawPreview,
           });
@@ -8963,6 +8966,24 @@ Important:
         if (Array.isArray(payload?.items)) return payload.items;
         if (Array.isArray(payload?.rows)) return payload.rows;
         return [];
+      }
+
+      function getAdminGalleryPayloadItems(payload = {}) {
+        const directItems = getAdminPayloadArray(payload, ["items", "galleryItems", "gallery_items", "gallery", "images"]);
+        if (directItems.length) return directItems;
+
+        const groups = getAdminPayloadArray(payload, ["groups"]);
+        if (!groups.length) return [];
+
+        return groups.flatMap((group) => {
+          if (Array.isArray(group)) return group;
+          const groupItems = group?.items
+            ?? group?.galleryItems
+            ?? group?.gallery_items
+            ?? group?.gallery
+            ?? group?.images;
+          return Array.isArray(groupItems) ? groupItems : [group];
+        });
       }
 
       function getAdminPayloadWarnings(payload = {}) {
@@ -9065,16 +9086,25 @@ Important:
       }
 
       function normalizeAdminGalleryPayload(payload = {}) {
-        const items = getAdminPayloadArray(payload, ["items", "gallery", "images"]).map(normalizeAdminGalleryItem);
+        const items = getAdminGalleryPayloadItems(payload).map(normalizeAdminGalleryItem);
         const total = Number(payload.total ?? payload.data?.total ?? items.length ?? 0);
         return {
           ...payload,
           items,
+          adminGalleryItems: items,
+          galleryItems: items,
           gallery: items,
           total: Number.isFinite(total) ? total : items.length,
           warnings: getAdminPayloadWarnings(payload),
           failedSections: getAdminPayloadFailedSections(payload),
         };
+      }
+
+      function getAdminGalleryLoadErrorMessage(error) {
+        if (Number(error?.statusCode || error?.status) === 404) {
+          return "갤러리 관리 API를 찾을 수 없습니다.";
+        }
+        return "갤러리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
       }
 
       function getAdminValue(item = {}, keys = [], fallback = "제공되지 않음") {
@@ -9313,6 +9343,19 @@ Important:
             data: {
               ...payload.data,
               items,
+              adminGalleryItems: items,
+              galleryItems: items,
+              total: nextTotal,
+            },
+          };
+        }
+        if (Array.isArray(payload.data?.galleryItems)) {
+          return {
+            ...payload,
+            data: {
+              ...payload.data,
+              adminGalleryItems: items,
+              galleryItems: items,
               total: nextTotal,
             },
           };
@@ -9323,6 +9366,8 @@ Important:
             data: {
               ...payload.data,
               gallery: items,
+              adminGalleryItems: items,
+              galleryItems: items,
               total: nextTotal,
             },
           };
@@ -9330,6 +9375,8 @@ Important:
         return {
           ...payload,
           items,
+          adminGalleryItems: items,
+          galleryItems: items,
           gallery: items,
           total: nextTotal,
         };
@@ -10115,10 +10162,10 @@ Important:
               <h2 class="font-display text-[22px] leading-tight text-on-surface">갤러리 관리</h2>
               <div class="admin-data-list">
                 ${galleryError
-                  ? `<div class="admin-empty">갤러리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>`
+                  ? `<div class="admin-empty">${escapeHtml(getAdminGalleryLoadErrorMessage(galleryError))}</div>`
                   : galleryItems.length
                     ? visibleGalleryItems.map(renderAdminGalleryCard).join("")
-                    : `<div class="admin-empty">공개 갤러리 사진이 없습니다.</div>`}
+                    : `<div class="admin-empty">공개 갤러리에 등록된 사진이 아직 없습니다.</div>`}
                 ${!galleryError ? renderAdminMoreButton("gallery", adminVisibleGalleryCount, galleryItems.length) : ""}
               </div>
             </section>
@@ -11462,7 +11509,10 @@ Important:
         url.searchParams.delete("attemptedProviderLabel");
         const nextSearch = url.searchParams.toString();
         const nextPathname = isAuthCallbackRoute() ? "/" : url.pathname;
-        const nextUrl = `${nextPathname}${nextSearch ? `?${nextSearch}` : ""}${url.hash}`;
+        const hashParams = new URLSearchParams(String(url.hash || "").replace(/^#\/?/, ""));
+        const shouldClearHash = isAuthCallbackRoute() || hasSupabaseAuthCallbackHash(hashParams);
+        const nextHash = shouldClearHash ? "" : url.hash;
+        const nextUrl = `${nextPathname}${nextSearch ? `?${nextSearch}` : ""}${nextHash}`;
         history.replaceState(history.state || getCurrentAppHistoryState(), "", nextUrl || nextPathname);
       }
 
@@ -11564,6 +11614,25 @@ Important:
           "CANCELED",
         ]);
         return loginStatus === "failed" || authStatus === "failed" || Boolean(authError && blockedCodes.has(normalizedAuthError));
+      }
+
+      function getSupabaseAuthCallbackHashParams(hash = window.location.hash) {
+        const rawHash = String(hash || "").replace(/^#\/?/, "");
+        return new URLSearchParams(rawHash);
+      }
+
+      function hasSupabaseAuthCallbackHash(hashParams = getSupabaseAuthCallbackHashParams()) {
+        return Boolean(
+          hashParams.get("access_token")
+          || hashParams.get("refresh_token")
+          || hashParams.get("id_token")
+          || hashParams.get("token_type")
+          || hashParams.get("expires_at")
+          || hashParams.get("error")
+          || hashParams.get("error_code")
+          || hashParams.get("error_description")
+          || hashParams.get("code")
+        );
       }
 
       function getSafeAuthLogParams(searchParams = new URLSearchParams(window.location.search)) {
@@ -11930,10 +11999,17 @@ Important:
       async function handleSupabaseAuthCallback(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView()) {
         const authMode = getAuthModeFromParams(loginParams);
         const normalizedReturnTo = normalizeGoogleReturnTo(returnView);
+        const hashParams = getSupabaseAuthCallbackHashParams();
+        const hasHashError = Boolean(
+          hashParams.get("error")
+          || hashParams.get("error_code")
+          || hashParams.get("error_description")
+        );
+        const hasHashTokens = Boolean(hashParams.get("access_token") && hashParams.get("refresh_token"));
         showAuthProcessingOverlay(authMode);
 
-        if (loginParams.get("error") || loginParams.get("error_code") || loginParams.get("error_description")) {
-          logGoogleCallbackError(loginParams);
+        if (loginParams.get("error") || loginParams.get("error_code") || loginParams.get("error_description") || hasHashError) {
+          logGoogleCallbackError(loginParams, hashParams);
           applyAuthUser(null);
           authFlowState = "error";
           setAuthTab(authMode);
@@ -11948,18 +12024,47 @@ Important:
 
         const authCode = loginParams.get("code");
         const supabaseClient = getSupabaseAuthClient();
-        if (!authCode || !supabaseClient?.auth?.exchangeCodeForSession) {
+        if (!authCode && !hasHashTokens) {
+          logGoogleAuthError("[auth][google][callback-error]", {
+            name: "GoogleOAuthCallbackConfigurationError",
+            message: "Supabase callback did not include an auth code or session tokens.",
+            status: "",
+            code: "SUPABASE_AUTH_CALLBACK_MISSING",
+            cause: {
+              hasAuthCode: Boolean(authCode),
+              hasHashTokens,
+              hasSupabaseClient: Boolean(supabaseClient),
+              hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
+              hasSetSession: Boolean(supabaseClient?.auth?.setSession),
+              returnTo: normalizedReturnTo,
+            },
+            stack: "",
+          });
+          applyAuthUser(null);
+          authFlowState = "error";
+          setAuthTab(authMode);
+          openLoginModal(null, { tab: authMode, forceAuthForm: true });
+          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          clearAuthStartState();
+          cleanLoginRedirectQuery();
+          clearLoginReturnState();
+          hideAuthProcessingOverlay();
+          return null;
+        }
+
+        if (authCode && !supabaseClient?.auth?.exchangeCodeForSession) {
           logGoogleAuthError("[auth][google][callback-error]", {
             name: "GoogleOAuthCallbackConfigurationError",
             message: !authCode
               ? "Supabase callback did not include an auth code."
               : "Supabase client is not configured on the frontend.",
             status: "",
-            code: !authCode ? "SUPABASE_AUTH_CODE_MISSING" : "SUPABASE_FRONTEND_CONFIG_MISSING",
+            code: "SUPABASE_FRONTEND_CONFIG_MISSING",
             cause: {
               hasAuthCode: Boolean(authCode),
               hasSupabaseClient: Boolean(supabaseClient),
               hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
+              hasSetSession: Boolean(supabaseClient?.auth?.setSession),
               returnTo: normalizedReturnTo,
             },
             stack: "",
@@ -11977,15 +12082,24 @@ Important:
         }
 
         try {
-          const { error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
-          if (error) throw error;
+          if (authCode) {
+            const { error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseClient.auth.setSession({
+              access_token: String(hashParams.get("access_token") || ""),
+              refresh_token: String(hashParams.get("refresh_token") || ""),
+            });
+            if (error) throw error;
+          }
           return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo);
         } catch (error) {
           logGoogleAuthError("[auth][google][callback-error]", getAuthErrorDetails(error, {
             name: "GoogleOAuthExchangeError",
-            code: "EXCHANGE_CODE_FOR_SESSION_FAILED",
+            code: authCode ? "EXCHANGE_CODE_FOR_SESSION_FAILED" : "SET_SESSION_FROM_HASH_FAILED",
             cause: {
               returnTo: normalizedReturnTo,
+              hasHashTokens,
             },
           }));
           applyAuthUser(null);
@@ -13612,6 +13726,7 @@ Important:
         const { logInvalidJson = true } = options;
         const contentType = response.headers.get("content-type") || "";
         const text = await response.text();
+        const bodyPreview = text.slice(0, 300);
 
         if (!text) {
           return {
@@ -13619,7 +13734,7 @@ Important:
             parseOk: false,
             data: null,
             rawText: "",
-            message: "서버 응답이 비어 있습니다.",
+            message: response.status === 404 ? "요청한 API를 찾을 수 없습니다." : "서버 응답이 비어 있습니다.",
           };
         }
 
@@ -13631,11 +13746,14 @@ Important:
 
         if (!looksLikeJson) {
           if (logInvalidJson) {
-            console.error("[client][api][invalid-json-response]", {
+            const logPayload = {
               status: response.status,
+              statusText: response.statusText,
+              url: response.url,
               contentType,
-              preview: text.slice(0, 300),
-            });
+              bodyPreview,
+            };
+            console.error(response.ok ? "[client][api][invalid-json-response]" : "[client][api][http-error-response]", logPayload);
           }
 
           return {
@@ -13643,7 +13761,9 @@ Important:
             parseOk: false,
             data: null,
             rawText: text,
-            message: "서버가 올바르지 않은 응답을 반환했습니다.",
+            message: response.status === 404
+              ? "요청한 API를 찾을 수 없습니다."
+              : "서버가 올바르지 않은 응답을 반환했습니다.",
           };
         }
 
@@ -13658,8 +13778,10 @@ Important:
           if (logInvalidJson) {
             console.error("[client][api][json-parse-failed]", {
               status: response.status,
+              statusText: response.statusText,
+              url: response.url,
               contentType,
-              preview: text.slice(0, 300),
+              bodyPreview,
               error,
             });
           }
@@ -18070,9 +18192,8 @@ ${modeExample}`;
           return;
         }
 
-        rememberLoginReturnView();
-        const normalizedReturnTo = LOGIN_RETURN_VIEW_FALLBACK;
-        const redirectTo = "https://magicaistudio.co.kr/auth/callback?returnTo=landing";
+        const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
+        const redirectTo = getGoogleOAuthRedirectTo(normalizedReturnTo);
         const isInAppBrowser = isInAppBrowserForGoogleOAuth();
 
         if (isInAppBrowser) {
@@ -18103,6 +18224,7 @@ ${modeExample}`;
         const supabaseClient = getSupabaseAuthClient();
         console.info("[auth][google][start]", {
           origin: window.location.origin,
+          appOrigin: APP_ORIGIN,
           redirectTo,
           hasSupabaseUrl: Boolean(supabaseUrl),
           hasSupabaseAnonKey: Boolean(supabaseAnonKey),

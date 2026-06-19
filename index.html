@@ -6299,6 +6299,8 @@
       let supabaseAuthClient = null;
       let supabaseAuthSubscription = null;
       let isHandlingSupabaseAuthStateEvent = false;
+      const SUPABASE_AUTH_FLOW_TYPE = "implicit";
+      const SUPABASE_AUTH_STORAGE_KEY = "magic-ai-studio-auth";
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
       const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
@@ -7728,7 +7730,8 @@ Important:
         const supabaseFactory = window.supabase?.createClient;
         supabaseAuthClient = supabaseFactory(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
           auth: {
-            flowType: "pkce",
+            flowType: SUPABASE_AUTH_FLOW_TYPE,
+            storageKey: SUPABASE_AUTH_STORAGE_KEY,
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
@@ -7764,6 +7767,38 @@ Important:
           code: details.code,
           status: details.status,
         });
+      }
+
+      function isPkceVerifierMissingError(error = {}) {
+        const haystack = `${error?.name || ""} ${error?.message || ""} ${error?.code || ""}`.toLowerCase();
+        return haystack.includes("pkce") && haystack.includes("verifier");
+      }
+
+      function waitForAuthCallbackRetry(delayMs = 250) {
+        return new Promise((resolve) => {
+          window.setTimeout(resolve, delayMs);
+        });
+      }
+
+      async function getSupabaseSessionWithRetry(supabaseClient, attempts = 3) {
+        let lastError = null;
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error) {
+            lastError = error;
+            if (isPkceVerifierMissingError(error)) {
+              throw error;
+            }
+          }
+          if (data?.session) {
+            return data.session;
+          }
+          if (attempt < attempts - 1) {
+            await waitForAuthCallbackRetry(300 + attempt * 350);
+          }
+        }
+        if (lastError) throw lastError;
+        return null;
       }
 
       function normalizeSupabaseSessionUser(session = null) {
@@ -12216,37 +12251,8 @@ Important:
               hasHashTokens,
               hasSupabaseClient: Boolean(supabaseClient),
               hasGetSession: Boolean(supabaseClient?.auth?.getSession),
-              hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
               hasSetSession: Boolean(supabaseClient?.auth?.setSession),
-              returnTo: normalizedReturnTo,
-            },
-            stack: "",
-          };
-          logGoogleAuthError("[auth][google][callback-error]", details);
-          logAuthCallbackError(details);
-          applyAuthUser(null);
-          authFlowState = "error";
-          setAuthTab(authMode);
-          openLoginModal(null, { tab: authMode, forceAuthForm: true });
-          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
-          clearAuthStartState();
-          cleanLoginRedirectQuery();
-          clearLoginReturnState();
-          hideAuthProcessingOverlay();
-          return null;
-        }
-
-        if (authCode && !supabaseClient?.auth?.exchangeCodeForSession) {
-          const details = {
-            name: "GoogleOAuthCallbackConfigurationError",
-            message: "Supabase client cannot exchange the auth code on the frontend.",
-            status: "",
-            code: "SUPABASE_EXCHANGE_CODE_UNAVAILABLE",
-            cause: {
-              hasAuthCode: Boolean(authCode),
-              hasSupabaseClient: Boolean(supabaseClient),
-              hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
-              hasSetSession: Boolean(supabaseClient?.auth?.setSession),
+              flowType: SUPABASE_AUTH_FLOW_TYPE,
               returnTo: normalizedReturnTo,
             },
             stack: "",
@@ -12275,8 +12281,8 @@ Important:
               hasAuthCode: Boolean(authCode),
               hasHashTokens,
               hasSupabaseClient: Boolean(supabaseClient),
-              hasExchangeCodeForSession: Boolean(supabaseClient?.auth?.exchangeCodeForSession),
               hasSetSession: Boolean(supabaseClient?.auth?.setSession),
+              flowType: SUPABASE_AUTH_FLOW_TYPE,
               returnTo: normalizedReturnTo,
             },
             stack: "",
@@ -12296,18 +12302,7 @@ Important:
         }
 
         try {
-          if (authCode) {
-            const { error } = await supabaseClient.auth.exchangeCodeForSession(authCode);
-            if (error) {
-              const { data: existingSessionData, error: existingSessionError } = await supabaseClient.auth.getSession();
-              if (!existingSessionError && existingSessionData?.session) {
-                const session = existingSessionData.session;
-                logAuthCallbackSession(session);
-                return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo, { session });
-              }
-              throw error;
-            }
-          } else if (hasHashTokens) {
+          if (hasHashTokens) {
             const { error } = await supabaseClient.auth.setSession({
               access_token: String(hashParams.get("access_token") || ""),
               refresh_token: String(hashParams.get("refresh_token") || ""),
@@ -12315,9 +12310,7 @@ Important:
             if (error) throw error;
           }
 
-          const { data, error: sessionError } = await supabaseClient.auth.getSession();
-          if (sessionError) throw sessionError;
-          const session = data?.session || null;
+          const session = await getSupabaseSessionWithRetry(supabaseClient, 3);
           logAuthCallbackSession(session);
           if (!session) {
             const missingSessionError = new Error("Supabase session was not created after OAuth callback.");
@@ -12330,9 +12323,9 @@ Important:
           return await handleAuthSuccessRedirect(loginParams, normalizedReturnTo, { session });
         } catch (error) {
           const details = getAuthErrorDetails(error, {
-            name: "GoogleOAuthExchangeError",
-            code: authCode
-              ? "EXCHANGE_CODE_FOR_SESSION_FAILED"
+            name: "GoogleOAuthCallbackSessionError",
+            code: isPkceVerifierMissingError(error)
+              ? "SUPABASE_PKCE_VERIFIER_MISSING"
               : hasHashTokens
                 ? "SET_SESSION_FROM_HASH_FAILED"
                 : "GET_SUPABASE_SESSION_FAILED",
@@ -12340,6 +12333,7 @@ Important:
               returnTo: normalizedReturnTo,
               hasAuthCode: Boolean(authCode),
               hasHashTokens,
+              flowType: SUPABASE_AUTH_FLOW_TYPE,
             },
           });
           logGoogleAuthError("[auth][google][callback-error]", details);
@@ -12348,7 +12342,7 @@ Important:
           authFlowState = "error";
           setAuthTab(authMode);
           openLoginModal(null, { tab: authMode, forceAuthForm: true });
-          showAccountMenuToast("Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.");
+          showAccountMenuToast("Google 로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.");
           clearAuthStartState();
           cleanLoginRedirectQuery();
           clearLoginReturnState();
@@ -18471,6 +18465,7 @@ ${modeExample}`;
           appOrigin,
           redirectTo,
           returnTo: normalizedReturnTo,
+          flowType: SUPABASE_AUTH_FLOW_TYPE,
           hasSupabaseUrl: Boolean(supabaseUrl),
           hasSupabaseAnonKey: Boolean(supabaseAnonKey),
           hasSupabaseClient: Boolean(supabaseClient),

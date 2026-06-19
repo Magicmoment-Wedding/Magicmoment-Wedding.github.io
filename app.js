@@ -35,7 +35,10 @@ import { navigate, PREVIOUS_ROUTE, ROUTES, getRouteFromHash, initRouter } from "
 import { getState, subscribe, updateState } from "./services/store.js";
 
 const app = document.getElementById("app");
+const IMAGE_MODAL_SWIPE_THRESHOLD = 45;
+const IMAGE_MODAL_SWIPE_AXIS_RATIO = 1.2;
 let latestCreditsRequestId = 0;
+let imageModalSwipeState = null;
 
 function isMobileSaveEnvironment() {
   const userAgent = navigator.userAgent || "";
@@ -472,6 +475,7 @@ function getImageModalItems(state) {
       generationType: result.generationType,
       isFreeGeneration: result.isFreeGeneration,
       hasWatermark: result.hasWatermark,
+      watermarkRequired: result.watermarkRequired,
       watermarkStrategy: result.watermarkStrategy,
     })),
   ].filter((item) => item.url);
@@ -531,6 +535,76 @@ function moveImageModal(direction) {
   });
 }
 
+function resetImageModalSwipeState() {
+  if (imageModalSwipeState?.target && imageModalSwipeState?.pointerId !== undefined) {
+    try {
+      imageModalSwipeState.target.releasePointerCapture?.(imageModalSwipeState.pointerId);
+    } catch (error) {
+      // Pointer capture may already be released after cancellation.
+    }
+  }
+  imageModalSwipeState = null;
+}
+
+function isImageModalSwipeBlockedTarget(target) {
+  return target instanceof Element && Boolean(target.closest(
+    "button,a,input,textarea,select,label,[role='button'],[data-action],[data-image-modal-overlay],[data-image-modal-shell]",
+  ));
+}
+
+function handleImageModalSwipeStart(event) {
+  if (!(event.target instanceof Element)) return;
+  const swipeTarget = event.target.closest("[data-image-modal-swipe]");
+  if (!(swipeTarget instanceof HTMLElement)) return;
+  if (isImageModalSwipeBlockedTarget(event.target)) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+
+  const imageModal = getState().activeImageModal;
+  const items = Array.isArray(imageModal?.items) ? imageModal.items : [];
+  if (!imageModal || items.length < 2) return;
+
+  imageModalSwipeState = {
+    target: swipeTarget,
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    axis: "",
+  };
+  swipeTarget.setPointerCapture?.(event.pointerId);
+}
+
+function handleImageModalSwipeMove(event) {
+  if (!imageModalSwipeState || imageModalSwipeState.pointerId !== event.pointerId) return;
+
+  const dx = event.clientX - imageModalSwipeState.startX;
+  const dy = event.clientY - imageModalSwipeState.startY;
+  const absX = Math.abs(dx);
+  const absY = Math.abs(dy);
+
+  if (!imageModalSwipeState.axis && (absX > 8 || absY > 8)) {
+    imageModalSwipeState.axis = absX > absY * IMAGE_MODAL_SWIPE_AXIS_RATIO ? "horizontal" : "vertical";
+  }
+
+  if (imageModalSwipeState.axis === "horizontal") {
+    event.preventDefault();
+  }
+}
+
+function handleImageModalSwipeEnd(event) {
+  if (!imageModalSwipeState || imageModalSwipeState.pointerId !== event.pointerId) return;
+
+  const dx = event.clientX - imageModalSwipeState.startX;
+  const dy = event.clientY - imageModalSwipeState.startY;
+  const isHorizontalSwipe =
+    Math.abs(dx) >= IMAGE_MODAL_SWIPE_THRESHOLD &&
+    Math.abs(dx) > Math.abs(dy) * IMAGE_MODAL_SWIPE_AXIS_RATIO;
+
+  resetImageModalSwipeState();
+
+  if (!isHorizontalSwipe) return;
+  moveImageModal(dx < 0 ? 1 : -1);
+}
+
 async function performGeneration() {
   const state = getState();
   const generationCost = getCreditBreakdown(state).total;
@@ -584,6 +658,7 @@ async function performGeneration() {
         generationType: resultPayload.generationMeta?.generationType || (useFreeGeneration ? "free" : "paid"),
         isFreeGeneration: resultPayload.generationMeta?.isFreeGeneration === true || useFreeGeneration,
         hasWatermark: resultPayload.generationMeta?.hasWatermark === true || useFreeGeneration,
+        watermarkRequired: resultPayload.generationMeta?.watermarkRequired === true || useFreeGeneration,
         watermarkStrategy: resultPayload.generationMeta?.watermarkStrategy || "",
         remainingGenerationUses: resultPayload.generationMeta?.remainingGenerationUses
           ?? resultPayload.generationUsage?.remainingGenerationUses
@@ -1184,6 +1259,11 @@ app.addEventListener("click", async (event) => {
     await handleAction(target.dataset.action, target);
   }
 });
+
+app.addEventListener("pointerdown", handleImageModalSwipeStart);
+app.addEventListener("pointermove", handleImageModalSwipeMove);
+app.addEventListener("pointerup", handleImageModalSwipeEnd);
+app.addEventListener("pointercancel", resetImageModalSwipeState);
 
 window.addEventListener("keydown", (event) => {
   const state = getState();

@@ -56,6 +56,7 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       generationType: imageUrl?.generationType || imageUrl?.generation_type || (hasFreeGeneration(state.currentUser) ? "free" : "paid"),
       isFreeGeneration: imageUrl?.isFreeGeneration === true || imageUrl?.is_free_generation === true || hasFreeGeneration(state.currentUser),
       hasWatermark: imageUrl?.hasWatermark === true || imageUrl?.has_watermark === true || hasFreeGeneration(state.currentUser),
+      watermarkRequired: imageUrl?.watermarkRequired === true || imageUrl?.watermark_required === true || hasFreeGeneration(state.currentUser),
       watermarkStrategy: imageUrl?.watermarkStrategy || imageUrl?.watermark_strategy || "",
     };
   });
@@ -75,6 +76,7 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       generationType: firstGeneratedImage.generationType || firstGeneratedImage.generation_type || (hasFreeGeneration(state.currentUser) ? "free" : "paid"),
       isFreeGeneration: firstGeneratedImage.isFreeGeneration === true || firstGeneratedImage.is_free_generation === true || hasFreeGeneration(state.currentUser),
       hasWatermark: firstGeneratedImage.hasWatermark === true || firstGeneratedImage.has_watermark === true || hasFreeGeneration(state.currentUser),
+      watermarkRequired: firstGeneratedImage.watermarkRequired === true || firstGeneratedImage.watermark_required === true || hasFreeGeneration(state.currentUser),
       watermarkStrategy: firstGeneratedImage.watermarkStrategy || firstGeneratedImage.watermark_strategy || "",
     },
   };

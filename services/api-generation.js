@@ -299,6 +299,7 @@ export async function generateImages(prompt, options = {}) {
   const generationType = payload.generationType || payload.generation_type || (useFreeGeneration ? "free" : "paid");
   const isFreeGeneration = payload.isFreeGeneration === true || payload.is_free_generation === true || generationType === "free";
   const hasWatermark = payload.hasWatermark === true || payload.has_watermark === true || isFreeGeneration;
+  const watermarkRequired = payload.watermarkRequired === true || payload.watermark_required === true || hasWatermark;
   const watermarkStrategy = payload.watermarkStrategy || payload.watermark_strategy || "";
 
   return resultItems.map((item, index) => {
@@ -307,6 +308,7 @@ export async function generateImages(prompt, options = {}) {
     const itemGenerationType = item?.generationType || item?.generation_type || generationType;
     const itemIsFreeGeneration = item?.isFreeGeneration === true || item?.is_free_generation === true || isFreeGeneration;
     const itemHasWatermark = item?.hasWatermark === true || item?.has_watermark === true || hasWatermark;
+    const itemWatermarkRequired = item?.watermarkRequired === true || item?.watermark_required === true || watermarkRequired;
     const itemWatermarkStrategy = item?.watermarkStrategy || item?.watermark_strategy || watermarkStrategy;
 
     if (item?.ok === false || !url) {
@@ -318,6 +320,7 @@ export async function generateImages(prompt, options = {}) {
         generationType: itemGenerationType,
         isFreeGeneration: itemIsFreeGeneration,
         hasWatermark: itemHasWatermark,
+        watermarkRequired: itemWatermarkRequired,
         watermarkStrategy: itemWatermarkStrategy,
       };
     }
@@ -330,6 +333,7 @@ export async function generateImages(prompt, options = {}) {
       generationType: itemGenerationType,
       isFreeGeneration: itemIsFreeGeneration,
       hasWatermark: itemHasWatermark,
+      watermarkRequired: itemWatermarkRequired,
       watermarkStrategy: itemWatermarkStrategy,
     };
   });

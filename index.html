@@ -2489,15 +2489,14 @@
 
       .logo-watermark {
         position: absolute;
-        right: clamp(14px, 3%, 24px);
-        bottom: clamp(14px, 3%, 24px);
+        right: 18px;
+        bottom: 18px;
         z-index: 18;
         display: none;
-        width: clamp(90px, 14%, 120px);
-        max-width: 34%;
+        width: clamp(56px, 10%, 110px);
         padding: 0;
-        opacity: 0.84;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        opacity: 0.58;
+        filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.38));
         pointer-events: none;
         user-select: none;
       }
@@ -2532,8 +2531,7 @@
       .result-card .logo-watermark {
         right: 12px;
         bottom: 12px;
-        width: clamp(64px, 32%, 86px);
-        max-width: 38%;
+        width: clamp(56px, 16%, 86px);
       }
 
       .has-logo-watermark .logo-watermark {
@@ -2569,14 +2567,29 @@
         justify-content: center;
         max-width: 100%;
         max-height: 100%;
+        touch-action: pan-y;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      .image-modal-image-frame.is-swipe-dragging {
+        cursor: grabbing;
+      }
+
+      .image-modal-image-frame.is-swipe-transitioning #imageModalImg {
+        opacity: 0.88;
+        transform: translateX(var(--swipe-feedback-x, 0)) scale(0.995);
+      }
+
+      #imageModalImg {
+        transition: opacity 180ms ease-out, transform 180ms ease-out;
       }
 
       .image-modal-image-frame .logo-watermark {
-        right: clamp(16px, 3%, 24px);
-        bottom: clamp(16px, 3%, 24px);
-        width: clamp(90px, 12%, 120px);
-        max-width: 18%;
-        opacity: 0.84;
+        right: 18px;
+        bottom: 18px;
+        width: clamp(64px, 11%, 110px);
+        opacity: 0.58;
       }
 
       .image-modal-original-thumb {
@@ -2689,6 +2702,7 @@
           box-shadow: none;
           user-select: none;
           -webkit-user-drag: none;
+          transition: opacity 180ms ease-out, transform 180ms ease-out;
         }
 
         .image-modal-image-frame {
@@ -5061,7 +5075,7 @@
                 AI 추천
               </div>
               <span class="logo-watermark" aria-hidden="true">
-                <img src="/images/brand/magic-ai-studio-logo-watermark.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
+                <img src="/images/brand/magic-ai-studio-watermark-white.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
               </span>
             </div>
               <button
@@ -5896,7 +5910,7 @@
           <div class="image-modal-image-frame">
             <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
             <span class="logo-watermark" aria-hidden="true">
-              <img src="/images/brand/magic-ai-studio-logo-watermark.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
+              <img src="/images/brand/magic-ai-studio-watermark-white.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
             </span>
             <span class="image-modal-original-thumb hidden" id="imageModalOriginalThumb" aria-hidden="true">
               <img alt="" decoding="async" draggable="false" loading="lazy" id="imageModalOriginalThumbImg" />
@@ -6029,8 +6043,10 @@
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
-      const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-logo-watermark.png";
+      const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
+      const IMAGE_MODAL_SWIPE_THRESHOLD = 45;
+      const IMAGE_MODAL_SWIPE_AXIS_RATIO = 1.2;
       const ONE_MB_BYTES = 1024 * 1024;
       const MOBILE_MAX_UPLOAD_IMAGE_BYTES = 50 * ONE_MB_BYTES;
       const SIGNED_UPLOAD_FAILED_MESSAGE = "사진 업로드 준비에 실패했습니다. 어시스턴트에게 문의하세요.";
@@ -6972,6 +6988,8 @@ Important:
       let isAdmin = false;
       let currentAdmin = null;
       let imageSaveModalObjectUrl = "";
+      let imageModalSwipeState = null;
+      let imageModalSwipeFeedbackTimerId = null;
       let myPhotos = [];
       let isLoadingMyPhotos = false;
       let myPhotosError = "";
@@ -12111,6 +12129,14 @@ Important:
           existing.generationId = existing.generationId || rawItem.generationId || rawItem.generation_id || groupKey;
           existing.generation_id = existing.generation_id || rawItem.generation_id || rawItem.generationId || groupKey;
           existing.jobId = existing.jobId || rawItem.jobId || rawItem.job_id || rawItem.generationJobId || rawItem.generation_job_id || groupKey;
+          existing.isFreeGeneration = existing.isFreeGeneration ?? existing.is_free_generation ?? rawItem.isFreeGeneration ?? rawItem.is_free_generation;
+          existing.is_free_generation = existing.is_free_generation ?? existing.isFreeGeneration ?? rawItem.is_free_generation ?? rawItem.isFreeGeneration;
+          existing.hasWatermark = existing.hasWatermark ?? existing.has_watermark ?? existing.watermarked ?? rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked;
+          existing.has_watermark = existing.has_watermark ?? existing.hasWatermark ?? rawItem.has_watermark ?? rawItem.hasWatermark;
+          existing.watermarkRequired = existing.watermarkRequired ?? existing.watermark_required ?? rawItem.watermarkRequired ?? rawItem.watermark_required;
+          existing.watermark_required = existing.watermark_required ?? existing.watermarkRequired ?? rawItem.watermark_required ?? rawItem.watermarkRequired;
+          existing.watermarkStrategy = existing.watermarkStrategy || existing.watermark_strategy || rawItem.watermarkStrategy || rawItem.watermark_strategy || "";
+          existing.watermark_strategy = existing.watermark_strategy || existing.watermarkStrategy || rawItem.watermark_strategy || rawItem.watermarkStrategy || "";
         });
 
         return Array.from(grouped.values());
@@ -12187,10 +12213,12 @@ Important:
 
         const inheritedIsFree = normalizeMyPhotoBoolean(generation.isFreeGeneration ?? generation.is_free_generation, false);
         const inheritedHasWatermark = normalizeMyPhotoBoolean(generation.hasWatermark ?? generation.has_watermark ?? generation.watermarked, false);
+        const inheritedWatermarkRequired = normalizeMyPhotoBoolean(generation.watermarkRequired ?? generation.watermark_required, inheritedHasWatermark || inheritedIsFree);
         const inheritedGenerationType = generation.generationType || generation.generation_type || (inheritedIsFree ? "free" : "");
         const inheritedWatermarkStrategy = generation.watermarkStrategy || generation.watermark_strategy || "";
         const isFreeGeneration = normalizeMyPhotoBoolean(rawImage.isFreeGeneration ?? rawImage.is_free_generation, inheritedIsFree);
         const hasWatermark = normalizeMyPhotoBoolean(rawImage.hasWatermark ?? rawImage.has_watermark ?? rawImage.watermarked, inheritedHasWatermark);
+        const watermarkRequired = normalizeMyPhotoBoolean(rawImage.watermarkRequired ?? rawImage.watermark_required, inheritedWatermarkRequired || hasWatermark || isFreeGeneration);
         const generationType = rawImage.generationType || rawImage.generation_type || inheritedGenerationType;
         const watermarkStrategy = rawImage.watermarkStrategy || rawImage.watermark_strategy || inheritedWatermarkStrategy;
         const imageUrl = getMyPhotoDisplayImageUrl({
@@ -12198,6 +12226,7 @@ Important:
           ...rawImage,
           isFreeGeneration,
           hasWatermark,
+          watermarkRequired,
         });
         const thumbnailUrl = firstUrlValue(
           rawImage.thumbnailUrl,
@@ -12231,6 +12260,7 @@ Important:
           source: rawImage.source || rawImage.origin || generation.source || generation.origin || "",
           hasWatermark,
           isFreeGeneration,
+          watermarkRequired,
           generationType,
           watermarkStrategy,
           index,
@@ -12278,6 +12308,11 @@ Important:
 
         if (!representativeImage) return null;
 
+        const isFreeGeneration = normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, representativeImage.isFreeGeneration === true);
+        const hasWatermark = normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, representativeImage.hasWatermark === true);
+        const watermarkRequired = normalizeMyPhotoBoolean(rawItem.watermarkRequired ?? rawItem.watermark_required, representativeImage.watermarkRequired === true || hasWatermark || isFreeGeneration);
+        const watermarkStrategy = rawItem.watermarkStrategy || rawItem.watermark_strategy || representativeImage.watermarkStrategy || "";
+
         return {
           id: generationId,
           generationId,
@@ -12293,10 +12328,11 @@ Important:
           recommendedPhoto: representativeImage,
           galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery") || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
           source: rawItem.source || rawItem.origin || "",
-          hasWatermark: normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, representativeImage.hasWatermark === true),
-          isFreeGeneration: normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, representativeImage.isFreeGeneration === true),
+          hasWatermark,
+          isFreeGeneration,
+          watermarkRequired,
           generationType: rawItem.generationType || rawItem.generation_type || representativeImage.generationType || "",
-          watermarkStrategy: rawItem.watermarkStrategy || rawItem.watermark_strategy || representativeImage.watermarkStrategy || "",
+          watermarkStrategy,
           images,
         };
       }
@@ -12322,6 +12358,11 @@ Important:
           });
           existing.galleryUploaded = existing.galleryUploaded || item.galleryUploaded;
           existing.isRecommended = existing.isRecommended || item.isRecommended;
+          existing.hasWatermark = existing.hasWatermark || item.hasWatermark;
+          existing.isFreeGeneration = existing.isFreeGeneration || item.isFreeGeneration;
+          existing.watermarkRequired = existing.watermarkRequired || item.watermarkRequired;
+          existing.watermarkStrategy = existing.watermarkStrategy || item.watermarkStrategy || "";
+          existing.generationType = existing.generationType || item.generationType || "";
           existing.images.sort((left, right) => {
             const leftRank = Number.isFinite(left.recommendationRank) ? left.recommendationRank : Number.POSITIVE_INFINITY;
             const rightRank = Number.isFinite(right.recommendationRank) ? right.recommendationRank : Number.POSITIVE_INFINITY;
@@ -12334,6 +12375,11 @@ Important:
             existing.thumbnailUrl = representativeImage.thumbnailUrl;
             existing.isRecommended = Boolean(representativeImage.isRecommended);
             existing.recommendedPhoto = representativeImage;
+            existing.hasWatermark = existing.hasWatermark || representativeImage.hasWatermark;
+            existing.isFreeGeneration = existing.isFreeGeneration || representativeImage.isFreeGeneration;
+            existing.watermarkRequired = existing.watermarkRequired || representativeImage.watermarkRequired;
+            existing.watermarkStrategy = existing.watermarkStrategy || representativeImage.watermarkStrategy || "";
+            existing.generationType = existing.generationType || representativeImage.generationType || "";
           }
           const existingCreatedAtTime = new Date(existing.createdAt || 0).getTime();
           const nextCreatedAtTime = new Date(item.createdAt || 0).getTime();
@@ -12546,18 +12592,25 @@ Important:
           ? photo.images
           : [photo].filter(Boolean);
         const items = sourceImages
-          .map((item, index) => ({
-            url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
-            label: item.resultLabel || photo?.resultLabel || photo?.presetLabel || `마이포토박스 사진 ${index + 1}`,
-            isRecommended: Boolean(item.isRecommended),
-            hasWatermark: item.hasWatermark === true || photo?.hasWatermark === true,
-            isFreeGeneration: item.isFreeGeneration === true || photo?.isFreeGeneration === true,
-            generationType: item.generationType || photo?.generationType || "",
-            watermarkStrategy: item.watermarkStrategy || photo?.watermarkStrategy || "",
-            index,
-            generationId: photo?.generationId || item.generationId || photo?.id || "",
-            myPhotoSource: true,
-          }))
+          .map((item, index) => {
+            const modalItem = {
+              url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
+              label: item.resultLabel || photo?.resultLabel || photo?.presetLabel || `마이포토박스 사진 ${index + 1}`,
+              isRecommended: Boolean(item.isRecommended),
+              hasWatermark: item.hasWatermark === true || photo?.hasWatermark === true,
+              isFreeGeneration: item.isFreeGeneration === true || photo?.isFreeGeneration === true,
+              watermarkRequired: item.watermarkRequired === true || photo?.watermarkRequired === true,
+              generationType: item.generationType || photo?.generationType || "",
+              watermarkStrategy: item.watermarkStrategy || photo?.watermarkStrategy || "",
+              index,
+              photoId: item.id || photo?.id || "",
+              generationJobId: photo?.generationJobId || item.generationJobId || item.generationId || photo?.id || "",
+              generationId: photo?.generationId || item.generationId || photo?.id || "",
+              myPhotoSource: true,
+            };
+            modalItem.shouldShowWatermark = shouldShowWatermarkOverlay(modalItem);
+            return modalItem;
+          })
           .filter((item) => item.url);
 
         if (!items.length) {
@@ -14213,6 +14266,7 @@ ${modeExample}`;
             generationType: metadata.generationType || metadata.generation_type || generationMeta?.generationType || generationMeta?.generation_type,
             isFreeGeneration: metadata.isFreeGeneration === true || metadata.is_free_generation === true || generationMeta?.isFreeGeneration === true || generationMeta?.usedFreeGeneration === true,
             hasWatermark: metadata.hasWatermark === true || metadata.has_watermark === true || generationMeta?.hasWatermark === true || generationMeta?.has_watermark === true,
+            watermarkRequired: metadata.watermarkRequired === true || metadata.watermark_required === true || generationMeta?.watermarkRequired === true || generationMeta?.watermark_required === true,
             watermarkStrategy: metadata.watermarkStrategy || metadata.watermark_strategy || generationMeta?.watermarkStrategy || generationMeta?.watermark_strategy || "",
           });
         });
@@ -14487,6 +14541,7 @@ ${modeExample}`;
         const responseGenerationType = data.generationType || data.generation_type || (useFreeGeneration ? "free" : "paid");
         const responseIsFreeGeneration = data.isFreeGeneration === true || data.is_free_generation === true || responseGenerationType === "free";
         const responseHasWatermark = data.hasWatermark === true || data.has_watermark === true || responseIsFreeGeneration;
+        const responseWatermarkRequired = data.watermarkRequired === true || data.watermark_required === true || responseHasWatermark;
         const responseWatermarkStrategy = data.watermarkStrategy || data.watermark_strategy || "";
 
         const responseOriginalImageUrl = firstUrlValue(data.originalImageUrl, data.original_image_url, data.originalImage, uploadedOriginalImageUrl);
@@ -14514,6 +14569,7 @@ ${modeExample}`;
             generationType: responseGenerationType,
             isFreeGeneration: responseIsFreeGeneration,
             hasWatermark: responseHasWatermark,
+            watermarkRequired: responseWatermarkRequired,
             watermarkStrategy: responseWatermarkStrategy,
             locationPreset: selectedLandmark?.value || "",
             category: getLocationCategoryForMode(generationMode),
@@ -14527,6 +14583,7 @@ ${modeExample}`;
             generationType: item.generationType || item.generation_type || responseGenerationType,
             isFreeGeneration: item.isFreeGeneration === true || item.is_free_generation === true || responseIsFreeGeneration,
             hasWatermark: item.hasWatermark === true || item.has_watermark === true || responseHasWatermark,
+            watermarkRequired: item.watermarkRequired === true || item.watermark_required === true || responseWatermarkRequired,
             watermarkStrategy: item.watermarkStrategy || item.watermark_strategy || responseWatermarkStrategy,
           })),
         };
@@ -14991,25 +15048,49 @@ ${modeExample}`;
         const hasWatermark =
           itemOrResult?.hasWatermark === true ||
           itemOrResult?.has_watermark === true ||
+          itemOrResult?.watermarkRequired === true ||
+          itemOrResult?.watermark_required === true ||
           itemOrResult?.result_payload?.hasWatermark === true ||
-          itemOrResult?.resultPayload?.hasWatermark === true;
+          itemOrResult?.result_payload?.watermarkRequired === true ||
+          itemOrResult?.result_payload?.watermark_required === true ||
+          itemOrResult?.resultPayload?.hasWatermark === true ||
+          itemOrResult?.resultPayload?.watermarkRequired === true ||
+          itemOrResult?.resultPayload?.watermark_required === true;
         const watermarkStrategy =
-          itemOrResult?.watermarkStrategy ||
-          itemOrResult?.watermark_strategy ||
-          itemOrResult?.result_payload?.watermarkStrategy ||
-          itemOrResult?.resultPayload?.watermarkStrategy;
+          String(
+            itemOrResult?.watermarkStrategy ||
+            itemOrResult?.watermark_strategy ||
+            itemOrResult?.result_payload?.watermarkStrategy ||
+            itemOrResult?.resultPayload?.watermarkStrategy ||
+            "",
+          ).trim().toLowerCase();
         const hasExplicitPaidType = generationType === "paid";
+        const hasFrontendOverlay = watermarkStrategy === "frontend_overlay";
+        const hasNoFrontendOverlay = watermarkStrategy === "none" || watermarkStrategy === "backend_baked";
+        const hasWatermarkRequiredTrue =
+          itemOrResult?.watermarkRequired === true ||
+          itemOrResult?.watermark_required === true ||
+          itemOrResult?.result_payload?.watermarkRequired === true ||
+          itemOrResult?.result_payload?.watermark_required === true ||
+          itemOrResult?.resultPayload?.watermarkRequired === true ||
+          itemOrResult?.resultPayload?.watermark_required === true;
         const hasExplicitFreeFalse =
           itemOrResult?.isFreeGeneration === false ||
           itemOrResult?.is_free_generation === false ||
           itemOrResult?.usedFreeGeneration === false ||
           itemOrResult?.used_free_generation === false ||
+          itemOrResult?.watermarkRequired === false ||
+          itemOrResult?.watermark_required === false ||
           itemOrResult?.result_payload?.isFreeGeneration === false ||
           itemOrResult?.result_payload?.is_free_generation === false ||
+          itemOrResult?.result_payload?.watermarkRequired === false ||
+          itemOrResult?.result_payload?.watermark_required === false ||
           itemOrResult?.resultPayload?.isFreeGeneration === false ||
-          itemOrResult?.resultPayload?.is_free_generation === false;
+          itemOrResult?.resultPayload?.is_free_generation === false ||
+          itemOrResult?.resultPayload?.watermarkRequired === false ||
+          itemOrResult?.resultPayload?.watermark_required === false;
 
-        if (hasExplicitPaidType || (hasExplicitFreeFalse && watermarkStrategy !== "frontend_overlay")) {
+        if (hasExplicitPaidType || hasNoFrontendOverlay || (hasExplicitFreeFalse && !hasFrontendOverlay && !hasWatermarkRequiredTrue)) {
           return false;
         }
 
@@ -15020,7 +15101,7 @@ ${modeExample}`;
           itemOrResult?.used_free_generation === true ||
           generationType === "free";
 
-        return isFree || hasWatermark || watermarkStrategy === "frontend_overlay";
+        return isFree || hasWatermark || hasFrontendOverlay || hasWatermarkRequiredTrue;
       }
 
       function getLogoWatermarkMarkup(extraClass = "") {
@@ -15034,12 +15115,26 @@ ${modeExample}`;
 
       function shouldShowWatermarkForModalItem(item = {}) {
         if (item.myPhotoSource) {
-          return shouldShowWatermarkOverlay(item);
+          return typeof item.shouldShowWatermark === "boolean"
+            ? item.shouldShowWatermark
+            : shouldShowWatermarkOverlay(item);
         }
 
         if (item.gallerySource) return false;
 
         return shouldShowWatermarkOverlay(item) || getDownloadPolicy().shouldWatermark === true;
+      }
+
+      function logMyPhotoWatermarkDebug(item = {}, shouldShowWatermark = shouldShowWatermarkForModalItem(item)) {
+        if (!item?.myPhotoSource) return;
+        console.debug("[my-photobox][watermark]", {
+          photoId: item.photoId || item.id || "",
+          generationJobId: item.generationJobId || item.generationId || "",
+          isFreeGeneration: item.isFreeGeneration === true,
+          watermarkStrategy: item.watermarkStrategy || "",
+          watermarkRequired: item.watermarkRequired === true,
+          shouldShowWatermark,
+        });
       }
 
       function sanitizeFilenamePart(value) {
@@ -15111,15 +15206,26 @@ ${modeExample}`;
         if (!sourceWidth || !sourceHeight) return false;
 
         const shortEdge = Math.min(canvasWidth, canvasHeight);
-        const logoWidth = Math.round(Math.min(canvasWidth * 0.14, Math.max(56, canvasWidth * 0.12)));
+        const logoWidth = Math.round(Math.min(110, Math.max(56, canvasWidth * 0.11)));
         const logoHeight = Math.round(logoWidth * (sourceHeight / sourceWidth));
         const margin = Math.round(Math.max(16, shortEdge * 0.032));
         const x = Math.max(margin, canvasWidth - logoWidth - margin);
         const y = Math.max(margin, canvasHeight - logoHeight - margin);
+        const tintedLogo = document.createElement("canvas");
+        tintedLogo.width = sourceWidth;
+        tintedLogo.height = sourceHeight;
+        const tintedCtx = tintedLogo.getContext("2d");
+        tintedCtx.drawImage(logoImage, 0, 0, sourceWidth, sourceHeight);
+        tintedCtx.globalCompositeOperation = "source-in";
+        tintedCtx.fillStyle = "#ffffff";
+        tintedCtx.fillRect(0, 0, sourceWidth, sourceHeight);
 
         ctx.save();
-        ctx.globalAlpha = 0.84;
-        ctx.drawImage(logoImage, x, y, logoWidth, logoHeight);
+        ctx.globalAlpha = 0.58;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.38)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 2;
+        ctx.drawImage(tintedLogo, x, y, logoWidth, logoHeight);
         ctx.restore();
         return true;
       }
@@ -15182,7 +15288,12 @@ ${modeExample}`;
           imageSaveModalObjectUrl = URL.createObjectURL(blob);
           saveImageUrl = imageSaveModalObjectUrl;
         } catch (error) {
-          console.warn("[photo-save] watermarked preview failed, using original image", error);
+          console.warn("[photo-save] preview image creation failed", error);
+          if (shouldWatermark) {
+            setImageModalStatus("무료 제작 워터마크 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+            showAccountMenuToast("워터마크 포함 저장 이미지를 만들지 못했어요.");
+            return;
+          }
           setImageModalStatus("저장 화면을 열었습니다. 이미지가 보이면 길게 눌러 저장해 주세요.");
         }
 
@@ -16128,6 +16239,7 @@ ${modeExample}`;
 
         const isGallerySource = Boolean(item.gallerySource);
         const shouldShowLogoWatermark = shouldShowWatermarkForModalItem(item);
+        logMyPhotoWatermarkDebug(item, shouldShowLogoWatermark);
         imageModalImg.src = item.url;
         imageModalImg.draggable = !isGallerySource;
         imageModalImg.dataset.source = isGallerySource ? "gallery" : "result";
@@ -16190,6 +16302,11 @@ ${modeExample}`;
           isRecommended: typeof result?.isRecommended === "boolean"
             ? result.isRecommended
             : resultIndex === recommendedIndex,
+          hasWatermark: result?.hasWatermark === true || result?.has_watermark === true,
+          isFreeGeneration: result?.isFreeGeneration === true || result?.is_free_generation === true,
+          watermarkRequired: result?.watermarkRequired === true || result?.watermark_required === true,
+          generationType: result?.generationType || result?.generation_type || "",
+          watermarkStrategy: result?.watermarkStrategy || result?.watermark_strategy || "",
           index: resultIndex,
         };
       }
@@ -16251,6 +16368,7 @@ ${modeExample}`;
         imageModal.classList.add("hidden");
         imageModal.classList.remove("flex");
         closePhotoSaveModal();
+        resetImageModalSwipeState();
         imageModalImg.removeAttribute("src");
         imageModalImageFrame?.classList.remove("has-logo-watermark");
         hideImageModalOriginalThumbnail();
@@ -16267,7 +16385,90 @@ ${modeExample}`;
         const items = getImageModalItems();
         if (items.length < 2) return;
         activeImageModalIndex = (activeImageModalIndex + direction + items.length) % items.length;
+        playImageModalSwipeFeedback(direction);
         renderImageModal();
+      }
+
+      function playImageModalSwipeFeedback(direction = 1) {
+        if (!imageModalImageFrame) return;
+        window.clearTimeout(imageModalSwipeFeedbackTimerId);
+        imageModalImageFrame.style.setProperty("--swipe-feedback-x", direction > 0 ? "10px" : "-10px");
+        imageModalImageFrame.classList.add("is-swipe-transitioning");
+        imageModalSwipeFeedbackTimerId = window.setTimeout(() => {
+          imageModalImageFrame?.classList.remove("is-swipe-transitioning");
+          imageModalImageFrame?.style.removeProperty("--swipe-feedback-x");
+        }, 180);
+      }
+
+      function resetImageModalSwipeState() {
+        if (imageModalSwipeState?.pointerId !== undefined) {
+          try {
+            imageModalImageFrame?.releasePointerCapture?.(imageModalSwipeState.pointerId);
+          } catch (error) {
+            // Pointer capture can already be gone after cancel/up.
+          }
+        }
+        imageModalSwipeState = null;
+        imageModalImageFrame?.classList.remove("is-swipe-dragging");
+      }
+
+      function isImageModalSwipeBlockedTarget(target) {
+        return target instanceof Element && Boolean(target.closest(
+          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalOriginalThumb",
+        ));
+      }
+
+      function handleImageModalSwipeStart(event) {
+        if (imageModal.classList.contains("hidden")) return;
+        if (getImageModalItems().length < 2) return;
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        if (isImageModalSwipeBlockedTarget(event.target)) return;
+
+        imageModalSwipeState = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          lastX: event.clientX,
+          lastY: event.clientY,
+          axis: "",
+        };
+        imageModalImageFrame?.setPointerCapture?.(event.pointerId);
+      }
+
+      function handleImageModalSwipeMove(event) {
+        if (!imageModalSwipeState || imageModalSwipeState.pointerId !== event.pointerId) return;
+
+        const dx = event.clientX - imageModalSwipeState.startX;
+        const dy = event.clientY - imageModalSwipeState.startY;
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+
+        imageModalSwipeState.lastX = event.clientX;
+        imageModalSwipeState.lastY = event.clientY;
+
+        if (!imageModalSwipeState.axis && (absX > 8 || absY > 8)) {
+          imageModalSwipeState.axis = absX > absY * IMAGE_MODAL_SWIPE_AXIS_RATIO ? "horizontal" : "vertical";
+          imageModalImageFrame?.classList.toggle("is-swipe-dragging", imageModalSwipeState.axis === "horizontal");
+        }
+
+        if (imageModalSwipeState.axis === "horizontal") {
+          event.preventDefault();
+        }
+      }
+
+      function handleImageModalSwipeEnd(event) {
+        if (!imageModalSwipeState || imageModalSwipeState.pointerId !== event.pointerId) return;
+
+        const dx = event.clientX - imageModalSwipeState.startX;
+        const dy = event.clientY - imageModalSwipeState.startY;
+        const isHorizontalSwipe =
+          Math.abs(dx) >= IMAGE_MODAL_SWIPE_THRESHOLD &&
+          Math.abs(dx) > Math.abs(dy) * IMAGE_MODAL_SWIPE_AXIS_RATIO;
+
+        resetImageModalSwipeState();
+
+        if (!isHorizontalSwipe) return;
+        moveImageModal(dx < 0 ? 1 : -1);
       }
 
       function renderResults() {
@@ -18137,6 +18338,11 @@ ${modeExample}`;
         activeImageModalIndex = index;
         renderImageModal();
       });
+      imageModalImageFrame?.addEventListener("pointerdown", handleImageModalSwipeStart);
+      imageModalImageFrame?.addEventListener("pointermove", handleImageModalSwipeMove);
+      imageModalImageFrame?.addEventListener("pointerup", handleImageModalSwipeEnd);
+      imageModalImageFrame?.addEventListener("pointercancel", resetImageModalSwipeState);
+      imageModalImageFrame?.addEventListener("lostpointercapture", resetImageModalSwipeState);
       imageModalGalleryUpload?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();

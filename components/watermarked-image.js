@@ -1,6 +1,10 @@
 import { escapeHtml } from "../services/format.js";
 
-export const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-logo-watermark.png";
+export const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
+
+function normalizeWatermarkStrategy(value) {
+  return String(value || "").trim().toLowerCase();
+}
 
 export function shouldShowWatermarkOverlay(itemOrResult = {}) {
   const generationType =
@@ -12,26 +16,49 @@ export function shouldShowWatermarkOverlay(itemOrResult = {}) {
   const hasWatermark =
     itemOrResult?.hasWatermark === true ||
     itemOrResult?.has_watermark === true ||
+    itemOrResult?.watermarkRequired === true ||
+    itemOrResult?.watermark_required === true ||
     itemOrResult?.result_payload?.hasWatermark === true ||
-    itemOrResult?.resultPayload?.hasWatermark === true;
+    itemOrResult?.result_payload?.watermarkRequired === true ||
+    itemOrResult?.result_payload?.watermark_required === true ||
+    itemOrResult?.resultPayload?.hasWatermark === true ||
+    itemOrResult?.resultPayload?.watermarkRequired === true ||
+    itemOrResult?.resultPayload?.watermark_required === true;
 
   const watermarkStrategy =
-    itemOrResult?.watermarkStrategy ||
-    itemOrResult?.watermark_strategy ||
-    itemOrResult?.result_payload?.watermarkStrategy ||
-    itemOrResult?.resultPayload?.watermarkStrategy;
+    normalizeWatermarkStrategy(
+      itemOrResult?.watermarkStrategy ||
+      itemOrResult?.watermark_strategy ||
+      itemOrResult?.result_payload?.watermarkStrategy ||
+      itemOrResult?.resultPayload?.watermarkStrategy,
+    );
   const hasExplicitPaidType = generationType === "paid";
+  const hasFrontendOverlay = watermarkStrategy === "frontend_overlay";
+  const hasNoFrontendOverlay = watermarkStrategy === "none" || watermarkStrategy === "backend_baked";
+  const hasWatermarkRequiredTrue =
+    itemOrResult?.watermarkRequired === true ||
+    itemOrResult?.watermark_required === true ||
+    itemOrResult?.result_payload?.watermarkRequired === true ||
+    itemOrResult?.result_payload?.watermark_required === true ||
+    itemOrResult?.resultPayload?.watermarkRequired === true ||
+    itemOrResult?.resultPayload?.watermark_required === true;
   const hasExplicitFreeFalse =
     itemOrResult?.isFreeGeneration === false ||
     itemOrResult?.is_free_generation === false ||
     itemOrResult?.usedFreeGeneration === false ||
     itemOrResult?.used_free_generation === false ||
+    itemOrResult?.watermarkRequired === false ||
+    itemOrResult?.watermark_required === false ||
     itemOrResult?.result_payload?.isFreeGeneration === false ||
     itemOrResult?.result_payload?.is_free_generation === false ||
+    itemOrResult?.result_payload?.watermarkRequired === false ||
+    itemOrResult?.result_payload?.watermark_required === false ||
     itemOrResult?.resultPayload?.isFreeGeneration === false ||
-    itemOrResult?.resultPayload?.is_free_generation === false;
+    itemOrResult?.resultPayload?.is_free_generation === false ||
+    itemOrResult?.resultPayload?.watermarkRequired === false ||
+    itemOrResult?.resultPayload?.watermark_required === false;
 
-  if (hasExplicitPaidType || (hasExplicitFreeFalse && watermarkStrategy !== "frontend_overlay")) {
+  if (hasExplicitPaidType || hasNoFrontendOverlay || (hasExplicitFreeFalse && !hasFrontendOverlay && !hasWatermarkRequiredTrue)) {
     return false;
   }
 
@@ -42,16 +69,16 @@ export function shouldShowWatermarkOverlay(itemOrResult = {}) {
     itemOrResult?.used_free_generation === true ||
     generationType === "free";
 
-  return isFree || hasWatermark || watermarkStrategy === "frontend_overlay";
+  return isFree || hasWatermark || hasFrontendOverlay || hasWatermarkRequiredTrue;
 }
 
 export function renderWatermarkOverlay({ compact = false } = {}) {
   const style = compact
-    ? "right:8px;bottom:8px;width:72px;max-width:38%;opacity:.84;filter:drop-shadow(0 8px 18px rgba(0,0,0,.16));pointer-events:none;"
-    : "right:14px;bottom:14px;width:112px;max-width:34%;opacity:.84;filter:drop-shadow(0 8px 18px rgba(0,0,0,.16));pointer-events:none;";
+    ? "right:10px;bottom:10px;width:clamp(56px,16%,86px);opacity:.58;filter:brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,.38));pointer-events:none;user-select:none;"
+    : "right:18px;bottom:18px;width:clamp(56px,11%,110px);opacity:.58;filter:brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,.38));pointer-events:none;user-select:none;";
 
   return `
-    <div class="free-watermark-overlay absolute z-20" style="${style}">
+    <div class="free-watermark-overlay free-watermark-logo absolute z-20" style="${style}">
       <img
         src="${WATERMARK_LOGO_SRC}"
         alt=""

@@ -255,7 +255,7 @@ function renderImageModal(imageModal) {
               <span class="material-symbols-outlined">chevron_right</span>
             </button>
           ` : ""}
-          <div class="relative max-w-full max-h-full">
+          <div class="relative max-w-full max-h-full touch-pan-y select-none" data-image-modal-swipe>
             <img alt="${escapeHtml(imageModal.label ?? "확대 이미지")}" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl select-none" src="${imageModal.url}" />
             ${imageModal.showWatermark ? renderWatermarkOverlay() : ""}
           </div>

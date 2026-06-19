@@ -71,8 +71,7 @@ export function normalizeUser(user) {
 }
 
 export function isAdminUser(user) {
-  return user?.isAdmin === true ||
-    String(user?.email || "").toLowerCase().trim() === "vamprub@gmail.com";
+  return user?.isAdmin === true;
 }
 
 export function isFirstTimeOnboardingTarget(user) {

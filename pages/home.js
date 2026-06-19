@@ -7,8 +7,8 @@ export function renderHomePage() {
 
   return `
     <section class="pt-1">
-      <h1 class="font-display text-[28px] leading-tight text-on-surface">웨딩사진을 여행처럼</h1>
-      <p class="mt-2 text-sm leading-6 text-on-surface-variant">AI가 당신의 웨딩사진을 새로운 순간으로 바꿔드려요.</p>
+      <h1 class="font-display text-[28px] leading-tight text-on-surface">우리 사진에 감성 한 스푼</h1>
+      <p class="mt-2 text-sm leading-6 text-on-surface-variant">사진 한 장이면 충분해요. 원하는 분위기를 골라보세요.</p>
       <div class="mt-5">
         ${renderBeforeAfterSlider({
           beforeSrc: "mock-images/before/before_studio_couple_01.jpg",
@@ -22,15 +22,15 @@ export function renderHomePage() {
     </section>
 
     <section class="mt-7">
-      <h2 class="text-[17px] font-semibold text-on-surface">인기 웨딩 스타일</h2>
+      <h2 class="text-[17px] font-semibold text-on-surface">어떤 감성을 더해볼까요?</h2>
       <div class="mt-4 space-y-4">
         <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
           <img src="${parisImage}" alt="파리 에펠탑" class="h-40 w-full object-cover" />
           <div class="px-5 pb-5 pt-4 text-center">
-            <h3 class="font-display text-[25px] leading-none text-on-surface">파리 에펠탑</h3>
-            <p class="mt-2 text-sm text-on-surface-variant">유럽 여행 스냅처럼</p>
+            <h3 class="font-display text-[25px] leading-none text-on-surface">유럽 감성</h3>
+            <p class="mt-2 text-sm text-on-surface-variant">파리, 베네치아, 아말피처럼</p>
             <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-route="create">
-              지금 편집하기
+              내 사진 바꿔보기
             </button>
           </div>
         </article>
@@ -38,10 +38,10 @@ export function renderHomePage() {
         <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
           <img src="${disneyImage}" alt="디즈니 공주" class="h-40 w-full object-cover" />
           <div class="px-5 pb-5 pt-4 text-center">
-            <h3 class="font-display text-[25px] leading-none text-on-surface">디즈니 공주</h3>
-            <p class="mt-2 text-sm text-on-surface-variant">실사 동화풍 웨딩 콘셉트</p>
+            <h3 class="font-display text-[25px] leading-none text-on-surface">동화 감성</h3>
+            <p class="mt-2 text-sm text-on-surface-variant">주인공처럼, 사랑스럽게</p>
             <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-route="create">
-              지금 편집하기
+              내 사진 바꿔보기
             </button>
           </div>
         </article>

@@ -38,7 +38,7 @@
   const SUPABASE_URL = EXPECTED_SUPABASE_URL;
   // 여기에 Supabase Dashboard에서 복사한 anon public key 또는 publishable key를 붙여넣으세요.
   // 절대 service_role / secret key / JWT secret / Google Client Secret을 넣지 마세요.
-  const SUPABASE_ANON_KEY = "REPLACE_WITH_SUPABASE_ANON_OR_PUBLISHABLE_KEY";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6bHZmdXl6b2Z6cWdoem9vcXNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjkwOTMsImV4cCI6MjA5NDI0NTA5M30.xww7V8foHYvaTV_bbujFF-vvWuOiCUlJ_27FXq9BA3c";
   const GOOGLE_LOGIN_ENABLED = window.GOOGLE_LOGIN_ENABLED !== false;
 
   window.API_BASE_URL = API_BASE_URL;

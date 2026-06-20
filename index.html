@@ -7409,6 +7409,7 @@ Important:
       let isCreditsLoading = false;
       let generationUsageSummary = null;
       let generationUsageStatus = "idle";
+      let accountSummaryLoadError = false;
       let isPaymentLoading = false;
       let activePaymentPackageId = null;
       let autoLogoutIntervalId = null;
@@ -7913,13 +7914,78 @@ Important:
         });
       }
 
+      function createFallbackAccountSummary(user = null) {
+        const source = user || {};
+        const email = String(source?.email || source?.userEmail || source?.user_email || "").trim();
+        const displayName = String(
+          source?.displayName
+          || source?.display_name
+          || source?.userName
+          || source?.user_name
+          || source?.name
+          || source?.nickname
+          || (email.includes("@") ? email.split("@")[0] : "")
+          || "고객",
+        ).trim();
+        const avatarUrl = String(
+          source?.avatarUrl
+          || source?.avatar_url
+          || source?.picture
+          || source?.photoURL
+          || source?.photoUrl
+          || source?.photo_url
+          || "",
+        ).trim();
+        return {
+          user: {
+            id: source?.id || source?.userId || source?.user_id || "",
+            email,
+            name: displayName,
+            avatarUrl,
+          },
+          generationUsage: {
+            remainingGenerationUses: 0,
+            paidRemainingGenerationUses: 0,
+            freeGenerationAvailable: true,
+            freeGenerationUsed: false,
+            nearestPassExpiresAt: null,
+          },
+          isFallback: true,
+        };
+      }
+
+      function applyFallbackAccountSummary(user = currentUser, reason = "") {
+        if (!user) return null;
+        const summary = createFallbackAccountSummary(user);
+        generationUsageSummary = summary.generationUsage;
+        generationUsageStatus = "error";
+        accountSummaryLoadError = true;
+        if (currentUser) {
+          currentUser.generationUsage = summary.generationUsage;
+        }
+        console.warn("[auth][account-summary][fallback]", {
+          reason: String(reason || "account summary unavailable"),
+          hasCurrentUser: Boolean(currentUser),
+          userId: getAuthenticatedUserId(currentUser),
+        });
+        return summary;
+      }
+
       function applySupabaseSessionFallback(session = null) {
         const user = normalizeSupabaseSessionUser(session);
         if (!user) return null;
+        const fallbackSummary = createFallbackAccountSummary(user);
         applyAuthSession({
           ok: true,
           authenticated: true,
           user,
+          accountSummary: fallbackSummary,
+          generationUsage: fallbackSummary.generationUsage,
+        });
+        console.info("[auth][session-applied]", {
+          userId: user.id,
+          email: user.email || "",
+          provider: user.app_metadata?.provider || user.provider || "google",
         });
         return currentUser;
       }
@@ -8869,6 +8935,7 @@ Important:
       function applyAuthSession(payload = {}) {
         const user = normalizeAuthUser(payload);
         const authIsAdmin = normalizeExplicitAdminFlag(payload);
+        const accountSummary = payload?.accountSummary || payload?.account_summary || payload?.data?.accountSummary || payload?.data?.account_summary || null;
         resetAdminDashboardState({ clearContent: true });
         currentUser = isAuthenticatedUser(user) ? user : null;
         authChecked = true;
@@ -8883,6 +8950,7 @@ Important:
         const authGenerationUsage = normalizeAuthGenerationUsage(payload, currentUser);
         generationUsageSummary = currentUser ? authGenerationUsage : null;
         generationUsageStatus = currentUser ? (authGenerationUsage ? "ready" : "error") : "idle";
+        accountSummaryLoadError = Boolean(currentUser && (accountSummary?.isFallback === true || accountSummary?.is_fallback === true || !authGenerationUsage));
         if (currentUser && authGenerationUsage) {
           currentUser.generationUsage = authGenerationUsage;
         }
@@ -11221,6 +11289,21 @@ Important:
 
         try {
           const payload = await fetchCurrentUser({ silent: !showError });
+          const normalizedUser = normalizeAuthUser(payload);
+          if (currentUser && (!normalizedUser || isUnauthenticatedAuthPayload(payload))) {
+            console.warn("[auth][account-summary][unavailable]", {
+              reason: "current auth payload unavailable",
+              hasCurrentUser: Boolean(currentUser),
+              userId: getAuthenticatedUserId(currentUser),
+            });
+            applyFallbackAccountSummary(currentUser, "current auth payload unavailable");
+            authChecked = true;
+            isAuthLoading = false;
+            syncAuthUi();
+            updateCreditUi();
+            syncEditorGenerationCopy();
+            return currentUser;
+          }
           applyAuthSession(payload);
           if (currentUser?.isAdmin === true) {
             try {
@@ -11249,14 +11332,28 @@ Important:
             showDuplicateProviderModal(duplicateProviderError);
             return null;
           }
+          if (currentUser) {
+            console.warn("[auth][account-summary][unavailable]", {
+              reason: error?.message || "account summary fetch failed",
+              hasCurrentUser: Boolean(currentUser),
+              userId: getAuthenticatedUserId(currentUser),
+            });
+            applyFallbackAccountSummary(currentUser, error?.message || "account summary fetch failed");
+            if (DEBUG_MODE || showError) {
+              console.warn("[client][auth] preserving session after account summary failure:", error);
+            }
+            syncAuthUi();
+            updateCreditUi();
+            return currentUser;
+          }
           if (error?.statusCode === 401 || String(error?.code || "").toUpperCase() === "LOGIN_REQUIRED") {
             handleExpiredAuthSession({ showMessage: showError });
             return null;
           }
-          applyAuthUser(null);
           if (showError) {
             showAccountMenuToast("로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
           }
+          applyAuthUser(null);
           return null;
         } finally {
           authChecked = true;
@@ -11465,6 +11562,12 @@ Important:
       function getRemainingUsesDisplayText(user = currentUser) {
         const remainingUses = getRemainingUses(user);
         const freeGenerationText = hasFreeGeneration(user) ? " · 무료 제작 1회 이용 가능" : "";
+        if (accountSummaryLoadError && user) {
+          const balanceText = remainingUses === null
+            ? ""
+            : ` · 남은 제작 횟수 ${formatCreditNumber(remainingUses)}회`;
+          return `계정 정보를 불러오는 중입니다.${balanceText}${freeGenerationText}`;
+        }
         if (remainingUses === null) {
           const baseText = generationUsageStatus === "error"
             ? "남은 제작 횟수를 불러오지 못했어요"
@@ -12429,8 +12532,18 @@ Important:
         console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
         console.log("[auth] login success detected:", { mode: authMode, provider: loginParams.get("provider") || "" });
         console.log("[auth] fetchCurrentUser after success");
+        if (supabaseSession?.user) {
+          const fallbackUser = applySupabaseSessionFallback(supabaseSession);
+          usedSupabaseSessionFallback = Boolean(fallbackUser);
+        }
         try {
           let user = await refreshAuthState({ showError: false });
+          if (!user && currentUser) {
+            user = currentUser;
+          }
+          if (!accountSummaryLoadError) {
+            usedSupabaseSessionFallback = false;
+          }
           if (!user && supabaseSession && !duplicateProviderLoginState) {
             console.warn("[auth][callback] account summary unavailable after Supabase session", {
               hasSession: true,
@@ -12438,7 +12551,7 @@ Important:
               email: supabaseSession?.user?.email || "",
               provider: getSupabaseSessionProvider(supabaseSession),
             });
-            user = applySupabaseSessionFallback(supabaseSession);
+            user = currentUser || applySupabaseSessionFallback(supabaseSession);
             usedSupabaseSessionFallback = Boolean(user);
           }
           if (!user) {
@@ -12458,12 +12571,15 @@ Important:
               if (refreshedUser) {
                 user = refreshedUser;
                 usedSupabaseSessionFallback = false;
+                if (accountSummaryLoadError) {
+                  usedSupabaseSessionFallback = true;
+                }
               }
             }
           } catch (error) {
             console.warn("[auth] signup consent save failed:", error);
             if (!currentUser && supabaseSession) {
-              user = applySupabaseSessionFallback(supabaseSession);
+              user = currentUser || applySupabaseSessionFallback(supabaseSession);
               usedSupabaseSessionFallback = Boolean(user);
             }
             if (!user) {

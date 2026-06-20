@@ -9350,6 +9350,45 @@ Important:
           .find((value) => value && !isDisplayableImageUrl(value)) || "";
       }
 
+      function normalizeAdminGallerySource(item = {}) {
+        return String(item.source || item.gallerySource || item.gallery_source || item.origin || "").trim().toLowerCase();
+      }
+
+      function isAdminGeneratedOnlyGalleryItem(item = {}) {
+        const source = normalizeAdminGallerySource(item);
+        const galleryStatus = String(item.galleryStatus || item.gallery_status || item.status || "").trim().toLowerCase();
+        return source === "generated"
+          || source === "generation_result"
+          || galleryStatus === "generated_only"
+          || item.isPublicGallery === false
+          || item.is_public_gallery === false;
+      }
+
+      function isAdminGalleryItemDeleted(item = {}) {
+        const status = String(item.status || "").trim().toLowerCase();
+        const galleryStatus = String(item.galleryStatus || item.gallery_status || "").trim().toLowerCase();
+        return item.isDeleted === true
+          || item.is_deleted === true
+          || status === "deleted"
+          || status === "hidden"
+          || galleryStatus === "deleted"
+          || galleryStatus === "hidden";
+      }
+
+      function isAdminPublicGalleryItem(item = {}) {
+        const galleryStatus = String(item.galleryStatus || item.gallery_status || "").trim().toLowerCase();
+        return item.isPublicGallery === true
+          || item.is_public_gallery === true
+          || Boolean(item.publishedAt || item.published_at)
+          || galleryStatus === "public";
+      }
+
+      function shouldShowAdminGalleryItem(item = {}) {
+        return isAdminPublicGalleryItem(item)
+          && !isAdminGalleryItemDeleted(item)
+          && !isAdminGeneratedOnlyGalleryItem(item);
+      }
+
       function normalizeAdminGalleryItem(item = {}) {
         const normalizedBase = normalizeGalleryItem(item) || {};
         const rawThumbnailUrl = String(item.thumbnailUrl || item.thumbnail_url || normalizedBase.thumbnailUrl || "").trim();
@@ -9439,6 +9478,9 @@ Important:
             || item.image_id
             || "",
         ).trim();
+        const isPublicGallery = isAdminPublicGalleryItem(item);
+        const isGeneratedOnly = isAdminGeneratedOnlyGalleryItem(item);
+        const isDeleted = isAdminGalleryItemDeleted(item);
         return {
           ...item,
           ...normalizedBase,
@@ -9458,6 +9500,12 @@ Important:
           userEmail,
           userName,
           createdAt: item.createdAt || item.created_at || item.uploadedAt || item.uploaded_at || item.publishedAt || item.published_at || "",
+          publishedAt: item.publishedAt || item.published_at || "",
+          galleryStatus: item.galleryStatus || item.gallery_status || "",
+          source: item.source || item.gallerySource || item.gallery_source || "",
+          isPublicGallery,
+          isGeneratedOnly,
+          isAdminGalleryDeleted: isDeleted,
           isRecommended: item.isRecommended === true || item.is_recommended === true || item.recommended === true,
           status: getGalleryItemStatusToken(item),
           statusLabel: getGalleryItemStatusLabel(item),
@@ -9467,7 +9515,7 @@ Important:
       function normalizeAdminGalleryPayload(payload = {}) {
         const rawItems = getAdminGalleryPayloadItems(payload);
         console.debug("[admin/gallery][first-item]", rawItems?.[0]);
-        const items = rawItems.map(normalizeAdminGalleryItem);
+        const items = rawItems.filter(shouldShowAdminGalleryItem).map(normalizeAdminGalleryItem);
         const total = Number(payload.total ?? payload.data?.total ?? items.length ?? 0);
         return {
           ...payload,
@@ -9999,7 +10047,7 @@ Important:
         if (!adminGalleryDeleteConfirmState) return "";
         const item = adminGalleryDeleteConfirmState.item || {};
         const itemId = item.galleryItemId || item.id || "";
-        const title = "갤러리 사진을 삭제할까요?";
+        const title = "이 사진을 공개 갤러리에서 숨길까요?";
         return `
           <div class="login-modal-overlay is-open" aria-hidden="false" data-admin-modal="gallery-delete">
             <section class="login-modal-panel" role="dialog" aria-modal="true" aria-labelledby="adminGalleryDeleteTitle">
@@ -10010,7 +10058,7 @@ Important:
               </div>
               <div class="login-modal-body">
                 <h2 class="login-modal-title font-display" id="adminGalleryDeleteTitle">${escapeHtml(title)}</h2>
-                <p class="login-modal-lead">이 사진은 공개 갤러리에서 숨김 처리됩니다. 사용자의 마이포토박스 원본 사진은 삭제되지 않습니다.</p>
+                <p class="login-modal-lead">사용자의 마이포토박스 원본과 생성 결과는 삭제되지 않습니다.</p>
                 <div class="customer-info-list mt-4">
                   <section class="customer-info-row"><p class="customer-info-label">스타일</p><p class="customer-info-value">${escapeHtml(item.styleLabel || "-")}</p></section>
                   <section class="customer-info-row"><p class="customer-info-label">프리셋</p><p class="customer-info-value">${escapeHtml(item.presetLabel || "-")}</p></section>
@@ -10022,7 +10070,7 @@ Important:
                   <p class="text-xs font-bold text-primary hidden" id="adminGalleryDeleteValidationMessage"></p>
                   <div class="admin-modal-actions">
                     <button class="admin-modal-cancel" data-admin-modal-close type="button">취소</button>
-                    <button class="admin-modal-confirm is-danger" id="adminGalleryDeleteSubmitButton" type="submit" disabled>${escapeHtml(isAdminDeletingGalleryItem ? "삭제 중..." : "삭제하기")}</button>
+                    <button class="admin-modal-confirm is-danger" id="adminGalleryDeleteSubmitButton" type="submit" disabled>${escapeHtml(isAdminDeletingGalleryItem ? "숨기는 중..." : "공개 갤러리에서 숨기기")}</button>
                   </div>
                 </form>
                 <div class="admin-id-text mt-2">갤러리 ID: ${escapeHtml(itemId || "없음")}</div>
@@ -10426,7 +10474,7 @@ Important:
                 </div>
               </div>
               <div class="admin-summary-lines mt-2">
-                <div class="admin-meta-row"><span class="admin-meta-label">등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">공개 갤러리 등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.publishedAt || normalized.createdAt))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">회원</span><span class="admin-meta-value">${escapeHtml(memberEmail)}</span></div>
               </div>
               <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
@@ -10438,21 +10486,20 @@ Important:
                 <div class="admin-meta-row"><span class="admin-meta-label">표시 이미지 URL</span><span class="admin-meta-value">${fullImageUrl ? `<a class="text-primary font-bold" href="${escapeHtml(toDisplayUrl(fullImageUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(fullImageUrl)}</a>` : escapeHtml("없음")}</span></div>
                 ${imagePath ? `<div class="admin-meta-row"><span class="admin-meta-label">Storage path</span><span class="admin-meta-value">${escapeHtml(imagePath)}</span></div>` : ""}
                 ${rawImageUrl && rawImageUrl !== imagePath && !isDisplayableImageUrl(rawImageUrl) ? `<div class="admin-meta-row"><span class="admin-meta-label">rawImageUrl</span><span class="admin-meta-value">${escapeHtml(rawImageUrl)}</span></div>` : ""}
-                <div class="admin-meta-row"><span class="admin-meta-label">스타일</span><span class="admin-meta-value">${escapeHtml(styleLabel)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">프리셋</span><span class="admin-meta-value">${escapeHtml(presetLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">스타일/프리셋</span><span class="admin-meta-value">${escapeHtml(`${styleLabel} / ${presetLabel}`)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">결과 라벨</span><span class="admin-meta-value">${escapeHtml(resultLabel)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">회원 이름</span><span class="admin-meta-value">${escapeHtml(memberName)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">공개 갤러리 등록일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.publishedAt || normalized.createdAt))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">업로드 회원</span><span class="admin-meta-value">${escapeHtml(memberName)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">회원 이메일</span><span class="admin-meta-value">${escapeHtml(memberEmail)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">추천 여부</span><span class="admin-meta-value">${escapeHtml(normalized.isRecommended ? "추천" : "일반")}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(normalized.statusLabel || "공개")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">숨김 상태</span><span class="admin-meta-value">${escapeHtml(normalized.statusLabel || "공개")}</span></div>
                 ${deleteReason ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제 사유</span><span class="admin-meta-value">${escapeHtml(deleteReason)}</span></div>` : ""}
               </div>
               <div class="admin-id-text mt-2">갤러리 ID: ${escapeHtml(itemId || "없음")}</div>
               <div class="admin-danger-zone mt-3">
                 <strong>공개 갤러리 관리</strong>
                 <p class="mt-1">삭제 시 공개 갤러리에서만 숨김 처리되며, 사용자의 마이포토박스 원본 결과는 유지됩니다.</p>
-                <button class="admin-warning-button mt-3" data-admin-gallery-delete="${escapeHtml(itemId)}" type="button" ${!canDelete || isAdminDeletingGalleryItem ? "disabled" : ""}>${escapeHtml(canDelete ? "삭제/숨김" : "이미 숨김 처리됨")}</button>
+                <button class="admin-warning-button mt-3" data-admin-gallery-delete="${escapeHtml(itemId)}" type="button" ${!canDelete || isAdminDeletingGalleryItem ? "disabled" : ""}>${escapeHtml(canDelete ? "공개 갤러리에서 숨기기" : "이미 숨김 처리됨")}</button>
               </div>
             </div>
           </details>
@@ -10586,7 +10633,7 @@ Important:
                   ? `<div class="admin-empty">${escapeHtml(getAdminGalleryLoadErrorMessage(galleryError))}</div>`
                   : galleryItems.length
                     ? visibleGalleryItems.map(renderAdminGalleryCard).join("")
-                    : `<div class="admin-empty">공개 갤러리에 등록된 사진이 아직 없습니다.</div>`}
+                    : `<div class="admin-empty"><strong>공개 갤러리에 등록된 사진이 아직 없습니다.</strong><br />고객이 결과 화면에서 "갤러리에 올리기"를 누른 사진만 이곳에 표시됩니다.</div>`}
                 ${!galleryError ? renderAdminMoreButton("gallery", adminVisibleGalleryCount, galleryItems.length) : ""}
               </div>
             </section>

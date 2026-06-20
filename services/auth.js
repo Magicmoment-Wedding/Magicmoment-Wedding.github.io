@@ -75,8 +75,15 @@ export function normalizeUser(user) {
   const isAdmin = toBoolean(user.isAdmin ?? user.is_admin, false);
   const isLegacyUser = toBoolean(user.isLegacyUser ?? user.is_legacy_user, false);
   const consentRequired = toBoolean(user.consentRequired ?? user.consent_required, false);
-  const provider = String(user.provider ?? user.authProvider ?? user.auth_provider ?? "").trim().toLowerCase();
-  const role = String(user.role ?? user.userRole ?? user.user_role ?? "").trim().toLowerCase();
+  const provider = String(
+    user.currentProvider
+      ?? user.current_provider
+      ?? user.provider
+      ?? user.authProvider
+      ?? user.auth_provider
+      ?? "",
+  ).trim().toLowerCase();
+  const role = String(user.role ?? user.userRole ?? user.user_role ?? "user").trim().toLowerCase() || "user";
   const adminRoles = Array.isArray(user.adminRoles)
     ? user.adminRoles
     : Array.isArray(user.admin_roles)
@@ -85,7 +92,32 @@ export function normalizeUser(user) {
   const appUserId = String(user.appUserId ?? user.app_user_id ?? user.app_user?.id ?? "").trim();
   const authUserId = String(user.authUserId ?? user.auth_user_id ?? user.supabaseAuthUserId ?? user.supabase_auth_user_id ?? "").trim();
   const fallbackUserId = String(user.id ?? user.userId ?? user.user_id ?? "").trim();
+  const email = String(user.email ?? user.userEmail ?? user.user_email ?? user.mail ?? "").trim();
+  const name = String(
+    user.name
+      || user.displayName
+      || user.display_name
+      || user.userName
+      || user.user_name
+      || user.nickname
+      || (email.includes("@") ? email.split("@")[0] : "")
+      || "고객",
+  ).trim();
+  const avatarUrl = String(
+    user.avatarUrl
+      ?? user.avatar_url
+      ?? user.profileImageUrl
+      ?? user.profile_image_url
+      ?? user.picture
+      ?? user.photoURL
+      ?? user.photoUrl
+      ?? user.photo_url
+      ?? "",
+  ).trim();
   const linkedProviders = normalizeLinkedProviders(user.linkedProviders ?? user.linked_providers, provider);
+  if (provider && !linkedProviders.includes(provider)) {
+    linkedProviders.unshift(provider);
+  }
   const normalizedId = appUserId || fallbackUserId || authUserId || "";
   const hasAdminRole = role === "admin" || adminRoles.some((value) => String(value || "").trim().toLowerCase() === "admin");
   const normalized = {
@@ -97,7 +129,14 @@ export function normalizeUser(user) {
     app_user_id: appUserId || null,
     authUserId: authUserId || fallbackUserId || normalizedId || null,
     auth_user_id: authUserId || fallbackUserId || normalizedId || null,
+    email,
+    name,
+    displayName: user.displayName ?? name,
+    avatarUrl: avatarUrl || null,
+    avatar_url: avatarUrl || null,
     provider,
+    currentProvider: provider || "unknown",
+    current_provider: provider || "unknown",
     authProvider: provider,
     auth_provider: provider,
     role,

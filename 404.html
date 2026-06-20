@@ -729,6 +729,39 @@
         line-height: 1.65;
       }
 
+      .google-in-app-modal .login-modal-panel {
+        max-height: 88vh;
+      }
+
+      .google-in-app-modal .login-modal-body {
+        padding-top: 0;
+      }
+
+      .google-in-app-modal .login-modal-brand {
+        margin-bottom: 10px;
+      }
+
+      .google-in-app-modal .login-modal-brand img {
+        max-width: 112px;
+        max-height: 72px;
+      }
+
+      .google-in-app-modal .login-modal-title {
+        font-size: 25px;
+        line-height: 1.16;
+      }
+
+      .google-in-app-modal .login-modal-lead {
+        margin-top: 10px;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .google-in-app-modal .login-modal-copy {
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
       .customer-info-profile {
         margin-top: 18px;
         border-radius: 22px;
@@ -4672,7 +4705,7 @@
         }
       })();
     </script>
-    <script src="./config.js?v=20260620-google-fix"></script>
+    <script src="./config.js?v=20260620-google-unblock"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -6130,7 +6163,7 @@
       </section>
     </div>
 
-    <div class="login-modal-overlay" id="googleInAppBrowserModalOverlay" aria-hidden="true">
+    <div class="login-modal-overlay google-in-app-modal" id="googleInAppBrowserModalOverlay" aria-hidden="true">
       <section class="login-modal-panel" id="googleInAppBrowserModalPanel" role="dialog" aria-modal="true" aria-labelledby="googleInAppBrowserTitle" aria-describedby="googleInAppBrowserDescription">
         <div class="login-modal-header">
           <button class="login-modal-close" id="googleInAppBrowserClose" type="button" aria-label="Google 로그인 안내 닫기">
@@ -6142,8 +6175,9 @@
             <img src="public/branding/ai-studio-logo-vertical.png" alt="" />
           </div>
           <h2 class="login-modal-title font-display" id="googleInAppBrowserTitle">브라우저에서 다시 열어주세요</h2>
-          <p class="login-modal-lead" id="googleInAppBrowserDescription">Google 로그인은 보안 정책상 앱 안 브라우저에서 제한될 수 있어요.</p>
-          <p class="login-modal-copy">오른쪽 위 메뉴에서 "브라우저로 열기"를 선택한 뒤 다시 시도해 주세요.</p>
+          <p class="login-modal-lead" id="googleInAppBrowserDescription">Google 로그인은 보안 정책상 네이버 앱 같은 앱 안 브라우저에서 제한될 수 있어요.</p>
+          <p class="login-modal-copy" id="googleInAppBrowserGuide">오른쪽 아래 메뉴에서 "브라우저로 열기" 또는 "Safari로 열기"를 선택한 뒤 다시 시도해 주세요. 메뉴가 보이지 않으면 주소를 복사해 Safari나 Chrome에 붙여넣어 주세요.</p>
+          <p class="login-modal-copy text-[11px] opacity-75" id="googleInAppBrowserMenuNote">앱마다 메뉴 이름이 다를 수 있어요.</p>
           <div class="mt-5 grid gap-2 sm:grid-cols-2">
             <button class="rounded-[18px] border border-[#ead6dc] bg-white/70 px-4 py-3 text-sm font-bold text-[#81505c] transition hover:bg-white" id="googleInAppBrowserCopyButton" type="button">주소 복사</button>
             <button class="rounded-[18px] bg-gradient-to-r from-[#81505c] to-[#9b6170] px-4 py-3 text-sm font-bold text-white shadow-[0_12px_24px_rgba(129,80,92,0.18)] transition hover:brightness-105" id="googleInAppBrowserConfirmButton" type="button">안내 확인</button>
@@ -7738,10 +7772,11 @@ Important:
           || normalizedToken.includes("REPLACE_WITH")
           || normalizedToken.includes("YOUR_")
           || normalizedToken.includes("여기에")
-          || normalizedToken.includes("SUPABASE_ANON_KEY");
+          || normalizedToken.includes("SUPABASE_ANON_KEY")
+          || normalizedToken.includes("PASTE_");
       }
 
-      function isLikelySupabasePublicKey(key) {
+      function hasUsableSupabasePublicKey(key) {
         if (!key || typeof key !== "string") return false;
         const trimmed = key.trim();
         if (!trimmed) return false;
@@ -7752,6 +7787,10 @@ Important:
         return trimmed.length > 40;
       }
 
+      function isLikelySupabasePublicKey(key) {
+        return hasUsableSupabasePublicKey(key);
+      }
+
       function isExpectedSupabaseProjectUrl(url) {
         try {
           return new URL(String(url || "")).origin === EXPECTED_SUPABASE_URL;
@@ -7760,15 +7799,28 @@ Important:
         }
       }
 
+      function hasUsableSupabaseUrl(url) {
+        const value = String(url || "").trim();
+        if (!value) return false;
+        if (isSupabaseAnonKeyPlaceholder(value)) return false;
+        try {
+          const parsedUrl = new URL(value);
+          return parsedUrl.protocol === "https:" && parsedUrl.hostname.includes("supabase.co");
+        } catch (error) {
+          return false;
+        }
+      }
+
       function getSupabaseFrontendConfigStatus() {
         const hasSupabaseSdk = typeof window.supabase?.createClient === "function";
         const hasSupabaseUrl = Boolean(PUBLIC_SUPABASE_URL);
+        const hasUsableUrl = hasUsableSupabaseUrl(PUBLIC_SUPABASE_URL);
         const hasSupabaseAnonKey = Boolean(PUBLIC_SUPABASE_ANON_KEY);
         const isPlaceholderKey = isSupabaseAnonKeyPlaceholder(PUBLIC_SUPABASE_ANON_KEY);
         const isExpectedProjectUrl = isExpectedSupabaseProjectUrl(PUBLIC_SUPABASE_URL);
         const keyLooksLikePublishable = PUBLIC_SUPABASE_ANON_KEY.startsWith("sb_publishable_");
         const keyLooksLikeJwt = PUBLIC_SUPABASE_ANON_KEY.startsWith("eyJ") && PUBLIC_SUPABASE_ANON_KEY.split(".").length === 3;
-        const isLikelyPublicKey = isLikelySupabasePublicKey(PUBLIC_SUPABASE_ANON_KEY);
+        const isLikelyPublicKey = hasUsableSupabasePublicKey(PUBLIC_SUPABASE_ANON_KEY);
         const supabaseKeyRole = getSupabaseJwtRole(PUBLIC_SUPABASE_ANON_KEY);
         const usesServiceRoleKey = PUBLIC_SUPABASE_ANON_KEY.includes("service_role") || supabaseKeyRole === "service_role";
         const missingValues = [];
@@ -7776,13 +7828,14 @@ Important:
         if (!hasSupabaseUrl) missingValues.push("SUPABASE_URL");
         if (!hasSupabaseAnonKey) missingValues.push("SUPABASE_ANON_KEY");
         if (isPlaceholderKey) missingValues.push("SUPABASE_ANON_KEY_PLACEHOLDER");
-        if (!isExpectedProjectUrl) missingValues.push("SUPABASE_URL_PROJECT_MISMATCH");
+        if (!hasUsableUrl) missingValues.push("SUPABASE_URL_INVALID");
+        if (hasUsableUrl && !isExpectedProjectUrl) missingValues.push("SUPABASE_URL_PROJECT_WARNING");
         const reason = usesServiceRoleKey
           ? "SERVICE_ROLE_KEY_NOT_ALLOWED"
           : !hasSupabaseUrl
             ? "SUPABASE_URL_MISSING"
-            : !isExpectedProjectUrl
-              ? "SUPABASE_URL_PROJECT_MISMATCH"
+            : !hasUsableUrl
+              ? "SUPABASE_URL_INVALID"
               : !hasSupabaseAnonKey
                 ? "SUPABASE_ANON_KEY_MISSING"
                 : isPlaceholderKey
@@ -7793,6 +7846,7 @@ Important:
         return {
           hasSupabaseSdk,
           hasSupabaseUrl,
+          hasUsableUrl,
           hasSupabaseAnonKey,
           isPlaceholderKey,
           isExpectedProjectUrl,
@@ -7803,8 +7857,8 @@ Important:
           usesServiceRoleKey,
           reason,
           missingValues,
-          canStartOAuthConfig: hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && !usesServiceRoleKey,
-          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && !usesServiceRoleKey,
+          canStartOAuthConfig: hasUsableUrl && hasSupabaseAnonKey && !isPlaceholderKey && !usesServiceRoleKey,
+          isReady: hasSupabaseSdk && hasUsableUrl && hasSupabaseAnonKey && !isPlaceholderKey && !usesServiceRoleKey,
         };
       }
 
@@ -7821,8 +7875,8 @@ Important:
             ? "SUPABASE_SDK_MISSING"
             : status.isPlaceholderKey
               ? "SUPABASE_ANON_KEY_PLACEHOLDER"
-              : !status.isExpectedProjectUrl
-                ? "SUPABASE_URL_PROJECT_MISMATCH"
+              : !status.hasUsableUrl
+                ? "SUPABASE_URL_INVALID"
                 : "SUPABASE_FRONTEND_CONFIG_MISSING";
         return configError;
       }
@@ -8039,10 +8093,49 @@ Important:
       }
 
       function isInAppBrowserForGoogleOAuth() {
+        return detectInAppBrowser().isInApp;
+      }
+
+      function detectInAppBrowser() {
         const ua = String(navigator.userAgent || "");
-        return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line|WebView/i.test(ua)
-          || /\bwv\b/i.test(ua)
-          || /; wv\)/i.test(ua);
+        const isNaver = /NAVER|Naver/i.test(ua);
+        const isKakao = /KAKAOTALK|KakaoTalk/i.test(ua);
+        const isInstagram = /Instagram/i.test(ua);
+        const isFacebook = /FBAN|FBAV/i.test(ua);
+        const isLine = /Line/i.test(ua);
+        const isDaum = /DaumApps/i.test(ua);
+        const isAndroidWebView = /; wv\)/i.test(ua) || /\bwv\b/i.test(ua) || /Version\/\d+.*Chrome\/.*Mobile Safari/i.test(ua);
+        const isGenericWebView = /WebView/i.test(ua);
+        const isInApp = isNaver || isKakao || isInstagram || isFacebook || isLine || isDaum || isAndroidWebView || isGenericWebView;
+        return {
+          isInApp,
+          appName: isNaver
+            ? "네이버 앱"
+            : isKakao
+              ? "카카오톡"
+              : isInstagram
+                ? "인스타그램"
+                : isFacebook
+                  ? "페이스북"
+                  : isLine
+                    ? "라인"
+                    : isDaum
+                      ? "다음 앱"
+                      : "앱 안 브라우저",
+        };
+      }
+
+      function getGoogleInAppBrowserGuide(appName = "앱 안 브라우저") {
+        if (appName === "네이버 앱") {
+          return "네이버 앱에서는 Google 로그인이 제한될 수 있어요.\n하단 오른쪽 메뉴를 눌러 \"브라우저로 열기\"를 선택하거나, 주소를 복사해 Safari/Chrome에서 열어 주세요.";
+        }
+        if (appName === "카카오톡") {
+          return "카카오톡에서는 Google 로그인이 제한될 수 있어요.\n오른쪽 위 메뉴에서 \"다른 브라우저로 열기\"를 선택하거나, 주소를 복사해 Safari/Chrome에서 열어 주세요.";
+        }
+        if (appName === "인스타그램") {
+          return "인스타그램에서는 Google 로그인이 제한될 수 있어요.\n오른쪽 위 메뉴에서 외부 브라우저로 열기를 선택하거나, 주소를 복사해 Safari/Chrome에서 열어 주세요.";
+        }
+        return `${appName}에서는 Google 로그인이 제한될 수 있어요.\n앱 메뉴에서 "브라우저로 열기"를 선택하거나, 주소를 복사해 Safari/Chrome에서 열어 주세요.`;
       }
 
       function sanitizeOAuthProvider(provider) {
@@ -16960,6 +17053,14 @@ ${modeExample}`;
         return true;
       }
 
+      function normalizeAndFilterPublicGalleryItems(items = []) {
+        return (Array.isArray(items) ? items : [])
+          .filter(shouldShowPublicGalleryItem)
+          .map(normalizeGalleryItem)
+          .filter(Boolean)
+          .filter(isGalleryItemVisiblePublic);
+      }
+
       function getGalleryItemStatusLabel(item = {}) {
         const token = getGalleryItemStatusToken(item);
         if (token === "deleted") return "숨김";
@@ -16987,6 +17088,7 @@ ${modeExample}`;
           imageUrl: imageUrl || displayUrl,
           thumbnailUrl,
           displayUrl,
+          displayImageUrl: displayUrl,
           imagePath: rawItem.imagePath || rawItem.path || rawItem.storagePath || "",
           aspectRatio,
           imageWidth: Number.isFinite(imageWidth) && imageWidth > 0 ? imageWidth : null,
@@ -17016,13 +17118,9 @@ ${modeExample}`;
               : Array.isArray(payload?.data)
                 ? payload.data
                 : [];
-        const visibleRawItems = includeNonPublic
-          ? rawItems
-          : rawItems.filter(shouldShowPublicGalleryItem);
-        const items = visibleRawItems
-          .map(normalizeGalleryItem)
-          .filter(Boolean)
-          .filter((item) => includeNonPublic ? true : isGalleryItemVisiblePublic(item));
+        const items = includeNonPublic
+          ? rawItems.map(normalizeGalleryItem).filter(Boolean)
+          : normalizeAndFilterPublicGalleryItems(rawItems);
         if (!includeNonPublic) {
           console.info("[gallery][public][filter]", {
             rawCount: rawItems.length,
@@ -17258,6 +17356,12 @@ ${modeExample}`;
           return;
         }
 
+        console.info("[gallery][grid]", {
+          rawCount: galleryImages.length,
+          visibleCount: galleryImages.length,
+          visibleIds: galleryImages.map((item) => item.id || item.imagePath || item.imageUrl || null),
+        });
+
         galleryContent.innerHTML = `
           <div class="gallery-collage ${galleryImages.length === 1 ? "gallery-collage-single" : ""}">
             ${galleryImages.map((item, index) => {
@@ -17323,11 +17427,19 @@ ${modeExample}`;
       }
 
       function openGalleryItemModal(index) {
-        const items = galleryImages.map((item, itemIndex) => {
+        const visibleGalleryItems = normalizeAndFilterPublicGalleryItems(galleryImages);
+        const visibleIndex = Math.min(Math.max(0, Number.isInteger(index) ? index : 0), visibleGalleryItems.length - 1);
+        console.info("[gallery][lightbox][open]", {
+          index: visibleIndex,
+          itemId: visibleGalleryItems[visibleIndex]?.id || null,
+          itemsCount: visibleGalleryItems.length,
+        });
+        const items = visibleGalleryItems.map((item, itemIndex) => {
           const originalThumbSrc = getGalleryOriginalThumbnailUrl(item);
           const originalImageSrc = firstBrowserImageUrlValue(item.originalImageUrl, item.original_image_url);
           return {
-            url: toDisplayUrl(item.imageUrl),
+            id: item.id || item.galleryItemId || item.gallery_item_id || "",
+            url: toDisplayUrl(item.displayImageUrl || item.displayUrl || item.imageUrl),
             imageUrl: item.imageUrl,
             imagePath: item.imagePath || "",
             originalImageUrl: originalImageSrc,
@@ -17343,7 +17455,12 @@ ${modeExample}`;
         });
 
         if (!items.length) return;
-        openModalWithItems(items, Math.min(Math.max(0, index), items.length - 1));
+        console.info("[gallery][lightbox][items]", {
+          propsCount: visibleGalleryItems.length,
+          lightboxCount: items.length,
+          ids: items.map((item) => item.id || item.imagePath || item.imageUrl || null),
+        });
+        openModalWithItems(items, visibleIndex);
       }
 
       async function uploadCurrentModalImageToGallery() {
@@ -18509,13 +18626,21 @@ ${modeExample}`;
         duplicateProviderModalOverlay.setAttribute("aria-hidden", "true");
       }
 
-      function openGoogleInAppBrowserModal() {
+      function openGoogleInAppBrowserModal(inAppInfo = detectInAppBrowser()) {
         if (!googleInAppBrowserModalOverlay || !googleInAppBrowserModalPanel) {
           showAccountMenuToast("브라우저로 열기 후 Google 로그인을 다시 시도해 주세요.");
           return;
         }
 
-        closeLoginModal();
+        const description = document.getElementById("googleInAppBrowserDescription");
+        const guide = document.getElementById("googleInAppBrowserGuide");
+        if (description) {
+          description.textContent = `Google 로그인은 보안 정책상 ${inAppInfo.appName || "앱 안 브라우저"} 같은 앱 안 브라우저에서 제한될 수 있어요.`;
+        }
+        if (guide) {
+          guide.textContent = getGoogleInAppBrowserGuide(inAppInfo.appName);
+        }
+
         closeAccountMenu();
         googleInAppBrowserModalOverlay.classList.add("is-open");
         googleInAppBrowserModalOverlay.setAttribute("aria-hidden", "false");
@@ -18532,7 +18657,7 @@ ${modeExample}`;
       }
 
       async function copyGoogleInAppBrowserUrl() {
-        const currentUrl = window.location.href;
+        const currentUrl = PRODUCTION_APP_ORIGIN;
         try {
           if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(currentUrl);
@@ -18547,10 +18672,10 @@ ${modeExample}`;
             document.execCommand("copy");
             input.remove();
           }
-          showAccountMenuToast("현재 사이트 주소를 복사했어요.");
+          showAccountMenuToast("주소가 복사되었습니다. Safari나 Chrome에서 붙여넣어 주세요.");
         } catch (error) {
           console.warn("[auth][google] in-app browser url copy failed", error);
-          showAccountMenuToast("주소 복사에 실패했어요. 브라우저 주소창의 링크를 이용해 주세요.");
+          showAccountMenuToast("주소 복사에 실패했습니다. 주소창의 magicaistudio.co.kr을 직접 복사해 주세요.");
         }
       }
 
@@ -18779,10 +18904,16 @@ ${modeExample}`;
         const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
         const appOrigin = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
         const redirectTo = `${appOrigin}/auth/callback?returnTo=${encodeURIComponent(normalizedReturnTo)}`;
-        const isInAppBrowser = isInAppBrowserForGoogleOAuth();
+        const inAppInfo = detectInAppBrowser();
+        const isInAppBrowser = inAppInfo.isInApp;
+        console.info("[auth][google][in-app-check]", {
+          isInApp: inAppInfo.isInApp,
+          appName: inAppInfo.appName,
+          userAgent: navigator.userAgent,
+        });
 
         if (isInAppBrowser) {
-          openGoogleInAppBrowserModal();
+          openGoogleInAppBrowserModal(inAppInfo);
           return;
         }
 
@@ -18900,7 +19031,7 @@ ${modeExample}`;
             },
           });
           if (error) {
-            console.error("[auth][google][supabase-error]", {
+            console.error("[auth][google][supabase-oauth-error]", {
               name: error?.name,
               message: error?.message,
               status: error?.status,

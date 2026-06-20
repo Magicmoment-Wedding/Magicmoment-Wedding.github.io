@@ -4672,7 +4672,7 @@
         }
       })();
     </script>
-    <script src="./config.js?v=20260619"></script>
+    <script src="./config.js?v=20260620-google-fix"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -7734,7 +7734,11 @@ Important:
 
       function isSupabaseAnonKeyPlaceholder(token) {
         const normalizedToken = String(token || "").trim().toUpperCase();
-        return !normalizedToken || normalizedToken.includes("REPLACE_WITH") || normalizedToken.includes("YOUR_");
+        return !normalizedToken
+          || normalizedToken.includes("REPLACE_WITH")
+          || normalizedToken.includes("YOUR_")
+          || normalizedToken.includes("여기에")
+          || normalizedToken.includes("SUPABASE_ANON_KEY");
       }
 
       function isLikelySupabasePublicKey(key) {
@@ -7745,7 +7749,7 @@ Important:
         if (trimmed.includes("service_role")) return false;
         if (trimmed.startsWith("sb_publishable_")) return true;
         if (trimmed.startsWith("eyJ") && trimmed.split(".").length === 3) return true;
-        return trimmed.length > 80;
+        return trimmed.length > 40;
       }
 
       function isExpectedSupabaseProjectUrl(url) {
@@ -7773,7 +7777,6 @@ Important:
         if (!hasSupabaseAnonKey) missingValues.push("SUPABASE_ANON_KEY");
         if (isPlaceholderKey) missingValues.push("SUPABASE_ANON_KEY_PLACEHOLDER");
         if (!isExpectedProjectUrl) missingValues.push("SUPABASE_URL_PROJECT_MISMATCH");
-        if (hasSupabaseAnonKey && !isLikelyPublicKey) missingValues.push("SUPABASE_PUBLIC_KEY_UNRECOGNIZED");
         const reason = usesServiceRoleKey
           ? "SERVICE_ROLE_KEY_NOT_ALLOWED"
           : !hasSupabaseUrl
@@ -7784,11 +7787,9 @@ Important:
                 ? "SUPABASE_ANON_KEY_MISSING"
                 : isPlaceholderKey
                   ? "SUPABASE_ANON_KEY_PLACEHOLDER"
-                  : !isLikelyPublicKey
-                    ? "SUPABASE_PUBLIC_KEY_UNRECOGNIZED"
-                    : !hasSupabaseSdk
-                      ? "SUPABASE_SDK_MISSING"
-                      : "";
+                  : !hasSupabaseSdk
+                    ? "SUPABASE_SDK_MISSING"
+                    : "";
         return {
           hasSupabaseSdk,
           hasSupabaseUrl,
@@ -7802,7 +7803,8 @@ Important:
           usesServiceRoleKey,
           reason,
           missingValues,
-          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && isLikelyPublicKey && !usesServiceRoleKey,
+          canStartOAuthConfig: hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && !usesServiceRoleKey,
+          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && !usesServiceRoleKey,
         };
       }
 
@@ -7821,9 +7823,7 @@ Important:
               ? "SUPABASE_ANON_KEY_PLACEHOLDER"
               : !status.isExpectedProjectUrl
                 ? "SUPABASE_URL_PROJECT_MISMATCH"
-                : !status.isLikelyPublicKey
-                  ? "SUPABASE_PUBLIC_KEY_UNRECOGNIZED"
-                  : "SUPABASE_FRONTEND_CONFIG_MISSING";
+                : "SUPABASE_FRONTEND_CONFIG_MISSING";
         return configError;
       }
 
@@ -18713,7 +18713,7 @@ ${modeExample}`;
           anonKeyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 8) : null,
           anonKeyLength: supabaseAnonKey ? supabaseAnonKey.length : 0,
         });
-        if (!configStatus.isReady) {
+        if (!configStatus.canStartOAuthConfig) {
           console.error("[supabase][config-error]", {
             reason: configStatus.reason || "UNKNOWN_SUPABASE_CONFIG_ERROR",
             hasSupabaseUrl: configStatus.hasSupabaseUrl,
@@ -18726,7 +18726,7 @@ ${modeExample}`;
             keyLooksLikeJwt: configStatus.keyLooksLikeJwt,
           });
         }
-        const supabaseClient = configStatus.isReady ? getSupabaseAuthClient() : null;
+        const supabaseClient = configStatus.canStartOAuthConfig ? getSupabaseAuthClient() : null;
         console.info("[auth][google][start]", {
           origin: window.location.origin,
           appOrigin,
@@ -18735,10 +18735,18 @@ ${modeExample}`;
           flowType: SUPABASE_AUTH_FLOW_TYPE,
           hasSupabaseUrl: Boolean(supabaseUrl),
           hasSupabaseAnonKey: Boolean(supabaseAnonKey),
+          keyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 8) : null,
+          keyLength: supabaseAnonKey ? supabaseAnonKey.length : 0,
           hasSupabaseClient: Boolean(supabaseClient),
         });
         if (!supabaseClient?.auth?.signInWithOAuth) {
-          const configError = createGoogleOAuthConfigurationError(configStatus);
+          const configError = configStatus.canStartOAuthConfig
+            ? new Error("Supabase SDK was not loaded or the auth client could not be created.")
+            : createGoogleOAuthConfigurationError(configStatus);
+          if (configStatus.canStartOAuthConfig) {
+            configError.name = "GoogleOAuthSdkLoadError";
+            configError.code = "SUPABASE_SDK_MISSING";
+          }
           const details = getAuthErrorDetails(configError, {
             status: "",
             cause: {
@@ -18769,7 +18777,9 @@ ${modeExample}`;
             supabaseKeyRole: configStatus.supabaseKeyRole,
             usesServiceRoleKey: configStatus.usesServiceRoleKey,
           });
-          showAccountMenuToast("Google 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.");
+          showAccountMenuToast(configStatus.canStartOAuthConfig
+            ? "Google 로그인 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요."
+            : "Google 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.");
           return;
         }
 
@@ -18790,7 +18800,15 @@ ${modeExample}`;
               },
             },
           });
-          if (error) throw error;
+          if (error) {
+            console.error("[auth][google][supabase-error]", {
+              name: error?.name,
+              message: error?.message,
+              status: error?.status,
+              code: error?.code,
+            });
+            throw error;
+          }
           if (data?.url) {
             console.info("[auth][google][oauth-url-created]", {
               hasUrl: true,

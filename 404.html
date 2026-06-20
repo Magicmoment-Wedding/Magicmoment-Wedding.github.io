@@ -6386,7 +6386,7 @@
       const PENDING_ACTION_STORAGE_KEY = "magic_pending_action";
       const RETURN_TO_STORAGE_KEY = "magic_return_to";
       const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao", "apple"]);
-      const GOOGLE_LOGIN_RETURN_VIEWS = new Set(["landing", "editor", "account", "photobox"]);
+      const GOOGLE_LOGIN_RETURN_VIEWS = new Set(["landing", "editor", "account", "photobox", "admin"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
         "home",
         "landing",
@@ -7666,6 +7666,7 @@ Important:
         if (returnView === "assistant") return "home";
         if (returnView === "account") return "landing";
         if (returnView === "photobox") return "myPhotoBox";
+        if (returnView === "admin") return "admin";
         return returnView;
       }
 
@@ -8718,8 +8719,29 @@ Important:
         return explicitValue === true || explicitValue === "true" || explicitValue === 1 || explicitValue === "1";
       }
 
+      function getUserAdminRole(user = currentUser) {
+        const role = String(
+          user?.role
+          || user?.userRole
+          || user?.user_role
+          || "",
+        ).trim().toLowerCase();
+        const adminRoles = Array.isArray(user?.adminRoles)
+          ? user.adminRoles
+          : Array.isArray(user?.admin_roles)
+            ? user.admin_roles
+            : [];
+        const hasAdminRole = role === "admin" || adminRoles.some((value) => String(value || "").trim().toLowerCase() === "admin");
+        return {
+          role,
+          hasAdminRole,
+        };
+      }
+
       function canShowAdminEntry() {
-        return Boolean(currentUser?.isAdmin === true);
+        if (!currentUser) return false;
+        const adminRole = getUserAdminRole(currentUser);
+        return Boolean(currentUser.isAdmin === true || adminRole.hasAdminRole);
       }
 
       function getAuthUserName(user) {
@@ -9135,11 +9157,13 @@ Important:
         authChecked = true;
         isLoggedIn = isAuthenticatedUser(currentUser);
         isMyPhotoBoxLoggedIn = isLoggedIn;
-        const isAllowedAdminUser = Boolean(currentUser && authIsAdmin);
+        const adminRole = getUserAdminRole(currentUser);
+        const isAllowedAdminUser = Boolean(currentUser && (authIsAdmin || adminRole.hasAdminRole));
         isAdmin = isAllowedAdminUser;
         currentAdmin = null;
         if (currentUser) {
           currentUser.isAdmin = isAllowedAdminUser;
+          currentUser.role = String(currentUser.role || adminRole.role || "").trim().toLowerCase() || currentUser.role || "";
         }
         const authGenerationUsage = normalizeAuthGenerationUsage(payload, currentUser);
         generationUsageSummary = currentUser ? authGenerationUsage : null;
@@ -9165,6 +9189,12 @@ Important:
           }
         }
         console.log("[auth] currentUser updated");
+        console.info("[auth][admin-state]", {
+          email: currentUser?.email || "",
+          provider: getUserAuthProvider(currentUser),
+          role: currentUser?.role || "",
+          isAdmin,
+        });
         maybeShowLinkedProviderToast(payload, currentUser);
         if (!currentUser) {
           lastLinkedProviderToastKey = "";
@@ -12332,6 +12362,8 @@ Important:
           existingProviderLabel: searchParams.get("existing_provider_label") || searchParams.get("existingProviderLabel") || "",
           attemptedProvider: searchParams.get("attempted_provider") || searchParams.get("attemptedProvider") || "unknown",
           attemptedProviderLabel: searchParams.get("attempted_provider_label") || searchParams.get("attemptedProviderLabel") || "",
+          returnTo: searchParams.get("returnTo") || searchParams.get("return_to") || "",
+          email: searchParams.get("email") || searchParams.get("user_email") || "",
         };
       }
 
@@ -12355,6 +12387,8 @@ Important:
           existingProviderLabel: payload.existingProviderLabel || payload.existing_provider_label || payload.response?.existingProviderLabel || payload.response?.existing_provider_label || "",
           attemptedProvider: payload.attemptedProvider || payload.attempted_provider || payload.response?.attemptedProvider || payload.response?.attempted_provider || "unknown",
           attemptedProviderLabel: payload.attemptedProviderLabel || payload.attempted_provider_label || payload.response?.attemptedProviderLabel || payload.response?.attempted_provider_label || "",
+          returnTo: payload.returnTo || payload.return_to || payload.response?.returnTo || payload.response?.return_to || "",
+          email: payload.email || payload.userEmail || payload.user_email || payload.response?.email || payload.response?.userEmail || payload.response?.user_email || "",
         };
       }
 
@@ -18832,10 +18866,20 @@ ${modeExample}`;
         const attemptedProvider = sanitizeOAuthProvider(payload.attemptedProvider) || "unknown";
         const existingLabel = payload.existingProviderLabel || getProviderLabel(existingProvider);
         const attemptedLabel = payload.attemptedProviderLabel || getProviderLabel(attemptedProvider);
+        const returnTo = normalizeGoogleReturnTo(payload.returnTo || getLoginReturnViewFromScreen());
+        const email = String(payload.email || payload.userEmail || payload.user_email || currentUser?.email || "").trim();
         duplicateProviderLoginState = {
           existingProvider,
           attemptedProvider,
+          returnTo,
+          email,
         };
+
+        console.info("[auth][provider-conflict]", {
+          attemptedProvider,
+          existingProvider,
+          email,
+        });
 
         if (duplicateProviderDescription) {
           duplicateProviderDescription.textContent = `이 이메일은 이미 ${existingLabel} 계정으로 가입되어 있습니다.`;
@@ -18870,6 +18914,7 @@ ${modeExample}`;
         if (!duplicateProviderModalOverlay) return;
         duplicateProviderModalOverlay.classList.remove("is-open");
         duplicateProviderModalOverlay.setAttribute("aria-hidden", "true");
+        duplicateProviderLoginState = null;
       }
 
       function openGoogleInAppBrowserModal(inAppInfo = detectInAppBrowser()) {
@@ -18995,14 +19040,14 @@ ${modeExample}`;
         }
       }
 
-      function startProviderLogin(provider, button = null) {
+      function startProviderLogin(provider, button = null, options = {}) {
         const safeProvider = sanitizeOAuthProvider(provider);
         if (!safeProvider) {
           closeDuplicateProviderModal();
           openLoginModal(button || activeAccountMenuTrigger);
           return;
         }
-        startOAuthLogin(safeProvider, button || duplicateProviderLoginButton, "login");
+        startOAuthLogin(safeProvider, button || duplicateProviderLoginButton, "login", options);
       }
 
       function openCustomerInfoModal(trigger) {
@@ -19055,7 +19100,15 @@ ${modeExample}`;
 
       function handleAdminClick() {
         closeAccountMenu();
-        if (!currentUser || !canShowAdminEntry()) {
+        if (!currentUser) {
+          openLoginModal(activeAccountMenuTrigger || topSettingsButton, {
+            tab: "login",
+            returnView: "admin",
+            forceAuthForm: true,
+          });
+          return;
+        }
+        if (!canShowAdminEntry()) {
           showAccountMenuToast("관리자 권한이 필요합니다.");
           return;
         }
@@ -19094,14 +19147,14 @@ ${modeExample}`;
         return button?.dataset?.authMode === "signup" ? "signup" : "login";
       }
 
-      function startOAuthLogin(provider, button, mode = "login") {
+      function startOAuthLogin(provider, button, mode = "login", options = {}) {
         const safeProvider = sanitizeOAuthProvider(provider);
         if (!safeProvider) {
           showAccountMenuToast("소셜 로그인 연동을 준비 중입니다.");
           return;
         }
         if (safeProvider === "google") {
-          void startGoogleOAuthLogin(button, mode);
+          void startGoogleOAuthLogin(button, mode, options);
           return;
         }
 
@@ -19135,7 +19188,7 @@ ${modeExample}`;
         window.location.href = loginStartUrl;
       }
 
-      async function startGoogleOAuthLogin(button, mode = "login") {
+      async function startGoogleOAuthLogin(button, mode = "login", options = {}) {
         const authMode = mode === "signup" ? "signup" : "login";
         if (getAuthenticatedUserId(currentUser)) {
           showAccountMenuToast("새 계정으로 로그인하려면 먼저 로그아웃해 주세요.");
@@ -19147,7 +19200,7 @@ ${modeExample}`;
           return;
         }
 
-        const normalizedReturnTo = normalizeGoogleReturnTo(rememberLoginReturnView());
+        const normalizedReturnTo = normalizeGoogleReturnTo(options.returnTo || rememberLoginReturnView());
         const appOrigin = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
         const redirectTo = `${appOrigin}/auth/callback?returnTo=${encodeURIComponent(normalizedReturnTo)}`;
         const inAppInfo = detectInAppBrowser();
@@ -19263,7 +19316,9 @@ ${modeExample}`;
       }
 
       function handleGoogleLogin(button) {
-        void startGoogleOAuthLogin(button, getAuthModeFromButton(button));
+        void startGoogleOAuthLogin(button, getAuthModeFromButton(button), {
+          returnTo: getLoginReturnViewFromScreen(),
+        });
       }
 
       function handleAppleLogin() {
@@ -19507,7 +19562,11 @@ ${modeExample}`;
         const action = actionButton.dataset.action;
         if (action === "open-login") {
           event.preventDefault();
-          openLoginModal(actionButton);
+          openLoginModal(actionButton, {
+            tab: "login",
+            returnView: getLoginReturnViewFromScreen(),
+            forceAuthForm: true,
+          });
         } else if (action === "admin-home") {
           event.preventDefault();
           navigateToScreen("home");
@@ -19558,8 +19617,9 @@ ${modeExample}`;
 
       duplicateProviderLoginButton?.addEventListener("click", () => {
         const provider = duplicateProviderLoginState?.existingProvider || "";
+        const returnTo = duplicateProviderLoginState?.returnTo || getLoginReturnViewFromScreen();
         closeDuplicateProviderModal();
-        startProviderLogin(provider, duplicateProviderLoginButton);
+        startProviderLogin(provider, duplicateProviderLoginButton, { returnTo });
       });
 
       duplicateProviderModalOverlay?.addEventListener("click", (event) => {

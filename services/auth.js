@@ -76,11 +76,18 @@ export function normalizeUser(user) {
   const isLegacyUser = toBoolean(user.isLegacyUser ?? user.is_legacy_user, false);
   const consentRequired = toBoolean(user.consentRequired ?? user.consent_required, false);
   const provider = String(user.provider ?? user.authProvider ?? user.auth_provider ?? "").trim().toLowerCase();
+  const role = String(user.role ?? user.userRole ?? user.user_role ?? "").trim().toLowerCase();
+  const adminRoles = Array.isArray(user.adminRoles)
+    ? user.adminRoles
+    : Array.isArray(user.admin_roles)
+      ? user.admin_roles
+      : [];
   const appUserId = String(user.appUserId ?? user.app_user_id ?? user.app_user?.id ?? "").trim();
   const authUserId = String(user.authUserId ?? user.auth_user_id ?? user.supabaseAuthUserId ?? user.supabase_auth_user_id ?? "").trim();
   const fallbackUserId = String(user.id ?? user.userId ?? user.user_id ?? "").trim();
   const linkedProviders = normalizeLinkedProviders(user.linkedProviders ?? user.linked_providers, provider);
   const normalizedId = appUserId || fallbackUserId || authUserId || "";
+  const hasAdminRole = role === "admin" || adminRoles.some((value) => String(value || "").trim().toLowerCase() === "admin");
   const normalized = {
     ...user,
     id: normalizedId,
@@ -93,8 +100,10 @@ export function normalizeUser(user) {
     provider,
     authProvider: provider,
     auth_provider: provider,
+    role,
+    adminRoles,
     linkedProviders,
-    isAdmin,
+    isAdmin: isAdmin || hasAdminRole,
     isLegacyUser,
     consentRequired: isAdmin || isLegacyUser ? false : consentRequired,
     hasRequiredConsents: isAdmin || isLegacyUser

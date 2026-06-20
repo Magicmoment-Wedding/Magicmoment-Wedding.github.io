@@ -7695,6 +7695,10 @@ Important:
 
       function getGoogleAuthStartFailureMessage(details = {}) {
         const category = getGoogleAuthFailureCategory(details);
+        const haystack = `${details.name || ""} ${details.message || ""} ${details.code || ""} ${details.status || ""}`.toLowerCase();
+        if (haystack.includes("invalid api key") || details.status === 401 || String(details.status || "") === "401") {
+          return "Google 로그인 연결 키가 올바르지 않습니다. 관리자에게 문의해 주세요.";
+        }
         if (category === "provider_disabled") {
           return "Google 로그인이 아직 활성화되지 않았습니다. 관리자에게 문의해 주세요.";
         }
@@ -7721,13 +7725,27 @@ Important:
           const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "=");
           return String(JSON.parse(atob(paddedPayload))?.role || "");
         } catch (error) {
+          console.warn("[supabase][key-decode-warning]", {
+            message: error?.message || "",
+          });
           return "";
         }
       }
 
       function isSupabaseAnonKeyPlaceholder(token) {
         const normalizedToken = String(token || "").trim().toUpperCase();
-        return !normalizedToken || normalizedToken.startsWith("REPLACE_WITH");
+        return !normalizedToken || normalizedToken.includes("REPLACE_WITH") || normalizedToken.includes("YOUR_");
+      }
+
+      function isLikelySupabasePublicKey(key) {
+        if (!key || typeof key !== "string") return false;
+        const trimmed = key.trim();
+        if (!trimmed) return false;
+        if (isSupabaseAnonKeyPlaceholder(trimmed)) return false;
+        if (trimmed.includes("service_role")) return false;
+        if (trimmed.startsWith("sb_publishable_")) return true;
+        if (trimmed.startsWith("eyJ") && trimmed.split(".").length === 3) return true;
+        return trimmed.length > 80;
       }
 
       function isExpectedSupabaseProjectUrl(url) {
@@ -7744,24 +7762,47 @@ Important:
         const hasSupabaseAnonKey = Boolean(PUBLIC_SUPABASE_ANON_KEY);
         const isPlaceholderKey = isSupabaseAnonKeyPlaceholder(PUBLIC_SUPABASE_ANON_KEY);
         const isExpectedProjectUrl = isExpectedSupabaseProjectUrl(PUBLIC_SUPABASE_URL);
+        const keyLooksLikePublishable = PUBLIC_SUPABASE_ANON_KEY.startsWith("sb_publishable_");
+        const keyLooksLikeJwt = PUBLIC_SUPABASE_ANON_KEY.startsWith("eyJ") && PUBLIC_SUPABASE_ANON_KEY.split(".").length === 3;
+        const isLikelyPublicKey = isLikelySupabasePublicKey(PUBLIC_SUPABASE_ANON_KEY);
         const supabaseKeyRole = getSupabaseJwtRole(PUBLIC_SUPABASE_ANON_KEY);
-        const usesServiceRoleKey = supabaseKeyRole === "service_role";
+        const usesServiceRoleKey = PUBLIC_SUPABASE_ANON_KEY.includes("service_role") || supabaseKeyRole === "service_role";
         const missingValues = [];
         if (!hasSupabaseSdk) missingValues.push("SUPABASE_SDK");
         if (!hasSupabaseUrl) missingValues.push("SUPABASE_URL");
         if (!hasSupabaseAnonKey) missingValues.push("SUPABASE_ANON_KEY");
         if (isPlaceholderKey) missingValues.push("SUPABASE_ANON_KEY_PLACEHOLDER");
         if (!isExpectedProjectUrl) missingValues.push("SUPABASE_URL_PROJECT_MISMATCH");
+        if (hasSupabaseAnonKey && !isLikelyPublicKey) missingValues.push("SUPABASE_PUBLIC_KEY_UNRECOGNIZED");
+        const reason = usesServiceRoleKey
+          ? "SERVICE_ROLE_KEY_NOT_ALLOWED"
+          : !hasSupabaseUrl
+            ? "SUPABASE_URL_MISSING"
+            : !isExpectedProjectUrl
+              ? "SUPABASE_URL_PROJECT_MISMATCH"
+              : !hasSupabaseAnonKey
+                ? "SUPABASE_ANON_KEY_MISSING"
+                : isPlaceholderKey
+                  ? "SUPABASE_ANON_KEY_PLACEHOLDER"
+                  : !isLikelyPublicKey
+                    ? "SUPABASE_PUBLIC_KEY_UNRECOGNIZED"
+                    : !hasSupabaseSdk
+                      ? "SUPABASE_SDK_MISSING"
+                      : "";
         return {
           hasSupabaseSdk,
           hasSupabaseUrl,
           hasSupabaseAnonKey,
           isPlaceholderKey,
           isExpectedProjectUrl,
+          isLikelyPublicKey,
+          keyLooksLikePublishable,
+          keyLooksLikeJwt,
           supabaseKeyRole: supabaseKeyRole || "unknown",
           usesServiceRoleKey,
+          reason,
           missingValues,
-          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && !usesServiceRoleKey,
+          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && isLikelyPublicKey && !usesServiceRoleKey,
         };
       }
 
@@ -7780,7 +7821,9 @@ Important:
               ? "SUPABASE_ANON_KEY_PLACEHOLDER"
               : !status.isExpectedProjectUrl
                 ? "SUPABASE_URL_PROJECT_MISMATCH"
-                : "SUPABASE_FRONTEND_CONFIG_MISSING";
+                : !status.isLikelyPublicKey
+                  ? "SUPABASE_PUBLIC_KEY_UNRECOGNIZED"
+                  : "SUPABASE_FRONTEND_CONFIG_MISSING";
         return configError;
       }
 
@@ -9292,9 +9335,26 @@ Important:
         };
       }
 
+      function isDisplayableImageUrl(value) {
+        const url = String(value || "").trim();
+        return Boolean(url && (/^https?:\/\//i.test(url) || /^data:image\//i.test(url)));
+      }
+
+      function firstDisplayableImageUrl(...values) {
+        return values.map((value) => String(value || "").trim()).find(isDisplayableImageUrl) || "";
+      }
+
+      function firstStorageImagePath(...values) {
+        return values
+          .map((value) => String(value || "").trim())
+          .find((value) => value && !isDisplayableImageUrl(value)) || "";
+      }
+
       function normalizeAdminGalleryItem(item = {}) {
         const normalizedBase = normalizeGalleryItem(item) || {};
-        const imageUrl = firstUrlValue(
+        const rawThumbnailUrl = String(item.thumbnailUrl || item.thumbnail_url || normalizedBase.thumbnailUrl || "").trim();
+        const rawImageUrl = String(item.imageUrl || item.image_url || item.publicUrl || item.public_url || item.url || normalizedBase.imageUrl || normalizedBase.displayUrl || "").trim();
+        const displayImageUrl = firstDisplayableImageUrl(
           item.thumbnailUrl,
           item.thumbnail_url,
           item.imageUrl,
@@ -9306,7 +9366,7 @@ Important:
           normalizedBase.displayUrl,
           normalizedBase.imageUrl,
         );
-        const fullImageUrl = firstUrlValue(
+        const displayFullImageUrl = firstDisplayableImageUrl(
           item.imageUrl,
           item.image_url,
           item.publicUrl,
@@ -9314,19 +9374,28 @@ Important:
           item.url,
           normalizedBase.imageUrl,
           normalizedBase.displayUrl,
-          imageUrl,
+          displayImageUrl,
+        );
+        const storagePath = firstStorageImagePath(
+          item.imagePath,
+          item.image_path,
+          item.path,
+          item.storagePath,
+          item.storage_path,
+          rawImageUrl,
+          rawThumbnailUrl,
+          normalizedBase.imagePath,
         );
         const resultLabel = String(item.resultLabel || item.result_label || normalizedBase.resultLabel || item.title || item.label || "").trim();
         const styleLabel = String(
-          item.styleLabel
-          || item.style_label
-          || item.style
+          item.style
           || item.styleCategory
           || item.style_category
+          || item.styleLabel
+          || item.style_label
           || item.category
           || item.styleCategoryLabel
           || item.style_category_label
-          || getAdminGenerationStyleLabel(item)
           || "",
         ).trim();
         const presetLabel = String(
@@ -9375,11 +9444,13 @@ Important:
           ...normalizedBase,
           id: galleryItemId || normalizedBase.id || "",
           galleryItemId: galleryItemId || normalizedBase.id || "",
-          imageUrl: fullImageUrl,
-          thumbnailUrl: imageUrl,
-          displayUrl: imageUrl || fullImageUrl,
+          imageUrl: displayFullImageUrl,
+          thumbnailUrl: displayImageUrl,
+          displayUrl: displayImageUrl || displayFullImageUrl,
+          rawImageUrl,
+          rawThumbnailUrl,
           publicUrl: item.publicUrl || item.public_url || "",
-          imagePath: item.imagePath || item.image_path || item.path || item.storagePath || item.storage_path || normalizedBase.imagePath || "",
+          imagePath: storagePath,
           title,
           resultLabel,
           styleLabel,
@@ -10300,7 +10371,7 @@ Important:
       function renderAdminGalleryThumb(url = "", alt = "갤러리 이미지") {
         const displayUrl = url ? toDisplayUrl(url) : "";
         if (!displayUrl) {
-          return `<div class="admin-gallery-thumb" aria-label="이미지 없음">이미지 없음</div>`;
+          return `<div class="admin-gallery-thumb" aria-label="이미지 URL 변환 필요">이미지 URL<br />변환 필요</div>`;
         }
         return `
           <div class="admin-gallery-thumb">
@@ -10312,7 +10383,7 @@ Important:
       function renderAdminGalleryPreview(url = "", alt = "갤러리 이미지") {
         const displayUrl = url ? toDisplayUrl(url) : "";
         if (!displayUrl) {
-          return `<div class="admin-gallery-preview">이미지 없음</div>`;
+          return `<div class="admin-gallery-preview">이미지 URL 변환 필요</div>`;
         }
         return `
           <div class="admin-gallery-preview">
@@ -10327,6 +10398,8 @@ Important:
         const thumbnailUrl = normalized.thumbnailUrl || normalized.displayUrl || normalized.imageUrl || "";
         const fullImageUrl = normalized.imageUrl || normalized.displayUrl || normalized.thumbnailUrl || "";
         const imagePath = normalized.imagePath || normalized.image_path || normalized.path || "";
+        const rawImageUrl = normalized.rawImageUrl || normalized.raw_image_url || normalized.rawThumbnailUrl || normalized.raw_thumbnail_url || "";
+        const needsDisplayUrl = Boolean(!fullImageUrl && (imagePath || rawImageUrl));
         const title = normalized.title || normalized.resultLabel || normalized.presetLabel || "갤러리 사진";
         const styleLabel = normalized.styleLabel || "-";
         const presetLabel = normalized.presetLabel || "-";
@@ -10360,9 +10433,11 @@ Important:
             </summary>
             <div class="admin-detail-panel">
               ${renderAdminGalleryPreview(fullImageUrl || thumbnailUrl, title)}
+              ${needsDisplayUrl ? `<p class="admin-summary-subtext mt-2">이미지 경로는 저장되어 있지만 표시용 URL이 아직 생성되지 않았습니다.</p>` : ""}
               <div class="admin-meta-list">
-                <div class="admin-meta-row"><span class="admin-meta-label">imageUrl</span><span class="admin-meta-value">${fullImageUrl ? `<a class="text-primary font-bold" href="${escapeHtml(toDisplayUrl(fullImageUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(fullImageUrl)}</a>` : escapeHtml(imagePath || "없음")}</span></div>
-                ${imagePath ? `<div class="admin-meta-row"><span class="admin-meta-label">imagePath</span><span class="admin-meta-value">${escapeHtml(imagePath)}</span></div>` : ""}
+                <div class="admin-meta-row"><span class="admin-meta-label">표시 이미지 URL</span><span class="admin-meta-value">${fullImageUrl ? `<a class="text-primary font-bold" href="${escapeHtml(toDisplayUrl(fullImageUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(fullImageUrl)}</a>` : escapeHtml("없음")}</span></div>
+                ${imagePath ? `<div class="admin-meta-row"><span class="admin-meta-label">Storage path</span><span class="admin-meta-value">${escapeHtml(imagePath)}</span></div>` : ""}
+                ${rawImageUrl && rawImageUrl !== imagePath && !isDisplayableImageUrl(rawImageUrl) ? `<div class="admin-meta-row"><span class="admin-meta-label">rawImageUrl</span><span class="admin-meta-value">${escapeHtml(rawImageUrl)}</span></div>` : ""}
                 <div class="admin-meta-row"><span class="admin-meta-label">스타일</span><span class="admin-meta-value">${escapeHtml(styleLabel)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">프리셋</span><span class="admin-meta-value">${escapeHtml(presetLabel)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">결과 라벨</span><span class="admin-meta-value">${escapeHtml(resultLabel)}</span></div>
@@ -16788,13 +16863,10 @@ ${modeExample}`;
         if (item.isDeleted === true || item.is_deleted === true || item.deleted === true || rawStatus === "deleted") {
           return "deleted";
         }
-        if (item.isHidden === true || item.is_hidden === true || item.hidden === true || rawStatus === "hidden" || rawStatus === "private") {
+        if (rawStatus === "hidden") {
           return "hidden";
         }
-        if (rawStatus === "public" || rawStatus === "published" || rawStatus === "active" || rawStatus === "visible") {
-          return "public";
-        }
-        return rawStatus || "public";
+        return "public";
       }
 
       function isGalleryItemVisiblePublic(item = {}) {
@@ -18643,10 +18715,15 @@ ${modeExample}`;
         });
         if (!configStatus.isReady) {
           console.error("[supabase][config-error]", {
+            reason: configStatus.reason || "UNKNOWN_SUPABASE_CONFIG_ERROR",
             hasSupabaseUrl: configStatus.hasSupabaseUrl,
             hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
             isPlaceholderKey: configStatus.isPlaceholderKey,
             isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
+            keyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 16) : null,
+            keyLength: supabaseAnonKey ? supabaseAnonKey.length : 0,
+            keyLooksLikePublishable: configStatus.keyLooksLikePublishable,
+            keyLooksLikeJwt: configStatus.keyLooksLikeJwt,
           });
         }
         const supabaseClient = configStatus.isReady ? getSupabaseAuthClient() : null;
@@ -18670,6 +18747,8 @@ ${modeExample}`;
               hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
               isPlaceholderKey: configStatus.isPlaceholderKey,
               isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
+              isLikelyPublicKey: configStatus.isLikelyPublicKey,
+              reason: configStatus.reason,
               missingValues: configStatus.missingValues,
               supabaseKeyRole: configStatus.supabaseKeyRole,
               usesServiceRoleKey: configStatus.usesServiceRoleKey,
@@ -18684,6 +18763,8 @@ ${modeExample}`;
             hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
             isPlaceholderKey: configStatus.isPlaceholderKey,
             isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
+            isLikelyPublicKey: configStatus.isLikelyPublicKey,
+            reason: configStatus.reason,
             missingValues: configStatus.missingValues,
             supabaseKeyRole: configStatus.supabaseKeyRole,
             usesServiceRoleKey: configStatus.usesServiceRoleKey,

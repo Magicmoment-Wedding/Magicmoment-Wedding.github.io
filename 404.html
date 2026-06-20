@@ -4705,7 +4705,7 @@
         }
       })();
     </script>
-    <script src="./config.js?v=20260620-google-unblock"></script>
+    <script src="./config.js?v=20260620-google-validation-removed"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -7750,141 +7750,9 @@ Important:
         return GOOGLE_LOGIN_ENABLED === true;
       }
 
-      function getSupabaseJwtRole(token) {
-        if (!token || typeof token !== "string") return "";
-        const [, payload] = token.split(".");
-        if (!payload) return "";
-        try {
-          const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
-          const paddedPayload = normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "=");
-          return String(JSON.parse(atob(paddedPayload))?.role || "");
-        } catch (error) {
-          console.warn("[supabase][key-decode-warning]", {
-            message: error?.message || "",
-          });
-          return "";
-        }
-      }
-
-      function isSupabaseAnonKeyPlaceholder(token) {
-        const normalizedToken = String(token || "").trim().toUpperCase();
-        return !normalizedToken
-          || normalizedToken.includes("REPLACE_WITH")
-          || normalizedToken.includes("YOUR_")
-          || normalizedToken.includes("여기에")
-          || normalizedToken.includes("SUPABASE_ANON_KEY")
-          || normalizedToken.includes("PASTE_");
-      }
-
-      function hasUsableSupabasePublicKey(key) {
-        if (!key || typeof key !== "string") return false;
-        const trimmed = key.trim();
-        if (!trimmed) return false;
-        if (isSupabaseAnonKeyPlaceholder(trimmed)) return false;
-        if (trimmed.includes("service_role")) return false;
-        if (trimmed.startsWith("sb_publishable_")) return true;
-        if (trimmed.startsWith("eyJ") && trimmed.split(".").length === 3) return true;
-        return trimmed.length > 40;
-      }
-
-      function isLikelySupabasePublicKey(key) {
-        return hasUsableSupabasePublicKey(key);
-      }
-
-      function isExpectedSupabaseProjectUrl(url) {
-        try {
-          return new URL(String(url || "")).origin === EXPECTED_SUPABASE_URL;
-        } catch (error) {
-          return false;
-        }
-      }
-
-      function hasUsableSupabaseUrl(url) {
-        const value = String(url || "").trim();
-        if (!value) return false;
-        if (isSupabaseAnonKeyPlaceholder(value)) return false;
-        try {
-          const parsedUrl = new URL(value);
-          return parsedUrl.protocol === "https:" && parsedUrl.hostname.includes("supabase.co");
-        } catch (error) {
-          return false;
-        }
-      }
-
-      function getSupabaseFrontendConfigStatus() {
-        const hasSupabaseSdk = typeof window.supabase?.createClient === "function";
-        const hasSupabaseUrl = Boolean(PUBLIC_SUPABASE_URL);
-        const hasUsableUrl = hasUsableSupabaseUrl(PUBLIC_SUPABASE_URL);
-        const hasSupabaseAnonKey = Boolean(PUBLIC_SUPABASE_ANON_KEY);
-        const isPlaceholderKey = isSupabaseAnonKeyPlaceholder(PUBLIC_SUPABASE_ANON_KEY);
-        const isExpectedProjectUrl = isExpectedSupabaseProjectUrl(PUBLIC_SUPABASE_URL);
-        const keyLooksLikePublishable = PUBLIC_SUPABASE_ANON_KEY.startsWith("sb_publishable_");
-        const keyLooksLikeJwt = PUBLIC_SUPABASE_ANON_KEY.startsWith("eyJ") && PUBLIC_SUPABASE_ANON_KEY.split(".").length === 3;
-        const isLikelyPublicKey = hasUsableSupabasePublicKey(PUBLIC_SUPABASE_ANON_KEY);
-        const supabaseKeyRole = getSupabaseJwtRole(PUBLIC_SUPABASE_ANON_KEY);
-        const usesServiceRoleKey = PUBLIC_SUPABASE_ANON_KEY.includes("service_role") || supabaseKeyRole === "service_role";
-        const missingValues = [];
-        if (!hasSupabaseSdk) missingValues.push("SUPABASE_SDK");
-        if (!hasSupabaseUrl) missingValues.push("SUPABASE_URL");
-        if (!hasSupabaseAnonKey) missingValues.push("SUPABASE_ANON_KEY");
-        if (isPlaceholderKey) missingValues.push("SUPABASE_ANON_KEY_PLACEHOLDER");
-        if (!hasUsableUrl) missingValues.push("SUPABASE_URL_INVALID");
-        if (hasUsableUrl && !isExpectedProjectUrl) missingValues.push("SUPABASE_URL_PROJECT_WARNING");
-        const reason = usesServiceRoleKey
-          ? "SERVICE_ROLE_KEY_NOT_ALLOWED"
-          : !hasSupabaseUrl
-            ? "SUPABASE_URL_MISSING"
-            : !hasUsableUrl
-              ? "SUPABASE_URL_INVALID"
-              : !hasSupabaseAnonKey
-                ? "SUPABASE_ANON_KEY_MISSING"
-                : isPlaceholderKey
-                  ? "SUPABASE_ANON_KEY_PLACEHOLDER"
-                  : !hasSupabaseSdk
-                    ? "SUPABASE_SDK_MISSING"
-                    : "";
-        return {
-          hasSupabaseSdk,
-          hasSupabaseUrl,
-          hasUsableUrl,
-          hasSupabaseAnonKey,
-          isPlaceholderKey,
-          isExpectedProjectUrl,
-          isLikelyPublicKey,
-          keyLooksLikePublishable,
-          keyLooksLikeJwt,
-          supabaseKeyRole: supabaseKeyRole || "unknown",
-          usesServiceRoleKey,
-          reason,
-          missingValues,
-          canStartOAuthConfig: hasUsableUrl && hasSupabaseAnonKey && !isPlaceholderKey && !usesServiceRoleKey,
-          isReady: hasSupabaseSdk && hasUsableUrl && hasSupabaseAnonKey && !isPlaceholderKey && !usesServiceRoleKey,
-        };
-      }
-
-      function createGoogleOAuthConfigurationError(status = getSupabaseFrontendConfigStatus()) {
-        let message = "Google 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
-        if (status.usesServiceRoleKey) {
-          message = "Supabase service_role key must never be used in frontend configuration. Use the anon public key.";
-        }
-        const configError = new Error(message);
-        configError.name = "GoogleOAuthConfigurationError";
-        configError.code = status.usesServiceRoleKey
-          ? "SUPABASE_SERVICE_ROLE_KEY_FORBIDDEN"
-          : !status.hasSupabaseSdk
-            ? "SUPABASE_SDK_MISSING"
-            : status.isPlaceholderKey
-              ? "SUPABASE_ANON_KEY_PLACEHOLDER"
-              : !status.hasUsableUrl
-                ? "SUPABASE_URL_INVALID"
-                : "SUPABASE_FRONTEND_CONFIG_MISSING";
-        return configError;
-      }
-
       function getSupabaseAuthClient() {
         if (supabaseAuthClient) return supabaseAuthClient;
-        const configStatus = getSupabaseFrontendConfigStatus();
-        if (!configStatus.isReady) {
+        if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_ANON_KEY || typeof window.supabase?.createClient !== "function") {
           return null;
         }
         const supabaseFactory = window.supabase?.createClient;
@@ -18936,33 +18804,12 @@ ${modeExample}`;
 
         const supabaseUrl = PUBLIC_SUPABASE_URL;
         const supabaseAnonKey = PUBLIC_SUPABASE_ANON_KEY;
-        const configStatus = getSupabaseFrontendConfigStatus();
-        console.info("[supabase][config]", {
-          supabaseUrl,
-          hasAnonKey: Boolean(supabaseAnonKey),
-          anonKeyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 8) : null,
-          anonKeyLength: supabaseAnonKey ? supabaseAnonKey.length : 0,
-        });
-        if (!configStatus.canStartOAuthConfig) {
-          console.error("[supabase][config-error]", {
-            reason: configStatus.reason || "UNKNOWN_SUPABASE_CONFIG_ERROR",
-            hasSupabaseUrl: configStatus.hasSupabaseUrl,
-            hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
-            isPlaceholderKey: configStatus.isPlaceholderKey,
-            isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
-            keyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 16) : null,
-            keyLength: supabaseAnonKey ? supabaseAnonKey.length : 0,
-            keyLooksLikePublishable: configStatus.keyLooksLikePublishable,
-            keyLooksLikeJwt: configStatus.keyLooksLikeJwt,
-          });
-        }
-        const supabaseClient = configStatus.canStartOAuthConfig ? getSupabaseAuthClient() : null;
+        const supabaseClient = getSupabaseAuthClient();
         console.info("[auth][google][start]", {
           origin: window.location.origin,
           appOrigin,
           redirectTo,
           returnTo: normalizedReturnTo,
-          flowType: SUPABASE_AUTH_FLOW_TYPE,
           hasSupabaseUrl: Boolean(supabaseUrl),
           hasSupabaseAnonKey: Boolean(supabaseAnonKey),
           keyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 8) : null,
@@ -18970,46 +18817,7 @@ ${modeExample}`;
           hasSupabaseClient: Boolean(supabaseClient),
         });
         if (!supabaseClient?.auth?.signInWithOAuth) {
-          const configError = configStatus.canStartOAuthConfig
-            ? new Error("Supabase SDK was not loaded or the auth client could not be created.")
-            : createGoogleOAuthConfigurationError(configStatus);
-          if (configStatus.canStartOAuthConfig) {
-            configError.name = "GoogleOAuthSdkLoadError";
-            configError.code = "SUPABASE_SDK_MISSING";
-          }
-          const details = getAuthErrorDetails(configError, {
-            status: "",
-            cause: {
-              hasSupabaseSdk: configStatus.hasSupabaseSdk,
-              hasSupabaseUrl: configStatus.hasSupabaseUrl,
-              hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
-              isPlaceholderKey: configStatus.isPlaceholderKey,
-              isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
-              isLikelyPublicKey: configStatus.isLikelyPublicKey,
-              reason: configStatus.reason,
-              missingValues: configStatus.missingValues,
-              supabaseKeyRole: configStatus.supabaseKeyRole,
-              usesServiceRoleKey: configStatus.usesServiceRoleKey,
-              redirectTo,
-              returnTo: normalizedReturnTo,
-            },
-          });
-          logGoogleAuthError("[auth][google][start-error]", {
-            ...details,
-            hasSupabaseSdk: configStatus.hasSupabaseSdk,
-            hasSupabaseUrl: configStatus.hasSupabaseUrl,
-            hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
-            isPlaceholderKey: configStatus.isPlaceholderKey,
-            isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
-            isLikelyPublicKey: configStatus.isLikelyPublicKey,
-            reason: configStatus.reason,
-            missingValues: configStatus.missingValues,
-            supabaseKeyRole: configStatus.supabaseKeyRole,
-            usesServiceRoleKey: configStatus.usesServiceRoleKey,
-          });
-          showAccountMenuToast(configStatus.canStartOAuthConfig
-            ? "Google 로그인 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요."
-            : "Google 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.");
+          showAccountMenuToast("Google 로그인 연결 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
           return;
         }
 
@@ -19024,10 +18832,6 @@ ${modeExample}`;
             provider: "google",
             options: {
               redirectTo,
-              queryParams: {
-                access_type: "offline",
-                prompt: "consent",
-              },
             },
           });
           if (error) {

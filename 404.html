@@ -582,6 +582,15 @@
         line-height: 1.4;
       }
 
+      .account-user-linked-providers {
+        margin-top: 2px;
+        color: #6e4a56;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        word-break: keep-all;
+      }
+
       .account-user-logout {
         min-height: 34px;
         border-radius: 9999px;
@@ -5905,6 +5914,7 @@
                   </span>
                   <div class="min-w-0 flex-1">
                     <p class="account-user-name truncate" id="accountMenuUserName">사용자님</p>
+                    <p class="account-user-linked-providers hidden" id="accountMenuUserLinkedProviders"></p>
                     <p class="account-user-credit" id="accountMenuUserCredit">남은 제작 횟수 0회</p>
                   </div>
                   <div class="account-user-actions">
@@ -5996,6 +6006,7 @@
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm font-bold text-on-surface" id="loginUserName">로그인된 사용자</p>
                 <p class="truncate text-xs leading-5 text-on-surface-variant" id="loginUserEmail"></p>
+                <p class="hidden text-xs font-semibold leading-5 text-primary" id="loginUserLinkedProviders"></p>
               </div>
             </div>
             <div class="mt-3 flex items-center justify-between gap-3">
@@ -7209,6 +7220,7 @@ Important:
       const loginUserAvatar = document.getElementById("loginUserAvatar");
       const loginUserName = document.getElementById("loginUserName");
       const loginUserEmail = document.getElementById("loginUserEmail");
+      const loginUserLinkedProviders = document.getElementById("loginUserLinkedProviders");
       const loginUserCredit = document.getElementById("loginUserCredit");
       const loginModalLogoutButton = document.getElementById("loginModalLogoutButton");
       const authTabList = document.querySelector(".auth-tab-list");
@@ -7227,6 +7239,7 @@ Important:
       const policyTargetButtons = Array.from(document.querySelectorAll("[data-policy-target]"));
       const policyBackButtons = Array.from(document.querySelectorAll("[data-policy-back]"));
       const accountMenuAdminItem = document.getElementById("accountMenuAdminItem");
+      const accountMenuUserLinkedProviders = document.getElementById("accountMenuUserLinkedProviders");
       const generatingGalleryPreview = document.getElementById("generatingGalleryPreview");
       const generatingGallerySlider = document.getElementById("generatingGallerySlider");
       const creditBalanceText = document.getElementById("creditBalanceText");
@@ -7446,6 +7459,7 @@ Important:
       let adminOperationStatusMessage = "";
       let adminOperationStatusType = "";
       let duplicateProviderLoginState = null;
+      let lastLinkedProviderToastKey = "";
       let isNicepayReviewLoginLoading = false;
       const guideSteps = [
         {
@@ -7917,6 +7931,9 @@ Important:
       function createFallbackAccountSummary(user = null) {
         const source = user || {};
         const email = String(source?.email || source?.userEmail || source?.user_email || "").trim();
+        const appUserId = String(source?.appUserId || source?.app_user_id || "").trim();
+        const authUserId = String(source?.authUserId || source?.auth_user_id || source?.id || source?.userId || source?.user_id || "").trim();
+        const primaryProvider = getUserAuthProvider(source) || String(source?.provider || "").trim().toLowerCase();
         const displayName = String(
           source?.displayName
           || source?.display_name
@@ -7936,12 +7953,22 @@ Important:
           || source?.photo_url
           || "",
         ).trim();
+        const linkedProviders = normalizeLinkedProviders(
+          source?.linkedProviders || source?.linked_providers || "",
+          primaryProvider,
+        );
         return {
           user: {
-            id: source?.id || source?.userId || source?.user_id || "",
+            id: appUserId || authUserId || "",
+            appUserId: appUserId || null,
+            app_user_id: appUserId || null,
+            authUserId: authUserId || null,
+            auth_user_id: authUserId || null,
             email,
             name: displayName,
             avatarUrl,
+            provider: primaryProvider || "unknown",
+            linkedProviders,
           },
           generationUsage: {
             remainingGenerationUses: 0,
@@ -8321,8 +8348,71 @@ Important:
         return labels[safeProvider] || "기존 로그인";
       }
 
+      function normalizeLinkedProviders(value, fallbackProvider = "") {
+        const values = [];
+        const seen = new Set();
+        const addValue = (input) => {
+          const normalized = String(input || "").trim().toLowerCase();
+          if (!normalized || seen.has(normalized)) return;
+          seen.add(normalized);
+          values.push(normalized);
+        };
+
+        if (Array.isArray(value)) {
+          value.forEach(addValue);
+        } else if (typeof value === "string") {
+          value.split(/[,\s|/]+/).forEach(addValue);
+        }
+
+        if (!values.length && fallbackProvider) {
+          addValue(fallbackProvider);
+        }
+
+        return values;
+      }
+
       function getUserAuthProvider(user = currentUser) {
         return String(user?.provider || user?.authProvider || user?.auth_provider || "").trim().toLowerCase();
+      }
+
+      function getAppUserId(user = currentUser) {
+        return String(
+          user?.appUserId
+          || user?.app_user_id
+          || user?.app_user?.id
+          || "",
+        ).trim();
+      }
+
+      function getAuthUserId(user = currentUser) {
+        return String(
+          user?.authUserId
+          || user?.auth_user_id
+          || user?.supabaseAuthUserId
+          || user?.supabase_auth_user_id
+          || "",
+        ).trim();
+      }
+
+      function getLinkedProviders(user = currentUser) {
+        const provider = getUserAuthProvider(user);
+        const linkedProviders = normalizeLinkedProviders(
+          user?.linkedProviders || user?.linked_providers || user?.providerList || user?.provider_list || "",
+          provider,
+        );
+        if (provider && !linkedProviders.includes(provider)) {
+          linkedProviders.unshift(provider);
+        }
+        return Array.from(new Set(linkedProviders));
+      }
+
+      function getLinkedProviderLabels(user = currentUser) {
+        return getLinkedProviders(user).map((provider) => getProviderLabel(provider)).filter(Boolean);
+      }
+
+      function getLinkedProvidersDisplayText(user = currentUser) {
+        const labels = getLinkedProviderLabels(user);
+        return labels.length ? `연결된 로그인: ${labels.join(", ")}` : "";
       }
 
       function normalizeAuthUser(payload = {}) {
@@ -8330,6 +8420,62 @@ Important:
         if (!user || typeof user !== "object") return null;
 
         const normalizedUser = { ...user };
+        const resolvedProvider = getUserAuthProvider(normalizedUser || user);
+        const appUserId = String(
+          normalizedUser.appUserId
+          || normalizedUser.app_user_id
+          || normalizedUser.app_user?.id
+          || "",
+        ).trim();
+        const authUserId = String(
+          normalizedUser.authUserId
+          || normalizedUser.auth_user_id
+          || normalizedUser.supabaseAuthUserId
+          || normalizedUser.supabase_auth_user_id
+          || "",
+        ).trim();
+        const fallbackUserId = String(
+          normalizedUser.id
+          || normalizedUser.userId
+          || normalizedUser.user_id
+          || "",
+        ).trim();
+        const resolvedUserId = appUserId || fallbackUserId || authUserId || "";
+        normalizedUser.id = resolvedUserId;
+        normalizedUser.userId = resolvedUserId;
+        normalizedUser.user_id = resolvedUserId;
+        normalizedUser.appUserId = appUserId || null;
+        normalizedUser.app_user_id = appUserId || null;
+        normalizedUser.authUserId = authUserId || fallbackUserId || resolvedUserId || null;
+        normalizedUser.auth_user_id = authUserId || fallbackUserId || resolvedUserId || null;
+        normalizedUser.linkedProviders = normalizeLinkedProviders(
+          normalizedUser.linkedProviders
+          || normalizedUser.linked_providers
+          || payload?.linkedProviders
+          || payload?.linked_providers
+          || payload?.data?.linkedProviders
+          || payload?.data?.linked_providers
+          || "",
+          resolvedProvider,
+        );
+        normalizedUser.accountLinked = normalizeBooleanField(
+          normalizedUser.accountLinked
+          ?? normalizedUser.account_linked
+          ?? payload?.accountLinked
+          ?? payload?.account_linked
+          ?? payload?.data?.accountLinked
+          ?? payload?.data?.account_linked,
+          false,
+        );
+        normalizedUser.linkedProviderAdded = normalizeBooleanField(
+          normalizedUser.linkedProviderAdded
+          ?? normalizedUser.linked_provider_added
+          ?? payload?.linkedProviderAdded
+          ?? payload?.linked_provider_added
+          ?? payload?.data?.linkedProviderAdded
+          ?? payload?.data?.linked_provider_added,
+          false,
+        );
         const normalizedGenerationUsage = normalizeAuthGenerationUsage(payload, normalizedUser);
         if (normalizedGenerationUsage) {
           normalizedUser.generationUsage = normalizedGenerationUsage;
@@ -8513,7 +8659,14 @@ Important:
       }
 
       function getAuthenticatedUserId(user = currentUser) {
-        return user?.id || user?.userId || user?.user_id || "";
+        return String(
+          getAppUserId(user)
+          || getAuthUserId(user)
+          || user?.id
+          || user?.userId
+          || user?.user_id
+          || "",
+        ).trim();
       }
 
       function normalizeAdminStatus(payload = {}) {
@@ -8875,6 +9028,11 @@ Important:
         if (accountMenuUserName) {
           accountMenuUserName.textContent = `${getAuthUserName(currentUser)}님`;
         }
+        const linkedProvidersText = getLinkedProvidersDisplayText(currentUser);
+        if (accountMenuUserLinkedProviders) {
+          accountMenuUserLinkedProviders.textContent = linkedProvidersText;
+          accountMenuUserLinkedProviders.classList.toggle("hidden", !linkedProvidersText);
+        }
         if (accountMenuUserCredit) {
           accountMenuUserCredit.textContent = getRemainingUsesDisplayText();
         }
@@ -8907,6 +9065,12 @@ Important:
           loginUserEmail.classList.toggle("hidden", !hasUser);
         }
 
+        const linkedProvidersText = hasUser ? getLinkedProvidersDisplayText(currentUser) : "";
+        if (loginUserLinkedProviders) {
+          loginUserLinkedProviders.textContent = linkedProvidersText;
+          loginUserLinkedProviders.classList.toggle("hidden", !linkedProvidersText);
+        }
+
         if (loginUserCredit) {
           loginUserCredit.textContent = getRemainingUsesDisplayText();
         }
@@ -8930,6 +9094,36 @@ Important:
         syncAuthTabUi();
         syncAccountMenuUi();
         syncLandingAuthButtonUi();
+      }
+
+      function maybeShowLinkedProviderToast(payload = {}, user = currentUser) {
+        const linkedProviderAdded = normalizeBooleanField(
+          pickAuthField(payload, user, [
+            "accountLinked",
+            "account_linked",
+            "linkedProviderAdded",
+            "linked_provider_added",
+          ]),
+          false,
+        );
+
+        if (!linkedProviderAdded || !user) {
+          return;
+        }
+
+        const linkedProviders = getLinkedProviders(user);
+        const toastKey = [
+          getAuthenticatedUserId(user),
+          getAuthUserEmail(user),
+          linkedProviders.join(","),
+        ].join("|");
+
+        if (!toastKey || toastKey === lastLinkedProviderToastKey) {
+          return;
+        }
+
+        lastLinkedProviderToastKey = toastKey;
+        showAccountMenuToast("같은 이메일의 기존 계정에 로그인 방식을 연결했어요.");
       }
 
       function applyAuthSession(payload = {}) {
@@ -8971,6 +9165,10 @@ Important:
           }
         }
         console.log("[auth] currentUser updated");
+        maybeShowLinkedProviderToast(payload, currentUser);
+        if (!currentUser) {
+          lastLinkedProviderToastKey = "";
+        }
 
         if (isLoggedIn) {
           startAutoLogoutTracking();
@@ -11238,15 +11436,38 @@ Important:
           || payload?.data?.userExists === false;
       }
 
+      async function getSupabaseAccessTokenForAuthRequest() {
+        const supabaseClient = getSupabaseAuthClient();
+        if (!supabaseClient?.auth?.getSession) return "";
+
+        try {
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error) {
+            return "";
+          }
+          return String(data?.session?.access_token || "").trim();
+        } catch (error) {
+          return "";
+        }
+      }
+
+      window.getMagicAiStudioSupabaseAccessToken = getSupabaseAccessTokenForAuthRequest;
+
       async function fetchCurrentUser(options = {}) {
         const { silent = true } = options;
         if (!silent || DEBUG_MODE) {
           console.info("[auth] calling /api/auth/me");
         }
+        const accessToken = await getSupabaseAccessTokenForAuthRequest();
+        const headers = {};
+        if (accessToken) {
+          headers.Authorization = `Bearer ${accessToken}`;
+        }
         const response = await fetch(getAuthApiUrl("/api/auth/me"), {
           method: "GET",
           credentials: "include",
           cache: "no-store",
+          headers,
         });
         const parsed = await parseJsonResponseBody(response, { logInvalidJson: response.status !== 401 });
         const payload = parsed.data || {};

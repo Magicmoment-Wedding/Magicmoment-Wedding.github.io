@@ -18,6 +18,29 @@ function toNullableUses(value) {
   return Number.isFinite(numericValue) ? Math.max(0, Math.floor(numericValue)) : null;
 }
 
+function normalizeLinkedProviders(value, fallbackProvider = "") {
+  const values = [];
+  const seen = new Set();
+  const addValue = (input) => {
+    const normalized = String(input || "").trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    values.push(normalized);
+  };
+
+  if (Array.isArray(value)) {
+    value.forEach(addValue);
+  } else if (typeof value === "string") {
+    value.split(/[,\s|/]+/).forEach(addValue);
+  }
+
+  if (!values.length && fallbackProvider) {
+    addValue(fallbackProvider);
+  }
+
+  return values;
+}
+
 function normalizeGenerationUsage(user) {
   const source = user?.generationUsage ?? user?.generation_usage ?? {};
   const remainingGenerationUses = toNullableUses(
@@ -52,8 +75,25 @@ export function normalizeUser(user) {
   const isAdmin = toBoolean(user.isAdmin ?? user.is_admin, false);
   const isLegacyUser = toBoolean(user.isLegacyUser ?? user.is_legacy_user, false);
   const consentRequired = toBoolean(user.consentRequired ?? user.consent_required, false);
+  const provider = String(user.provider ?? user.authProvider ?? user.auth_provider ?? "").trim().toLowerCase();
+  const appUserId = String(user.appUserId ?? user.app_user_id ?? user.app_user?.id ?? "").trim();
+  const authUserId = String(user.authUserId ?? user.auth_user_id ?? user.supabaseAuthUserId ?? user.supabase_auth_user_id ?? "").trim();
+  const fallbackUserId = String(user.id ?? user.userId ?? user.user_id ?? "").trim();
+  const linkedProviders = normalizeLinkedProviders(user.linkedProviders ?? user.linked_providers, provider);
+  const normalizedId = appUserId || fallbackUserId || authUserId || "";
   const normalized = {
     ...user,
+    id: normalizedId,
+    userId: normalizedId,
+    user_id: normalizedId,
+    appUserId: appUserId || null,
+    app_user_id: appUserId || null,
+    authUserId: authUserId || fallbackUserId || normalizedId || null,
+    auth_user_id: authUserId || fallbackUserId || normalizedId || null,
+    provider,
+    authProvider: provider,
+    auth_provider: provider,
+    linkedProviders,
     isAdmin,
     isLegacyUser,
     consentRequired: isAdmin || isLegacyUser ? false : consentRequired,
@@ -91,9 +131,25 @@ export function hasFreeGeneration(user) {
 }
 
 export async function fetchCurrentUser() {
+  let accessToken = "";
+  try {
+    const tokenGetter = window.getMagicAiStudioSupabaseAccessToken;
+    if (typeof tokenGetter === "function") {
+      accessToken = String(await tokenGetter() || "").trim();
+    }
+  } catch (error) {
+    accessToken = "";
+  }
+
+  const headers = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
   const response = await fetch(getApiUrl("/api/auth/me"), {
     method: "GET",
     credentials: "include",
+    headers,
   });
 
   if (response.status === 401) {

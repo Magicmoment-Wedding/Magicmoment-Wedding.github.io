@@ -6269,6 +6269,7 @@
       const FRONT_API_BASE_URL = String(window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL || "").replace(/\/+$/, "");
       const PRODUCTION_APP_ORIGIN = "https://magicaistudio.co.kr";
       const APP_ORIGIN = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
+      const EXPECTED_SUPABASE_URL = "https://rzlvfuyzofzqghzooqsi.supabase.co";
       const PUBLIC_SUPABASE_URL = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_URL || window.SUPABASE_URL || "").trim();
       const PUBLIC_SUPABASE_ANON_KEY = String(window.MAGIC_AI_STUDIO_CONFIG?.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || "").trim();
       const GOOGLE_LOGIN_ENABLED = window.MAGIC_AI_STUDIO_CONFIG?.GOOGLE_LOGIN_ENABLED !== false && window.GOOGLE_LOGIN_ENABLED !== false;
@@ -7724,33 +7725,50 @@ Important:
         }
       }
 
+      function isSupabaseAnonKeyPlaceholder(token) {
+        const normalizedToken = String(token || "").trim().toUpperCase();
+        return !normalizedToken || normalizedToken.startsWith("REPLACE_WITH");
+      }
+
+      function isExpectedSupabaseProjectUrl(url) {
+        try {
+          return new URL(String(url || "")).origin === EXPECTED_SUPABASE_URL;
+        } catch (error) {
+          return false;
+        }
+      }
+
       function getSupabaseFrontendConfigStatus() {
         const hasSupabaseSdk = typeof window.supabase?.createClient === "function";
         const hasSupabaseUrl = Boolean(PUBLIC_SUPABASE_URL);
         const hasSupabaseAnonKey = Boolean(PUBLIC_SUPABASE_ANON_KEY);
+        const isPlaceholderKey = isSupabaseAnonKeyPlaceholder(PUBLIC_SUPABASE_ANON_KEY);
+        const isExpectedProjectUrl = isExpectedSupabaseProjectUrl(PUBLIC_SUPABASE_URL);
         const supabaseKeyRole = getSupabaseJwtRole(PUBLIC_SUPABASE_ANON_KEY);
         const usesServiceRoleKey = supabaseKeyRole === "service_role";
         const missingValues = [];
         if (!hasSupabaseSdk) missingValues.push("SUPABASE_SDK");
         if (!hasSupabaseUrl) missingValues.push("SUPABASE_URL");
         if (!hasSupabaseAnonKey) missingValues.push("SUPABASE_ANON_KEY");
+        if (isPlaceholderKey) missingValues.push("SUPABASE_ANON_KEY_PLACEHOLDER");
+        if (!isExpectedProjectUrl) missingValues.push("SUPABASE_URL_PROJECT_MISMATCH");
         return {
           hasSupabaseSdk,
           hasSupabaseUrl,
           hasSupabaseAnonKey,
+          isPlaceholderKey,
+          isExpectedProjectUrl,
           supabaseKeyRole: supabaseKeyRole || "unknown",
           usesServiceRoleKey,
           missingValues,
-          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !usesServiceRoleKey,
+          isReady: hasSupabaseSdk && hasSupabaseUrl && hasSupabaseAnonKey && !isPlaceholderKey && isExpectedProjectUrl && !usesServiceRoleKey,
         };
       }
 
       function createGoogleOAuthConfigurationError(status = getSupabaseFrontendConfigStatus()) {
-        let message = "Supabase frontend configuration is missing or the Supabase SDK was not loaded.";
+        let message = "Google 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
         if (status.usesServiceRoleKey) {
           message = "Supabase service_role key must never be used in frontend configuration. Use the anon public key.";
-        } else if (status.missingValues.length) {
-          message = `Supabase frontend configuration is missing: ${status.missingValues.join(", ")}.`;
         }
         const configError = new Error(message);
         configError.name = "GoogleOAuthConfigurationError";
@@ -7758,7 +7776,11 @@ Important:
           ? "SUPABASE_SERVICE_ROLE_KEY_FORBIDDEN"
           : !status.hasSupabaseSdk
             ? "SUPABASE_SDK_MISSING"
-            : "SUPABASE_FRONTEND_CONFIG_MISSING";
+            : status.isPlaceholderKey
+              ? "SUPABASE_ANON_KEY_PLACEHOLDER"
+              : !status.isExpectedProjectUrl
+                ? "SUPABASE_URL_PROJECT_MISMATCH"
+                : "SUPABASE_FRONTEND_CONFIG_MISSING";
         return configError;
       }
 
@@ -18613,7 +18635,21 @@ ${modeExample}`;
         const supabaseUrl = PUBLIC_SUPABASE_URL;
         const supabaseAnonKey = PUBLIC_SUPABASE_ANON_KEY;
         const configStatus = getSupabaseFrontendConfigStatus();
-        const supabaseClient = getSupabaseAuthClient();
+        console.info("[supabase][config]", {
+          supabaseUrl,
+          hasAnonKey: Boolean(supabaseAnonKey),
+          anonKeyPrefix: supabaseAnonKey ? supabaseAnonKey.slice(0, 8) : null,
+          anonKeyLength: supabaseAnonKey ? supabaseAnonKey.length : 0,
+        });
+        if (!configStatus.isReady) {
+          console.error("[supabase][config-error]", {
+            hasSupabaseUrl: configStatus.hasSupabaseUrl,
+            hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
+            isPlaceholderKey: configStatus.isPlaceholderKey,
+            isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
+          });
+        }
+        const supabaseClient = configStatus.isReady ? getSupabaseAuthClient() : null;
         console.info("[auth][google][start]", {
           origin: window.location.origin,
           appOrigin,
@@ -18632,6 +18668,8 @@ ${modeExample}`;
               hasSupabaseSdk: configStatus.hasSupabaseSdk,
               hasSupabaseUrl: configStatus.hasSupabaseUrl,
               hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
+              isPlaceholderKey: configStatus.isPlaceholderKey,
+              isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
               missingValues: configStatus.missingValues,
               supabaseKeyRole: configStatus.supabaseKeyRole,
               usesServiceRoleKey: configStatus.usesServiceRoleKey,
@@ -18644,11 +18682,13 @@ ${modeExample}`;
             hasSupabaseSdk: configStatus.hasSupabaseSdk,
             hasSupabaseUrl: configStatus.hasSupabaseUrl,
             hasSupabaseAnonKey: configStatus.hasSupabaseAnonKey,
+            isPlaceholderKey: configStatus.isPlaceholderKey,
+            isExpectedProjectUrl: configStatus.isExpectedProjectUrl,
             missingValues: configStatus.missingValues,
             supabaseKeyRole: configStatus.supabaseKeyRole,
             usesServiceRoleKey: configStatus.usesServiceRoleKey,
           });
-          showAccountMenuToast(getGoogleAuthStartFailureMessage(details));
+          showAccountMenuToast("Google 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.");
           return;
         }
 

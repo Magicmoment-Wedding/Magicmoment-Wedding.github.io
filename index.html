@@ -8025,7 +8025,9 @@ Important:
         if (!supabaseClient?.auth?.onAuthStateChange) return null;
         const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
           if (event === "SIGNED_OUT") {
-            applyAuthUser(null);
+            clearCurrentAuthState();
+            clearMagicAiAuthStorage();
+            syncAuthUi();
             return;
           }
           if (!session?.user || isHandlingSupabaseAuthStateEvent) return;
@@ -9386,6 +9388,81 @@ Important:
         removeStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY);
       }
 
+      function clearMagicAiAuthStorage() {
+        const directKeys = [
+          "magic_ai_user",
+          "magic_ai_current_user",
+          "magic_ai_account_summary",
+          "magic_ai_auth_user",
+          "magic_ai_provider",
+          "magic_ai_linked_providers",
+          "magic_ai_admin_state",
+          "magic_ai_is_admin",
+          "magic-ai-studio-auth",
+          "supabase.auth.token",
+          AUTH_MODE_STORAGE_KEY,
+          AUTH_INTENT_STORAGE_KEY,
+          AUTH_PROVIDER_STORAGE_KEY,
+          AUTH_PROCESSING_STORAGE_KEY,
+          AUTH_FLOW_MODE_STORAGE_KEY,
+          AUTH_FLOW_PROCESSING_STORAGE_KEY,
+          AUTH_OPEN_ACCOUNT_MENU_STORAGE_KEY,
+          AUTH_PENDING_STARTED_AT_STORAGE_KEY,
+          SIGNUP_PROCESSING_STORAGE_KEY,
+          SIGNUP_CONSENT_STORAGE_KEY,
+        ];
+        const shouldRemoveAuthKey = (key = "") => {
+          const normalized = String(key || "");
+          const lower = normalized.toLowerCase();
+          return normalized.startsWith("sb-")
+            || lower.includes("supabase")
+            || lower.includes("magic_ai_auth")
+            || lower.includes("magic_ai_current_user")
+            || lower.includes("magic_ai_account_summary")
+            || lower.includes("magic_ai_admin")
+            || lower.includes("magic-ai-studio-auth");
+        };
+
+        [window.localStorage, window.sessionStorage].forEach((storage) => {
+          if (!storage) return;
+          directKeys.forEach((key) => {
+            try {
+              storage.removeItem(key);
+            } catch (error) {
+              // Ignore storage cleanup failures.
+            }
+          });
+          try {
+            for (let index = storage.length - 1; index >= 0; index -= 1) {
+              const key = storage.key(index);
+              if (key && shouldRemoveAuthKey(key)) {
+                storage.removeItem(key);
+              }
+            }
+          } catch (error) {
+            // Ignore storage iteration failures.
+          }
+        });
+
+        clearAutoLogoutStorage();
+        console.info("[auth][logout][storage-cleared]");
+      }
+
+      function clearCurrentAuthState() {
+        applyAuthUser(null);
+        generationUsageSummary = null;
+        generationUsageStatus = "idle";
+        accountSummaryLoadError = false;
+        isAdmin = false;
+        currentAdmin = null;
+        myPhotos = [];
+        myPhotosError = "";
+        isMyPhotoBoxLoggedIn = false;
+        resetAdminDashboardState({ clearContent: true });
+        clearPendingAction();
+        stopAutoLogoutTracking({ clearStorage: true });
+      }
+
       function getLastActivityAt() {
         const value = Number(getStorageItem(LAST_ACTIVITY_STORAGE_KEY) || 0);
         return Number.isFinite(value) ? value : 0;
@@ -9503,12 +9580,8 @@ Important:
       function handleExpiredAuthSession(options = {}) {
         const { showMessage = true, broadcast = false } = options;
         const hadSession = Boolean(currentUser || getLastActivityAt());
-        applyAuthUser(null);
-        myPhotos = [];
-        myPhotosError = "";
-        resetAdminDashboardState({ clearContent: true });
-        clearPendingAction();
-        clearAutoLogoutStorage();
+        clearCurrentAuthState();
+        clearMagicAiAuthStorage();
         if (appScreen === "admin") {
           navigateToScreen("home");
         }
@@ -9525,43 +9598,34 @@ Important:
         if (isAutoLogoutRunning) return;
         isAutoLogoutRunning = true;
 
-        try {
-          await fetch(getAuthApiUrl("/api/auth/logout"), {
-            method: "POST",
-            credentials: "include",
-          });
-        } catch (error) {
-          console.warn("[auth] auto logout request failed", error);
-        } finally {
-          isAutoLogoutRunning = false;
-        }
-
         const message = reason === "idle_timeout"
           ? "장시간 활동이 없어 자동 로그아웃되었습니다."
           : reason === "session_expired"
             ? "로그인 시간이 만료되었습니다. 다시 로그인해 주세요."
             : "로그아웃되었습니다.";
-
-        applyAuthUser(null);
-        myPhotos = [];
-        myPhotosError = "";
-        resetAdminDashboardState({ clearContent: true });
-        clearPendingAction();
-        closeAccountMenu();
-        closeLoginModal();
-        clearAutoLogoutStorage();
-        if (appScreen === "admin") {
-          navigateToScreen("home");
+        try {
+          await logoutEverywhere({
+            redirectTo: "landing",
+            closeMenus: true,
+            showToast: false,
+            source: `auto-${reason}`,
+            broadcast,
+          });
+          showAccountMenuToast(message);
+        } finally {
+          isAutoLogoutRunning = false;
         }
-        if (broadcast) {
-          setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
-        }
-        showAccountMenuToast(message);
       }
 
       function handleAuthStorageEvent(event) {
         if (event.key === FORCE_LOGOUT_STORAGE_KEY && event.newValue && currentUser) {
-          void autoLogout("session_expired", { broadcast: false });
+          void logoutEverywhere({
+            redirectTo: "landing",
+            closeMenus: true,
+            showToast: false,
+            source: "storage-force-logout",
+            broadcast: false,
+          });
         }
         if (event.key === LAST_ACTIVITY_STORAGE_KEY && event.newValue) {
           removeStorageItem(AUTO_LOGOUT_WARNING_STORAGE_KEY);
@@ -11872,35 +11936,105 @@ Important:
         }
       }
 
-      async function logoutCurrentUser() {
+      async function logoutEverywhere(options = {}) {
+        const {
+          redirectTo = "landing",
+          closeMenus = true,
+          showToast = true,
+          source = "unknown",
+          broadcast = true,
+        } = options;
+
+        console.info("[auth][logout][click]", { source });
+
         try {
-          const response = await fetch(getAuthApiUrl("/api/auth/logout"), {
-            method: "POST",
-            credentials: "include",
+          console.info("[auth][logout][start]", {
+            redirectTo,
+            hasCurrentUser: Boolean(currentUser),
           });
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok || payload?.ok === false) {
-            throw new Error(payload?.message || `Logout request failed: ${response.status}`);
+
+          const supabaseClient = getSupabaseAuthClient();
+          if (supabaseClient?.auth?.signOut) {
+            try {
+              const { error } = await supabaseClient.auth.signOut({ scope: "global" });
+              if (error) {
+                console.warn("[auth][logout][supabase-error]", {
+                  name: error?.name,
+                  message: error?.message,
+                });
+              }
+            } catch (error) {
+              console.warn("[auth][logout][supabase-error]", {
+                name: error?.name,
+                message: error?.message,
+              });
+            }
           }
-          applyAuthUser(null);
-          myPhotos = [];
-          myPhotosError = "";
-          resetAdminDashboardState({ clearContent: true });
-          clearPendingAction();
-          clearAutoLogoutStorage();
-          setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
-          closeAccountMenu();
-          closeLoginModal();
-          if (appScreen === "admin") {
-            navigateToScreen("home");
+
+          try {
+            const response = await fetch(getAuthApiUrl("/api/auth/logout"), {
+              method: "POST",
+              credentials: "include",
+              cache: "no-store",
+              headers: { "Content-Type": "application/json" },
+            });
+            if (!response.ok && DEBUG_MODE) {
+              console.warn("[auth][logout][backend-ignore]", {
+                status: response.status,
+                message: `Logout request failed: ${response.status}`,
+              });
+            }
+          } catch (error) {
+            console.warn("[auth][logout][backend-ignore]", {
+              message: error?.message,
+            });
           }
-          showAccountMenuToast("로그아웃되었습니다.");
+
+          clearCurrentAuthState();
+          clearMagicAiAuthStorage();
+          if (broadcast) {
+            setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
+          }
+          if (closeMenus) {
+            closeAccountMenu();
+            closeLoginModal();
+            closeCustomerInfoModal();
+            closeDuplicateProviderModal();
+          }
+          cleanLoginRedirectQuery();
+          if (redirectTo === "landing" || redirectTo === "home") {
+            navigateToScreen("landing");
+          } else if (redirectTo && getScreenFromLoginReturnView(redirectTo)) {
+            navigateToScreen(getScreenFromLoginReturnView(redirectTo));
+          }
+          syncAuthUi();
+          updateCreditUi();
+          renderMyPhotoBoxScreen();
+
+          let sessionAfterLogout = null;
+          try {
+            sessionAfterLogout = await getCurrentSupabaseSessionSafe();
+          } catch (error) {
+            sessionAfterLogout = null;
+          }
+          console.info("[auth][logout][done]", {
+            hasSessionAfterLogout: Boolean(sessionAfterLogout),
+            hasCurrentUserAfterLogout: Boolean(currentUser),
+          });
+          if (showToast) {
+            showAccountMenuToast("로그아웃되었습니다.");
+          }
         } catch (error) {
-          if (DEBUG_MODE) {
-            console.warn("[client][auth] logout failed:", error);
-          }
-          showAccountMenuToast("로그아웃에 실패했어요. 잠시 후 다시 시도해 주세요.");
+          console.error("[auth][logout][failed]", error);
+          clearCurrentAuthState();
+          clearMagicAiAuthStorage();
+          syncAuthUi();
+          showAccountMenuToast("로그아웃 중 문제가 발생했습니다. 새로고침 후 다시 시도해 주세요.");
         }
+      }
+
+      async function logoutCurrentUser(options = {}) {
+        return logoutEverywhere(options);
       }
 
       function normalizeCreditBalance(payload) {
@@ -20131,7 +20265,10 @@ ${modeExample}`;
       accountMenuLogoutButton?.addEventListener("click", async (event) => {
         event.preventDefault();
         event.stopPropagation();
-        await logoutCurrentUser();
+        await logoutEverywhere({
+          redirectTo: "landing",
+          source: appScreen === "landing" ? "landing-account-menu" : "account-menu",
+        });
         if (appScreen === "myPhotoBox") {
           myPhotos = [];
           renderMyPhotoBoxScreen();
@@ -20141,7 +20278,10 @@ ${modeExample}`;
       loginModalLogoutButton?.addEventListener("click", async (event) => {
         event.preventDefault();
         event.stopPropagation();
-        await logoutCurrentUser();
+        await logoutEverywhere({
+          redirectTo: "landing",
+          source: "login-modal-account-summary",
+        });
         if (appScreen === "myPhotoBox") {
           myPhotos = [];
           renderMyPhotoBoxScreen();

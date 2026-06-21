@@ -8169,6 +8169,7 @@ Important:
         const authMode = mode === "signup" ? "signup" : "login";
         const url = new URL(getAuthApiUrl(`/api/auth/${safeProvider}/start`), window.location.origin);
         url.searchParams.set("mode", authMode);
+        url.searchParams.set("authMode", authMode);
         if (authMode === "signup") {
           url.searchParams.set("termsAccepted", "1");
           url.searchParams.set("privacyAccepted", "1");
@@ -8230,7 +8231,7 @@ Important:
       }
 
       function getAuthModeFromParams(searchParams = new URLSearchParams(window.location.search)) {
-        const queryMode = String(searchParams.get("mode") || searchParams.get("auth_mode") || searchParams.get("intent") || "").trim().toLowerCase();
+        const queryMode = String(searchParams.get("mode") || searchParams.get("authMode") || searchParams.get("auth_mode") || searchParams.get("intent") || "").trim().toLowerCase();
         if (queryMode === "signup" || queryMode === "login") return queryMode;
         return getStoredAuthMode();
       }
@@ -8436,18 +8437,11 @@ Important:
       }
 
       function getLinkedProvidersDisplayText(user = currentUser) {
-        const labels = getLinkedProviderLabels(user);
-        return labels.length ? `연결된 로그인: ${labels.join(", ")}` : "";
+        return "";
       }
 
       function getProviderSummaryDisplayText(user = currentUser) {
-        if (!user) return "";
-        const currentProvider = getUserAuthProvider(user) || "unknown";
-        const linkedText = getLinkedProvidersDisplayText(user);
-        return [
-          `현재 로그인: ${getProviderLabel(currentProvider)}`,
-          linkedText,
-        ].filter(Boolean).join("\n");
+        return "";
       }
 
       function normalizeAuthUser(payload = {}) {
@@ -8807,9 +8801,9 @@ Important:
         }
 
         if (signupConsentMessage) {
-          signupConsentMessage.textContent = "필수 약관 전체동의 후 회원가입을 진행해 주세요.";
+          signupConsentMessage.textContent = "필수 약관에 동의해 주세요.";
         }
-        showAccountMenuToast("필수 약관 전체동의 후 회원가입을 진행해 주세요.");
+        showAccountMenuToast("필수 약관에 동의해 주세요.");
         return false;
       }
 
@@ -9109,6 +9103,12 @@ Important:
           "tutorialCompleted",
           "tutorial_completed",
         ]);
+        const onboardingRequiredValue = pickAuthField(payload, user, [
+          "onboardingRequired",
+          "onboarding_required",
+          "requiresOnboarding",
+          "requires_onboarding",
+        ]);
         const freeUsedValue = pickAuthField(payload, user, ["freeGenerationUsed", "free_generation_used"]);
         const freeEligibleValue = pickAuthField(payload, user, ["freeGenerationEligible", "free_generation_eligible", "freeEligible", "free_eligible"]);
         const freeAvailableValue = usage?.freeGenerationAvailable ?? pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
@@ -9116,7 +9116,10 @@ Important:
         const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
 
         const normalizedIsNewUser = normalizeBooleanField(isNewUserValue, false);
-        onboardingCompleted = normalizeBooleanField(onboardingValue, normalizedIsNewUser ? false : true);
+        const onboardingRequired = normalizeBooleanField(onboardingRequiredValue, false);
+        onboardingCompleted = onboardingRequired
+          ? false
+          : normalizeBooleanField(onboardingValue, normalizedIsNewUser ? false : true);
         freeGenerationUsed = normalizeBooleanField(usage?.freeGenerationUsed ?? freeUsedValue, false);
         freeGenerationEligible = normalizeBooleanField(freeEligibleValue, normalizedIsNewUser);
         freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, freeGenerationEligible === true && freeGenerationUsed !== true);
@@ -9222,17 +9225,10 @@ Important:
         if (accountMenuUserName) {
           accountMenuUserName.textContent = `${getAuthUserName(currentUser)}님`;
         }
-        const linkedProvidersText = getProviderSummaryDisplayText(currentUser);
         if (accountMenuUserLinkedProviders) {
-          accountMenuUserLinkedProviders.textContent = linkedProvidersText;
-          accountMenuUserLinkedProviders.classList.toggle("hidden", !linkedProvidersText);
+          accountMenuUserLinkedProviders.textContent = "";
+          accountMenuUserLinkedProviders.classList.add("hidden");
         }
-        console.info("[account-menu][provider-display]", {
-          currentProvider: currentUser?.currentProvider || "",
-          provider: currentUser?.provider || "",
-          linkedProviders: currentUser?.linkedProviders || [],
-          source: "backend-me",
-        });
         if (accountMenuUserCredit) {
           accountMenuUserCredit.textContent = getRemainingUsesDisplayText();
         }
@@ -12347,6 +12343,17 @@ Important:
       }
 
       function getRemainingUses(user = currentUser) {
+        const directRemainingUses = normalizeGenerationUsageNumber(
+          user?.remainingUses
+          ?? user?.remaining_uses
+          ?? user?.generationRemainingUses
+          ?? user?.generation_remaining_uses
+          ?? user?.availableUses
+          ?? user?.available_uses,
+        );
+        if (directRemainingUses !== null) {
+          return directRemainingUses;
+        }
         const usage = getCurrentGenerationUsage(user);
         return normalizeGenerationUsageNumber(
           usage?.remainingGenerationUses ?? usage?.remaining_generation_uses,
@@ -12867,7 +12874,10 @@ Important:
         url.searchParams.delete("auth");
         url.searchParams.delete("auth_success");
         url.searchParams.delete("mode");
+        url.searchParams.delete("authMode");
         url.searchParams.delete("auth_mode");
+        url.searchParams.delete("intent");
+        url.searchParams.delete("onboarding");
         url.searchParams.delete("returnTo");
         url.searchParams.delete("reason");
         url.searchParams.delete("provider");
@@ -12942,14 +12952,21 @@ Important:
         authFlowState = "error";
         clearMagicAiUserCacheStorage();
         applyAuthSession({ ok: false, authenticated: false, user: null });
-        showAccountMenuToast(`${providerLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
+        const failureMessage = getLoginFailureMessage(loginParams);
+        showAccountMenuToast(failureMessage || `${providerLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
         hideAuthProcessingOverlay();
         cleanLoginRedirectQuery();
         console.info("[auth][callback][query-cleaned]");
         clearAuthStartState();
         clearLoginReturnState();
         navigateToLoginReturnView(returnView);
-        openLoginModal(null, { tab: getAuthModeFromParams(loginParams), forceAuthForm: true });
+        if (!handleAuthModeErrorPrompt(loginParams)) {
+          openLoginModal(null, {
+            tab: getAuthModeFromParams(loginParams),
+            message: failureMessage,
+            forceAuthForm: true,
+          });
+        }
         openCreditManagementForPaymentResult(paymentStatus);
         return currentUser;
       }
@@ -13010,13 +13027,19 @@ Important:
         if (!duplicateProviderError) return false;
         const attemptedProvider = sanitizeOAuthProvider(duplicateProviderError.attemptedProvider) || inferProviderFromAuthFailure(searchParams) || "";
         const attemptedLabel = attemptedProvider ? getProviderLabel(attemptedProvider) : "소셜";
+        const failedMode = getAuthModeFromParams(searchParams);
+        const message = failedMode === "signup"
+          ? "이미 가입된 이메일입니다. 로그인 탭에서 로그인해 주세요."
+          : `${attemptedLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`;
         console.info("[auth][provider-conflict-fallback]", {
           attemptedProvider: attemptedProvider || duplicateProviderError.attemptedProvider || "",
           existingProvider: duplicateProviderError.existingProvider || "",
           email: duplicateProviderError.email || "",
           code: duplicateProviderError.code || "DUPLICATE_EMAIL_DIFFERENT_PROVIDER",
         });
-        showAccountMenuToast(`${attemptedLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
+        setAuthTab(failedMode === "signup" ? "login" : failedMode, message);
+        openLoginModal(null, { tab: failedMode === "signup" ? "login" : failedMode, message, forceAuthForm: true });
+        showAccountMenuToast(message);
         cleanLoginRedirectQuery();
         return true;
       }
@@ -13147,6 +13170,17 @@ Important:
         };
       }
 
+      function getAuthFailureCode(searchParams = new URLSearchParams(window.location.search)) {
+        return String(
+          searchParams.get("reason")
+          || searchParams.get("auth_error")
+          || searchParams.get("error")
+          || searchParams.get("error_code")
+          || searchParams.get("code")
+          || "",
+        ).trim().toUpperCase();
+      }
+
       function getPaymentRedirectStatus() {
         const params = new URLSearchParams(window.location.search);
         const paymentStatus = params.get("payment");
@@ -13185,8 +13219,8 @@ Important:
       function getLoginFailureMessage(searchParams = new URLSearchParams(window.location.search)) {
         const reason = String(searchParams.get("reason") || "").toLowerCase();
         const provider = String(searchParams.get("provider") || "").toLowerCase();
-        const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
-        const normalizedCode = code.toUpperCase();
+        const normalizedCode = getAuthFailureCode(searchParams);
+        const failedMode = getAuthModeFromParams(searchParams);
         if ((provider === "google" || isAuthCallbackRoute()) && (searchParams.get("error") || searchParams.get("error_code") || searchParams.get("error_description"))) {
           return "Google 로그인 설정에 문제가 있어요. 잠시 후 다시 시도해 주세요.";
         }
@@ -13197,15 +13231,17 @@ Important:
           return "로그인 정보를 확인하지 못했어요.";
         }
         if (normalizedCode === "ACCOUNT_NOT_FOUND") {
-          return "가입된 계정이 없습니다. 회원가입으로 진행해 주세요.";
+          return failedMode === "login"
+            ? "가입되지 않은 계정입니다. 회원가입 탭에서 약관 동의 후 가입해 주세요."
+            : "가입된 계정이 없습니다. 회원가입으로 진행해 주세요.";
         }
         if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
           return "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
         }
         if (normalizedCode === "EMAIL_ALREADY_REGISTERED" || normalizedCode === "EMAIL_ALREADY_REGISTERED_BY_GOOGLE") {
-          const existingProvider = searchParams.get("existing_provider") || searchParams.get("existingProvider") || "google";
-          const existingLabel = searchParams.get("existing_provider_label") || searchParams.get("existingProviderLabel") || getProviderLabel(existingProvider);
-          return `이미 ${existingLabel}로 가입된 이메일입니다. ${existingLabel} 로그인으로 이용해 주세요.`;
+          return failedMode === "signup"
+            ? "이미 가입된 이메일입니다. 로그인 탭에서 로그인해 주세요."
+            : "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
         }
         if (normalizedCode === "CONSENT_REQUIRED") {
           return "회원가입을 위해 필수 약관 동의가 필요합니다. 전체동의 후 다시 시도해 주세요.";
@@ -13248,8 +13284,8 @@ Important:
       }
 
       function handleAuthModeErrorPrompt(searchParams = new URLSearchParams(window.location.search)) {
-        const code = String(searchParams.get("code") || searchParams.get("auth_error") || searchParams.get("error") || "").trim();
-        const normalizedCode = code.toUpperCase();
+        const normalizedCode = getAuthFailureCode(searchParams);
+        const failedMode = getAuthModeFromParams(searchParams);
         if (currentUser) {
           if (normalizedCode === "CONSENT_REQUIRED") {
             showRequiredConsentPrompt();
@@ -13258,14 +13294,18 @@ Important:
           return false;
         }
         if (normalizedCode === "ACCOUNT_NOT_FOUND") {
-          const message = "가입된 계정이 없습니다. 회원가입으로 진행해 주세요.";
-          setAuthTab("login", message);
-          openLoginModal(null, { tab: "login", message });
+          const message = failedMode === "login"
+            ? "가입되지 않은 계정입니다. 회원가입 탭에서 약관 동의 후 가입해 주세요."
+            : "가입된 계정이 없습니다. 회원가입으로 진행해 주세요.";
+          setAuthTab("signup", message);
+          openLoginModal(null, { tab: "signup", message });
           showAccountMenuToast(message);
           return true;
         }
-        if (normalizedCode === "ACCOUNT_ALREADY_EXISTS") {
-          const message = "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
+        if (normalizedCode === "ACCOUNT_ALREADY_EXISTS" || normalizedCode === "EMAIL_ALREADY_REGISTERED" || normalizedCode === "EMAIL_ALREADY_REGISTERED_BY_GOOGLE") {
+          const message = failedMode === "signup"
+            ? "이미 가입된 이메일입니다. 로그인 탭에서 로그인해 주세요."
+            : "이미 가입된 이메일입니다. 로그인으로 진행해 주세요.";
           setAuthTab("login", message);
           openLoginModal(null, { tab: "login", message });
           showAccountMenuToast(message);
@@ -13323,6 +13363,7 @@ Important:
 
       function handlePostLoginExperience(returnView, options = {}) {
         if (!currentUser) return;
+        const forceOnboarding = options.onboardingRequired === true;
         const rawReturnTo = String(returnView || "").trim();
         const normalizedReturnTo = normalizeLoginReturnView(returnView);
         const currentViewBefore = appScreen;
@@ -13334,20 +13375,26 @@ Important:
           nextView: shouldStayLanding ? "landing" : getScreenFromLoginReturnView(normalizedReturnTo),
         });
 
+        if (forceOnboarding || shouldShowOnboardingCards()) {
+          clearPendingAction();
+          closeLoginModal();
+          closeAccountMenu();
+          siteGuideMode = "firstOnboarding";
+          siteGuidePageIndex = 0;
+          onboardingCompleted = false;
+          if (currentUser) {
+            currentUser.onboardingCompleted = false;
+          }
+          navigateToScreen("siteGuide");
+          showAccountMenuToast("이용안내를 확인하면 무료 1회 이용권을 받을 수 있어요.");
+          return;
+        }
+
         if (shouldStayLanding) {
           clearPendingAction();
           navigateToScreen("landing");
           closeLoginModal();
           openAccountMenuAfterAuth();
-          return;
-        }
-
-        if (shouldShowOnboardingCards()) {
-          clearPendingAction();
-          siteGuideMode = "firstOnboarding";
-          siteGuidePageIndex = 0;
-          navigateToScreen("siteGuide");
-          showAccountMenuToast("먼저 이용안내를 확인하면 첫 1회 무료 제작을 시작할 수 있어요.");
           return;
         }
 
@@ -13410,6 +13457,10 @@ Important:
 
       async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), options = {}) {
         const authMode = getAuthModeFromParams(loginParams);
+        const onboardingRequiredByQuery = String(loginParams.get("onboarding") || loginParams.get("onboardingRequired") || loginParams.get("onboarding_required") || "").trim().toLowerCase();
+        const shouldRequireOnboarding = onboardingRequiredByQuery === "required"
+          || onboardingRequiredByQuery === "true"
+          || onboardingRequiredByQuery === "1";
         const callbackProvider = sanitizeOAuthProvider(loginParams.get("provider"));
         expectedAuthCallbackProvider = callbackProvider || "";
         if (callbackProvider) {
@@ -13458,7 +13509,10 @@ Important:
           showAccountMenuToast(authMode === "signup"
             ? "환영합니다. Magic AI Studio 가입이 완료되었어요."
             : `${displayName}님 로그인 되었습니다.`);
-          handlePostLoginExperience(returnView, { authMode });
+          handlePostLoginExperience(returnView, {
+            authMode,
+            onboardingRequired: shouldRequireOnboarding || (authMode === "signup" && shouldShowOnboardingCards()),
+          });
           return user;
         } finally {
           expectedAuthCallbackProvider = "";
@@ -13917,7 +13971,7 @@ Important:
         const currentPage = Math.min(Math.max(siteGuidePageIndex, 0), pageCount - 1);
         const pageSteps = pages[currentPage];
         const buttonLabel = currentPage === pageCount - 1
-          ? (isCompletingOnboarding ? "이용안내 완료 처리 중..." : "이용안내 완료하고 무료 제작 시작하기")
+          ? (isCompletingOnboarding ? "이용안내 완료 처리 중..." : "확인하고 무료 1회 받기")
           : "다음";
         const priorStepCount = pages.slice(0, currentPage).reduce((total, page) => total + page.length, 0);
 
@@ -13969,17 +14023,33 @@ Important:
       }
 
       async function completeOnboarding() {
-        const response = await fetch(getAuthApiUrl("/api/auth/onboarding/complete"), {
+        let response = await fetch(getAuthApiUrl("/api/account/onboarding/complete"), {
           method: "POST",
           credentials: "include",
+          headers: { "Content-Type": "application/json" },
         });
-        const payload = await response.json().catch(() => ({}));
+        let payload = await response.json().catch(() => ({}));
+
+        if (response.status === 404 || response.status === 405) {
+          response = await fetch(getAuthApiUrl("/api/auth/onboarding/complete"), {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          });
+          payload = await response.json().catch(() => ({}));
+        }
 
         if (!response.ok || payload?.ok === false) {
           throw new Error(payload?.message || `Onboarding complete failed: ${response.status}`);
         }
 
-        return refreshAuthState({ showError: false });
+        const refreshedUser = await refreshAuthState({ showError: false, force: true });
+        if (payload?.generationUsage || payload?.generation_usage || payload?.remainingUses || payload?.remaining_uses) {
+          applyUserEntitlements(payload, refreshedUser || currentUser);
+          syncAuthUi();
+          updateCreditUi();
+        }
+        return refreshedUser;
       }
 
       async function handleSiteGuideNext() {
@@ -14024,7 +14094,7 @@ Important:
           }
           clearPendingAction();
           syncEditorGenerationCopy();
-          showAccountMenuToast("무료 1회 제작을 시작할 수 있어요.");
+          showAccountMenuToast("무료 1회 이용권이 지급되었습니다.");
           navigateToScreen("editor");
           setStatus(hasFreeGeneration(currentUser)
             ? "무료 1회 제작을 시작해 주세요."
@@ -14826,7 +14896,7 @@ Important:
           if (DEBUG_MODE) {
             console.warn("[client][my-photo-box] fetch failed:", error);
           }
-          myPhotosError = "마이포토박스를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
+          myPhotosError = "사진을 불러오지 못했습니다. 다시 시도해 주세요.";
           myPhotos = [];
         } finally {
           isLoadingMyPhotos = false;
@@ -19858,7 +19928,7 @@ ${modeExample}`;
 
         const normalizedReturnTo = normalizeGoogleReturnTo(options.returnTo || rememberLoginReturnView());
         const appOrigin = String(window.MAGIC_AI_STUDIO_CONFIG?.APP_ORIGIN || window.APP_ORIGIN || PRODUCTION_APP_ORIGIN).replace(/\/+$/, "");
-        const redirectTo = `${appOrigin}/auth/callback?returnTo=${encodeURIComponent(normalizedReturnTo)}`;
+        const redirectTo = `${appOrigin}/auth/callback?returnTo=${encodeURIComponent(normalizedReturnTo)}&mode=${encodeURIComponent(authMode)}&authMode=${encodeURIComponent(authMode)}`;
         const inAppInfo = detectInAppBrowser();
         const isInAppBrowser = inAppInfo.isInApp;
         console.info("[auth][google][in-app-check]", {

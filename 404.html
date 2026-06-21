@@ -7374,6 +7374,14 @@ Important:
       let siteGuideMode = "general";
       let isMyPhotoBoxLoggedIn = false;
       let currentUser = null;
+      let authState = {
+        status: "unknown",
+        user: null,
+        lastProvider: null,
+        suppressSessionRestoreUntil: 0,
+      };
+      let inFlightAuthMePromise = null;
+      let lastAuthMeStartedAt = 0;
       let isAdmin = false;
       let currentAdmin = null;
       let imageSaveModalObjectUrl = "";
@@ -7967,7 +7975,38 @@ Important:
         return summary;
       }
 
+      function setAuthState(nextState = {}) {
+        const previousStatus = authState.status;
+        authState = {
+          ...authState,
+          ...nextState,
+        };
+        if (Object.prototype.hasOwnProperty.call(nextState, "user")) {
+          authState.user = nextState.user || null;
+        }
+        if (previousStatus !== authState.status) {
+          console.info("[auth][state]", {
+            from: previousStatus,
+            to: authState.status,
+          });
+        }
+      }
+
+      function isSessionRestoreSuppressed() {
+        return Date.now() < Number(authState.suppressSessionRestoreUntil || 0);
+      }
+
+      function suppressSessionRestore(durationMs = 5000) {
+        setAuthState({
+          suppressSessionRestoreUntil: Date.now() + durationMs,
+        });
+      }
+
       function applySupabaseSessionFallback(session = null) {
+        if (isSessionRestoreSuppressed() || authState.status === "loggingOut") {
+          console.info("[auth][restore-blocked-after-logout]");
+          return null;
+        }
         const user = normalizeSupabaseSessionUser(session);
         if (!user) return null;
         const fallbackSummary = createFallbackAccountSummary(user);
@@ -7991,6 +8030,10 @@ Important:
         const supabaseClient = getSupabaseAuthClient();
         if (!supabaseClient?.auth?.onAuthStateChange) return null;
         const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+          if (isSessionRestoreSuppressed() || authState.status === "loggingOut") {
+            console.info("[auth][restore-blocked-after-logout]");
+            return;
+          }
           if (event === "SIGNED_OUT") {
             clearCurrentAuthState();
             clearMagicAiAuthStorage();
@@ -7998,12 +8041,13 @@ Important:
             return;
           }
           if (!session?.user || isHandlingSupabaseAuthStateEvent) return;
-          if (!["INITIAL_SESSION", "SIGNED_IN", "TOKEN_REFRESHED"].includes(event)) return;
+          if (event === "INITIAL_SESSION") return;
+          if (!["SIGNED_IN", "TOKEN_REFRESHED"].includes(event)) return;
 
           isHandlingSupabaseAuthStateEvent = true;
           refreshAuthState({ showError: false })
             .then((user) => {
-              if (!user) {
+              if (!user && !isSessionRestoreSuppressed() && authState.status !== "loggingOut") {
                 applySupabaseSessionFallback(session);
               }
             })
@@ -8014,7 +8058,9 @@ Important:
                 code: error?.code || error?.errorCode || "",
                 message: error?.message || "",
               });
-              applySupabaseSessionFallback(session);
+              if (!isSessionRestoreSuppressed() && authState.status !== "loggingOut") {
+                applySupabaseSessionFallback(session);
+              }
             })
             .finally(() => {
               isHandlingSupabaseAuthStateEvent = false;
@@ -9250,6 +9296,11 @@ Important:
         authChecked = true;
         isLoggedIn = isAuthenticatedUser(currentUser);
         isMyPhotoBoxLoggedIn = isLoggedIn;
+        setAuthState({
+          status: isLoggedIn ? "authenticated" : "unauthenticated",
+          user: currentUser,
+          lastProvider: currentUser ? getUserAuthProvider(currentUser) || authState.lastProvider : authState.lastProvider,
+        });
         const adminRole = getUserAdminRole(currentUser);
         const isAllowedAdminUser = Boolean(currentUser && (authIsAdmin || adminRole.hasAdminRole));
         isAdmin = isAllowedAdminUser;
@@ -11324,29 +11375,51 @@ Important:
           return;
         }
 
-        const requests = [
-          ["요약", fetchAdminJson("/api/admin/summary")],
-          ["회원 관리", fetchAdminJson(getAdminUsersUrl())],
-          ["결제 내역", fetchAdminJson("/api/admin/payments")],
-          ["생성내역", fetchAdminGenerations()],
-          ["갤러리 관리", fetchAdminGalleryItems()],
-        ];
-        const results = await Promise.allSettled(requests.map(([, request]) => request));
-        const errors = results
-          .map((result, index) => result.status === "rejected" ? requests[index][0] : "")
-          .filter(Boolean);
+        const initialDashboardArgs = {
+          summaryPayload: {},
+          usersPayload: {},
+          usersError: null,
+          paymentsPayload: {},
+          generationsPayload: {},
+          generationsError: null,
+          galleryPayload: {},
+          galleryError: null,
+          errors: [],
+        };
+        renderAdminDashboard(initialDashboardArgs);
 
-        renderAdminDashboard({
-          summaryPayload: results[0].status === "fulfilled" ? results[0].value : {},
-          usersPayload: results[1].status === "fulfilled" ? results[1].value : {},
-          usersError: results[1].status === "rejected" ? results[1].reason : null,
-          paymentsPayload: results[2].status === "fulfilled" ? results[2].value : {},
-          generationsPayload: results[3].status === "fulfilled" ? results[3].value : {},
-          generationsError: results[3].status === "rejected" ? results[3].reason : null,
-          galleryPayload: results[4].status === "fulfilled" ? results[4].value : {},
-          galleryError: results[4].status === "rejected" ? results[4].reason : null,
-          errors,
-        });
+        const updateAdminDashboardSection = (patch = {}, failedSection = "") => {
+          if (!lastAdminDashboardRenderArgs || appScreen !== "admin") return;
+          const nextErrors = new Set(lastAdminDashboardRenderArgs.errors || []);
+          if (failedSection) {
+            nextErrors.add(failedSection);
+          }
+          renderAdminDashboard({
+            ...lastAdminDashboardRenderArgs,
+            ...patch,
+            errors: Array.from(nextErrors),
+          });
+        };
+
+        void fetchAdminJson("/api/admin/summary")
+          .then((summaryPayload) => updateAdminDashboardSection({ summaryPayload }))
+          .catch((error) => updateAdminDashboardSection({ summaryPayload: {} }, "요약"));
+        void fetchAdminJson(getAdminUsersUrl())
+          .then((usersPayload) => updateAdminDashboardSection({ usersPayload, usersError: null }))
+          .catch((error) => updateAdminDashboardSection({ usersPayload: {}, usersError: error }, "회원 관리"));
+        void fetchAdminJson("/api/admin/payments")
+          .then((paymentsPayload) => updateAdminDashboardSection({ paymentsPayload }))
+          .catch(() => updateAdminDashboardSection({ paymentsPayload: {} }, "결제 내역"));
+        window.setTimeout(() => {
+          void fetchAdminGenerations()
+            .then((generationsPayload) => updateAdminDashboardSection({ generationsPayload, generationsError: null }))
+            .catch((error) => updateAdminDashboardSection({ generationsPayload: {}, generationsError: error }, "생성내역"));
+        }, 120);
+        window.setTimeout(() => {
+          void fetchAdminGalleryItems()
+            .then((galleryPayload) => updateAdminDashboardSection({ galleryPayload, galleryError: null }))
+            .catch((error) => updateAdminDashboardSection({ galleryPayload: {}, galleryError: error }, "갤러리 관리"));
+        }, 240);
       }
 
       async function refreshAdminUsersAndSummary({ deletedUserId = "", includeActivity = false } = {}) {
@@ -11886,6 +11959,10 @@ Important:
       }
 
       async function getSupabaseAccessTokenForAuthRequest() {
+        if (isSessionRestoreSuppressed() || authState.status === "loggingOut") {
+          console.info("[auth][restore-blocked-after-logout]");
+          return "";
+        }
         const supabaseClient = getSupabaseAuthClient();
         if (!supabaseClient?.auth?.getSession) return "";
 
@@ -11903,53 +11980,83 @@ Important:
       window.getMagicAiStudioSupabaseAccessToken = getSupabaseAccessTokenForAuthRequest;
 
       async function fetchCurrentUser(options = {}) {
-        const { silent = true } = options;
-        if (!silent || DEBUG_MODE) {
-          console.info("[auth] calling /api/auth/me");
+        const { silent = true, force = false } = options;
+        const now = Date.now();
+        if (!force && inFlightAuthMePromise && now - lastAuthMeStartedAt < 1000) {
+          return inFlightAuthMePromise;
         }
-        const accessToken = await getSupabaseAccessTokenForAuthRequest();
-        const headers = {};
-        if (accessToken) {
-          headers.Authorization = `Bearer ${accessToken}`;
-        }
-        const response = await fetch(getAuthApiUrl("/api/auth/me"), {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-          headers,
-        });
-        const parsed = await parseJsonResponseBody(response, { logInvalidJson: response.status !== 401 });
-        const payload = parsed.data || {};
-
-        if (response.status === 401) {
-          if (!silent || DEBUG_MODE) {
-            console.info("[auth] /api/auth/me: guest");
+        lastAuthMeStartedAt = now;
+        inFlightAuthMePromise = (async () => {
+          const startedAt = performance.now();
+          const accessToken = await getSupabaseAccessTokenForAuthRequest();
+          const headers = {};
+          if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
           }
-          return { ok: false, authenticated: false, user: null, __guest: true };
-        }
+          const response = await fetch(getAuthApiUrl("/api/auth/me"), {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+            headers,
+          });
+          const parsed = await parseJsonResponseBody(response, { logInvalidJson: response.status !== 401 });
+          const payload = parsed.data || {};
 
-        const user = normalizeAuthUser(payload);
-        if (response.ok && (isUnauthenticatedAuthPayload(payload) || !user)) {
-          if (!silent || DEBUG_MODE) {
-            console.info("[auth] /api/auth/me: guest");
+          if (response.status === 401) {
+            console.info("[auth][me][result]", {
+              status: 401,
+              currentProvider: "",
+              isAdmin: false,
+              ms: Math.round(performance.now() - startedAt),
+            });
+            return { ok: false, authenticated: false, user: null, __guest: true };
           }
-          return { ...payload, authenticated: false, user: null, __guest: true };
-        }
 
-        if (!response.ok || !parsed.parseOk || payload?.ok === false) {
-          const error = new Error(payload?.message || payload?.error || parsed.message || `Auth me request failed: ${response.status}`);
-          error.statusCode = response.status;
-          error.code = payload?.code || payload?.errorCode || payload?.error || "";
-          error.response = payload;
-          error.rawPreview = parsed.rawText?.slice(0, 300);
-          throw error;
-        }
+          const user = normalizeAuthUser(payload);
+          if (response.ok && (isUnauthenticatedAuthPayload(payload) || !user)) {
+            console.info("[auth][me][result]", {
+              status: response.status,
+              currentProvider: "",
+              isAdmin: false,
+              ms: Math.round(performance.now() - startedAt),
+            });
+            return { ...payload, authenticated: false, user: null, __guest: true };
+          }
 
-        return payload;
+          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+            const error = new Error(payload?.message || payload?.error || parsed.message || `Auth me request failed: ${response.status}`);
+            error.statusCode = response.status;
+            error.code = payload?.code || payload?.errorCode || payload?.error || "";
+            error.response = payload;
+            error.rawPreview = parsed.rawText?.slice(0, 300);
+            throw error;
+          }
+
+          console.info("[auth][me][result]", {
+            status: response.status,
+            currentProvider: user?.currentProvider || user?.provider || "",
+            isAdmin: user?.isAdmin === true || user?.role === "admin",
+            ms: Math.round(performance.now() - startedAt),
+          });
+          return payload;
+        })();
+        try {
+          return await inFlightAuthMePromise;
+        } finally {
+          window.setTimeout(() => {
+            if (Date.now() - lastAuthMeStartedAt >= 1000) {
+              inFlightAuthMePromise = null;
+            }
+          }, 1000);
+        }
       }
 
       async function refreshAuthState(options = {}) {
-        const { showError = false } = options;
+        const { showError = false, force = false } = options;
+        if (authState.status === "loggingOut" || isSessionRestoreSuppressed()) {
+          console.info("[auth][restore-blocked-after-logout]");
+          return null;
+        }
         isAuthLoading = true;
         if (currentUser) {
           generationUsageStatus = "loading";
@@ -11958,43 +12065,21 @@ Important:
         }
 
         try {
-          const payload = await fetchCurrentUser({ silent: !showError });
+          const payload = await fetchCurrentUser({ silent: !showError, force });
           const normalizedUser = normalizeAuthUser(payload);
-          if (currentUser && (!normalizedUser || isUnauthenticatedAuthPayload(payload))) {
-            console.warn("[auth][account-summary][unavailable]", {
-              reason: "current auth payload unavailable",
-              hasCurrentUser: Boolean(currentUser),
-              userId: getAuthenticatedUserId(currentUser),
-            });
-            applyFallbackAccountSummary(currentUser, "current auth payload unavailable");
-            authChecked = true;
-            isAuthLoading = false;
-            syncAuthUi();
-            updateCreditUi();
-            syncEditorGenerationCopy();
-            return currentUser;
+          if (!normalizedUser || isUnauthenticatedAuthPayload(payload)) {
+            applyAuthSession({ ok: false, authenticated: false, user: null });
+            return null;
           }
           applyAuthSession(payload);
-          if (currentUser?.isAdmin === true) {
-            try {
-              const adminPayload = await fetchAdminStatus();
-              applyAdminSession(adminPayload);
-            } catch (adminError) {
-              if (DEBUG_MODE) {
-                console.warn("[client][admin] /api/admin/me failed:", adminError);
-              }
-              applyAdminSession({ ok: false, isAdmin: false, admin: null });
-            }
-          }
           return currentUser;
         } catch (error) {
-          console.warn("[client][auth] /api/auth/me failed", {
-            status: error?.status || error?.statusCode || "",
-            code: error?.code || error?.errorCode || "",
-            message: error?.message || "",
-          });
           if (DEBUG_MODE || showError) {
-            console.warn("[client][auth] /api/auth/me failed:", error);
+            console.warn("[client][auth] /api/auth/me failed", {
+              status: error?.status || error?.statusCode || "",
+              code: error?.code || error?.errorCode || "",
+              message: error?.message || "",
+            });
           }
           const duplicateProviderError = getDuplicateProviderErrorFromPayload(error.response || error);
           if (duplicateProviderError) {
@@ -12009,28 +12094,10 @@ Important:
             showAccountMenuToast(`${attemptedLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
             return null;
           }
-          if (currentUser) {
-            console.warn("[auth][account-summary][unavailable]", {
-              reason: error?.message || "account summary fetch failed",
-              hasCurrentUser: Boolean(currentUser),
-              userId: getAuthenticatedUserId(currentUser),
-            });
-            applyFallbackAccountSummary(currentUser, error?.message || "account summary fetch failed");
-            if (DEBUG_MODE || showError) {
-              console.warn("[client][auth] preserving session after account summary failure:", error);
-            }
-            syncAuthUi();
-            updateCreditUi();
-            return currentUser;
-          }
-          if (error?.statusCode === 401 || String(error?.code || "").toUpperCase() === "LOGIN_REQUIRED") {
-            handleExpiredAuthSession({ showMessage: showError });
-            return null;
-          }
           if (showError) {
             showAccountMenuToast("로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
           }
-          applyAuthUser(null);
+          applyAuthSession({ ok: false, authenticated: false, user: null });
           return null;
         } finally {
           authChecked = true;
@@ -12185,24 +12252,42 @@ Important:
           broadcast = true,
         } = options;
 
-        console.info("[auth][logout][click]", { source });
+        if (authState.status === "loggingOut") return;
+        console.info("[auth][logout][start]");
+        suppressSessionRestore(5000);
+        setAuthState({ status: "loggingOut", user: null });
+        clearCurrentAuthState();
+        clearMagicAiAuthStorage();
+        setAuthState({ status: "loggingOut", user: null });
+        if (closeMenus) {
+          closeAccountMenu();
+          closeLoginModal();
+          closeCustomerInfoModal();
+          closeDuplicateProviderModal();
+        }
+        cleanLoginRedirectQuery();
+        syncAuthUi();
+        updateCreditUi();
+        renderMyPhotoBoxScreen();
 
         try {
-          console.info("[auth][logout][start]", {
-            redirectTo,
-            hasCurrentUser: Boolean(currentUser),
-          });
+          try {
+            await fetch(getAuthApiUrl("/api/auth/logout"), {
+              method: "POST",
+              credentials: "include",
+              cache: "no-store",
+              headers: { "Content-Type": "application/json" },
+            }).catch(() => null);
+          } catch (error) {
+            console.warn("[auth][logout][backend-ignore]", {
+              message: error?.message,
+            });
+          }
 
           const supabaseClient = getSupabaseAuthClient();
           if (supabaseClient?.auth?.signOut) {
             try {
-              const { error } = await supabaseClient.auth.signOut({ scope: "global" });
-              if (error) {
-                console.warn("[auth][logout][supabase-error]", {
-                  name: error?.name,
-                  message: error?.message,
-                });
-              }
+              await supabaseClient.auth.signOut({ scope: "local" }).catch(() => null);
             } catch (error) {
               console.warn("[auth][logout][supabase-error]", {
                 name: error?.name,
@@ -12211,65 +12296,35 @@ Important:
             }
           }
 
-          try {
-            const response = await fetch(getAuthApiUrl("/api/auth/logout"), {
-              method: "POST",
-              credentials: "include",
-              cache: "no-store",
-              headers: { "Content-Type": "application/json" },
-            });
-            if (!response.ok && DEBUG_MODE) {
-              console.warn("[auth][logout][backend-ignore]", {
-                status: response.status,
-                message: `Logout request failed: ${response.status}`,
-              });
-            }
-          } catch (error) {
-            console.warn("[auth][logout][backend-ignore]", {
-              message: error?.message,
-            });
-          }
-
           clearCurrentAuthState();
           clearMagicAiAuthStorage();
           if (broadcast) {
             setStorageItem(FORCE_LOGOUT_STORAGE_KEY, String(Date.now()));
           }
-          if (closeMenus) {
-            closeAccountMenu();
-            closeLoginModal();
-            closeCustomerInfoModal();
-            closeDuplicateProviderModal();
-          }
-          cleanLoginRedirectQuery();
           if (redirectTo === "landing" || redirectTo === "home") {
             navigateToScreen("landing");
           } else if (redirectTo && getScreenFromLoginReturnView(redirectTo)) {
             navigateToScreen(getScreenFromLoginReturnView(redirectTo));
           }
+          setAuthState({ status: "unauthenticated", user: null });
           syncAuthUi();
           updateCreditUi();
           renderMyPhotoBoxScreen();
-
-          let sessionAfterLogout = null;
-          try {
-            sessionAfterLogout = await getCurrentSupabaseSessionSafe();
-          } catch (error) {
-            sessionAfterLogout = null;
-          }
-          console.info("[auth][logout][done]", {
-            hasSessionAfterLogout: Boolean(sessionAfterLogout),
-            hasCurrentUserAfterLogout: Boolean(currentUser),
-          });
+          console.info("[auth][logout][done]");
           if (showToast) {
             showAccountMenuToast("로그아웃되었습니다.");
           }
         } catch (error) {
-          console.error("[auth][logout][failed]", error);
+          console.warn("[auth][logout][failed]", {
+            message: error?.message || "",
+          });
           clearCurrentAuthState();
           clearMagicAiAuthStorage();
+          setAuthState({ status: "unauthenticated", user: null });
           syncAuthUi();
           showAccountMenuToast("로그아웃 중 문제가 발생했습니다. 새로고침 후 다시 시도해 주세요.");
+        } finally {
+          history.replaceState(history.state || getCurrentAppHistoryState(), "", window.location.pathname);
         }
       }
 
@@ -12860,6 +12915,10 @@ Important:
       }
 
       async function getCurrentSupabaseSessionSafe() {
+        if (isSessionRestoreSuppressed() || authState.status === "loggingOut") {
+          console.info("[auth][restore-blocked-after-logout]");
+          return null;
+        }
         try {
           const supabaseClient = getSupabaseAuthClient();
           if (!supabaseClient?.auth?.getSession) return null;
@@ -12875,23 +12934,22 @@ Important:
         const provider = inferProviderFromAuthFailure(loginParams) || "kakao";
         const providerLabel = getProviderLabel(provider);
         const reason = String(loginParams.get("reason") || loginParams.get("auth_error") || loginParams.get("error") || loginParams.get("code") || "").trim();
-        console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
-        console.log("[auth] auth error:", getAuthLogDetails(loginParams));
         console.info("[auth][callback][failed]", {
           provider,
           reason,
         });
+        suppressSessionRestore(3000);
         authFlowState = "error";
+        clearMagicAiUserCacheStorage();
+        applyAuthSession({ ok: false, authenticated: false, user: null });
         showAccountMenuToast(`${providerLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
         hideAuthProcessingOverlay();
         cleanLoginRedirectQuery();
         console.info("[auth][callback][query-cleaned]");
         clearAuthStartState();
         clearLoginReturnState();
-        if (!currentUser) {
-          navigateToLoginReturnView(returnView);
-          openLoginModal(null, { tab: getAuthModeFromParams(loginParams), forceAuthForm: true });
-        }
+        navigateToLoginReturnView(returnView);
+        openLoginModal(null, { tab: getAuthModeFromParams(loginParams), forceAuthForm: true });
         openCreditManagementForPaymentResult(paymentStatus);
         return currentUser;
       }
@@ -13352,40 +13410,16 @@ Important:
 
       async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), options = {}) {
         const authMode = getAuthModeFromParams(loginParams);
-        const supabaseSession = options.session || null;
         const callbackProvider = sanitizeOAuthProvider(loginParams.get("provider"));
         expectedAuthCallbackProvider = callbackProvider || "";
         if (callbackProvider) {
           clearMagicAiUserCacheStorage();
           applyAuthUser(null);
         }
-        let usedSupabaseSessionFallback = false;
         showAuthProcessingOverlay(authMode);
-        console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
-        console.log("[auth] login success detected:", { mode: authMode, provider: loginParams.get("provider") || "" });
-        console.log("[auth] fetchCurrentUser after success");
-        if (supabaseSession?.user) {
-          const fallbackUser = applySupabaseSessionFallback(supabaseSession);
-          usedSupabaseSessionFallback = Boolean(fallbackUser);
-        }
+        console.info("[auth] login success detected", { mode: authMode, provider: loginParams.get("provider") || "" });
         try {
-          let user = await refreshAuthState({ showError: false });
-          if (!user && currentUser) {
-            user = currentUser;
-          }
-          if (!accountSummaryLoadError) {
-            usedSupabaseSessionFallback = false;
-          }
-          if (!user && supabaseSession) {
-            console.warn("[auth][callback] account summary unavailable after Supabase session", {
-              hasSession: true,
-              userId: supabaseSession?.user?.id || "",
-              email: supabaseSession?.user?.email || "",
-              provider: getSupabaseSessionProvider(supabaseSession),
-            });
-            user = currentUser || applySupabaseSessionFallback(supabaseSession);
-            usedSupabaseSessionFallback = Boolean(user);
-          }
+          let user = await refreshAuthState({ showError: false, force: true });
           if (!user) {
             authFlowState = "error";
             setAuthTab(authMode);
@@ -13402,18 +13436,10 @@ Important:
               const refreshedUser = await refreshAuthState({ showError: false });
               if (refreshedUser) {
                 user = refreshedUser;
-                usedSupabaseSessionFallback = false;
-                if (accountSummaryLoadError) {
-                  usedSupabaseSessionFallback = true;
-                }
               }
             }
           } catch (error) {
             console.warn("[auth] signup consent save failed:", error);
-            if (!currentUser && supabaseSession) {
-              user = currentUser || applySupabaseSessionFallback(supabaseSession);
-              usedSupabaseSessionFallback = Boolean(user);
-            }
             if (!user) {
               authFlowState = "error";
               setAuthTab(authMode);
@@ -13427,17 +13453,11 @@ Important:
 
           closeLoginModal();
           const displayName = getAuthUserName(user);
-          console.log("[auth] current user:", { hasUser: Boolean(user), id: getAuthenticatedUserId(user), provider: getUserAuthProvider(user), isAdmin: user?.isAdmin === true });
-          console.log("[auth] display login success toast:", displayName);
           authFlowState = authMode === "signup" ? "signup-success" : "login-success";
           openAccountMenuAfterAuth();
-          if (usedSupabaseSessionFallback) {
-            showAccountMenuToast("로그인되었습니다. 계정 정보를 불러오는 중 문제가 발생했습니다.");
-          } else {
-            showAccountMenuToast(authMode === "signup"
-              ? "환영합니다. Magic AI Studio 가입이 완료되었어요."
-              : `${displayName}님 로그인 되었습니다.`);
-          }
+          showAccountMenuToast(authMode === "signup"
+            ? "환영합니다. Magic AI Studio 가입이 완료되었어요."
+            : `${displayName}님 로그인 되었습니다.`);
           handlePostLoginExperience(returnView, { authMode });
           return user;
         } finally {
@@ -19440,9 +19460,7 @@ ${modeExample}`;
         accountMenuOverlay.classList.add("is-open");
         accountMenuOverlay.setAttribute("aria-hidden", "false");
         setAccountMenuExpanded(true);
-        if (getAuthenticatedUserId(currentUser)) {
-          void refreshAuthState({ showError: false });
-        }
+        syncAccountMenuUi();
 
         window.requestAnimationFrame(() => {
           const focusTarget = Array.from(accountMenuPanel.querySelectorAll("button"))
@@ -19804,6 +19822,10 @@ ${modeExample}`;
         }
 
         persistAuthStartState(safeProvider, authMode);
+        setAuthState({
+          status: "loggingIn",
+          lastProvider: safeProvider,
+        });
         const returnView = rememberLoginReturnView();
         const providerLabel = getOAuthProviderLabel(safeProvider);
         const loginStartUrl = getOAuthLoginStartUrl(safeProvider, returnView, authMode);
@@ -19898,6 +19920,10 @@ ${modeExample}`;
         }
 
         persistAuthStartState("google", authMode);
+        setAuthState({
+          status: "loggingIn",
+          lastProvider: "google",
+        });
         const actionLabel = authMode === "signup" ? "회원가입" : "로그인";
         setSocialLoginButtonLoading(button, true, `Google ${actionLabel}으로 이동 중...`);
         showAuthProcessingOverlay(authMode);
@@ -19939,6 +19965,10 @@ ${modeExample}`;
           });
           logGoogleAuthError("[auth][google][start-error]", details);
           clearAuthStartState();
+          setAuthState({
+            status: currentUser ? "authenticated" : "unauthenticated",
+            user: currentUser,
+          });
           hideAuthProcessingOverlay();
           setSocialLoginButtonLoading(button, false);
           showAccountMenuToast(getGoogleAuthStartFailureMessage(details));
@@ -19965,12 +19995,11 @@ ${modeExample}`;
           return;
         }
         const safeProvider = sanitizeOAuthProvider(provider);
-        const session = await getCurrentSupabaseSessionSafe();
-        const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser) || session?.user);
+        const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser));
         console.info("[auth][provider-click]", {
           provider: safeProvider || provider || "",
           hasCurrentUser: Boolean(currentUser),
-          hasSession: Boolean(session?.user),
+          hasSession: false,
           mode: hasLoggedInUser ? "account-menu" : "login",
         });
         if (hasLoggedInUser && safeProvider) {

@@ -9198,14 +9198,16 @@ Important:
             currentUser.consentRequired = false;
           }
         }
-        console.log("[auth] currentUser updated");
-        console.info("[auth][admin-state]", {
-          email: currentUser?.email || "",
-          provider: getUserAuthProvider(currentUser),
-          role: currentUser?.role || "",
-          isAdmin,
-        });
-        if (currentUser && !suppressNextProviderLoginSuccessLog) {
+        if (DEBUG_MODE) {
+          console.log("[auth] currentUser updated");
+          console.info("[auth][admin-state]", {
+            email: currentUser?.email || "",
+            provider: getUserAuthProvider(currentUser),
+            role: currentUser?.role || "",
+            isAdmin,
+          });
+        }
+        if (DEBUG_MODE && currentUser && !suppressNextProviderLoginSuccessLog) {
           console.info("[auth][provider-login-success]", {
             currentProvider: currentUser.currentProvider || getUserAuthProvider(currentUser),
             linkedProviders: getLinkedProviders(currentUser),
@@ -12547,39 +12549,23 @@ Important:
         }
       }
 
-      async function refreshExistingSessionAfterProviderFailure(provider = "", reason = "") {
-        suppressNextProviderLoginSuccessLog = true;
-        try {
-          const user = await refreshAuthState({ showError: false });
-          console.info("[auth][existing-session-restored]", {
-            provider: currentUser?.currentProvider || currentUser?.provider || user?.currentProvider || user?.provider || "",
-            suppressSuccessToast: true,
-            reason,
-          });
-          return user || currentUser;
-        } finally {
-          suppressNextProviderLoginSuccessLog = false;
-        }
-      }
-
       async function handleAuthFailureRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), paymentStatus = "") {
         const provider = inferProviderFromAuthFailure(loginParams) || "kakao";
         const providerLabel = getProviderLabel(provider);
         const reason = String(loginParams.get("reason") || loginParams.get("auth_error") || loginParams.get("error") || loginParams.get("code") || "").trim();
         console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
         console.log("[auth] auth error:", getAuthLogDetails(loginParams));
-        console.warn("[auth][provider-failed]", {
+        console.info("[auth][callback][failed]", {
           provider,
           reason,
-          existingSessionProvider: currentUser?.currentProvider || currentUser?.provider || "",
         });
         authFlowState = "error";
         showAccountMenuToast(`${providerLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
         hideAuthProcessingOverlay();
         cleanLoginRedirectQuery();
+        console.info("[auth][callback][query-cleaned]");
         clearAuthStartState();
         clearLoginReturnState();
-        await refreshExistingSessionAfterProviderFailure(provider, reason || "provider_login_failed");
         if (!currentUser) {
           navigateToLoginReturnView(returnView);
           openLoginModal(null, { tab: getAuthModeFromParams(loginParams), forceAuthForm: true });
@@ -19434,6 +19420,8 @@ ${modeExample}`;
       }
 
       function handleKakaoLogin(button) {
+        console.info("[auth][kakao][click]");
+        cleanLoginRedirectQuery();
         startOAuthLogin("kakao", button, getAuthModeFromButton(button));
       }
 
@@ -19639,6 +19627,10 @@ ${modeExample}`;
       }
 
       async function handleSocialLogin(provider, button) {
+        if (provider === "kakao") {
+          handleKakaoLogin(button);
+          return;
+        }
         const safeProvider = sanitizeOAuthProvider(provider);
         const session = await getCurrentSupabaseSessionSafe();
         const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser) || session?.user);
@@ -19651,10 +19643,6 @@ ${modeExample}`;
         if (hasLoggedInUser && safeProvider) {
           closeLoginModal();
           openAccountMenu(button || activeAccountMenuTrigger || landingAuthButton || topSettingsButton);
-          return;
-        }
-        if (provider === "kakao") {
-          handleKakaoLogin(button);
           return;
         }
         if (provider === "naver") {

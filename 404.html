@@ -8390,18 +8390,70 @@ Important:
       }
 
       function normalizeAuthUser(payload = {}) {
-        const user = payload?.user ?? payload?.data?.user ?? null;
+        const user = payload?.user
+          ?? payload?.data?.user
+          ?? payload?.accountSummary?.user
+          ?? payload?.account_summary?.user
+          ?? payload?.data?.accountSummary?.user
+          ?? payload?.data?.account_summary?.user
+          ?? null;
         if (!user || typeof user !== "object") return null;
 
         const normalizedUser = { ...user };
-        const resolvedProvider = String(
+        const explicitCurrentProvider = String(
           normalizedUser.currentProvider
           || normalizedUser.current_provider
-          || normalizedUser.provider
-          || normalizedUser.authProvider
-          || normalizedUser.auth_provider
+          || payload?.accountSummary?.user?.currentProvider
+          || payload?.accountSummary?.user?.current_provider
+          || payload?.account_summary?.user?.currentProvider
+          || payload?.account_summary?.user?.current_provider
+          || payload?.data?.accountSummary?.user?.currentProvider
+          || payload?.data?.accountSummary?.user?.current_provider
+          || payload?.data?.account_summary?.user?.currentProvider
+          || payload?.data?.account_summary?.user?.current_provider
+          || payload?.currentProvider
+          || payload?.current_provider
+          || payload?.data?.currentProvider
+          || payload?.data?.current_provider
           || "",
         ).trim().toLowerCase();
+        const rawProvider = String(
+          normalizedUser.provider
+          || normalizedUser.authProvider
+          || normalizedUser.auth_provider
+          || payload?.accountSummary?.user?.provider
+          || payload?.accountSummary?.user?.authProvider
+          || payload?.accountSummary?.user?.auth_provider
+          || payload?.account_summary?.user?.provider
+          || payload?.account_summary?.user?.authProvider
+          || payload?.account_summary?.user?.auth_provider
+          || payload?.data?.accountSummary?.user?.provider
+          || payload?.data?.accountSummary?.user?.authProvider
+          || payload?.data?.accountSummary?.user?.auth_provider
+          || payload?.data?.account_summary?.user?.provider
+          || payload?.data?.account_summary?.user?.authProvider
+          || payload?.data?.account_summary?.user?.auth_provider
+          || payload?.provider
+          || payload?.authProvider
+          || payload?.auth_provider
+          || payload?.data?.provider
+          || payload?.data?.authProvider
+          || payload?.data?.auth_provider
+          || "",
+        ).trim().toLowerCase();
+        const expectedProvider = sanitizeOAuthProvider(expectedAuthCallbackProvider);
+        let resolvedProvider = explicitCurrentProvider || rawProvider;
+        let didPreventProviderOverwrite = false;
+        if (!explicitCurrentProvider && expectedProvider && rawProvider && rawProvider !== expectedProvider) {
+          console.warn("[auth][prevent-provider-overwrite]", {
+            expectedProvider,
+            attemptedProvider: rawProvider,
+          });
+          resolvedProvider = expectedProvider;
+          didPreventProviderOverwrite = true;
+        } else if (!explicitCurrentProvider && expectedProvider && !rawProvider) {
+          resolvedProvider = expectedProvider;
+        }
         const appUserId = String(
           normalizedUser.appUserId
           || normalizedUser.app_user_id
@@ -8467,16 +8519,26 @@ Important:
         normalizedUser.provider = normalizedUser.currentProvider;
         normalizedUser.authProvider = normalizedUser.currentProvider;
         normalizedUser.auth_provider = normalizedUser.currentProvider;
-        const linkedProviders = normalizeLinkedProviders(
-          normalizedUser.linkedProviders
-          || normalizedUser.linked_providers
-          || payload?.linkedProviders
-          || payload?.linked_providers
-          || payload?.data?.linkedProviders
-          || payload?.data?.linked_providers
-          || "",
-          resolvedProvider,
-        );
+        const linkedProviders = didPreventProviderOverwrite
+          ? [resolvedProvider]
+          : normalizeLinkedProviders(
+            normalizedUser.linkedProviders
+            || normalizedUser.linked_providers
+            || payload?.accountSummary?.user?.linkedProviders
+            || payload?.accountSummary?.user?.linked_providers
+            || payload?.account_summary?.user?.linkedProviders
+            || payload?.account_summary?.user?.linked_providers
+            || payload?.data?.accountSummary?.user?.linkedProviders
+            || payload?.data?.accountSummary?.user?.linked_providers
+            || payload?.data?.account_summary?.user?.linkedProviders
+            || payload?.data?.account_summary?.user?.linked_providers
+            || payload?.linkedProviders
+            || payload?.linked_providers
+            || payload?.data?.linkedProviders
+            || payload?.data?.linked_providers
+            || "",
+            resolvedProvider,
+          );
         if (resolvedProvider && !linkedProviders.includes(resolvedProvider)) {
           linkedProviders.unshift(resolvedProvider);
         }
@@ -9104,6 +9166,12 @@ Important:
           accountMenuUserLinkedProviders.textContent = linkedProvidersText;
           accountMenuUserLinkedProviders.classList.toggle("hidden", !linkedProvidersText);
         }
+        console.info("[account-menu][provider-display]", {
+          currentProvider: currentUser?.currentProvider || "",
+          provider: currentUser?.provider || "",
+          linkedProviders: currentUser?.linkedProviders || [],
+          source: "backend-me",
+        });
         if (accountMenuUserCredit) {
           accountMenuUserCredit.textContent = getRemainingUsesDisplayText();
         }
@@ -9357,6 +9425,48 @@ Important:
 
         clearAutoLogoutStorage();
         console.info("[auth][logout][storage-cleared]");
+      }
+
+      function clearMagicAiUserCacheStorage() {
+        const directKeys = [
+          "magic_ai_user",
+          "magic_ai_current_user",
+          "magic_ai_account_summary",
+          "magic_ai_auth_user",
+          "magic_ai_provider",
+          "magic_ai_linked_providers",
+          "magic_ai_admin_state",
+          "magic_ai_is_admin",
+        ];
+        [window.localStorage, window.sessionStorage].forEach((storage) => {
+          if (!storage) return;
+          directKeys.forEach((key) => {
+            try {
+              storage.removeItem(key);
+            } catch (error) {
+              // Ignore optional cache cleanup failures.
+            }
+          });
+          try {
+            for (let index = storage.length - 1; index >= 0; index -= 1) {
+              const key = storage.key(index);
+              const lower = String(key || "").toLowerCase();
+              if (
+                key
+                && (
+                  lower.includes("magic_ai_current_user")
+                  || lower.includes("magic_ai_account_summary")
+                  || lower.includes("magic_ai_provider")
+                  || lower.includes("magic_ai_admin")
+                )
+              ) {
+                storage.removeItem(key);
+              }
+            }
+          } catch (error) {
+            // Ignore optional cache cleanup failures.
+          }
+        });
       }
 
       function clearCurrentAuthState() {
@@ -13031,6 +13141,12 @@ Important:
       async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), options = {}) {
         const authMode = getAuthModeFromParams(loginParams);
         const supabaseSession = options.session || null;
+        const callbackProvider = sanitizeOAuthProvider(loginParams.get("provider"));
+        expectedAuthCallbackProvider = callbackProvider || "";
+        if (callbackProvider) {
+          clearMagicAiUserCacheStorage();
+          applyAuthUser(null);
+        }
         let usedSupabaseSessionFallback = false;
         showAuthProcessingOverlay(authMode);
         console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
@@ -13113,6 +13229,7 @@ Important:
           handlePostLoginExperience(returnView, { authMode });
           return user;
         } finally {
+          expectedAuthCallbackProvider = "";
           clearAuthStartState();
           cleanLoginRedirectQuery();
           clearLoginReturnState();
@@ -19016,6 +19133,7 @@ ${modeExample}`;
       let authProcessingMessageText = "";
       let shouldOpenAccountMenuAfterAuth = false;
       let pendingAuthStartedAt = null;
+      let expectedAuthCallbackProvider = "";
 
       window.addEventListener("storage", handleAuthStorageEvent);
 

@@ -5996,22 +5996,6 @@
           <h2 class="login-modal-title font-display" id="loginModalTitle">Magic AI Studio 로그인</h2>
           <p class="login-modal-lead" id="loginModalDescription">로그인 또는 회원가입을 선택해 주세요.</p>
           <p class="login-modal-copy">로그인하면 생성한 사진을 마이포토박스에 보관하고, 이용권을 안전하게 관리할 수 있어요.</p>
-          <div class="mt-4 hidden rounded-[18px] border border-white/80 bg-white/70 p-3" id="loginUserSummary">
-            <div class="flex items-center gap-3">
-              <img class="hidden h-10 w-10 rounded-full object-cover" id="loginUserAvatar" alt="프로필 이미지" />
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-bold text-on-surface" id="loginUserName">로그인된 사용자</p>
-                <p class="truncate text-xs leading-5 text-on-surface-variant" id="loginUserEmail"></p>
-                <p class="hidden text-xs font-semibold leading-5 text-primary" id="loginUserLinkedProviders"></p>
-              </div>
-            </div>
-            <div class="mt-3 flex items-center justify-between gap-3">
-              <p class="text-xs font-bold text-primary" id="loginUserCredit">남은 제작 횟수 0회</p>
-              <button class="h-8 rounded-full bg-primary/10 px-3 text-xs font-bold text-primary" id="loginModalLogoutButton" type="button">
-                로그아웃
-              </button>
-            </div>
-          </div>
           <div class="auth-tab-list" role="tablist" aria-label="로그인 또는 회원가입 선택">
             <button class="auth-tab-button is-active" id="authLoginTab" data-auth-tab="login" type="button" role="tab" aria-selected="true" aria-controls="authLoginPanel">로그인</button>
             <button class="auth-tab-button" id="authSignupTab" data-auth-tab="signup" type="button" role="tab" aria-selected="false" aria-controls="authSignupPanel">회원가입</button>
@@ -6166,29 +6150,6 @@
           <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="customerInfoDoneButton" type="button">
             닫기
           </button>
-        </div>
-      </section>
-    </div>
-
-    <div class="login-modal-overlay" id="duplicateProviderModalOverlay" aria-hidden="true">
-      <section class="login-modal-panel" id="duplicateProviderModalPanel" role="dialog" aria-modal="true" aria-labelledby="duplicateProviderTitle" aria-describedby="duplicateProviderDescription">
-        <div class="login-modal-header">
-          <button class="login-modal-close" id="duplicateProviderClose" type="button" aria-label="동일 이메일 로그인 안내 닫기">
-            <span class="material-symbols-outlined" aria-hidden="true">close</span>
-          </button>
-        </div>
-        <div class="login-modal-body">
-          <h2 class="login-modal-title font-display" id="duplicateProviderTitle">이미 가입된 이메일입니다</h2>
-          <p class="login-modal-lead" id="duplicateProviderDescription">이 이메일은 이미 기존 로그인 계정으로 가입되어 있습니다.</p>
-          <p class="login-modal-copy" id="duplicateProviderProtectionText">이용권과 결제 내역 보호를 위해 다른 로그인 방식으로 새 계정을 만들 수 없습니다.</p>
-          <p class="login-modal-copy font-bold text-primary" id="duplicateProviderActionText">기존 로그인으로 다시 이용해 주세요.</p>
-          <div class="mt-5 grid gap-2">
-            <button class="social-login-button is-kakao" id="duplicateProviderLoginButton" type="button">
-              <span class="social-login-icon" id="duplicateProviderLoginIcon">K</span>
-              <span id="duplicateProviderLoginLabel">기존 로그인으로 로그인하기</span>
-            </button>
-            <button class="h-12 rounded-full bg-white/75 text-primary text-sm font-bold border border-primary/10" id="duplicateProviderConfirmButton" type="button">확인</button>
-          </div>
         </div>
       </section>
     </div>
@@ -7212,13 +7173,6 @@ Important:
       const siteGuideFaqList = document.getElementById("siteGuideFaqList");
       const siteGuideCreditButton = document.getElementById("siteGuideCreditButton");
       const siteGuideContactButton = document.getElementById("siteGuideContactButton");
-      const loginUserSummary = document.getElementById("loginUserSummary");
-      const loginUserAvatar = document.getElementById("loginUserAvatar");
-      const loginUserName = document.getElementById("loginUserName");
-      const loginUserEmail = document.getElementById("loginUserEmail");
-      const loginUserLinkedProviders = document.getElementById("loginUserLinkedProviders");
-      const loginUserCredit = document.getElementById("loginUserCredit");
-      const loginModalLogoutButton = document.getElementById("loginModalLogoutButton");
       const authTabList = document.querySelector(".auth-tab-list");
       const authTabButtons = Array.from(document.querySelectorAll("[data-auth-tab]"));
       const authTabPanels = Array.from(document.querySelectorAll("[data-auth-panel]"));
@@ -7455,10 +7409,8 @@ Important:
       let isAdminDeletingGalleryItem = false;
       let adminOperationStatusMessage = "";
       let adminOperationStatusType = "";
-      let duplicateProviderLoginState = null;
       let lastLinkedProviderToastKey = "";
       let suppressNextProviderLoginSuccessLog = false;
-      let providerLinkRequestInFlight = false;
       let isNicepayReviewLoginLoading = false;
       const guideSteps = [
         {
@@ -8036,7 +7988,7 @@ Important:
           isHandlingSupabaseAuthStateEvent = true;
           refreshAuthState({ showError: false })
             .then((user) => {
-              if (!user && !duplicateProviderLoginState) {
+              if (!user) {
                 applySupabaseSessionFallback(session);
               }
             })
@@ -8714,11 +8666,7 @@ Important:
           if (!button.dataset.defaultLabel) {
             button.dataset.defaultLabel = labelElement.textContent || "";
           }
-          if (hasUser && provider !== "apple") {
-            labelElement.textContent = `${getProviderLabel(provider)} 연결하기`;
-          } else {
-            labelElement.textContent = button.dataset.defaultLabel || labelElement.textContent || "";
-          }
+          labelElement.textContent = button.dataset.defaultLabel || labelElement.textContent || "";
         });
       }
 
@@ -9175,45 +9123,6 @@ Important:
       }
 
       function syncAuthUi() {
-        const hasUser = Boolean(currentUser);
-        loginUserSummary?.classList.toggle("hidden", !hasUser);
-
-        if (loginUserName) {
-          loginUserName.textContent = hasUser ? `${getAuthUserName(currentUser)}님` : "로그인된 사용자";
-        }
-
-        if (loginUserEmail) {
-          const email = hasUser ? getAuthUserEmail(currentUser) : "";
-          loginUserEmail.textContent = email || `${getOAuthProviderLabel(getUserAuthProvider(currentUser))} 계정으로 로그인되었습니다.`;
-          loginUserEmail.classList.toggle("hidden", !hasUser);
-        }
-
-        const linkedProvidersText = hasUser ? getProviderSummaryDisplayText(currentUser) : "";
-        if (loginUserLinkedProviders) {
-          loginUserLinkedProviders.textContent = linkedProvidersText;
-          loginUserLinkedProviders.classList.toggle("hidden", !linkedProvidersText);
-        }
-
-        if (loginUserCredit) {
-          loginUserCredit.textContent = getRemainingUsesDisplayText();
-        }
-
-        if (loginUserAvatar) {
-          const avatar = hasUser ? getAuthUserAvatar(currentUser) : "";
-          if (avatar) {
-            loginUserAvatar.src = avatar;
-            loginUserAvatar.onerror = () => {
-              loginUserAvatar.removeAttribute("src");
-              loginUserAvatar.classList.add("hidden");
-            };
-            loginUserAvatar.classList.remove("hidden");
-          } else {
-            loginUserAvatar.onerror = null;
-            loginUserAvatar.removeAttribute("src");
-            loginUserAvatar.classList.add("hidden");
-          }
-        }
-
         syncAuthTabUi();
         syncAccountMenuUi();
         syncLandingAuthButtonUi();
@@ -11765,8 +11674,15 @@ Important:
           }
           const duplicateProviderError = getDuplicateProviderErrorFromPayload(error.response || error);
           if (duplicateProviderError) {
-            applyAuthUser(null);
-            showDuplicateProviderModal(duplicateProviderError);
+            const attemptedProvider = sanitizeOAuthProvider(duplicateProviderError.attemptedProvider) || "";
+            const attemptedLabel = attemptedProvider ? getProviderLabel(attemptedProvider) : "소셜";
+            console.info("[auth][provider-conflict-fallback]", {
+              attemptedProvider: attemptedProvider || duplicateProviderError.attemptedProvider || "",
+              existingProvider: duplicateProviderError.existingProvider || "",
+              email: duplicateProviderError.email || "",
+              code: duplicateProviderError.code || error?.code || "",
+            });
+            showAccountMenuToast(`${attemptedLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
             return null;
           }
           if (currentUser) {
@@ -12078,7 +11994,7 @@ Important:
         if (remainingUses === null) {
           const baseText = generationUsageStatus === "error"
             ? "남은 제작 횟수를 불러오지 못했어요"
-            : "남은 제작 횟수 확인 중...";
+            : "계정 정보를 확인하고 있어요";
           return `${baseText}${freeGenerationText}`;
         }
         return `남은 제작 횟수 ${formatCreditNumber(remainingUses)}회${freeGenerationText}`;
@@ -12163,7 +12079,7 @@ Important:
           labelText = "무료 1회 제작 시작";
           detailText = "가입 선물 · 워터마크 포함";
         } else if (hasUser && getRemainingUses() === null) {
-          labelText = "남은 제작 횟수 확인 중";
+          labelText = "계정 정보 확인 중";
           detailText = "잠시만 기다려 주세요";
         } else if (hasUser && getRemainingUses() < 1) {
           labelText = "이용권 구매하기";
@@ -12203,9 +12119,6 @@ Important:
         });
 
         syncAccountMenuUi();
-        if (loginUserCredit) {
-          loginUserCredit.textContent = getRemainingUsesDisplayText();
-        }
       }
 
       function normalizeCreditValue(value) {
@@ -12729,10 +12642,15 @@ Important:
       function handleDuplicateProviderRedirectQuery(searchParams = new URLSearchParams(window.location.search)) {
         const duplicateProviderError = getDuplicateProviderErrorFromParams(searchParams);
         if (!duplicateProviderError) return false;
-        if (!currentUser) {
-          applyAuthUser(null);
-        }
-        showDuplicateProviderModal(duplicateProviderError);
+        const attemptedProvider = sanitizeOAuthProvider(duplicateProviderError.attemptedProvider) || inferProviderFromAuthFailure(searchParams) || "";
+        const attemptedLabel = attemptedProvider ? getProviderLabel(attemptedProvider) : "소셜";
+        console.info("[auth][provider-conflict-fallback]", {
+          attemptedProvider: attemptedProvider || duplicateProviderError.attemptedProvider || "",
+          existingProvider: duplicateProviderError.existingProvider || "",
+          email: duplicateProviderError.email || "",
+          code: duplicateProviderError.code || "DUPLICATE_EMAIL_DIFFERENT_PROVIDER",
+        });
+        showAccountMenuToast(`${attemptedLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
         cleanLoginRedirectQuery();
         return true;
       }
@@ -13144,7 +13062,7 @@ Important:
           if (!accountSummaryLoadError) {
             usedSupabaseSessionFallback = false;
           }
-          if (!user && supabaseSession && !duplicateProviderLoginState) {
+          if (!user && supabaseSession) {
             console.warn("[auth][callback] account summary unavailable after Supabase session", {
               hasSession: true,
               userId: supabaseSession?.user?.id || "",
@@ -15665,7 +15583,7 @@ Important:
             body: failedUsageBody,
           },
           GENERATION_USAGE_UNAVAILABLE: {
-            title: "남은 제작 횟수 확인 중",
+            title: "계정 정보 확인 중",
             body: "남은 제작 횟수를 확인 중입니다. 잠시 후 다시 시도해 주세요.",
           },
         };
@@ -19061,15 +18979,6 @@ ${modeExample}`;
       const loginModalPanel = document.getElementById("loginModalPanel");
       const loginModalClose = document.getElementById("loginModalClose");
       const duplicateProviderModalOverlay = document.getElementById("duplicateProviderModalOverlay");
-      const duplicateProviderModalPanel = document.getElementById("duplicateProviderModalPanel");
-      const duplicateProviderClose = document.getElementById("duplicateProviderClose");
-      const duplicateProviderConfirmButton = document.getElementById("duplicateProviderConfirmButton");
-      const duplicateProviderDescription = document.getElementById("duplicateProviderDescription");
-      const duplicateProviderProtectionText = document.getElementById("duplicateProviderProtectionText");
-      const duplicateProviderActionText = document.getElementById("duplicateProviderActionText");
-      const duplicateProviderLoginButton = document.getElementById("duplicateProviderLoginButton");
-      const duplicateProviderLoginIcon = document.getElementById("duplicateProviderLoginIcon");
-      const duplicateProviderLoginLabel = document.getElementById("duplicateProviderLoginLabel");
       const googleInAppBrowserModalOverlay = document.getElementById("googleInAppBrowserModalOverlay");
       const googleInAppBrowserModalPanel = document.getElementById("googleInAppBrowserModalPanel");
       const googleInAppBrowserClose = document.getElementById("googleInAppBrowserClose");
@@ -19271,16 +19180,12 @@ ${modeExample}`;
 
       function openLoginModal(trigger, options = {}) {
         if (!loginModalOverlay || !loginModalPanel) return;
-        if (getAuthenticatedUserId(currentUser) && options.forceAuthForm !== true) {
+        if (getAuthenticatedUserId(currentUser)) {
           activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
           syncAuthUi();
           syncAccountMenuUi();
-          loginModalOverlay.classList.add("is-open");
-          loginModalOverlay.setAttribute("aria-hidden", "false");
-
-          window.requestAnimationFrame(() => {
-            loginModalLogoutButton?.focus({ preventScroll: true });
-          });
+          closeLoginModal();
+          openAccountMenu(trigger || activeAccountMenuTrigger || landingAuthButton || topSettingsButton);
           return;
         }
 
@@ -19319,63 +19224,10 @@ ${modeExample}`;
         navigateToScreen(fallbackScreen);
       }
 
-      function showDuplicateProviderModal(payload = {}) {
-        if (!duplicateProviderModalOverlay || !duplicateProviderModalPanel) return;
-
-        const existingProvider = sanitizeOAuthProvider(payload.existingProvider) || "unknown";
-        const attemptedProvider = sanitizeOAuthProvider(payload.attemptedProvider) || "unknown";
-        const existingLabel = payload.existingProviderLabel || getProviderLabel(existingProvider);
-        const attemptedLabel = payload.attemptedProviderLabel || getProviderLabel(attemptedProvider);
-        const returnTo = normalizeGoogleReturnTo(payload.returnTo || getLoginReturnViewFromScreen());
-        const email = String(payload.email || payload.userEmail || payload.user_email || currentUser?.email || "").trim();
-        duplicateProviderLoginState = {
-          existingProvider,
-          attemptedProvider,
-          returnTo,
-          email,
-        };
-
-        console.info("[auth][provider-conflict-fallback]", {
-          attemptedProvider,
-          existingProvider,
-          email,
-          code: payload.code || payload.auth_error || payload.error || "DUPLICATE_EMAIL_DIFFERENT_PROVIDER",
-        });
-
-        if (duplicateProviderDescription) {
-          duplicateProviderDescription.textContent = `이 이메일은 이미 ${existingLabel} 계정으로 가입되어 있습니다.`;
-        }
-        if (duplicateProviderProtectionText) {
-          duplicateProviderProtectionText.textContent = `이용권과 결제 내역 보호를 위해 ${attemptedLabel}로 새 계정을 만들 수 없습니다.`;
-        }
-        if (duplicateProviderActionText) {
-          duplicateProviderActionText.textContent = `${existingLabel} 로그인으로 다시 이용해 주세요.`;
-        }
-        if (duplicateProviderLoginLabel) {
-          duplicateProviderLoginLabel.textContent = `${existingLabel}로 로그인하기`;
-        }
-        if (duplicateProviderLoginIcon) {
-          duplicateProviderLoginIcon.textContent = existingProvider === "naver" ? "N" : existingProvider === "google" ? "G" : existingProvider === "apple" ? "A" : "K";
-        }
-        if (duplicateProviderLoginButton) {
-          duplicateProviderLoginButton.className = `social-login-button is-${existingProvider === "unknown" ? "kakao" : existingProvider}`;
-        }
-
-        closeLoginModal();
-        closeAccountMenu();
-        duplicateProviderModalOverlay.classList.add("is-open");
-        duplicateProviderModalOverlay.setAttribute("aria-hidden", "false");
-
-        window.requestAnimationFrame(() => {
-          duplicateProviderModalPanel.querySelector("button")?.focus({ preventScroll: true });
-        });
-      }
-
       function closeDuplicateProviderModal() {
         if (!duplicateProviderModalOverlay) return;
         duplicateProviderModalOverlay.classList.remove("is-open");
         duplicateProviderModalOverlay.setAttribute("aria-hidden", "true");
-        duplicateProviderLoginState = null;
       }
 
       function openGoogleInAppBrowserModal(inAppInfo = detectInAppBrowser()) {
@@ -19508,89 +19360,7 @@ ${modeExample}`;
           openLoginModal(button || activeAccountMenuTrigger);
           return;
         }
-        startOAuthLogin(safeProvider, button || duplicateProviderLoginButton, "login", options);
-      }
-
-      async function linkProviderToCurrentAccount(provider, button = null, options = {}) {
-        const safeProvider = sanitizeOAuthProvider(provider);
-        if (!safeProvider || providerLinkRequestInFlight) return null;
-
-        const providerLabel = getProviderLabel(safeProvider);
-        const session = await getCurrentSupabaseSessionSafe();
-        const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser) || session?.user);
-        console.info("[auth][provider-click]", {
-          provider: safeProvider,
-          hasCurrentUser: Boolean(currentUser),
-          hasSession: Boolean(session?.user),
-          mode: hasLoggedInUser ? "link" : "login",
-        });
-
-        if (!hasLoggedInUser) {
-          startOAuthLogin(safeProvider, button, "login", options);
-          return null;
-        }
-
-        const linkedProviders = getLinkedProviders(currentUser);
-        if (linkedProviders.includes(safeProvider)) {
-          showAccountMenuToast(`이미 ${providerLabel} 로그인이 연결되어 있어요.`);
-          return currentUser;
-        }
-
-        providerLinkRequestInFlight = true;
-        setSocialLoginButtonLoading(button, true, `${providerLabel} 연결 중...`);
-
-        try {
-          const accessToken = await getSupabaseAccessTokenForAuthRequest();
-          const headers = { "Content-Type": "application/json" };
-          if (accessToken) {
-            headers.Authorization = `Bearer ${accessToken}`;
-          }
-          const response = await fetch(getAuthApiUrl("/api/auth/link-provider"), {
-            method: "POST",
-            credentials: "include",
-            cache: "no-store",
-            headers,
-            body: JSON.stringify({
-              provider: safeProvider,
-              returnTo: options.returnTo || "account",
-            }),
-          });
-          const parsed = await parseJsonResponseBody(response, { logInvalidJson: true });
-          const payload = parsed.data || {};
-          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
-            const error = new Error(payload?.message || payload?.error || parsed.message || `${providerLabel} provider link failed`);
-            error.statusCode = response.status;
-            error.code = payload?.code || payload?.errorCode || payload?.error || "";
-            error.response = payload;
-            throw error;
-          }
-
-          if (payload?.url || payload?.redirectUrl || payload?.redirect_url) {
-            window.location.href = payload.url || payload.redirectUrl || payload.redirect_url;
-            return currentUser;
-          }
-
-          applyAuthSession(payload);
-          await refreshAuthState({ showError: false });
-          closeLoginModal();
-          openAccountMenuAfterAuth();
-          showAccountMenuToast(`${providerLabel} 로그인을 연결했어요.`);
-          return currentUser;
-        } catch (error) {
-          console.warn("[auth][provider-link-failed]", {
-            provider: safeProvider,
-            status: error?.status || error?.statusCode || "",
-            code: error?.code || "",
-            message: error?.message || "",
-            existingSessionProvider: currentUser?.currentProvider || currentUser?.provider || "",
-          });
-          showAccountMenuToast(`${providerLabel} 연결에 실패했습니다. 기존 ${getProviderLabel(getUserAuthProvider(currentUser))} 로그인은 유지됩니다.`);
-          return currentUser;
-        } finally {
-          providerLinkRequestInFlight = false;
-          setSocialLoginButtonLoading(button, false);
-          syncSocialLoginButtonLabels();
-        }
+        startOAuthLogin(safeProvider, button || activeAccountMenuTrigger, "login", options);
       }
 
       function openCustomerInfoModal(trigger) {
@@ -19703,7 +19473,8 @@ ${modeExample}`;
 
         const authMode = mode === "signup" ? "signup" : "login";
         if (getAuthenticatedUserId(currentUser)) {
-          void linkProviderToCurrentAccount(safeProvider, button, { returnTo: options.returnTo || "account" });
+          closeLoginModal();
+          openAccountMenu(button || activeAccountMenuTrigger || landingAuthButton || topSettingsButton);
           return;
         }
 
@@ -19733,7 +19504,8 @@ ${modeExample}`;
       async function startGoogleOAuthLogin(button, mode = "login", options = {}) {
         const authMode = mode === "signup" ? "signup" : "login";
         if (getAuthenticatedUserId(currentUser)) {
-          await linkProviderToCurrentAccount("google", button, { returnTo: options.returnTo || "account" });
+          closeLoginModal();
+          openAccountMenu(button || activeAccountMenuTrigger || landingAuthButton || topSettingsButton);
           return;
         }
 
@@ -19874,10 +19646,11 @@ ${modeExample}`;
           provider: safeProvider || provider || "",
           hasCurrentUser: Boolean(currentUser),
           hasSession: Boolean(session?.user),
-          mode: hasLoggedInUser ? "link" : "login",
+          mode: hasLoggedInUser ? "account-menu" : "login",
         });
         if (hasLoggedInUser && safeProvider) {
-          await linkProviderToCurrentAccount(safeProvider, button, { returnTo: "account" });
+          closeLoginModal();
+          openAccountMenu(button || activeAccountMenuTrigger || landingAuthButton || topSettingsButton);
           return;
         }
         if (provider === "kakao") {
@@ -20161,21 +19934,6 @@ ${modeExample}`;
         }
       });
 
-      duplicateProviderClose?.addEventListener("click", () => {
-        closeDuplicateProviderModal();
-      });
-
-      duplicateProviderConfirmButton?.addEventListener("click", () => {
-        closeDuplicateProviderModal();
-      });
-
-      duplicateProviderLoginButton?.addEventListener("click", () => {
-        const provider = duplicateProviderLoginState?.existingProvider || "";
-        const returnTo = duplicateProviderLoginState?.returnTo || getLoginReturnViewFromScreen();
-        closeDuplicateProviderModal();
-        startProviderLogin(provider, duplicateProviderLoginButton, { returnTo });
-      });
-
       duplicateProviderModalOverlay?.addEventListener("click", (event) => {
         if (event.target === duplicateProviderModalOverlay) {
           closeDuplicateProviderModal();
@@ -20268,19 +20026,6 @@ ${modeExample}`;
         await logoutEverywhere({
           redirectTo: "landing",
           source: appScreen === "landing" ? "landing-account-menu" : "account-menu",
-        });
-        if (appScreen === "myPhotoBox") {
-          myPhotos = [];
-          renderMyPhotoBoxScreen();
-        }
-      });
-
-      loginModalLogoutButton?.addEventListener("click", async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        await logoutEverywhere({
-          redirectTo: "landing",
-          source: "login-modal-account-summary",
         });
         if (appScreen === "myPhotoBox") {
           myPhotos = [];

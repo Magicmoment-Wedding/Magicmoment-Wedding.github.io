@@ -7457,6 +7457,8 @@ Important:
       let adminOperationStatusType = "";
       let duplicateProviderLoginState = null;
       let lastLinkedProviderToastKey = "";
+      let suppressNextProviderLoginSuccessLog = false;
+      let providerLinkRequestInFlight = false;
       let isNicepayReviewLoginLoading = false;
       const guideSteps = [
         {
@@ -8695,9 +8697,27 @@ Important:
           }
           button.setAttribute("aria-disabled", shouldDisable ? "true" : "false");
         });
+        syncSocialLoginButtonLabels();
         if (allRequiredConsentsChecked && signupConsentMessage) {
           signupConsentMessage.textContent = "";
         }
+      }
+
+      function syncSocialLoginButtonLabels() {
+        const hasUser = Boolean(getAuthenticatedUserId(currentUser));
+        socialLoginButtons.forEach((button) => {
+          const provider = sanitizeOAuthProvider(button.dataset.socialLoginProvider);
+          const labelElement = button.querySelector("span:nth-child(2)");
+          if (!provider || !labelElement || button.classList.contains("cursor-wait")) return;
+          if (!button.dataset.defaultLabel) {
+            button.dataset.defaultLabel = labelElement.textContent || "";
+          }
+          if (hasUser && provider !== "apple") {
+            labelElement.textContent = `${getProviderLabel(provider)} 연결하기`;
+          } else {
+            labelElement.textContent = button.dataset.defaultLabel || labelElement.textContent || "";
+          }
+        });
       }
 
       function toggleAllRequiredConsents() {
@@ -9274,7 +9294,7 @@ Important:
           role: currentUser?.role || "",
           isAdmin,
         });
-        if (currentUser) {
+        if (currentUser && !suppressNextProviderLoginSuccessLog) {
           console.info("[auth][provider-login-success]", {
             currentProvider: currentUser.currentProvider || getUserAuthProvider(currentUser),
             linkedProviders: getLinkedProviders(currentUser),
@@ -12429,7 +12449,9 @@ Important:
         url.searchParams.delete("error");
         url.searchParams.delete("error_code");
         url.searchParams.delete("error_description");
+        url.searchParams.delete("auth_error_description");
         url.searchParams.delete("code");
+        url.searchParams.delete("state");
         url.searchParams.delete("access_token");
         url.searchParams.delete("refresh_token");
         url.searchParams.delete("expires_at");
@@ -12454,6 +12476,69 @@ Important:
         const nextHash = shouldClearHash ? "" : url.hash;
         const nextUrl = `${nextPathname}${nextSearch ? `?${nextSearch}` : ""}${nextHash}`;
         history.replaceState(history.state || getCurrentAppHistoryState(), "", nextUrl || nextPathname);
+      }
+
+      function inferProviderFromAuthFailure(searchParams = new URLSearchParams(window.location.search)) {
+        const explicitProvider = sanitizeOAuthProvider(searchParams.get("provider"));
+        if (explicitProvider) return explicitProvider;
+        const reason = String(searchParams.get("reason") || searchParams.get("message") || "").toLowerCase();
+        if (reason.includes("kakao")) return "kakao";
+        if (reason.includes("naver")) return "naver";
+        if (reason.includes("google")) return "google";
+        return "";
+      }
+
+      async function getCurrentSupabaseSessionSafe() {
+        try {
+          const supabaseClient = getSupabaseAuthClient();
+          if (!supabaseClient?.auth?.getSession) return null;
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error) return null;
+          return data?.session || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function refreshExistingSessionAfterProviderFailure(provider = "", reason = "") {
+        suppressNextProviderLoginSuccessLog = true;
+        try {
+          const user = await refreshAuthState({ showError: false });
+          console.info("[auth][existing-session-restored]", {
+            provider: currentUser?.currentProvider || currentUser?.provider || user?.currentProvider || user?.provider || "",
+            suppressSuccessToast: true,
+            reason,
+          });
+          return user || currentUser;
+        } finally {
+          suppressNextProviderLoginSuccessLog = false;
+        }
+      }
+
+      async function handleAuthFailureRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), paymentStatus = "") {
+        const provider = inferProviderFromAuthFailure(loginParams) || "kakao";
+        const providerLabel = getProviderLabel(provider);
+        const reason = String(loginParams.get("reason") || loginParams.get("auth_error") || loginParams.get("error") || loginParams.get("code") || "").trim();
+        console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
+        console.log("[auth] auth error:", getAuthLogDetails(loginParams));
+        console.warn("[auth][provider-failed]", {
+          provider,
+          reason,
+          existingSessionProvider: currentUser?.currentProvider || currentUser?.provider || "",
+        });
+        authFlowState = "error";
+        showAccountMenuToast(`${providerLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
+        hideAuthProcessingOverlay();
+        cleanLoginRedirectQuery();
+        clearAuthStartState();
+        clearLoginReturnState();
+        await refreshExistingSessionAfterProviderFailure(provider, reason || "provider_login_failed");
+        if (!currentUser) {
+          navigateToLoginReturnView(returnView);
+          openLoginModal(null, { tab: getAuthModeFromParams(loginParams), forceAuthForm: true });
+        }
+        openCreditManagementForPaymentResult(paymentStatus);
+        return currentUser;
       }
 
       function getDuplicateProviderErrorFromParams(searchParams = new URLSearchParams(window.location.search)) {
@@ -12510,7 +12595,9 @@ Important:
       function handleDuplicateProviderRedirectQuery(searchParams = new URLSearchParams(window.location.search)) {
         const duplicateProviderError = getDuplicateProviderErrorFromParams(searchParams);
         if (!duplicateProviderError) return false;
-        applyAuthUser(null);
+        if (!currentUser) {
+          applyAuthUser(null);
+        }
         showDuplicateProviderModal(duplicateProviderError);
         cleanLoginRedirectQuery();
         return true;
@@ -13193,26 +13280,8 @@ Important:
         const hasLoginQuery = handleLoginRedirectQuery();
 
         if (hasAuthError) {
-          authStartupCheckPromise = Promise.resolve()
-            .then(() => {
-              console.log("[auth] callback query:", getSafeAuthLogParams(loginParams));
-              console.log("[auth] auth error:", getAuthLogDetails(loginParams));
-              const errorMode = getAuthModeFromParams(loginParams);
-              applyAuthUser(null);
-              authFlowState = "error";
-              showAccountMenuToast(getLoginFailureMessage(loginParams));
-              hideAuthProcessingOverlay();
-              if (!handleAuthModeErrorPrompt(loginParams)) {
-                navigateToLoginReturnView(loginReturnView);
-                openLoginModal(null, { tab: errorMode, forceAuthForm: true });
-              }
-              openCreditManagementForPaymentResult(paymentStatus);
-              return null;
-            })
+          authStartupCheckPromise = handleAuthFailureRedirect(loginParams, loginReturnView, paymentStatus)
             .finally(() => {
-              clearAuthStartState();
-              cleanLoginRedirectQuery();
-              clearLoginReturnState();
               hideAuthProcessingOverlay();
               console.log("[auth] cleaned auth query:", window.location.search);
               if (hasPaymentQuery) {
@@ -19308,6 +19377,88 @@ ${modeExample}`;
         startOAuthLogin(safeProvider, button || duplicateProviderLoginButton, "login", options);
       }
 
+      async function linkProviderToCurrentAccount(provider, button = null, options = {}) {
+        const safeProvider = sanitizeOAuthProvider(provider);
+        if (!safeProvider || providerLinkRequestInFlight) return null;
+
+        const providerLabel = getProviderLabel(safeProvider);
+        const session = await getCurrentSupabaseSessionSafe();
+        const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser) || session?.user);
+        console.info("[auth][provider-click]", {
+          provider: safeProvider,
+          hasCurrentUser: Boolean(currentUser),
+          hasSession: Boolean(session?.user),
+          mode: hasLoggedInUser ? "link" : "login",
+        });
+
+        if (!hasLoggedInUser) {
+          startOAuthLogin(safeProvider, button, "login", options);
+          return null;
+        }
+
+        const linkedProviders = getLinkedProviders(currentUser);
+        if (linkedProviders.includes(safeProvider)) {
+          showAccountMenuToast(`이미 ${providerLabel} 로그인이 연결되어 있어요.`);
+          return currentUser;
+        }
+
+        providerLinkRequestInFlight = true;
+        setSocialLoginButtonLoading(button, true, `${providerLabel} 연결 중...`);
+
+        try {
+          const accessToken = await getSupabaseAccessTokenForAuthRequest();
+          const headers = { "Content-Type": "application/json" };
+          if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
+          }
+          const response = await fetch(getAuthApiUrl("/api/auth/link-provider"), {
+            method: "POST",
+            credentials: "include",
+            cache: "no-store",
+            headers,
+            body: JSON.stringify({
+              provider: safeProvider,
+              returnTo: options.returnTo || "account",
+            }),
+          });
+          const parsed = await parseJsonResponseBody(response, { logInvalidJson: true });
+          const payload = parsed.data || {};
+          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+            const error = new Error(payload?.message || payload?.error || parsed.message || `${providerLabel} provider link failed`);
+            error.statusCode = response.status;
+            error.code = payload?.code || payload?.errorCode || payload?.error || "";
+            error.response = payload;
+            throw error;
+          }
+
+          if (payload?.url || payload?.redirectUrl || payload?.redirect_url) {
+            window.location.href = payload.url || payload.redirectUrl || payload.redirect_url;
+            return currentUser;
+          }
+
+          applyAuthSession(payload);
+          await refreshAuthState({ showError: false });
+          closeLoginModal();
+          openAccountMenuAfterAuth();
+          showAccountMenuToast(`${providerLabel} 로그인을 연결했어요.`);
+          return currentUser;
+        } catch (error) {
+          console.warn("[auth][provider-link-failed]", {
+            provider: safeProvider,
+            status: error?.status || error?.statusCode || "",
+            code: error?.code || "",
+            message: error?.message || "",
+            existingSessionProvider: currentUser?.currentProvider || currentUser?.provider || "",
+          });
+          showAccountMenuToast(`${providerLabel} 연결에 실패했습니다. 기존 ${getProviderLabel(getUserAuthProvider(currentUser))} 로그인은 유지됩니다.`);
+          return currentUser;
+        } finally {
+          providerLinkRequestInFlight = false;
+          setSocialLoginButtonLoading(button, false);
+          syncSocialLoginButtonLabels();
+        }
+      }
+
       function openCustomerInfoModal(trigger) {
         if (!customerInfoModalOverlay || !customerInfoModalPanel || !currentUser) return;
 
@@ -19418,8 +19569,7 @@ ${modeExample}`;
 
         const authMode = mode === "signup" ? "signup" : "login";
         if (getAuthenticatedUserId(currentUser)) {
-          showAccountMenuToast("새 계정으로 로그인하려면 먼저 로그아웃해 주세요.");
-          openLoginModal(button);
+          void linkProviderToCurrentAccount(safeProvider, button, { returnTo: options.returnTo || "account" });
           return;
         }
 
@@ -19449,8 +19599,7 @@ ${modeExample}`;
       async function startGoogleOAuthLogin(button, mode = "login", options = {}) {
         const authMode = mode === "signup" ? "signup" : "login";
         if (getAuthenticatedUserId(currentUser)) {
-          showAccountMenuToast("새 계정으로 로그인하려면 먼저 로그아웃해 주세요.");
-          openLoginModal(button);
+          await linkProviderToCurrentAccount("google", button, { returnTo: options.returnTo || "account" });
           return;
         }
 
@@ -19583,7 +19732,20 @@ ${modeExample}`;
         showAccountMenuToast("소셜 로그인 연동을 준비 중입니다.");
       }
 
-      function handleSocialLogin(provider, button) {
+      async function handleSocialLogin(provider, button) {
+        const safeProvider = sanitizeOAuthProvider(provider);
+        const session = await getCurrentSupabaseSessionSafe();
+        const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser) || session?.user);
+        console.info("[auth][provider-click]", {
+          provider: safeProvider || provider || "",
+          hasCurrentUser: Boolean(currentUser),
+          hasSession: Boolean(session?.user),
+          mode: hasLoggedInUser ? "link" : "login",
+        });
+        if (hasLoggedInUser && safeProvider) {
+          await linkProviderToCurrentAccount(safeProvider, button, { returnTo: "account" });
+          return;
+        }
         if (provider === "kakao") {
           handleKakaoLogin(button);
           return;
@@ -19952,7 +20114,7 @@ ${modeExample}`;
 
       socialLoginButtons.forEach((button) => {
         button.addEventListener("click", () => {
-          handleSocialLogin(button.dataset.socialLoginProvider, button);
+          void handleSocialLogin(button.dataset.socialLoginProvider, button);
         });
       });
       nicepayReviewLoginForm?.addEventListener("submit", handleNicepayReviewLogin);

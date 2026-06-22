@@ -247,6 +247,11 @@ export function renderResultPage(state) {
     </section>
 
     <section class="w-full flex flex-col gap-3">
+      <button class="w-full h-14 rounded-full bg-primary/90 hover:bg-primary text-on-primary font-button text-button shadow-[0_8px_20px_rgba(129,80,92,0.3)] backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 transition-all active:scale-95 group" data-action="finish-result">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+        완료
+      </button>
+      <p class="px-2 text-xs leading-5 text-on-surface-variant">완료 후에도 마이포토박스에서 다시 확인할 수 있어요.</p>
       <button class="w-full h-14 rounded-full glass-panel text-primary font-button text-button hover:bg-white/50 transition-all active:scale-95 flex items-center justify-center gap-2" data-action="download-result">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">download</span>
         사진/갤러리에 저장

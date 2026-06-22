@@ -13,6 +13,6 @@ export function renderLayout({ route, title, content, state }) {
     ${route === "credits" || route === "settings" ? "" : renderBottomNav({ route, hasResults: state.results.length > 0 })}
     ${renderModal(state)}
     ${renderFirstTimeOnboarding(state)}
-    ${state.isGenerating ? renderLoadingOverlay() : ""}
+    ${state.isGenerating ? renderLoadingOverlay(state) : ""}
   `;
 }

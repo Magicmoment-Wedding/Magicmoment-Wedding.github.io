@@ -5,7 +5,7 @@ import { delay } from "./ai-utils.js";
 import { analyzePresetImage } from "./grok-analysis.js";
 import { buildParisEiffelPrompt } from "./prompt-builder.js";
 import { canUseApiGenerationForPreset, isOnlineApiPlaceholder } from "./config.js";
-import { generateParisEiffelImage } from "./api-generation.js";
+import { generateParisEiffelImage, waitForGenerationResult } from "./api-generation.js";
 import { getPresetPromptIntent } from "./prompt-intents.js";
 
 const DEFAULT_GENERATION_COUNT = 4;
@@ -31,6 +31,8 @@ function buildSafeMockPayload(state) {
 function createRealPayload(state, mockPayload, generatedImages, analysisMeta, prompt) {
   const sourceImage = getSourceImage(state.sourceImageId);
   const firstGeneratedImage = generatedImages.find((image) => image && typeof image === "object") ?? {};
+  const generationPayload = generatedImages.generationPayload ?? {};
+  const generationUsage = generationPayload.generationUsage ?? generationPayload.generation_usage ?? {};
   const firstSuccessfulIndex = generatedImages.findIndex((image) => {
     const imageUrl = typeof image === "string" ? image : image?.url;
     return Boolean(imageUrl);
@@ -73,6 +75,13 @@ function createRealPayload(state, mockPayload, generatedImages, analysisMeta, pr
       analysisMeta,
       resultMode: "real",
       resultProvider: "next-api",
+      jobId: generatedImages.generationJobId || generationPayload.jobId || generationPayload.job_id || "",
+      usesConsumed: generationPayload.usesConsumed ?? generationPayload.uses_consumed ?? 0,
+      remainingGenerationUses: generationPayload.remainingUses
+        ?? generationPayload.remaining_uses
+        ?? generationUsage.remainingGenerationUses
+        ?? generationUsage.remaining_generation_uses
+        ?? null,
       generationType: firstGeneratedImage.generationType || firstGeneratedImage.generation_type || (hasFreeGeneration(state.currentUser) ? "free" : "paid"),
       isFreeGeneration: firstGeneratedImage.isFreeGeneration === true || firstGeneratedImage.is_free_generation === true || hasFreeGeneration(state.currentUser),
       hasWatermark: firstGeneratedImage.hasWatermark === true || firstGeneratedImage.has_watermark === true || hasFreeGeneration(state.currentUser),
@@ -95,7 +104,7 @@ function attachMockMeta(mockPayload, analysisMeta, reason) {
   };
 }
 
-async function generateParisEiffelResults(state, mockPayload) {
+async function generateParisEiffelResults(state, mockPayload, options = {}) {
   const analysisMeta = await analyzePresetImage(state);
 
   if (!canUseApiGenerationForPreset(state.selectedPresetId)) {
@@ -125,6 +134,7 @@ async function generateParisEiffelResults(state, mockPayload) {
       prompt,
       count: DEFAULT_GENERATION_COUNT,
       useFreeGeneration: hasFreeGeneration(state.currentUser),
+      onStatus: options.onStatus,
     });
 
     if (!generatedImages.length) {
@@ -140,6 +150,7 @@ async function generateParisEiffelResults(state, mockPayload) {
     if (
       error?.isInsufficientCredits ||
       error?.code === "INSUFFICIENT_CREDITS" ||
+      error?.code === "NO_REMAINING_USES" ||
       error?.code === "NO_REMAINING_GENERATION_USES" ||
       error?.code === "FREE_GENERATION_ALREADY_USED" ||
       error?.code === "STORAGE_UPLOAD_FAILED" ||
@@ -172,6 +183,10 @@ function logSelectedResult(payload) {
 }
 
 export async function generateResults(state) {
+  return generateResultsWithOptions(state);
+}
+
+export async function generateResultsWithOptions(state, options = {}) {
   const mockPayload = buildSafeMockPayload(state);
 
   console.log("[generation] preset intent", {
@@ -190,11 +205,12 @@ export async function generateResults(state) {
           return attachMockMeta(mockPayload, null, "mock_only_preset");
         }
 
-        return generateParisEiffelResults(state, mockPayload);
+        return generateParisEiffelResults(state, mockPayload, options);
       } catch (error) {
         if (
           error?.isInsufficientCredits ||
           error?.code === "INSUFFICIENT_CREDITS" ||
+          error?.code === "NO_REMAINING_USES" ||
           error?.code === "NO_REMAINING_GENERATION_USES" ||
           error?.code === "FREE_GENERATION_ALREADY_USED" ||
           error?.code === "STORAGE_UPLOAD_FAILED" ||
@@ -223,6 +239,31 @@ export async function generateResults(state) {
   }
 
   return logSelectedResult(payload);
+}
+
+export async function resumeGenerationResults(state, jobId, options = {}) {
+  const mockPayload = buildSafeMockPayload(state);
+  const payload = await waitForGenerationResult(jobId, {
+    startRun: false,
+    onStatus: options.onStatus,
+  });
+  const resultItems = Array.isArray(payload.results)
+    ? payload.results
+    : (Array.isArray(payload.imageUrls || payload.image_urls)
+      ? (payload.imageUrls || payload.image_urls).map((url, index) => ({ ok: true, imageBase64: url, index }))
+      : Array.isArray(payload.images)
+        ? payload.images
+        : []);
+  Object.defineProperty(resultItems, "generationPayload", {
+    value: payload,
+    enumerable: false,
+  });
+  Object.defineProperty(resultItems, "generationJobId", {
+    value: jobId,
+    enumerable: false,
+  });
+
+  return logSelectedResult(createRealPayload(state, mockPayload, resultItems, null, ""));
 }
 
 export function generateStudioResults(state) {

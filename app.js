@@ -20,7 +20,8 @@ import { shouldShowWatermarkOverlay } from "./components/watermarked-image.js";
 import { openAssistantChat } from "./services/assistant-chat.js";
 import { CREDIT_PACKAGES, CREDIT_PRICING, PRINT_PRODUCTS, getCreditBreakdown } from "./services/credit.js";
 import { formatNumber } from "./services/format.js";
-import { generateResults, generateStudioResults } from "./services/generator.js";
+import { generateResultsWithOptions, generateStudioResults, resumeGenerationResults } from "./services/generator.js";
+import { clearActiveGenerationJob, fetchRecentActiveGenerationJob, getStoredActiveGenerationJobId } from "./services/api-generation.js";
 import { testChargeCredits } from "./services/credits-api.js";
 import {
   completeOnboarding,
@@ -296,6 +297,10 @@ function getGenerationErrorCopy(error = {}) {
       title: "남은 제작 횟수 없음",
       description: "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.",
     },
+    NO_REMAINING_USES: {
+      title: "남은 제작 횟수 없음",
+      description: "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.",
+    },
     FREE_GENERATION_ALREADY_USED: {
       title: "무료 제작 사용 완료",
       description: "무료 제작은 계정당 1회만 이용할 수 있습니다.",
@@ -447,6 +452,65 @@ function getRecommendedResultIndex(payload) {
 
   const resultIndex = payload?.results?.findIndex((result) => result.isRecommended);
   return resultIndex >= 0 ? resultIndex : null;
+}
+
+function handleGenerationStatusUpdate(status = {}) {
+  const isPaused = status.transient === true || status.status === "paused";
+  const message = isPaused
+    ? "생성 상태를 다시 확인하고 있어요."
+    : status.status === "succeeded" || status.status === "completed"
+      ? "사진 제작이 완료되었어요."
+      : "사진을 만들고 있어요.";
+
+  updateState({
+    generationJobId: status.jobId || getState().generationJobId || "",
+    generationStatusMessage: message,
+    generationNetworkPaused: isPaused,
+  });
+}
+
+async function applyGenerationResultPayload(resultPayload, requestState, useFreeGeneration, generationCost) {
+  const recommendedIndex = getRecommendedResultIndex(resultPayload);
+  const wasFreeGeneration = useFreeGeneration || resultPayload.generationMeta?.isFreeGeneration === true;
+  const refreshedUser = await fetchCurrentUser().catch((error) => {
+    console.warn("[generation] account summary refresh after success failed", error);
+    return getState().currentUser;
+  });
+
+  updateState({
+    currentUser: refreshedUser,
+    isGenerating: false,
+    generationJobId: "",
+    generationStatusMessage: "",
+    generationNetworkPaused: false,
+    activePreviewMode: "after",
+    selectedThumbnailIndex: recommendedIndex ?? 0,
+    results: resultPayload.results,
+    generationMeta: {
+      ...resultPayload.generationMeta,
+      billedCredits: 0,
+      regularCredits: generationCost,
+      usedFreeGeneration: wasFreeGeneration,
+      freeGenerationNumber: wasFreeGeneration ? 1 : null,
+      generationType: resultPayload.generationMeta?.generationType || (wasFreeGeneration ? "free" : "paid"),
+      isFreeGeneration: resultPayload.generationMeta?.isFreeGeneration === true || wasFreeGeneration,
+      hasWatermark: resultPayload.generationMeta?.hasWatermark === true || wasFreeGeneration,
+      watermarkRequired: resultPayload.generationMeta?.watermarkRequired === true || wasFreeGeneration,
+      watermarkStrategy: resultPayload.generationMeta?.watermarkStrategy || "",
+      remainingGenerationUses: resultPayload.generationMeta?.remainingGenerationUses
+        ?? resultPayload.generationUsage?.remainingGenerationUses
+        ?? getRemainingGenerationUses(refreshedUser),
+      qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
+      billingTitle: wasFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "사진 제작이 완료되었습니다",
+      billingDescription: wasFreeGeneration
+        ? "무료 제작 결과에는 워터마크가 포함됩니다."
+        : `사진 제작 1회마다 이용권 1회가 사용됩니다.`,
+      originRoute: ROUTES.OPTIONS,
+    },
+  });
+
+  clearActiveGenerationJob(resultPayload.generationMeta?.jobId || "");
+  navigate(ROUTES.RESULT);
 }
 
 function getImageModalItems(state) {
@@ -616,6 +680,9 @@ async function performGeneration() {
   updateState({
     activeModal: null,
     isGenerating: true,
+    generationJobId: "",
+    generationStatusMessage: "사진을 만들고 있어요.",
+    generationNetworkPaused: false,
   });
 
   console.log("[generation] 생성 시작", {
@@ -630,50 +697,17 @@ async function performGeneration() {
   });
 
   try {
-    const resultPayload = await generateResults(requestState);
+    const resultPayload = await generateResultsWithOptions(requestState, {
+      onStatus: handleGenerationStatusUpdate,
+    });
 
     console.log("[generation] 결과 데이터 세팅", {
       resultsCount: resultPayload?.results?.length ?? 0,
       resultPayload,
     });
 
-    const recommendedIndex = getRecommendedResultIndex(resultPayload);
-    const refreshedUser = await fetchCurrentUser().catch((error) => {
-      console.warn("[generation] account summary refresh after success failed", error);
-      return getState().currentUser;
-    });
-
-    updateState({
-      currentUser: refreshedUser,
-      isGenerating: false,
-      activePreviewMode: "after",
-      selectedThumbnailIndex: recommendedIndex ?? 0,
-      results: resultPayload.results,
-      generationMeta: {
-        ...resultPayload.generationMeta,
-        billedCredits: 0,
-        regularCredits: generationCost,
-        usedFreeGeneration: useFreeGeneration,
-        freeGenerationNumber: useFreeGeneration ? 1 : null,
-        generationType: resultPayload.generationMeta?.generationType || (useFreeGeneration ? "free" : "paid"),
-        isFreeGeneration: resultPayload.generationMeta?.isFreeGeneration === true || useFreeGeneration,
-        hasWatermark: resultPayload.generationMeta?.hasWatermark === true || useFreeGeneration,
-        watermarkRequired: resultPayload.generationMeta?.watermarkRequired === true || useFreeGeneration,
-        watermarkStrategy: resultPayload.generationMeta?.watermarkStrategy || "",
-        remainingGenerationUses: resultPayload.generationMeta?.remainingGenerationUses
-          ?? resultPayload.generationUsage?.remainingGenerationUses
-          ?? getRemainingGenerationUses(refreshedUser),
-        qualityLabel: requestState.useUpscale ? "고해상도" : "720p 해상도 (Standard Def)",
-        billingTitle: useFreeGeneration ? "무료 1회 제작이 적용되었습니다" : "사진 제작이 완료되었습니다",
-        billingDescription: useFreeGeneration
-          ? "무료 제작 결과에는 워터마크가 포함됩니다."
-          : `사진 제작 1회마다 이용권 1회가 사용됩니다.`,
-        originRoute: ROUTES.OPTIONS,
-      },
-    });
-
     console.log("[generation] 결과 화면 이동");
-    navigate(ROUTES.RESULT);
+    await applyGenerationResultPayload(resultPayload, requestState, useFreeGeneration, generationCost);
   } catch (error) {
     if (error?.code === "GENERATION_JOB_TIMEOUT") {
       console.warn("[client][generate][delayed]", {
@@ -687,11 +721,15 @@ async function performGeneration() {
     const refreshedUser = await fetchCurrentUser().catch(() => getState().currentUser);
     if (error?.isInsufficientCredits
       || error?.code === "INSUFFICIENT_CREDITS"
+      || error?.code === "NO_REMAINING_USES"
       || error?.code === "NO_REMAINING_GENERATION_USES"
       || error?.statusCode === 402) {
       updateState({
         currentUser: refreshedUser,
         isGenerating: false,
+        generationJobId: "",
+        generationStatusMessage: "",
+        generationNetworkPaused: false,
         creditStatusMessage: error.publicMessage || generationErrorCopy.description,
         creditStatusType: "error",
         activeModal: {
@@ -706,6 +744,89 @@ async function performGeneration() {
     updateState({
       currentUser: refreshedUser,
       isGenerating: false,
+      generationJobId: "",
+      generationStatusMessage: "",
+      generationNetworkPaused: false,
+      activeModal: {
+        type: "success",
+        title: generationErrorCopy.title,
+        description: error?.publicMessage || generationErrorCopy.description,
+      },
+    });
+  }
+}
+
+async function recoverActiveGenerationJob(reason = "startup") {
+  let jobId = getStoredActiveGenerationJobId();
+  const state = getState();
+
+  if (state.isGenerating) {
+    return;
+  }
+
+  if (!jobId) {
+    const recentJob = await fetchRecentActiveGenerationJob().catch((error) => {
+      console.warn("[generation] recent active lookup failed", error);
+      return null;
+    });
+    if (recentJob && ["pending", "queued", "processing", "running", "delayed", "succeeded", "completed"].includes(recentJob.status)) {
+      jobId = recentJob.jobId;
+    }
+  }
+
+  if (!jobId) {
+    return;
+  }
+
+  const requestState = {
+    ...state,
+  };
+  const generationCost = getCreditBreakdown(requestState).total;
+
+  updateState({
+    activeModal: null,
+    isGenerating: true,
+    generationJobId: jobId,
+    generationStatusMessage: "진행 중이던 사진 제작을 이어서 확인하고 있어요.",
+    generationNetworkPaused: false,
+  });
+
+  console.log("[generation] active job recovery", { jobId, reason });
+
+  try {
+    const resultPayload = await resumeGenerationResults(requestState, jobId, {
+      onStatus: handleGenerationStatusUpdate,
+    });
+    updateState({
+      generationStatusMessage: "사진 제작이 완료되었어요.",
+      generationNetworkPaused: false,
+    });
+    await applyGenerationResultPayload(
+      resultPayload,
+      requestState,
+      resultPayload.generationMeta?.isFreeGeneration === true,
+      generationCost,
+    );
+  } catch (error) {
+    if (error?.code === "GENERATION_JOB_NOT_FOUND") {
+      clearActiveGenerationJob(jobId);
+      updateState({
+        isGenerating: false,
+        generationJobId: "",
+        generationStatusMessage: "",
+        generationNetworkPaused: false,
+      });
+      return;
+    }
+
+    console.error("[generation] active job recovery failed", error);
+    clearActiveGenerationJob(jobId);
+    const generationErrorCopy = getGenerationErrorCopy(error);
+    updateState({
+      isGenerating: false,
+      generationJobId: "",
+      generationStatusMessage: "",
+      generationNetworkPaused: false,
       activeModal: {
         type: "success",
         title: generationErrorCopy.title,
@@ -1164,6 +1285,16 @@ async function handleAction(action, target) {
     await downloadSelectedResult();
     return;
   }
+
+  if (action === "finish-result") {
+    const refreshedUser = await fetchCurrentUser().catch((error) => {
+      console.warn("[generation] account summary refresh after finish failed", error);
+      return getState().currentUser;
+    });
+    updateState({ currentUser: refreshedUser });
+    navigate(ROUTES.CREATE);
+    return;
+  }
 }
 
 app.addEventListener("click", async (event) => {
@@ -1378,6 +1509,50 @@ app.addEventListener("change", (event) => {
   target.value = "";
 });
 
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    if (getState().isGenerating) {
+      updateState({
+        generationStatusMessage: "생성 상태를 다시 확인하고 있어요.",
+        generationNetworkPaused: true,
+      });
+    }
+    return;
+  }
+
+  void recoverActiveGenerationJob("visibilitychange");
+});
+
+window.addEventListener("pageshow", () => {
+  void recoverActiveGenerationJob("pageshow");
+});
+
+window.addEventListener("pagehide", () => {
+  if (getState().isGenerating) {
+    updateState({
+      generationStatusMessage: "생성 상태를 다시 확인하고 있어요.",
+      generationNetworkPaused: true,
+    });
+  }
+});
+
+window.addEventListener("focus", () => {
+  void recoverActiveGenerationJob("focus");
+});
+
+window.addEventListener("online", () => {
+  void recoverActiveGenerationJob("online");
+});
+
+window.addEventListener("offline", () => {
+  if (getState().isGenerating) {
+    updateState({
+      generationStatusMessage: "생성 상태를 다시 확인하고 있어요.",
+      generationNetworkPaused: true,
+    });
+  }
+});
+
 subscribe((state) => {
   document.body.style.overflow = state.activeImageModal ? "hidden" : "";
   renderRoute(state.route, state);
@@ -1385,4 +1560,4 @@ subscribe((state) => {
 
 initRouter(syncRoute);
 renderRoute(getState().route, getState());
-void refreshCurrentUser();
+void refreshCurrentUser().then(() => recoverActiveGenerationJob("startup"));

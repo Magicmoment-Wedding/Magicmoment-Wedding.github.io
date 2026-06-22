@@ -1,6 +1,11 @@
 import { assertApiBaseUrlConfigured, getApiUrl } from "./config.js";
 import { getAnonymousId } from "./anonymous-id.js";
 
+export const CURRENT_GENERATION_JOB_ID_KEY = "magic_ai_current_generation_job_id";
+export const CURRENT_GENERATION_STARTED_AT_KEY = "magic_ai_current_generation_started_at";
+const GENERATION_STATUS_POLL_INTERVAL_MS = 3500;
+const GENERATION_STATUS_PAUSED_INTERVAL_MS = 5000;
+
 function getGenerationMode(presetKey) {
   if (presetKey === "disney") return "disneyLive";
   return "parisSnap";
@@ -94,6 +99,58 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+function isDocumentHidden() {
+  return typeof document !== "undefined" && document.visibilityState === "hidden";
+}
+
+function isNetworkOffline() {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
+function isTransientStatusError(error) {
+  const message = String(error?.message || "");
+  return error?.name === "AbortError" ||
+    error?.code === "GENERATION_STATUS_TRANSIENT" ||
+    error?.code === "INVALID_SERVER_RESPONSE" ||
+    /abort|cancel|cancelled|failed to fetch|network|load failed/i.test(message) ||
+    isNetworkOffline();
+}
+
+export function saveActiveGenerationJob(jobId) {
+  const normalizedJobId = String(jobId || "").trim();
+  if (!normalizedJobId || typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(CURRENT_GENERATION_JOB_ID_KEY, normalizedJobId);
+    window.localStorage.setItem(CURRENT_GENERATION_STARTED_AT_KEY, new Date().toISOString());
+  } catch (error) {
+    console.warn("[generation] active job save failed", error);
+  }
+}
+
+export function getStoredActiveGenerationJobId() {
+  if (typeof window === "undefined") return "";
+
+  try {
+    return String(window.localStorage.getItem(CURRENT_GENERATION_JOB_ID_KEY) || "").trim();
+  } catch (error) {
+    return "";
+  }
+}
+
+export function clearActiveGenerationJob(jobId = "") {
+  if (typeof window === "undefined") return;
+
+  try {
+    const currentJobId = getStoredActiveGenerationJobId();
+    if (jobId && currentJobId && currentJobId !== jobId) return;
+    window.localStorage.removeItem(CURRENT_GENERATION_JOB_ID_KEY);
+    window.localStorage.removeItem(CURRENT_GENERATION_STARTED_AT_KEY);
+  } catch (error) {
+    console.warn("[generation] active job clear failed", error);
+  }
+}
+
 function resolveJobId(payload = {}) {
   return String(payload.jobId || payload.job_id || payload.data?.jobId || payload.data?.job_id || "").trim();
 }
@@ -114,7 +171,7 @@ function extractJobResult(payload = {}, jobId = "") {
   const result = candidates.find((candidate) => (
     candidate &&
     typeof candidate === "object" &&
-    (Array.isArray(candidate.results) || Array.isArray(candidate.imageUrls) || Array.isArray(candidate.image_urls))
+    (Array.isArray(candidate.results) || Array.isArray(candidate.imageUrls) || Array.isArray(candidate.image_urls) || Array.isArray(candidate.images))
   ));
 
   return result ? { ...result, ok: result.ok !== false, jobId } : null;
@@ -133,7 +190,7 @@ function getJobFailureMessage(code, fallback = "") {
   return fallback || "생성 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.";
 }
 
-function requestGenerationRun(jobId) {
+export function requestGenerationRun(jobId) {
   fetch(getApiUrl("/api/generate/run"), {
     method: "POST",
     credentials: "include",
@@ -144,61 +201,147 @@ function requestGenerationRun(jobId) {
   });
 }
 
-async function pollGenerationStatus(jobId) {
-  const startedAt = Date.now();
-  const timeoutMs = 180000;
-  requestGenerationRun(jobId);
+export async function fetchGenerationStatus(jobId) {
+  const response = await fetch(getApiUrl(`/api/generate/status?jobId=${encodeURIComponent(jobId)}`), {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+  const parsed = await parseJsonResponseBody(response);
+  const payload = parsed.data || {};
+  const status = getJobStatus(payload) || "processing";
 
-  while (Date.now() - startedAt < timeoutMs) {
-    await wait(2000);
-    const response = await fetch(getApiUrl(`/api/generate/status?jobId=${encodeURIComponent(jobId)}`), {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    });
-    const parsed = await parseJsonResponseBody(response);
-    const payload = parsed.data || {};
-    const status = getJobStatus(payload) || "processing";
+  if (response.status === 404 || payload?.code === "GENERATION_JOB_NOT_FOUND") {
+    return { ok: true, jobId, status: "not_found", payload };
+  }
 
-    if (!response.ok || !parsed.parseOk || payload?.ok === false) {
-      const code = String(response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (payload?.code || payload?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED"))).toUpperCase();
-      const message = response.status === 504
-        ? "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요."
-        : getJobFailureMessage(code, payload?.message || parsed.message);
-      const error = new Error(message);
-      error.statusCode = response.status;
-      error.code = code;
-      error.publicMessage = message;
-      error.response = payload;
-      error.rawPreview = parsed.rawText?.slice(0, 300);
-      throw error;
+  if (!response.ok || !parsed.parseOk) {
+    const error = new Error(parsed.message || "생성 상태를 확인하지 못했습니다.");
+    error.statusCode = response.status;
+    error.code = !parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_STATUS_TRANSIENT";
+    error.response = payload;
+    error.rawPreview = parsed.rawText?.slice(0, 300);
+    throw error;
+  }
+
+  if (payload?.ok === false && ["failed", "error", "canceled", "cancelled"].includes(status)) {
+    const code = String(payload?.code || payload?.error || payload?.data?.code || "GENERATION_JOB_FAILED").toUpperCase();
+    const message = getJobFailureMessage(code, payload?.message || payload?.data?.message || "");
+    const error = new Error(message);
+    error.code = code;
+    error.publicMessage = message;
+    error.response = payload;
+    throw error;
+  }
+
+  if (payload?.ok === false) {
+    const error = new Error(payload?.message || "생성 상태를 확인하지 못했습니다.");
+    error.code = String(payload?.code || "GENERATION_STATUS_FAILED").toUpperCase();
+    error.response = payload;
+    throw error;
+  }
+
+  const result = ["succeeded", "success", "completed", "complete"].includes(status)
+    ? extractJobResult(payload, jobId)
+    : null;
+
+  return { ok: true, jobId, status, payload, result };
+}
+
+export async function fetchRecentActiveGenerationJob() {
+  const response = await fetch(getApiUrl("/api/generate/recent-active"), {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+  const parsed = await parseJsonResponseBody(response);
+  const payload = parsed.data || {};
+
+  if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+    return null;
+  }
+
+  const jobId = resolveJobId(payload);
+  if (!jobId) {
+    return null;
+  }
+
+  return {
+    jobId,
+    status: getJobStatus(payload) || "pending",
+    payload,
+  };
+}
+
+export async function waitForGenerationResult(jobId, { startRun = true, onStatus } = {}) {
+  if (!jobId) {
+    const error = new Error("생성 작업을 찾을 수 없습니다.");
+    error.code = "GENERATION_JOB_NOT_FOUND";
+    throw error;
+  }
+
+  saveActiveGenerationJob(jobId);
+  if (startRun) {
+    requestGenerationRun(jobId);
+  }
+
+  while (true) {
+    if (isDocumentHidden() || isNetworkOffline()) {
+      onStatus?.({
+        jobId,
+        status: "paused",
+        message: "생성 상태를 다시 확인하고 있어요.",
+        transient: true,
+      });
+      await wait(GENERATION_STATUS_PAUSED_INTERVAL_MS);
+      continue;
     }
 
-    if (["succeeded", "success", "completed", "complete"].includes(status)) {
-      const result = extractJobResult(payload, jobId);
-      if (result) return result;
-      const error = new Error("생성 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
-      error.code = "GENERATION_JOB_FAILED";
-      error.publicMessage = error.message;
-      throw error;
-    }
+    try {
+      const statusResult = await fetchGenerationStatus(jobId);
+      onStatus?.({
+        jobId,
+        status: statusResult.status,
+        message: statusResult.payload?.message || "",
+        transient: false,
+      });
 
-    if (["failed", "error", "canceled", "cancelled"].includes(status)) {
-      const code = String(payload?.code || payload?.error || payload?.data?.code || "GENERATION_JOB_FAILED").toUpperCase();
-      const message = getJobFailureMessage(code, payload?.message || payload?.data?.message || "");
-      const error = new Error(message);
-      error.code = code;
-      error.publicMessage = message;
-      error.response = payload;
+      if (["succeeded", "success", "completed", "complete"].includes(statusResult.status)) {
+        if (statusResult.result) {
+          clearActiveGenerationJob(jobId);
+          return statusResult.result;
+        }
+        const error = new Error("생성 결과를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        error.code = "GENERATION_JOB_FAILED";
+        error.publicMessage = error.message;
+        throw error;
+      }
+
+      if (statusResult.status === "not_found") {
+        clearActiveGenerationJob(jobId);
+        const error = new Error("진행 중이던 생성 작업을 찾을 수 없습니다.");
+        error.code = "GENERATION_JOB_NOT_FOUND";
+        error.publicMessage = error.message;
+        throw error;
+      }
+
+      await wait(GENERATION_STATUS_POLL_INTERVAL_MS);
+    } catch (error) {
+      if (isTransientStatusError(error)) {
+        onStatus?.({
+          jobId,
+          status: "paused",
+          message: "생성 상태를 다시 확인하고 있어요.",
+          transient: true,
+        });
+        await wait(GENERATION_STATUS_PAUSED_INTERVAL_MS);
+        continue;
+      }
+
+      clearActiveGenerationJob(jobId);
       throw error;
     }
   }
-
-  const error = new Error("생성이 지연되고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.");
-  error.code = "GENERATION_JOB_TIMEOUT";
-  error.publicMessage = error.message;
-  error.jobId = jobId;
-  throw error;
 }
 
 export async function generateImages(prompt, options = {}) {
@@ -207,6 +350,7 @@ export async function generateImages(prompt, options = {}) {
     count = 4,
     presetKey = "default",
     useFreeGeneration = false,
+    onStatus,
   } = options;
 
   assertApiBaseUrlConfigured();
@@ -250,7 +394,8 @@ export async function generateImages(prompt, options = {}) {
   const jobId = resolveJobId(payload);
   const hasImmediateResults = Array.isArray(payload.results) || Array.isArray(payload.imageUrls) || Array.isArray(payload.image_urls);
   if (response.ok && parsed.parseOk && jobId && !hasImmediateResults) {
-    payload = await pollGenerationStatus(jobId);
+    onStatus?.({ jobId, status: "pending", message: "사진을 만들고 있어요.", transient: false });
+    payload = await waitForGenerationResult(jobId, { startRun: true, onStatus });
   }
 
   if (!response.ok || !parsed.parseOk || !payload?.ok) {
@@ -259,6 +404,7 @@ export async function generateImages(prompt, options = {}) {
       payload?.status === 402 ||
       payload?.code === "INSUFFICIENT_CREDITS" ||
       payload?.code === "CREDITS_REQUIRED" ||
+      payload?.code === "NO_REMAINING_USES" ||
       payload?.code === "NO_REMAINING_GENERATION_USES";
     const code = response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (payload?.code || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"));
     const message =
@@ -302,7 +448,9 @@ export async function generateImages(prompt, options = {}) {
     ? payload.results
     : (Array.isArray(payload.imageUrls || payload.image_urls)
       ? (payload.imageUrls || payload.image_urls).map((url, index) => ({ ok: true, imageBase64: url, index }))
-      : []);
+      : Array.isArray(payload.images)
+        ? payload.images
+        : []);
   const failedImages = Array.isArray(payload.failedImages) ? payload.failedImages : [];
   const generationType = payload.generationType || payload.generation_type || (useFreeGeneration ? "free" : "paid");
   const isFreeGeneration = payload.isFreeGeneration === true || payload.is_free_generation === true || generationType === "free";
@@ -310,7 +458,7 @@ export async function generateImages(prompt, options = {}) {
   const watermarkRequired = payload.watermarkRequired === true || payload.watermark_required === true || hasWatermark;
   const watermarkStrategy = payload.watermarkStrategy || payload.watermark_strategy || "";
 
-  return resultItems.map((item, index) => {
+  const normalizedResults = resultItems.map((item, index) => {
     const failed = failedImages.find((failedImage) => failedImage?.index === item?.index);
     const url = item?.imageBase64 || item?.imageUrl || item?.image_url || item?.publicUrl || item?.public_url || item?.url || "";
     const itemGenerationType = item?.generationType || item?.generation_type || generationType;
@@ -345,9 +493,20 @@ export async function generateImages(prompt, options = {}) {
       watermarkStrategy: itemWatermarkStrategy,
     };
   });
+
+  Object.defineProperty(normalizedResults, "generationPayload", {
+    value: payload,
+    enumerable: false,
+  });
+  Object.defineProperty(normalizedResults, "generationJobId", {
+    value: resolveJobId(payload) || jobId,
+    enumerable: false,
+  });
+
+  return normalizedResults;
 }
 
-export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetKey = "paris_eiffel", analyzedMeta, ratioOption, customText, count = 4, useFreeGeneration = false }) {
+export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetKey = "paris_eiffel", analyzedMeta, ratioOption, customText, count = 4, useFreeGeneration = false, onStatus }) {
   console.log("[generation] api request start", {
     presetKey,
     ratioOption,
@@ -360,6 +519,7 @@ export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetK
     count,
     presetKey,
     useFreeGeneration,
+    onStatus,
   });
 
   console.log("[generation] api request complete", {

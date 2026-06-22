@@ -30,6 +30,9 @@ const defaultState = {
   creditStatusType: "",
   useUpscale: false,
   isGenerating: false,
+  generationJobId: "",
+  generationStatusMessage: "",
+  generationNetworkPaused: false,
   activeModal: null,
   activeImageModal: null,
   customPresetDraft: {
@@ -72,6 +75,7 @@ function loadState() {
             firstTimeOnboardingOpen: false,
             onboardingCompleting: false,
             isGenerating: false,
+            generationNetworkPaused: false,
             activeModal: null,
             activeImageModal: null,
           };
@@ -103,6 +107,7 @@ function loadState() {
       firstTimeOnboardingOpen: false,
       onboardingCompleting: false,
       isGenerating: false,
+      generationNetworkPaused: false,
       activeModal: null,
       activeImageModal: null,
     };

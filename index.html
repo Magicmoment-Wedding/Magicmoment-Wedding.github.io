@@ -5466,14 +5466,19 @@
                   <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <span class="material-symbols-outlined text-[19px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
                   </span>
-                  <p class="text-sm leading-6 text-on-surface">
-                    사진이 완성되었습니다.<br />
-                    크게보기에서 사진 저장과 스타일 갤러리 업로드를 선택할 수 있어요.<br />
-                    사진 저장 후 완료를 누르면 사진편집 화면으로 돌아갑니다.<br />
-                    생성 결과는 마이포토박스에서 다시 확인할 수 있어요.
-                  </p>
-                </div>
-              </div>
+	                  <p class="text-sm leading-6 text-on-surface">
+	                    사진이 완성되었습니다.<br />
+	                    크게보기에서 사진 저장과 스타일 갤러리 업로드를 선택할 수 있어요.<br />
+	                    완료를 누르면 사진편집 화면으로 돌아갑니다.<br />
+	                    생성 결과는 마이포토박스에서 다시 확인할 수 있어요.
+	                  </p>
+	                </div>
+	                <button class="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.24)]" id="resultDoneButton" type="button">
+	                  <span class="material-symbols-outlined text-[19px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+	                  완료
+	                </button>
+	                <p class="mt-2 text-center text-[11px] leading-5 text-on-surface-variant">완료 후에도 마이포토박스에서 다시 확인할 수 있어요.</p>
+	              </div>
             </section>
           </section>
 
@@ -7278,6 +7283,7 @@ Important:
       const imageSaveModalClose = document.getElementById("imageSaveModalClose");
       const imageSaveModalPlatformGuide = document.getElementById("imageSaveModalPlatformGuide");
       const resultActionButtons = document.getElementById("resultActionButtons");
+      const resultDoneButton = document.getElementById("resultDoneButton");
       const resultDownloadButton = document.getElementById("resultDownloadButton");
       const resultDownloadButtonLabel = document.getElementById("resultDownloadButtonLabel");
       const resultSaveHelp = document.getElementById("resultSaveHelp");
@@ -7350,6 +7356,9 @@ Important:
       const uploadedGalleryImageUrls = new Set();
       let currentGenerationId = "";
       let currentGenerationJobId = "";
+      const CURRENT_GENERATION_JOB_ID_KEY = "magic_ai_current_generation_job_id";
+      const CURRENT_GENERATION_STARTED_AT_KEY = "magic_ai_current_generation_started_at";
+      let hasRequestedStartupGenerationRecovery = false;
       let currentGenerationGalleryUploadIndex = null;
       let galleryUploadLimitReached = false;
       let isGalleryUploading = false;
@@ -15700,7 +15709,7 @@ Important:
           return "작업이 지연되고 있어요. 완료되면 마이포토박스에서도 확인할 수 있어요.";
         }
         if (elapsedMs >= 30000) {
-          return "사진 제작에 시간이 조금 더 걸리고 있어요. 창을 닫지 말고 기다려 주세요.";
+          return "사진 제작에 시간이 조금 더 걸리고 있어요. 앱을 잠시 닫아도 괜찮아요.";
         }
 
         if (status === "queued" || status === "pending") {
@@ -15729,6 +15738,61 @@ Important:
           return "생성 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.";
         }
         return fallbackMessage || "생성 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.";
+      }
+
+      function isKakaoInAppBrowser() {
+        return /KAKAOTALK/i.test(navigator.userAgent || "");
+      }
+
+      function saveActiveGenerationJob(jobId) {
+        const normalizedJobId = String(jobId || "").trim();
+        if (!normalizedJobId) return;
+        try {
+          localStorage.setItem(CURRENT_GENERATION_JOB_ID_KEY, normalizedJobId);
+          localStorage.setItem(CURRENT_GENERATION_STARTED_AT_KEY, new Date().toISOString());
+        } catch (error) {
+          console.warn("[generation] active job save failed", error);
+        }
+      }
+
+      function getStoredActiveGenerationJobId() {
+        try {
+          return String(localStorage.getItem(CURRENT_GENERATION_JOB_ID_KEY) || "").trim();
+        } catch (error) {
+          return "";
+        }
+      }
+
+      function clearActiveGenerationJob(jobId = "") {
+        try {
+          const storedJobId = getStoredActiveGenerationJobId();
+          if (jobId && storedJobId && storedJobId !== jobId) return;
+          localStorage.removeItem(CURRENT_GENERATION_JOB_ID_KEY);
+          localStorage.removeItem(CURRENT_GENERATION_STARTED_AT_KEY);
+        } catch (error) {
+          console.warn("[generation] active job clear failed", error);
+        }
+      }
+
+      function isTransientGenerationStatusError(error) {
+        const code = String(error?.code || "").toUpperCase();
+        const message = String(error?.message || "");
+        return error?.name === "AbortError" ||
+          code === "GENERATION_STATUS_TRANSIENT" ||
+          code === "INVALID_SERVER_RESPONSE" ||
+          /abort|cancel|cancelled|failed to fetch|network|load failed/i.test(message) ||
+          navigator.onLine === false ||
+          document.visibilityState === "hidden";
+      }
+
+      function setGenerationPendingStatus(message = "사진을 만들고 있어요.", { paused = false } = {}) {
+        const kakaoCopy = isKakaoInAppBrowser()
+          ? "\n카카오톡에서 열어도 생성은 계속 진행됩니다.\n다시 돌아오면 자동으로 결과를 확인해요.\n카카오톡 브라우저에서도 사용할 수 있어요.\n더 안정적인 이용을 원하시면 Safari/Chrome에서 열어 주세요."
+          : "";
+        setStatus(paused ? "생성 상태를 다시 확인하고 있어요." : message);
+        if (generatingStatusText && appScreen === "generating") {
+          generatingStatusText.textContent = `${message}\n앱을 잠시 닫아도 괜찮아요.\n완성되면 마이포토박스에서 다시 확인할 수 있어요.${kakaoCopy}`;
+        }
       }
 
       function extractGenerationResultFromJobPayload(payload = {}, jobId = "") {
@@ -15818,23 +15882,31 @@ Important:
       }
 
       async function pollGenerationJobStatus(jobId) {
-        const startedAt = Date.now();
-        const timeoutMs = 180000;
-        const intervalMs = 2000;
+        const intervalMs = 3500;
+        const pausedIntervalMs = 5000;
         currentGenerationJobId = jobId;
-        setStatus(getGenerationJobProgressMessage("queued", 0));
+        saveActiveGenerationJob(jobId);
+        setGenerationPendingStatus("사진을 만들고 있어요.");
         requestGenerationRun(jobId);
 
-        while (Date.now() - startedAt < timeoutMs) {
+        while (true) {
+          if (document.visibilityState === "hidden" || navigator.onLine === false) {
+            setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+            await wait(pausedIntervalMs);
+            continue;
+          }
+
           await wait(intervalMs);
-          const elapsedMs = Date.now() - startedAt;
           let statusResult;
           try {
             statusResult = await fetchGenerationJobStatus(jobId);
           } catch (error) {
             console.warn("[client][generate-status] network failed", { jobId, error });
-            setStatus(getGenerationJobProgressMessage("processing", elapsedMs));
-            continue;
+            if (isTransientGenerationStatusError(error)) {
+              setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+              continue;
+            }
+            throw error;
           }
 
           const { response, parsed, payload, code } = statusResult;
@@ -15847,14 +15919,36 @@ Important:
             ok: response.ok,
           });
 
-          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+          if (response.status === 404 || code === "GENERATION_JOB_NOT_FOUND") {
+            clearActiveGenerationJob(jobId);
+            const error = new Error("GENERATION_JOB_NOT_FOUND");
+            error.code = "GENERATION_JOB_NOT_FOUND";
+            error.publicMessage = "진행 중이던 생성 작업을 찾을 수 없습니다.";
+            error.jobId = jobId;
+            throw error;
+          }
+
+          if (!response.ok || !parsed.parseOk) {
+            const error = new Error("GENERATION_STATUS_TRANSIENT");
+            error.code = !parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_STATUS_TRANSIENT";
+            error.jobId = jobId;
+            error.response = payload;
+            if (isTransientGenerationStatusError(error)) {
+              setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+              continue;
+            }
             throw createGenerationStatusError({
               response,
               parsed,
               payload,
-              code: response.status === 504 ? "GENERATION_JOB_TIMEOUT" : code,
-              fallbackCode: !parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_JOB_FAILED",
+              code,
+              fallbackCode: !parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_STATUS_TRANSIENT",
             });
+          }
+
+          if (payload?.ok === false && !(status === "failed" || status === "error" || status === "canceled" || status === "cancelled")) {
+            setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+            continue;
           }
 
           if (status === "succeeded" || status === "success" || status === "completed" || status === "complete") {
@@ -15867,6 +15961,7 @@ Important:
               throw error;
             }
             setStatus("완성된 사진을 저장하고 있어요.");
+            clearActiveGenerationJob(jobId);
             return result;
           }
 
@@ -15874,14 +15969,8 @@ Important:
             throw createGenerationStatusError({ response, parsed, payload, code });
           }
 
-          setStatus(getGenerationJobProgressMessage(status, elapsedMs));
+          setGenerationPendingStatus(payload?.message || getGenerationJobProgressMessage(status, 0));
         }
-
-        const error = new Error("GENERATION_JOB_TIMEOUT");
-        error.code = "GENERATION_JOB_TIMEOUT";
-        error.publicMessage = "생성이 지연되고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.";
-        error.jobId = jobId;
-        throw error;
       }
 
       async function handleDelayedGenerationStatusRetry(jobId) {
@@ -15972,6 +16061,86 @@ Important:
             viewportAlertRetryStatusButton.textContent = "다시 확인하기";
             viewportAlertRetryStatusButton.dataset.jobId = safeJobId;
           }
+        }
+      }
+
+      async function fetchRecentActiveGenerationJob() {
+        try {
+          const response = await fetch(`${FRONT_API_BASE_URL}/api/generate/recent-active`, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          });
+          const parsed = await parseJsonResponseBody(response);
+          const payload = parsed.data || {};
+          if (!response.ok || !parsed.parseOk || payload?.ok === false) return null;
+          const jobId = resolveGenerationJobId(payload);
+          if (!jobId) return null;
+          return {
+            jobId,
+            status: getGenerationJobStatus(payload) || "pending",
+          };
+        } catch (error) {
+          console.warn("[generation] recent active lookup failed", error);
+          return null;
+        }
+      }
+
+      async function recoverActiveGenerationJob(reason = "startup") {
+        if (reason === "startup") {
+          if (hasRequestedStartupGenerationRecovery) return;
+          hasRequestedStartupGenerationRecovery = true;
+        }
+
+        if (isGenerating) return;
+
+        let jobId = getStoredActiveGenerationJobId();
+        if (!jobId) {
+          const recentJob = await fetchRecentActiveGenerationJob();
+          if (recentJob && ["pending", "queued", "processing", "running", "delayed", "succeeded", "completed"].includes(recentJob.status)) {
+            jobId = recentJob.jobId;
+          }
+        }
+
+        if (!jobId) return;
+
+        console.log("[generation] active job recovery", { jobId, reason });
+        hideError();
+        isGenerating = true;
+        currentGenerationJobId = jobId;
+        currentGenerationId = jobId;
+        generateButton.disabled = true;
+        setAppScreen("generating");
+        setGenerationPendingStatus("진행 중이던 사진 제작을 이어서 확인하고 있어요.");
+
+        try {
+          await pollGenerationJobStatus(jobId);
+          isGenerating = false;
+          generateButton.disabled = false;
+          await refreshAuthState({ showError: false });
+          await refreshMyPhotosCache();
+          setGenerationPendingStatus("사진 제작이 완료되었어요.");
+          showAccountMenuToast("사진 제작이 완료되었어요. 결과를 확인해 주세요.");
+          navigateToScreen("myPhotoBox");
+        } catch (error) {
+          if (String(error?.code || "").toUpperCase() === "GENERATION_JOB_NOT_FOUND") {
+            clearActiveGenerationJob(jobId);
+            isGenerating = false;
+            generateButton.disabled = !selectedFile;
+            setAppScreen(selectedFile ? "editor" : "home", { replaceHistory: true });
+            return;
+          }
+
+          console.error("[generation] active job recovery failed", error);
+          clearActiveGenerationJob(jobId);
+          isGenerating = false;
+          generateButton.disabled = !selectedFile;
+          const copy = getGenerationErrorCopy(error);
+          showError(copy.body, {
+            title: copy.title,
+            showCreditButton: copy.showCreditButton === true,
+          });
+          setAppScreen(selectedFile ? "editor" : "home", { replaceHistory: true });
         }
       }
 
@@ -17083,10 +17252,11 @@ ${modeExample}`;
 
         const responseJobId = resolveGenerationJobId(data);
         const hasImmediateResults = Array.isArray(data.results) || Array.isArray(data.imageUrls) || Array.isArray(data.image_urls) || Array.isArray(data.images);
-        if (response.ok && parsed.parseOk && responseJobId && !hasImmediateResults) {
-          currentGenerationJobId = responseJobId;
-          currentGenerationId = responseJobId;
-          generationMeta = {
+          if (response.ok && parsed.parseOk && responseJobId && !hasImmediateResults) {
+            currentGenerationJobId = responseJobId;
+            currentGenerationId = responseJobId;
+            saveActiveGenerationJob(responseJobId);
+            generationMeta = {
             ...(generationMeta || {}),
             jobId: responseJobId,
             generationId: responseJobId,
@@ -17110,6 +17280,7 @@ ${modeExample}`;
             data.status === 402 ||
             responseCode === "INSUFFICIENT_CREDITS" ||
             responseCode === "CREDITS_REQUIRED" ||
+            responseCode === "NO_REMAINING_USES" ||
             responseCode === "NO_REMAINING_GENERATION_USES";
           console[responseCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"](responseCode === "GENERATION_JOB_TIMEOUT" ? "[client][generate][delayed]" : "[client][generate][failed]", {
             API_BASE_URL: FRONT_API_BASE_URL,
@@ -19629,7 +19800,7 @@ ${modeExample}`;
         }
         assertCanStartGenerationFlow();
 
-        setStatus(GENERATING_STATUS_TEXT);
+        setGenerationPendingStatus("사진을 만들고 있어요.");
         console.log("[client][grok-edit] generation start");
 
         const data = await generateGrokResults({
@@ -21031,6 +21202,7 @@ ${modeExample}`;
         pushAppHistoryState("landing", null);
       }
       window.addEventListener("popstate", onPopState);
+      void authStartupCheckPromise?.then(() => recoverActiveGenerationJob("startup"));
 
       changePhotoButton.addEventListener("click", () => {
         photoInput.click();
@@ -21202,6 +21374,41 @@ ${modeExample}`;
         }, 120);
       });
 
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+          if (isGenerating) {
+            setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+          }
+          return;
+        }
+
+        void recoverActiveGenerationJob("visibilitychange");
+      });
+
+      window.addEventListener("pageshow", () => {
+        void recoverActiveGenerationJob("pageshow");
+      });
+
+      window.addEventListener("pagehide", () => {
+        if (isGenerating) {
+          setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        void recoverActiveGenerationJob("focus");
+      });
+
+      window.addEventListener("online", () => {
+        void recoverActiveGenerationJob("online");
+      });
+
+      window.addEventListener("offline", () => {
+        if (isGenerating) {
+          setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
+        }
+      });
+
       photoInput.addEventListener("change", async (event) => {
         event.stopPropagation();
         selectedFile = event.target.files[0];
@@ -21301,9 +21508,9 @@ ${modeExample}`;
         generateButton.disabled = true;
         activeGenerationMode = getGenerationMode();
         clearResults();
-        sourceSection.classList.add("hidden");
-        setAppScreen("generating");
-        setStatus(GENERATING_STATUS_TEXT);
+          sourceSection.classList.add("hidden");
+          setAppScreen("generating");
+          setGenerationPendingStatus("사진을 만들고 있어요.");
 
         try {
           await runGrokPipeline({
@@ -21611,6 +21818,11 @@ ${modeExample}`;
         uploadCurrentModalImageToGallery();
       });
       imageModalDone?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void completeResultFlow();
+      });
+      resultDoneButton?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
         void completeResultFlow();

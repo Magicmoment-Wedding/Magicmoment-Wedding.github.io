@@ -1196,36 +1196,6 @@
         border: 1px solid rgba(129, 80, 92, 0.08);
       }
 
-      .my-photo-filter-list {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        padding: 2px 1px 8px;
-      }
-
-      .my-photo-filter-button {
-        min-height: 38px;
-        border-radius: 9999px;
-        padding: 0 14px;
-        flex: 0 0 auto;
-        color: #705e61;
-        background: rgba(255, 255, 255, 0.62);
-        border: 1px solid rgba(129, 80, 92, 0.1);
-        font-size: 12px;
-        font-weight: 800;
-        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
-      }
-
-      .my-photo-filter-button.is-active {
-        color: #fff;
-        background: #81505c;
-        box-shadow: 0 10px 22px rgba(129, 80, 92, 0.18);
-      }
-
-      .my-photo-filter-button:active {
-        transform: translateY(1px);
-      }
-
       .my-photo-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -5548,11 +5518,6 @@
                   <p class="mt-2 text-sm leading-6 text-on-surface-variant">생성 결과와 갤러리 업로드 이력을 한 곳에서 관리할 수 있도록 준비 중입니다.</p>
                 </div>
 
-                <div class="my-photo-filter-list" role="tablist" aria-label="마이포토박스 필터">
-                  <button class="my-photo-filter-button is-active" data-my-photo-filter="all" type="button" role="tab" aria-selected="true">전체</button>
-                  <button class="my-photo-filter-button" data-my-photo-filter="gallery" type="button" role="tab" aria-selected="false">갤러리 업로드</button>
-                </div>
-
                 <div class="my-photo-grid" id="myPhotoBoxGrid"></div>
 
                 <section class="my-photo-state-card hidden" id="myPhotoBoxEmptyState">
@@ -7200,7 +7165,6 @@ Important:
       const myPhotoBoxEmptyState = document.getElementById("myPhotoBoxEmptyState");
       const myPhotoBoxLoginButton = document.getElementById("myPhotoBoxLoginButton");
       const myPhotoBoxCreateButton = document.getElementById("myPhotoBoxCreateButton");
-      const myPhotoBoxFilterButtons = Array.from(document.querySelectorAll("[data-my-photo-filter]"));
       const siteGuideStepsContainer = document.getElementById("siteGuideSteps");
       const siteGuideFaqList = document.getElementById("siteGuideFaqList");
       const siteGuideCreditButton = document.getElementById("siteGuideCreditButton");
@@ -7408,7 +7372,6 @@ Important:
       let isLoadingMyPhotos = false;
       let myPhotosError = "";
       let selectedMyPhoto = null;
-      let selectedMyPhotoFilter = "all";
       let creditBalance = 0;
       let isCreditsLoading = false;
       let generationUsageSummary = null;
@@ -13524,13 +13487,11 @@ Important:
             }
           } catch (error) {
             console.warn("[auth] signup consent save failed:", error);
+            showAccountMenuToast("약관 동의 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
             if (!user) {
               authFlowState = "error";
               setAuthTab(authMode);
               openLoginModal(null, { tab: authMode, forceAuthForm: true });
-              showAccountMenuToast(authMode === "signup"
-                ? "회원가입 처리 중 문제가 발생했습니다. 다시 시도해 주세요."
-                : "로그인 처리 중 문제가 발생했습니다. 다시 시도해 주세요.");
               return null;
             }
           }
@@ -14056,33 +14017,45 @@ Important:
       }
 
       async function completeOnboarding() {
-        let response = await fetch(getAuthApiUrl("/api/account/onboarding/complete"), {
+        const response = await fetch(getAuthApiUrl("/api/account/onboarding/complete"), {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
         });
-        let payload = await response.json().catch(() => ({}));
-
-        if (response.status === 404 || response.status === 405) {
-          response = await fetch(getAuthApiUrl("/api/auth/onboarding/complete"), {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-          });
-          payload = await response.json().catch(() => ({}));
-        }
+        const payload = await response.json().catch(() => ({}));
 
         if (!response.ok || payload?.ok === false) {
           throw new Error(payload?.message || `Onboarding complete failed: ${response.status}`);
         }
 
-        const refreshedUser = await refreshAuthState({ showError: false, force: true });
-        if (payload?.generationUsage || payload?.generation_usage || payload?.remainingUses || payload?.remaining_uses) {
-          applyUserEntitlements(payload, refreshedUser || currentUser);
+        const nextRemainingUses = normalizeCreditValue(payload?.remainingUses ?? payload?.remaining_uses);
+        if (nextRemainingUses !== null && currentUser) {
+          currentUser = {
+            ...currentUser,
+            remainingUses: nextRemainingUses,
+            remaining_uses: nextRemainingUses,
+            generationUsage: {
+              ...(currentUser.generationUsage || {}),
+              remainingGenerationUses: nextRemainingUses,
+              remaining_generation_uses: nextRemainingUses,
+            },
+          };
+          generationUsageSummary = {
+            ...(generationUsageSummary || {}),
+            remainingGenerationUses: nextRemainingUses,
+            remaining_generation_uses: nextRemainingUses,
+          };
+          generationUsageStatus = "ready";
           syncAuthUi();
           updateCreditUi();
         }
-        return refreshedUser;
+
+        applyUserEntitlements(payload, currentUser);
+        const refreshedUser = await refreshAuthState({ showError: false, force: true });
+        return {
+          payload,
+          user: refreshedUser || currentUser,
+        };
       }
 
       async function handleSiteGuideNext() {
@@ -14120,14 +14093,17 @@ Important:
         showAccountMenuToast("이용안내 완료 처리 중입니다. 잠시만 기다려 주세요.");
 
         try {
-          await completeOnboarding();
+          const completion = await completeOnboarding();
           if (!onboardingCompleted) {
             showAccountMenuToast("이용안내 완료 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
             return;
           }
           clearPendingAction();
           syncEditorGenerationCopy();
-          showAccountMenuToast("무료 1회 이용권이 지급되었습니다.");
+          const completionPayload = completion?.payload || {};
+          showAccountMenuToast(completionPayload.freePassAlreadyGranted === true || completionPayload.free_pass_already_granted === true
+            ? "이미 무료 이용권이 지급된 계정입니다."
+            : "무료 1회 이용권이 지급되었습니다.");
           navigateToScreen("editor");
           setStatus(hasFreeGeneration(currentUser)
             ? "무료 1회 제작을 시작해 주세요."
@@ -14424,17 +14400,29 @@ Important:
             || rawItem.job_id
             || rawItem.generationId
             || rawItem.generation_id
+            || rawItem.groupId
+            || rawItem.group_id
             || rawItem.parentGenerationId
             || rawItem.parent_generation_id
+            || rawItem.galleryGenerationId
+            || rawItem.gallery_generation_id
             || rawItem.generation?.jobId
             || rawItem.generation?.job_id
             || rawItem.generation?.id
+            || rawItem.generation?.generationId
+            || rawItem.generation?.generation_id
+            || rawItem.generation?.groupId
+            || rawItem.generation?.group_id
             || rawItem.metadata?.generationJobId
             || rawItem.metadata?.generation_job_id
             || rawItem.metadata?.jobId
             || rawItem.metadata?.job_id
             || rawItem.metadata?.generationId
             || rawItem.metadata?.generation_id
+            || rawItem.metadata?.groupId
+            || rawItem.metadata?.group_id
+            || rawItem.metadata?.parentGenerationId
+            || rawItem.metadata?.parent_generation_id
             || rawItem.id
             || fallback
             || "",
@@ -14443,6 +14431,34 @@ Important:
 
       function getMyPhotoGenerationId(rawItem = {}, fallback = "") {
         return getMyPhotoGroupId(rawItem, fallback);
+      }
+
+      function hasMyPhotoGenerationAnchor(rawItem = {}) {
+        return Boolean(
+          rawItem.generationJobId
+            || rawItem.generation_job_id
+            || rawItem.jobId
+            || rawItem.job_id
+            || rawItem.generationId
+            || rawItem.generation_id
+            || rawItem.groupId
+            || rawItem.group_id
+            || rawItem.parentGenerationId
+            || rawItem.parent_generation_id
+            || rawItem.galleryGenerationId
+            || rawItem.gallery_generation_id
+            || rawItem.generation?.id
+            || rawItem.generation?.generationId
+            || rawItem.generation?.generation_id
+            || rawItem.generation?.groupId
+            || rawItem.generation?.group_id
+            || rawItem.metadata?.generationId
+            || rawItem.metadata?.generation_id
+            || rawItem.metadata?.groupId
+            || rawItem.metadata?.group_id
+            || rawItem.metadata?.parentGenerationId
+            || rawItem.metadata?.parent_generation_id
+        );
       }
 
       function getMyPhotoImageKey(rawImage = {}, fallback = "") {
@@ -14482,6 +14498,7 @@ Important:
           rawImage.rank,
           rawImage.recommendationRank,
           rawImage.recommendation_rank,
+          rawImage.resultIndex === 0 || rawImage.result_index === 0 ? 1 : null,
           rawImage.metadata?.rank,
           rawImage.metadata?.recommendationRank,
           rawImage.metadata?.recommendation_rank,
@@ -14491,13 +14508,20 @@ Important:
         const isRecommendedFlag = normalizeMyPhotoBoolean(
           rawImage.isRecommended
             ?? rawImage.is_recommended
+            ?? rawImage.aiRecommended
+            ?? rawImage.ai_recommended
             ?? rawImage.recommended
             ?? rawImage.metadata?.isRecommended
             ?? rawImage.metadata?.is_recommended
+            ?? rawImage.metadata?.aiRecommended
+            ?? rawImage.metadata?.ai_recommended
             ?? rawImage.metadata?.recommended,
           false,
         );
         if (isRecommendedFlag) return 1;
+
+        const resultLabel = String(rawImage.resultLabel || rawImage.result_label || rawImage.label || "").trim();
+        if (resultLabel.includes("AI 추천")) return 1;
 
         const recommendedIndexValue = Number(
           generation.recommendedIndex
@@ -14523,11 +14547,28 @@ Important:
         })[0] || images[0];
       }
 
+      function getMyPhotoRepresentativeImageUrl(rawItem = {}) {
+        return firstUrlValue(
+          rawItem.representativeImageUrl,
+          rawItem.representative_image_url,
+          rawItem.representativeUrl,
+          rawItem.representative_url,
+          rawItem.metadata?.representativeImageUrl,
+          rawItem.metadata?.representative_image_url,
+        );
+      }
+
       function groupMyPhotoRawItems(items = []) {
         const grouped = new Map();
 
         items.forEach((rawItem, index) => {
           if (!rawItem || typeof rawItem !== "object") return;
+          if (!hasMyPhotoGenerationAnchor(rawItem) && hasMyPhotoGalleryUploadHistory(rawItem)) {
+            console.info("[my-photobox][skip-gallery-only-card]", {
+              id: rawItem.id || rawItem.galleryItemId || rawItem.gallery_item_id || null,
+            });
+            return;
+          }
 
           const fallbackKey = `photo-group-${getMyPhotoCreatedAtValue(rawItem) || index}`;
           const groupKey = getMyPhotoGroupId(rawItem, fallbackKey);
@@ -14616,6 +14657,7 @@ Important:
         if (!item || typeof item !== "object") return false;
 
         const galleryStatus = getMyPhotoGalleryStatusToken(item);
+        const source = String(item.source || item.origin || item.metadata?.source || item.metadata?.origin || "").trim().toLowerCase();
         return Boolean(
           item.galleryUploadedAt
             || item.gallery_uploaded_at
@@ -14633,7 +14675,16 @@ Important:
             || item.uploaded_to_gallery === true
             || item.galleryUploaded === true
             || item.gallery_uploaded === true
+            || source === "gallery"
+            || source === "public_gallery"
         );
+      }
+
+      function getMyPhotoGalleryStatusLabel(item = {}) {
+        const galleryStatus = getMyPhotoGalleryStatusToken(item);
+        if (galleryStatus === "hidden") return "갤러리 숨김";
+        if (galleryStatus === "public") return "갤러리 공개";
+        return hasMyPhotoGalleryUploadHistory(item) ? "갤러리 등록됨" : "";
       }
 
       function getMyPhotoDisplayImageUrl(image = {}) {
@@ -14781,6 +14832,9 @@ Important:
         const representativeImage = chooseRepresentativeMyPhotoImage(images);
 
         if (!representativeImage) return null;
+        const representativeImageUrl = getMyPhotoRepresentativeImageUrl(rawItem);
+        const cardImageUrl = representativeImageUrl || representativeImage.imageUrl;
+        const cardThumbnailUrl = representativeImageUrl || representativeImage.thumbnailUrl;
 
         const isFreeGeneration = normalizeMyPhotoBoolean(rawItem.isFreeGeneration ?? rawItem.is_free_generation, representativeImage.isFreeGeneration === true);
         const hasWatermark = normalizeMyPhotoBoolean(rawItem.hasWatermark ?? rawItem.has_watermark ?? rawItem.watermarked, representativeImage.hasWatermark === true);
@@ -14791,8 +14845,8 @@ Important:
           id: generationId,
           generationId,
           generationJobId: generationId,
-          imageUrl: representativeImage.imageUrl,
-          thumbnailUrl: representativeImage.thumbnailUrl,
+          imageUrl: cardImageUrl,
+          thumbnailUrl: cardThumbnailUrl,
           styleLabel,
           presetLabel,
           resultLabel: rawItem.resultLabel || rawItem.result_label || `${styleLabel} · ${presetLabel}`,
@@ -14901,26 +14955,6 @@ Important:
         return mergeMyPhotoGenerations(normalizedItems);
       }
 
-      function getFilteredMyPhotos() {
-        if (selectedMyPhotoFilter === "gallery") {
-          return myPhotos.filter((photo) => hasMyPhotoGalleryUploadHistory(photo) || photo.galleryUploaded || photo.source === "gallery");
-        }
-
-        return myPhotos;
-      }
-
-      function syncMyPhotoFilters() {
-        if (!["all", "gallery"].includes(selectedMyPhotoFilter)) {
-          selectedMyPhotoFilter = "all";
-        }
-
-        myPhotoBoxFilterButtons.forEach((button) => {
-          const isActive = button.dataset.myPhotoFilter === selectedMyPhotoFilter;
-          button.classList.toggle("is-active", isActive);
-          button.setAttribute("aria-selected", isActive ? "true" : "false");
-        });
-      }
-
       function renderMyPhotoCards(photos) {
         if (!myPhotoBoxGrid) return;
 
@@ -14943,6 +14977,7 @@ Important:
                   `}
                   ${shouldShowLogoWatermark ? getLogoWatermarkMarkup("is-visible") : ""}
                   ${photo.isRecommended ? `<span class="my-photo-badge">AI 추천</span>` : ""}
+                  ${hasMyPhotoGalleryUploadHistory(photo) ? `<span class="my-photo-badge" style="left: auto; right: 10px;">갤러리 등록됨</span>` : ""}
                 </div>
                 <div class="my-photo-card-body">
                   <p class="text-xs font-bold uppercase tracking-wide text-on-surface-variant">${escapeHtml(styleLabel)}</p>
@@ -14968,8 +15003,6 @@ Important:
           return;
         }
 
-        syncMyPhotoFilters();
-
         if (isLoadingMyPhotos) {
           myPhotoBoxGrid?.classList.remove("hidden");
           myPhotoBoxEmptyState?.classList.add("hidden");
@@ -14990,9 +15023,6 @@ Important:
         if (myPhotosError) {
           myPhotoBoxGrid?.classList.remove("hidden");
           myPhotoBoxEmptyState?.classList.add("hidden");
-          const errorMessage = selectedMyPhotoFilter === "gallery"
-            ? "갤러리 업로드 목록을 불러오지 못했습니다."
-            : myPhotosError;
           if (myPhotoBoxGrid) {
             myPhotoBoxGrid.innerHTML = `
               <section class="my-photo-state-card col-span-full">
@@ -15000,29 +15030,23 @@ Important:
                   <span class="material-symbols-outlined text-[26px]">priority_high</span>
                 </div>
                 <h2 class="mt-4 font-display text-[25px] leading-tight text-on-surface">사진을 불러오지 못했어요</h2>
-                <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(errorMessage)}</p>
+                <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(myPhotosError)}</p>
               </section>
             `;
           }
           return;
         }
 
-        const filteredPhotos = getFilteredMyPhotos();
-        const hasPhotos = filteredPhotos.length > 0;
+        const hasPhotos = myPhotos.length > 0;
         myPhotoBoxGrid?.classList.toggle("hidden", !hasPhotos);
         myPhotoBoxEmptyState?.classList.toggle("hidden", hasPhotos);
         if (!hasPhotos && myPhotoBoxEmptyState) {
           const emptyTitle = myPhotoBoxEmptyState.querySelector("h2");
           const emptyCopy = myPhotoBoxEmptyState.querySelector("p");
-          if (selectedMyPhotoFilter === "gallery") {
-            if (emptyTitle) emptyTitle.textContent = "갤러리에 업로드한 사진이 없어요.";
-            if (emptyCopy) emptyCopy.textContent = "스타일 갤러리에 올린 사진이 이곳에 표시됩니다.";
-          } else {
-            if (emptyTitle) emptyTitle.textContent = "아직 저장된 사진이 없어요.";
-            if (emptyCopy) emptyCopy.textContent = "최근 7일 내 만든 AI 웨딩사진이 이곳에 표시됩니다.";
-          }
+          if (emptyTitle) emptyTitle.textContent = "아직 저장된 사진이 없어요.";
+          if (emptyCopy) emptyCopy.textContent = "최근 7일 내 만든 AI 웨딩사진이 이곳에 표시됩니다.";
         }
-        renderMyPhotoCards(filteredPhotos);
+        renderMyPhotoCards(myPhotos);
       }
 
       async function refreshMyPhotoBoxScreen() {
@@ -15103,7 +15127,10 @@ Important:
           .map((item, index) => {
             const modalItem = {
               url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
-              label: item.resultLabel || photo?.resultLabel || photo?.presetLabel || `마이포토박스 사진 ${index + 1}`,
+              label: [
+                item.resultLabel || photo?.resultLabel || photo?.presetLabel || `마이포토박스 사진 ${index + 1}`,
+                getMyPhotoGalleryStatusLabel(item),
+              ].filter(Boolean).join(" · "),
               isRecommended: Boolean(item.isRecommended),
               hasWatermark: item.hasWatermark === true || photo?.hasWatermark === true,
               isFreeGeneration: item.isFreeGeneration === true || photo?.isFreeGeneration === true,
@@ -15193,8 +15220,14 @@ Important:
         if (photo?.generationId || photo?.generationJobId || photo?.id) {
           try {
             const detailImages = await fetchMyPhotoDetailImages(photo);
-            if (detailImages.length) {
+            if (detailImages.length >= sourceImages.length || sourceImages.length < 2) {
               sourceImages = detailImages;
+            } else {
+              console.warn("[my-photobox][detail] ignored-short-result", {
+                detailCount: detailImages.length,
+                cachedCount: sourceImages.length,
+                generationId: photo?.generationId || photo?.id || null,
+              });
             }
           } catch (error) {
             console.warn("[my-photobox][detail] unavailable", {
@@ -20814,13 +20847,6 @@ ${modeExample}`;
         goToPhotoEditor();
       });
 
-      myPhotoBoxFilterButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          selectedMyPhotoFilter = button.dataset.myPhotoFilter || "all";
-          renderMyPhotoBoxScreen();
-        });
-      });
-
       myPhotoBoxGrid?.addEventListener("click", (event) => {
         const target = event.target instanceof Element
           ? event.target.closest("[data-my-photo-index]")
@@ -20828,7 +20854,7 @@ ${modeExample}`;
         if (!target) return;
 
         const index = Number(target.dataset.myPhotoIndex);
-        const photo = getFilteredMyPhotos()[Number.isInteger(index) ? index : 0];
+        const photo = myPhotos[Number.isInteger(index) ? index : 0];
         if (photo) {
           openMyPhotoDetail(photo);
         }

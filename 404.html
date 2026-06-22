@@ -1681,6 +1681,23 @@
         max-height: 320px;
       }
 
+      .image-fallback {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        min-height: 100%;
+        padding: 10px;
+        color: #8a6b72;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      .image-fallback[hidden] {
+        display: none;
+      }
+
       .admin-gallery-detail {
         overflow: hidden;
       }
@@ -5370,7 +5387,7 @@
                   <div class="flex items-center justify-between gap-3 px-1">
                     <div class="text-left">
                       <p class="font-label-caps text-label-caps uppercase text-primary/80">Gallery Preview</p>
-                      <p class="mt-1 text-sm font-semibold text-on-surface">기다리는 동안 다른 완성 사진을 둘러보세요.</p>
+                      <p class="mt-1 text-sm font-semibold text-on-surface">기다리는 동안 스타일 갤러리를 둘러보세요.</p>
                     </div>
                     <span class="material-symbols-outlined text-[20px] text-primary/70" aria-hidden="true">photo_library</span>
                   </div>
@@ -10351,8 +10368,8 @@ Important:
             description: "사용자의 마이포토박스 원본과 생성 결과는 삭제되지 않습니다.",
             submitLabel: "숨김",
             loadingLabel: "숨기는 중...",
-            successMessage: "갤러리에서 숨김 처리했습니다.",
-            toastMessage: "갤러리에서 숨김 처리했습니다.",
+            successMessage: "갤러리에서 숨겼습니다.",
+            toastMessage: "갤러리에서 숨겼습니다.",
             reasonPlaceholder: "숨김 사유를 입력해 주세요. 예: 테스트 이미지, 부적절한 이미지 등",
             requireReason: true,
             danger: true,
@@ -11094,7 +11111,8 @@ Important:
         }
         return `
           <div class="admin-gallery-thumb">
-            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="this.remove();this.parentElement.textContent='이미지 불러오기 실패';" />
+            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="handleImageError(event)" />
+            <div class="image-fallback" data-image-fallback hidden>이미지 불러오기 실패</div>
           </div>
         `;
       }
@@ -11106,7 +11124,8 @@ Important:
         }
         return `
           <div class="admin-gallery-preview">
-            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="this.remove();this.parentElement.textContent='이미지 불러오기 실패';" />
+            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="handleImageError(event)" />
+            <div class="image-fallback" data-image-fallback hidden>이미지 불러오기 실패</div>
           </div>
         `;
       }
@@ -11867,82 +11886,65 @@ Important:
 
       async function changeAdminGalleryVisibility(galleryItemId, nextVisibility, reason = "") {
         const encodedId = encodeURIComponent(galleryItemId);
-        const body = JSON.stringify({
+        const payload = {
           visibility: nextVisibility,
+          galleryStatus: nextVisibility,
           reason,
-        });
-        try {
-          return await fetchAdminJson(`/api/admin/gallery/${encodedId}/visibility`, {
-            method: "PATCH",
-            cache: "no-store",
-            body,
+        };
+        const body = JSON.stringify(payload);
+        const requestJson = async (path, method) => {
+          console.info("[admin][gallery][visibility-request]", {
+            method,
+            endpoint: getAuthApiUrl(path),
+            itemId: galleryItemId,
+            body: payload,
           });
-        } catch (patchError) {
-          if (![404, 405].includes(Number(patchError?.statusCode))) {
-            throw patchError;
+          try {
+            return await fetchAdminJson(path, {
+              method,
+              cache: "no-store",
+              body,
+            });
+          } catch (error) {
+            console.error("[admin][gallery][visibility-request-failed]", {
+              method,
+              endpoint: getAuthApiUrl(path),
+              itemId: galleryItemId,
+              status: error?.statusCode || error?.status || null,
+              bodyPreview: String(error?.bodyPreview || error?.message || "").slice(0, 240),
+            });
+            throw error;
           }
-        }
+        };
 
         try {
-          return await fetchAdminJson(`/api/admin/gallery/${encodedId}/visibility`, {
-            method: "POST",
-            cache: "no-store",
-            body,
-          });
+          return await requestJson(`/api/admin/gallery/${encodedId}/visibility`, "POST");
         } catch (postVisibilityError) {
           if (![404, 405].includes(Number(postVisibilityError?.statusCode))) {
             throw postVisibilityError;
           }
         }
 
+        try {
+          return await requestJson(`/api/admin/gallery/${encodedId}/visibility`, "PATCH");
+        } catch (patchError) {
+          if (![404, 405].includes(Number(patchError?.statusCode))) {
+            throw patchError;
+          }
+        }
+
         if (nextVisibility === "public") {
           try {
-            return await fetchAdminJson(`/api/admin/gallery/${encodedId}/unhide`, {
-              method: "POST",
-              cache: "no-store",
-              body,
-            });
+            return await requestJson(`/api/admin/gallery/${encodedId}/unhide`, "POST");
           } catch (unhideError) {
             if (![404, 405].includes(Number(unhideError?.statusCode))) {
               throw unhideError;
             }
           }
-          return fetchAdminJson(`/api/admin/gallery/${encodedId}/publish`, {
-            method: "POST",
-            cache: "no-store",
-            body,
-          });
+          return requestJson(`/api/admin/gallery/${encodedId}/publish`, "POST");
         }
 
-        try {
-          return await fetchAdminJson(`/api/admin/gallery/${encodedId}/hide`, {
-            method: "POST",
-            cache: "no-store",
-            body,
-          });
-        } catch (hideError) {
-          if (![404, 405].includes(Number(hideError?.statusCode))) {
-            throw hideError;
-          }
-        }
-
-        try {
-          return await fetchAdminJson(`/api/admin/gallery/${encodedId}`, {
-            method: "DELETE",
-            cache: "no-store",
-            body,
-          });
-        } catch (deleteError) {
-          if (![404, 405].includes(Number(deleteError?.statusCode))) {
-            throw deleteError;
-          }
-        }
-
-        return fetchAdminJson(`/api/admin/gallery/${encodedId}/delete`, {
-          method: "POST",
-          cache: "no-store",
-          body,
-        });
+        return requestJson(`/api/admin/gallery/${encodedId}/hide`, "POST");
       }
 
       function isUnauthenticatedAuthPayload(payload = {}) {
@@ -12513,12 +12515,43 @@ Important:
       }
 
       function applyGalleryUploadCreditReward(payload = {}) {
+        const rewardUses = normalizeCreditValue(
+          payload.rewardUses ?? payload.reward_uses ?? payload.usesRewarded ?? payload.uses_rewarded,
+        ) ?? (payload.rewardGranted === true || payload.reward_granted === true ? 1 : 0);
+        const nextRemainingUses = normalizeCreditValue(
+          payload.remainingUses
+            ?? payload.remaining_uses
+            ?? payload.user?.remainingUses
+            ?? payload.user?.remaining_uses
+            ?? payload.data?.remainingUses
+            ?? payload.data?.remaining_uses
+            ?? payload.data?.user?.remainingUses
+            ?? payload.data?.user?.remaining_uses,
+        );
         const rewardCredits = normalizeCreditValue(
           payload.rewardCredits ?? payload.reward_credits ?? payload.creditsRewarded ?? payload.creditReward,
         ) || 0;
         const nextBalance = normalizeCreditValue(
           payload.remainingCredits ?? payload.remaining_credits ?? payload.balance ?? payload.credits ?? payload.currentCredits,
         );
+
+        if (nextRemainingUses !== null && currentUser) {
+          currentUser = {
+            ...currentUser,
+            remainingUses: nextRemainingUses,
+            remaining_uses: nextRemainingUses,
+            generationUsage: {
+              ...(currentUser.generationUsage || {}),
+              remainingGenerationUses: nextRemainingUses,
+            },
+          };
+          generationUsageSummary = {
+            ...(generationUsageSummary || {}),
+            remainingGenerationUses: nextRemainingUses,
+          };
+          generationUsageStatus = "ready";
+          syncAuthUi();
+        }
 
         if (nextBalance !== null) {
           creditBalance = nextBalance;
@@ -12527,7 +12560,7 @@ Important:
           void refreshCredits({ clearStatus: false });
         }
 
-        return rewardCredits;
+        return rewardUses > 0 ? rewardUses : rewardCredits;
       }
 
       function showCreditStatus(message, type = "success", options = {}) {
@@ -14284,6 +14317,32 @@ Important:
         return getAuthApiUrl("/api/my-photos");
       }
 
+      function handleImageError(event) {
+        const img = event?.currentTarget || event?.target;
+        if (!img) return;
+
+        const srcPreview = img.getAttribute?.("src") || img.currentSrc || "";
+        img.style.display = "none";
+        img.removeAttribute?.("src");
+
+        const parent = img.parentElement;
+        if (parent) {
+          let fallback = parent.querySelector?.("[data-image-fallback]");
+          if (!fallback) {
+            fallback = document.createElement("div");
+            fallback.dataset.imageFallback = "true";
+            fallback.className = "image-fallback";
+            fallback.textContent = "이미지 불러오기 실패";
+            parent.appendChild(fallback);
+          }
+          fallback.hidden = false;
+        }
+
+        console.warn("[image][load-failed]", {
+          src: srcPreview ? srcPreview.slice(0, 120) : null,
+        });
+      }
+
       function extractMyPhotoItems(payload = {}) {
         if (Array.isArray(payload)) return payload;
         if (Array.isArray(payload.photos)) return payload.photos;
@@ -14296,6 +14355,28 @@ Important:
         if (Array.isArray(payload.data?.generations)) return payload.data.generations;
         if (Array.isArray(payload.data?.items)) return payload.data.items;
         return [];
+      }
+
+      function extractMyPhotoDetailResults(detail = {}) {
+        const candidates = [
+          detail?.items,
+          detail?.images,
+          detail?.results,
+          detail?.generatedImages,
+          detail?.generated_images,
+          detail?.photos,
+          detail?.data?.items,
+          detail?.data?.images,
+          detail?.data?.results,
+          detail?.data?.generatedImages,
+          detail?.data?.generated_images,
+          detail?.generation?.items,
+          detail?.generation?.images,
+          detail?.generation?.results,
+          detail?.generation?.generatedImages,
+          detail?.generation?.generated_images,
+        ];
+        return candidates.find((value) => Array.isArray(value)) || [];
       }
 
       function getMyPhotoCreatedAtValue(photo = {}) {
@@ -14498,6 +14579,8 @@ Important:
         if (Array.isArray(rawItem.resultImages)) return rawItem.resultImages;
         if (Array.isArray(rawItem.result_images)) return rawItem.result_images;
         if (Array.isArray(rawItem.results)) return rawItem.results;
+        if (Array.isArray(rawItem.generatedImages)) return rawItem.generatedImages;
+        if (Array.isArray(rawItem.generated_images)) return rawItem.generated_images;
         if (Array.isArray(rawItem.items)) return rawItem.items;
         if (Array.isArray(rawItem.photos)) return rawItem.photos;
         if (rawItem.representativeImage || rawItem.representative_image) {
@@ -14515,6 +14598,42 @@ Important:
           if (["false", "0", "no", "n"].includes(normalized)) return false;
         }
         return fallback;
+      }
+
+      function getMyPhotoGalleryStatusToken(item = {}) {
+        return String(
+          item.galleryStatus
+            || item.gallery_status
+            || item.status
+            || item.visibility
+            || item.metadata?.galleryStatus
+            || item.metadata?.gallery_status
+            || "",
+        ).trim().toLowerCase();
+      }
+
+      function hasMyPhotoGalleryUploadHistory(item = {}) {
+        if (!item || typeof item !== "object") return false;
+
+        const galleryStatus = getMyPhotoGalleryStatusToken(item);
+        return Boolean(
+          item.galleryUploadedAt
+            || item.gallery_uploaded_at
+            || item.galleryItemId
+            || item.gallery_item_id
+            || item.metadata?.galleryUploadedAt
+            || item.metadata?.gallery_uploaded_at
+            || item.metadata?.galleryItemId
+            || item.metadata?.gallery_item_id
+            || galleryStatus === "public"
+            || galleryStatus === "hidden"
+            || item.isGalleryUploaded === true
+            || item.is_gallery_uploaded === true
+            || item.uploadedToGallery === true
+            || item.uploaded_to_gallery === true
+            || item.galleryUploaded === true
+            || item.gallery_uploaded === true
+        );
       }
 
       function getMyPhotoDisplayImageUrl(image = {}) {
@@ -14607,7 +14726,11 @@ Important:
           resultLabel: rawImage.resultLabel || rawImage.result_label || rawImage.label || `AI 생성 결과 ${index + 1}`,
           isRecommended,
           recommendationRank,
-          galleryUploaded: normalizeMyPhotoBoolean(rawImage.galleryUploaded ?? rawImage.gallery_uploaded, normalizeMyPhotoBoolean(generation.galleryUploaded ?? generation.gallery_uploaded, false)),
+          galleryUploaded: hasMyPhotoGalleryUploadHistory(rawImage)
+            || normalizeMyPhotoBoolean(rawImage.galleryUploaded ?? rawImage.gallery_uploaded, normalizeMyPhotoBoolean(generation.galleryUploaded ?? generation.gallery_uploaded, false)),
+          galleryUploadedAt: rawImage.galleryUploadedAt || rawImage.gallery_uploaded_at || generation.galleryUploadedAt || generation.gallery_uploaded_at || "",
+          galleryItemId: rawImage.galleryItemId || rawImage.gallery_item_id || generation.galleryItemId || generation.gallery_item_id || "",
+          galleryStatus: rawImage.galleryStatus || rawImage.gallery_status || generation.galleryStatus || generation.gallery_status || "",
           source: rawImage.source || rawImage.origin || generation.source || generation.origin || "",
           hasWatermark,
           isFreeGeneration,
@@ -14677,7 +14800,12 @@ Important:
           createdAtLabel: formatMyPhotoDate(createdAt),
           isRecommended: Boolean(representativeImage.isRecommended),
           recommendedPhoto: representativeImage,
-          galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery") || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
+          galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery" || hasMyPhotoGalleryUploadHistory(image))
+            || hasMyPhotoGalleryUploadHistory(rawItem)
+            || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
+          galleryUploadedAt: rawItem.galleryUploadedAt || rawItem.gallery_uploaded_at || representativeImage.galleryUploadedAt || representativeImage.gallery_uploaded_at || "",
+          galleryItemId: rawItem.galleryItemId || rawItem.gallery_item_id || representativeImage.galleryItemId || representativeImage.gallery_item_id || "",
+          galleryStatus: rawItem.galleryStatus || rawItem.gallery_status || representativeImage.galleryStatus || representativeImage.gallery_status || "",
           source: rawItem.source || rawItem.origin || "",
           hasWatermark,
           isFreeGeneration,
@@ -14708,6 +14836,9 @@ Important:
             }
           });
           existing.galleryUploaded = existing.galleryUploaded || item.galleryUploaded;
+          existing.galleryUploadedAt = existing.galleryUploadedAt || item.galleryUploadedAt || "";
+          existing.galleryItemId = existing.galleryItemId || item.galleryItemId || "";
+          existing.galleryStatus = existing.galleryStatus || item.galleryStatus || "";
           existing.isRecommended = existing.isRecommended || item.isRecommended;
           existing.hasWatermark = existing.hasWatermark || item.hasWatermark;
           existing.isFreeGeneration = existing.isFreeGeneration || item.isFreeGeneration;
@@ -14772,7 +14903,7 @@ Important:
 
       function getFilteredMyPhotos() {
         if (selectedMyPhotoFilter === "gallery") {
-          return myPhotos.filter((photo) => photo.galleryUploaded || photo.source === "gallery");
+          return myPhotos.filter((photo) => hasMyPhotoGalleryUploadHistory(photo) || photo.galleryUploaded || photo.source === "gallery");
         }
 
         return myPhotos;
@@ -14805,7 +14936,7 @@ Important:
             <article class="my-photo-card">
               <button class="block w-full text-left" data-my-photo-index="${index}" type="button" aria-label="${escapeHtml(title)} 크게보기">
                 <div class="my-photo-thumb">
-                  ${imageUrl ? `<img src="${escapeHtml(toDisplayUrl(imageUrl))}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" />` : `
+                  ${imageUrl ? `<img src="${escapeHtml(toDisplayUrl(imageUrl))}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" onerror="handleImageError(event)" />` : `
                     <div class="absolute inset-0 flex items-center justify-center text-primary/70">
                       <span class="material-symbols-outlined text-[34px]">photo</span>
                     </div>
@@ -14859,6 +14990,9 @@ Important:
         if (myPhotosError) {
           myPhotoBoxGrid?.classList.remove("hidden");
           myPhotoBoxEmptyState?.classList.add("hidden");
+          const errorMessage = selectedMyPhotoFilter === "gallery"
+            ? "갤러리 업로드 목록을 불러오지 못했습니다."
+            : myPhotosError;
           if (myPhotoBoxGrid) {
             myPhotoBoxGrid.innerHTML = `
               <section class="my-photo-state-card col-span-full">
@@ -14866,7 +15000,7 @@ Important:
                   <span class="material-symbols-outlined text-[26px]">priority_high</span>
                 </div>
                 <h2 class="mt-4 font-display text-[25px] leading-tight text-on-surface">사진을 불러오지 못했어요</h2>
-                <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(myPhotosError)}</p>
+                <p class="mt-3 text-sm leading-6 text-on-surface-variant">${escapeHtml(errorMessage)}</p>
               </section>
             `;
           }
@@ -14877,6 +15011,17 @@ Important:
         const hasPhotos = filteredPhotos.length > 0;
         myPhotoBoxGrid?.classList.toggle("hidden", !hasPhotos);
         myPhotoBoxEmptyState?.classList.toggle("hidden", hasPhotos);
+        if (!hasPhotos && myPhotoBoxEmptyState) {
+          const emptyTitle = myPhotoBoxEmptyState.querySelector("h2");
+          const emptyCopy = myPhotoBoxEmptyState.querySelector("p");
+          if (selectedMyPhotoFilter === "gallery") {
+            if (emptyTitle) emptyTitle.textContent = "갤러리에 업로드한 사진이 없어요.";
+            if (emptyCopy) emptyCopy.textContent = "스타일 갤러리에 올린 사진이 이곳에 표시됩니다.";
+          } else {
+            if (emptyTitle) emptyTitle.textContent = "아직 저장된 사진이 없어요.";
+            if (emptyCopy) emptyCopy.textContent = "최근 7일 내 만든 AI 웨딩사진이 이곳에 표시됩니다.";
+          }
+        }
         renderMyPhotoCards(filteredPhotos);
       }
 
@@ -14937,12 +15082,24 @@ Important:
         window.scrollTo({ top: 0, behavior: "auto" });
       }
 
-      function openMyPhotoDetail(photo) {
-        selectedMyPhoto = photo || null;
-        const sourceImages = Array.isArray(photo?.images) && photo.images.length
-          ? photo.images
-          : [photo].filter(Boolean);
-        const items = sourceImages
+      function getMyPhotoDetailCandidatePaths(photo = {}) {
+        const generationId = String(photo.generationId || photo.generation_id || photo.generationJobId || photo.generation_job_id || photo.id || "").trim();
+        const id = String(photo.id || generationId || "").trim();
+        const candidates = [];
+        if (generationId) {
+          candidates.push(`/api/my-photos/generations/${encodeURIComponent(generationId)}`);
+          candidates.push(`/api/my-photos/${encodeURIComponent(generationId)}`);
+          candidates.push(`/api/my-photos/${encodeURIComponent(generationId)}/images`);
+        }
+        if (id && id !== generationId) {
+          candidates.push(`/api/my-photos/${encodeURIComponent(id)}`);
+          candidates.push(`/api/my-photos/${encodeURIComponent(id)}/images`);
+        }
+        return [...new Set(candidates)];
+      }
+
+      function buildMyPhotoModalItemsFromImages(photo = {}, sourceImages = []) {
+        const items = (Array.isArray(sourceImages) ? sourceImages : [])
           .map((item, index) => {
             const modalItem = {
               url: toDisplayUrl(item.imageUrl || item.thumbnailUrl || ""),
@@ -14963,6 +15120,93 @@ Important:
             return modalItem;
           })
           .filter((item) => item.url);
+
+        return items;
+      }
+
+      function normalizeMyPhotoDetailImages(photo = {}, detail = {}) {
+        const rawResults = extractMyPhotoDetailResults(detail);
+        const generationSource = detail?.generation || detail?.data?.generation || detail?.data || detail || photo;
+        const normalized = rawResults
+          .map((item, index) => normalizeMyPhotoImage(item, { ...photo, ...generationSource }, index))
+          .filter(Boolean)
+          .sort((left, right) => {
+            const leftRank = Number.isFinite(left.recommendationRank) ? left.recommendationRank : Number.POSITIVE_INFINITY;
+            const rightRank = Number.isFinite(right.recommendationRank) ? right.recommendationRank : Number.POSITIVE_INFINITY;
+            if (leftRank !== rightRank) return leftRank - rightRank;
+            return (left.index ?? 0) - (right.index ?? 0);
+          });
+
+        return normalized;
+      }
+
+      async function fetchMyPhotoDetailImages(photo = {}) {
+        const paths = getMyPhotoDetailCandidatePaths(photo);
+        let lastError = null;
+
+        for (const path of paths) {
+          try {
+            const response = await fetch(getAuthApiUrl(path), {
+              method: "GET",
+              credentials: "include",
+              cache: "no-store",
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || payload?.ok === false) {
+              const error = new Error(payload?.message || `My photo detail request failed: ${response.status}`);
+              error.status = response.status;
+              error.payload = payload;
+              throw error;
+            }
+
+            const images = normalizeMyPhotoDetailImages(photo, payload);
+            if (images.length) {
+              console.info("[my-photobox][detail]", {
+                path,
+                generationId: photo?.generationId || photo?.id || null,
+                count: images.length,
+              });
+              return images;
+            }
+            lastError = new Error("My photo detail response did not include images.");
+          } catch (error) {
+            lastError = error;
+            if (![404, 405].includes(Number(error?.status))) {
+              console.warn("[my-photobox][detail] failed", {
+                path,
+                status: error?.status || null,
+                message: error?.message,
+              });
+            }
+          }
+        }
+
+        throw lastError || new Error("My photo detail endpoint is unavailable.");
+      }
+
+      async function openMyPhotoDetail(photo) {
+        selectedMyPhoto = photo || null;
+        let sourceImages = Array.isArray(photo?.images) && photo.images.length
+          ? photo.images
+          : [photo].filter(Boolean);
+
+        if (photo?.generationId || photo?.generationJobId || photo?.id) {
+          try {
+            const detailImages = await fetchMyPhotoDetailImages(photo);
+            if (detailImages.length) {
+              sourceImages = detailImages;
+            }
+          } catch (error) {
+            console.warn("[my-photobox][detail] unavailable", {
+              generationId: photo?.generationId || photo?.id || null,
+              fallbackCount: sourceImages.length,
+              message: error?.message,
+            });
+            showAccountMenuToast("생성 결과 전체를 불러오지 못했습니다. 다시 시도해 주세요.");
+          }
+        }
+
+        const items = buildMyPhotoModalItemsFromImages(photo, sourceImages);
 
         if (!items.length) {
           showAccountMenuToast("확인할 이미지가 없습니다.");
@@ -17919,7 +18163,7 @@ ${modeExample}`;
 
         if (label) {
           if (isUploaded || isCurrentGenerationUploadedImage) {
-            label.textContent = "갤러리 등록됨";
+            label.textContent = "1장 등록됨";
           } else if (isBlockedByUserLimit) {
             label.textContent = "업로드 제한";
           } else if (isBlockedByGenerationLimit) {
@@ -18045,7 +18289,24 @@ ${modeExample}`;
         return visibleItems
           .map((item, itemIndex) => {
             const originalThumbSrc = getGalleryOriginalThumbnailUrl(item);
-            const originalImageSrc = firstBrowserImageUrlValue(item.originalImageUrl, item.original_image_url);
+            const originalImageSrc = firstBrowserImageUrlValue(
+              item.originalImageUrl,
+              item.original_image_url,
+              item.beforeImageUrl,
+              item.before_image_url,
+              item.inputImageUrl,
+              item.input_image_url,
+              item.sourceImageUrl,
+              item.source_image_url,
+              item.metadata?.originalImageUrl,
+              item.metadata?.original_image_url,
+              item.metadata?.beforeImageUrl,
+              item.metadata?.before_image_url,
+              item.metadata?.inputImageUrl,
+              item.metadata?.input_image_url,
+              item.metadata?.sourceImageUrl,
+              item.metadata?.source_image_url
+            );
             const url = firstDisplayableImageUrl(item.displayImageUrl, item.displayUrl, item.thumbnailUrl, item.imageUrl, item.url);
             const lightboxKey = getGalleryLightboxItemKey(item, itemIndex);
             if (!url || brokenGalleryLightboxItemKeys.has(lightboxKey)) return null;
@@ -18138,8 +18399,39 @@ ${modeExample}`;
         const imageWidth = Number(rawItem.width || rawItem.imageWidth || rawItem.image_width || rawItem.metadata?.width || rawItem.metadata?.imageWidth);
         const imageHeight = Number(rawItem.height || rawItem.imageHeight || rawItem.image_height || rawItem.metadata?.height || rawItem.metadata?.imageHeight);
         const aspectRatio = parseGalleryAspectRatio(rawItem.aspectRatio || rawItem.aspect_ratio || rawItem.metadata?.aspectRatio || rawItem.metadata?.aspect_ratio);
-        const originalImageUrl = firstBrowserImageUrlValue(rawItem.originalImageUrl, rawItem.original_image_url, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_image_url);
-        const originalThumbnailUrl = firstBrowserImageUrlValue(rawItem.originalThumbnailUrl, rawItem.originalImageUrl, rawItem.original_thumbnail_url, rawItem.original_image_url, rawItem.metadata?.originalThumbnailUrl, rawItem.metadata?.originalImageUrl, rawItem.metadata?.original_thumbnail_url, rawItem.metadata?.original_image_url);
+        const originalImageUrl = firstBrowserImageUrlValue(
+          rawItem.originalImageUrl,
+          rawItem.original_image_url,
+          rawItem.beforeImageUrl,
+          rawItem.before_image_url,
+          rawItem.inputImageUrl,
+          rawItem.input_image_url,
+          rawItem.sourceImageUrl,
+          rawItem.source_image_url,
+          rawItem.metadata?.originalImageUrl,
+          rawItem.metadata?.original_image_url,
+          rawItem.metadata?.beforeImageUrl,
+          rawItem.metadata?.before_image_url,
+          rawItem.metadata?.inputImageUrl,
+          rawItem.metadata?.input_image_url,
+          rawItem.metadata?.sourceImageUrl,
+          rawItem.metadata?.source_image_url
+        );
+        const originalThumbnailUrl = firstBrowserImageUrlValue(
+          rawItem.originalThumbnailUrl,
+          rawItem.original_thumbnail_url,
+          rawItem.beforeThumbnailUrl,
+          rawItem.before_thumbnail_url,
+          rawItem.inputThumbnailUrl,
+          rawItem.input_thumbnail_url,
+          originalImageUrl,
+          rawItem.metadata?.originalThumbnailUrl,
+          rawItem.metadata?.original_thumbnail_url,
+          rawItem.metadata?.beforeThumbnailUrl,
+          rawItem.metadata?.before_thumbnail_url,
+          rawItem.metadata?.inputThumbnailUrl,
+          rawItem.metadata?.input_thumbnail_url
+        );
         const originalImagePath = normalizeUrlValue(rawItem.originalImagePath || rawItem.original_image_path || rawItem.originalPath || rawItem.original_path || rawItem.metadata?.originalImagePath || rawItem.metadata?.original_image_path);
         return {
           ...rawItem,
@@ -18230,12 +18522,26 @@ ${modeExample}`;
       function getGalleryOriginalThumbnailUrl(item) {
         return firstBrowserImageUrlValue(
           item?.originalThumbnailUrl,
-          item?.originalImageUrl,
           item?.original_thumbnail_url,
+          item?.beforeThumbnailUrl,
+          item?.before_thumbnail_url,
+          item?.inputThumbnailUrl,
+          item?.input_thumbnail_url,
+          item?.originalImageUrl,
           item?.original_image_url,
+          item?.beforeImageUrl,
+          item?.before_image_url,
+          item?.inputImageUrl,
+          item?.input_image_url,
+          item?.sourceImageUrl,
+          item?.source_image_url,
           item?.metadata?.originalThumbnailUrl,
-          item?.metadata?.originalImageUrl,
           item?.metadata?.original_thumbnail_url,
+          item?.metadata?.beforeThumbnailUrl,
+          item?.metadata?.before_thumbnail_url,
+          item?.metadata?.inputThumbnailUrl,
+          item?.metadata?.input_thumbnail_url,
+          item?.metadata?.originalImageUrl,
           item?.metadata?.original_image_url
         );
       }
@@ -18244,8 +18550,20 @@ ${modeExample}`;
         return Boolean(firstBrowserImageUrlValue(
           item?.originalImageUrl,
           item?.original_image_url,
+          item?.beforeImageUrl,
+          item?.before_image_url,
+          item?.inputImageUrl,
+          item?.input_image_url,
+          item?.sourceImageUrl,
+          item?.source_image_url,
           item?.metadata?.originalImageUrl,
-          item?.metadata?.original_image_url
+          item?.metadata?.original_image_url,
+          item?.metadata?.beforeImageUrl,
+          item?.metadata?.before_image_url,
+          item?.metadata?.inputImageUrl,
+          item?.metadata?.input_image_url,
+          item?.metadata?.sourceImageUrl,
+          item?.metadata?.source_image_url
         ));
       }
 
@@ -18554,7 +18872,7 @@ ${modeExample}`;
         const generationId = ensureCurrentGenerationId();
         const uploadOriginalImageUrl = originalImageUrl || originalImagePath || null;
         const uploadOriginalImagePath = originalImagePath || null;
-        const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || imageUrl || null;
+        const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || null;
 
         imageModalGalleryUpload.disabled = true;
         isGalleryUploading = true;
@@ -18678,14 +18996,40 @@ ${modeExample}`;
             if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
             currentGenerationGalleryUploadIndex = resultIndex;
             persistResultState();
-            setImageModalStatus("이미 스타일 갤러리에 업로드된 사진이에요.");
+            setImageModalStatus("이미 갤러리에 등록된 사진입니다.");
             syncGalleryUploadButtonState(item);
             return;
           }
 
-          const rewardCredits = applyGalleryUploadCreditReward(uploaded);
+          const rewardUses = applyGalleryUploadCreditReward(uploaded);
           if (duplicateKey) uploadedGalleryImageUrls.add(duplicateKey);
           currentGenerationGalleryUploadIndex = resultIndex;
+          const uploadedGalleryItemId = uploaded?.galleryItemId || uploaded?.gallery_item_id || uploaded?.id || "";
+          const uploadedAt = uploaded?.galleryUploadedAt || uploaded?.gallery_uploaded_at || uploaded?.publishedAt || uploaded?.published_at || new Date().toISOString();
+          myPhotos = myPhotos.map((photo) => {
+            const sameGeneration = String(photo.generationId || photo.id || "") === String(generationId || "");
+            if (!sameGeneration) return photo;
+            return {
+              ...photo,
+              galleryUploaded: true,
+              galleryUploadedAt: uploadedAt,
+              galleryItemId: uploadedGalleryItemId || photo.galleryItemId || "",
+              galleryStatus: uploaded?.galleryStatus || uploaded?.gallery_status || "public",
+              images: (photo.images || []).map((photoImage) => {
+                const sameImage = String(photoImage.index ?? "") === String(resultIndex)
+                  || String(photoImage.imageUrl || photoImage.url || "") === String(imageUrl || "");
+                return sameImage
+                  ? {
+                    ...photoImage,
+                    galleryUploaded: true,
+                    galleryUploadedAt: uploadedAt,
+                    galleryItemId: uploadedGalleryItemId || photoImage.galleryItemId || "",
+                    galleryStatus: uploaded?.galleryStatus || uploaded?.gallery_status || "public",
+                  }
+                  : photoImage;
+              }),
+            };
+          });
           galleryImages = [
             normalizeGalleryItem({
               generationId,
@@ -18714,9 +19058,18 @@ ${modeExample}`;
             ...galleryImages,
           ];
           persistResultState();
-          setImageModalStatus(rewardCredits > 0
-            ? `스타일 갤러리에 업로드했어요. 제작 횟수 ${formatCreditNumber(Math.max(1, Math.floor(rewardCredits / 5)))}회가 지급되었습니다.`
-            : "스타일 갤러리에 업로드했어요.");
+          if (appScreen === "myPhotoBox") {
+            renderMyPhotoBoxScreen();
+          }
+          void refreshAuthState({ showError: false });
+          void refreshMyPhotosCache();
+          const rewardGranted = uploaded?.rewardGranted === true || uploaded?.reward_granted === true || rewardUses > 0;
+          const rewardAlreadyGranted = uploaded?.rewardAlreadyGranted === true || uploaded?.reward_already_granted === true;
+          setImageModalStatus(rewardAlreadyGranted
+            ? "이미 갤러리에 등록된 사진입니다."
+            : rewardGranted
+              ? "갤러리에 등록되었습니다. 1회 이용권이 지급되었어요."
+              : "갤러리에 등록되었습니다.");
           syncGalleryUploadButtonState(item);
         } catch (error) {
           console.error("[client][gallery-upload] failed:", {

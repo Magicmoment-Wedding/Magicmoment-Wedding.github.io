@@ -7358,6 +7358,9 @@ Important:
       let currentGenerationJobId = "";
       const CURRENT_GENERATION_JOB_ID_KEY = "magic_ai_current_generation_job_id";
       const CURRENT_GENERATION_STARTED_AT_KEY = "magic_ai_current_generation_started_at";
+      const CONSUMED_GENERATION_JOB_IDS_KEY = "magic_ai_consumed_generation_job_ids";
+      const MAX_CONSUMED_GENERATION_JOB_IDS = 40;
+      let activeGenerationPollToken = 0;
       let hasRequestedStartupGenerationRecovery = false;
       let currentGenerationGalleryUploadIndex = null;
       let galleryUploadLimitReached = false;
@@ -15763,15 +15766,132 @@ Important:
         }
       }
 
-      function clearActiveGenerationJob(jobId = "") {
+      function readConsumedGenerationJobIds() {
         try {
-          const storedJobId = getStoredActiveGenerationJobId();
-          if (jobId && storedJobId && storedJobId !== jobId) return;
+          const parsed = JSON.parse(localStorage.getItem(CONSUMED_GENERATION_JOB_IDS_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed.map((value) => String(value || "").trim()).filter(Boolean) : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function markGenerationJobConsumed(jobId) {
+        const normalizedJobId = String(jobId || "").trim();
+        if (!normalizedJobId) return;
+
+        try {
+          const consumed = readConsumedGenerationJobIds();
+          if (consumed.includes(normalizedJobId)) return;
+          consumed.push(normalizedJobId);
+          while (consumed.length > MAX_CONSUMED_GENERATION_JOB_IDS) {
+            consumed.shift();
+          }
+          localStorage.setItem(CONSUMED_GENERATION_JOB_IDS_KEY, JSON.stringify(consumed));
+        } catch (error) {
+          console.warn("[generation] consumed job save failed", error);
+        }
+      }
+
+      function isGenerationJobConsumed(jobId) {
+        const normalizedJobId = String(jobId || "").trim();
+        if (!normalizedJobId) return false;
+        return readConsumedGenerationJobIds().includes(normalizedJobId);
+      }
+
+      function isRecoverableGenerationJobStatus(status) {
+        const normalizedStatus = String(status || "").trim().toLowerCase();
+        return [
+          "pending",
+          "queued",
+          "processing",
+          "running",
+          "delayed",
+          "saving",
+          "storing",
+          "watermark",
+          "watermarking",
+        ].includes(normalizedStatus);
+      }
+
+      function isTerminalGenerationJobStatus(status) {
+        const normalizedStatus = String(status || "").trim().toLowerCase();
+        return [
+          "succeeded",
+          "success",
+          "completed",
+          "complete",
+          "failed",
+          "error",
+          "canceled",
+          "cancelled",
+        ].includes(normalizedStatus);
+      }
+
+      function clearActiveGenerationJob(jobId = "", { force = false, markConsumed = true } = {}) {
+        const storedJobId = getStoredActiveGenerationJobId();
+        const resolvedJobId = String(jobId || storedJobId || currentGenerationJobId || "").trim();
+        if (!force && jobId && storedJobId && storedJobId !== jobId) return;
+
+        try {
           localStorage.removeItem(CURRENT_GENERATION_JOB_ID_KEY);
           localStorage.removeItem(CURRENT_GENERATION_STARTED_AT_KEY);
         } catch (error) {
           console.warn("[generation] active job clear failed", error);
         }
+
+        if (markConsumed && resolvedJobId) {
+          markGenerationJobConsumed(resolvedJobId);
+        }
+      }
+
+      function clearActiveGenerationJobState(options = {}) {
+        const {
+          jobId = "",
+          reason = "",
+          markConsumed = true,
+        } = options;
+        const resolvedJobId = String(
+          jobId ||
+          currentGenerationJobId ||
+          getStoredActiveGenerationJobId() ||
+          generationMeta?.jobId ||
+          generationMeta?.job_id ||
+          currentGenerationId ||
+          lastDelayedGenerationJobId ||
+          "",
+        ).trim();
+
+        activeGenerationPollToken += 1;
+        isGenerating = false;
+        if (generateButton) {
+          generateButton.disabled = !selectedFile;
+        }
+
+        clearActiveGenerationJob(resolvedJobId, { force: true, markConsumed });
+
+        if (resolvedJobId && lastDelayedGenerationJobId === resolvedJobId) {
+          lastDelayedGenerationJobId = "";
+        }
+
+        currentGenerationJobId = "";
+
+        if (reason) {
+          console.log("[generation] active job state cleared", {
+            jobId: resolvedJobId,
+            reason,
+          });
+        }
+      }
+
+      function isGenerationPollCancelled(pollToken) {
+        return pollToken !== activeGenerationPollToken;
+      }
+
+      function throwGenerationPollCancelledError(jobId = "") {
+        const error = new Error("GENERATION_POLL_CANCELLED");
+        error.code = "GENERATION_POLL_CANCELLED";
+        error.jobId = jobId;
+        throw error;
       }
 
       function isTransientGenerationStatusError(error) {
@@ -15884,12 +16004,17 @@ Important:
       async function pollGenerationJobStatus(jobId) {
         const intervalMs = 3500;
         const pausedIntervalMs = 5000;
+        const pollToken = activeGenerationPollToken;
         currentGenerationJobId = jobId;
         saveActiveGenerationJob(jobId);
         setGenerationPendingStatus("사진을 만들고 있어요.");
         requestGenerationRun(jobId);
 
         while (true) {
+          if (isGenerationPollCancelled(pollToken)) {
+            throwGenerationPollCancelledError(jobId);
+          }
+
           if (document.visibilityState === "hidden" || navigator.onLine === false) {
             setGenerationPendingStatus("사진을 만들고 있어요.", { paused: true });
             await wait(pausedIntervalMs);
@@ -15897,6 +16022,9 @@ Important:
           }
 
           await wait(intervalMs);
+          if (isGenerationPollCancelled(pollToken)) {
+            throwGenerationPollCancelledError(jobId);
+          }
           let statusResult;
           try {
             statusResult = await fetchGenerationJobStatus(jobId);
@@ -15920,7 +16048,7 @@ Important:
           });
 
           if (response.status === 404 || code === "GENERATION_JOB_NOT_FOUND") {
-            clearActiveGenerationJob(jobId);
+            clearActiveGenerationJobState({ jobId, reason: "poll-job-not-found", markConsumed: true });
             const error = new Error("GENERATION_JOB_NOT_FOUND");
             error.code = "GENERATION_JOB_NOT_FOUND";
             error.publicMessage = "진행 중이던 생성 작업을 찾을 수 없습니다.";
@@ -15961,11 +16089,12 @@ Important:
               throw error;
             }
             setStatus("완성된 사진을 저장하고 있어요.");
-            clearActiveGenerationJob(jobId);
+            clearActiveGenerationJobState({ jobId, reason: "poll-completed", markConsumed: true });
             return result;
           }
 
           if (status === "failed" || status === "error" || status === "canceled" || status === "cancelled") {
+            clearActiveGenerationJobState({ jobId, reason: `poll-${status}`, markConsumed: true });
             throw createGenerationStatusError({ response, parsed, payload, code });
           }
 
@@ -16095,14 +16224,27 @@ Important:
         if (isGenerating) return;
 
         let jobId = getStoredActiveGenerationJobId();
+        if (jobId && isGenerationJobConsumed(jobId)) {
+          clearActiveGenerationJob(jobId, { force: true, markConsumed: false });
+          jobId = "";
+        }
+
         if (!jobId) {
           const recentJob = await fetchRecentActiveGenerationJob();
-          if (recentJob && ["pending", "queued", "processing", "running", "delayed", "succeeded", "completed"].includes(recentJob.status)) {
-            jobId = recentJob.jobId;
+          if (recentJob?.jobId) {
+            if (isGenerationJobConsumed(recentJob.jobId)) {
+              return;
+            }
+            if (isRecoverableGenerationJobStatus(recentJob.status)) {
+              jobId = recentJob.jobId;
+            } else if (isTerminalGenerationJobStatus(recentJob.status)) {
+              markGenerationJobConsumed(recentJob.jobId);
+              clearActiveGenerationJob(recentJob.jobId, { force: true, markConsumed: false });
+            }
           }
         }
 
-        if (!jobId) return;
+        if (!jobId || isGenerationJobConsumed(jobId)) return;
 
         console.log("[generation] active job recovery", { jobId, reason });
         hideError();
@@ -16123,18 +16265,21 @@ Important:
           showAccountMenuToast("사진 제작이 완료되었어요. 결과를 확인해 주세요.");
           navigateToScreen("myPhotoBox");
         } catch (error) {
-          if (String(error?.code || "").toUpperCase() === "GENERATION_JOB_NOT_FOUND") {
-            clearActiveGenerationJob(jobId);
+          const recoveryErrorCode = String(error?.code || "").toUpperCase();
+          if (recoveryErrorCode === "GENERATION_POLL_CANCELLED") {
             isGenerating = false;
             generateButton.disabled = !selectedFile;
+            return;
+          }
+
+          if (recoveryErrorCode === "GENERATION_JOB_NOT_FOUND") {
+            clearActiveGenerationJobState({ jobId, reason: "recovery-job-not-found", markConsumed: true });
             setAppScreen(selectedFile ? "editor" : "home", { replaceHistory: true });
             return;
           }
 
           console.error("[generation] active job recovery failed", error);
-          clearActiveGenerationJob(jobId);
-          isGenerating = false;
-          generateButton.disabled = !selectedFile;
+          clearActiveGenerationJobState({ jobId, reason: "recovery-failed", markConsumed: true });
           const copy = getGenerationErrorCopy(error);
           showError(copy.body, {
             title: copy.title,
@@ -19548,6 +19693,16 @@ ${modeExample}`;
       }
 
       async function completeResultFlow() {
+        clearActiveGenerationJobState({
+          jobId: currentGenerationJobId || getStoredActiveGenerationJobId() || generationMeta?.jobId || generationMeta?.job_id || currentGenerationId,
+          reason: "result-flow-complete",
+          markConsumed: true,
+        });
+        try {
+          window.sessionStorage.removeItem(RESULT_STATE_STORAGE_KEY);
+        } catch (error) {
+          console.warn("[generation] result state clear failed", error);
+        }
         closeImageModal({ useHistory: false });
         closePhotoSaveModal();
         clearResults();
@@ -19845,6 +20000,11 @@ ${modeExample}`;
         });
         renderResults();
         persistResultState();
+        clearActiveGenerationJobState({
+          jobId: data.generationMeta?.jobId || data.generationMeta?.job_id || data.jobId || data.job_id || currentGenerationJobId || currentGenerationId,
+          reason: "generation-result-applied",
+          markConsumed: true,
+        });
         setStatus(data.warningMessage || RECOMMENDATION_DESCRIPTION);
         console.log("[client][slider-inputs]", {
           originalImageUrl: originalImageUrl || "local-preview-data-url",
@@ -21527,6 +21687,9 @@ ${modeExample}`;
           let effectiveError = error;
           const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
           const initialGenerationJobId = String(effectiveError.jobId || effectiveError.response?.jobId || effectiveError.response?.job_id || currentGenerationJobId || "").trim();
+          if (initialGenerationErrorCode === "GENERATION_POLL_CANCELLED") {
+            return;
+          }
           if (initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT") {
             lastDelayedGenerationJobId = initialGenerationJobId;
             console.warn("[client][generate][delayed]", {

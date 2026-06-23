@@ -14323,16 +14323,15 @@ Important:
           return true;
         }
 
-        await runGrokPipeline({
+        const data = await runGrokPipeline({
           imageFile,
           originalImage,
           mode,
         });
-        isGenerating = false;
-        generateButton.disabled = false;
-        void refreshAuthState({ showError: false });
-        void refreshMyPhotosCache();
-        setAppScreen("result", { replaceHistory: true });
+        await completeGenerationAndShowResult(data, {
+          mode,
+          toastMessage: "사진 제작이 완료되었어요. 결과를 확인해 주세요.",
+        });
         return true;
       }
 
@@ -15916,39 +15915,235 @@ Important:
       }
 
       function extractGenerationResultFromJobPayload(payload = {}, jobId = "") {
-        const candidates = [
-          payload.result,
-          payload.generationResult,
-          payload.generation_result,
-          payload.data?.result,
-          payload.data?.generationResult,
-          payload.data?.generation_result,
-          payload.data,
-          payload,
-        ];
-        const result = candidates.find((candidate) => (
-          candidate &&
-          typeof candidate === "object" &&
-          (
-            Array.isArray(candidate.results) ||
-            Array.isArray(candidate.imageUrls) ||
-            Array.isArray(candidate.image_urls) ||
-            Array.isArray(candidate.images) ||
-            candidate.originalImageUrl ||
-            candidate.original_image_url
-          )
-        ));
+        const candidates = collectGenerationResultPayloadSources(payload);
+        const result = candidates.find(generationResultPayloadHasImages) || candidates[0] || payload;
+        const normalizedItems = normalizeGenerationResultItems(payload);
+        if (!normalizedItems.length && !generationResultPayloadHasImages(result)) {
+          return null;
+        }
 
-        if (!result) return null;
+        const built = buildApplyPayloadFromJobResult({ ...result, ...payload }, jobId);
+        if (!built.imageUrls.length && !built.failedImages.length) {
+          return null;
+        }
+
         return {
           ...result,
-          ok: result.ok !== false,
-          jobId: result.jobId || result.job_id || jobId,
+          ...built,
+          ok: true,
+          results: normalizedItems,
+          images: normalizedItems,
+          savedPhotos: normalizedItems.filter((item) => item.ok !== false),
+          imageUrls: built.imageUrls,
+          jobId: built.jobId || jobId,
           generationMeta: {
+            ...(built.generationMeta || {}),
             ...(result.generationMeta || result.generation_meta || {}),
-            jobId,
+            jobId: built.jobId || jobId,
+            generationId: built.generationId,
           },
         };
+      }
+
+      function getGeneratedResultImageUrl(item) {
+        const candidates = [
+          item?.imageUrl,
+          item?.image_url,
+          item?.publicUrl,
+          item?.public_url,
+          item?.url,
+          item?.displayUrl,
+          item?.display_url,
+          item?.thumbnailUrl,
+          item?.thumbnail_url,
+          item?.imageBase64,
+        ];
+        return candidates.map(normalizeUrlValue).find(Boolean) || "";
+      }
+
+      function collectGenerationResultPayloadSources(payload = {}) {
+        const sources = [];
+        const seen = new Set();
+        const add = (value) => {
+          if (!value || typeof value !== "object" || seen.has(value)) return;
+          seen.add(value);
+          sources.push(value);
+        };
+
+        add(payload);
+        add(payload.data);
+        add(payload.result);
+        add(payload.generationResult);
+        add(payload.generation_result);
+        add(payload.resultPayload);
+        add(payload.result_payload);
+        add(payload.data?.result);
+        add(payload.data?.resultPayload);
+        add(payload.data?.result_payload);
+        add(payload.generationMeta);
+        add(payload.generation_meta);
+        return sources;
+      }
+
+      function generationResultPayloadHasImages(candidate = {}) {
+        if (!candidate || typeof candidate !== "object") return false;
+        return ["results", "savedPhotos", "images", "imageUrls", "image_urls"].some(
+          (key) => Array.isArray(candidate[key]) && candidate[key].length > 0,
+        ) || Boolean(candidate.originalImageUrl || candidate.original_image_url);
+      }
+
+      function normalizeGenerationResultItem(item, index = 0) {
+        if (typeof item === "string") {
+          const imageUrl = normalizeUrlValue(item);
+          return imageUrl ? { ok: true, imageUrl, index } : null;
+        }
+        if (!item || typeof item !== "object") return null;
+
+        const imageUrl = getGeneratedResultImageUrl(item);
+        if (!imageUrl) {
+          return item.ok === false
+            ? { ...item, ok: false, index: Number.isInteger(item.index) ? item.index : index }
+            : null;
+        }
+
+        return {
+          ...item,
+          ok: item.ok !== false,
+          imageUrl,
+          index: Number.isInteger(item.index) ? item.index : index,
+        };
+      }
+
+      function normalizeGenerationResultItems(payload = {}) {
+        const collections = [];
+        const collectionKeys = ["savedPhotos", "images", "results", "imageUrls", "image_urls"];
+
+        collectGenerationResultPayloadSources(payload).forEach((source) => {
+          collectionKeys.forEach((key) => {
+            if (Array.isArray(source[key]) && source[key].length) {
+              collections.push(source[key]);
+            }
+          });
+        });
+
+        const items = [];
+        const seenUrls = new Set();
+
+        collections.forEach((collection) => {
+          collection.forEach((rawItem) => {
+            const normalized = normalizeGenerationResultItem(rawItem, items.length);
+            if (!normalized) return;
+
+            const url = getGeneratedResultImageUrl(normalized);
+            if (normalized.ok === false) {
+              items.push(normalized);
+              return;
+            }
+            if (!url || seenUrls.has(url)) return;
+
+            seenUrls.add(url);
+            items.push(normalized);
+          });
+        });
+
+        const successItems = items.filter((item) => item.ok !== false).slice(0, 4);
+        const failedItems = items.filter((item) => item.ok === false);
+        return [...successItems, ...failedItems];
+      }
+
+      function buildApplyPayloadFromJobResult(rawResult = {}, jobId = "") {
+        const safeJobId = String(
+          jobId ||
+          rawResult.jobId ||
+          rawResult.job_id ||
+          rawResult.generationMeta?.jobId ||
+          rawResult.generationMeta?.job_id ||
+          currentGenerationJobId ||
+          "",
+        ).trim();
+        const resultItems = normalizeGenerationResultItems(rawResult);
+        const successfulResults = resultItems.filter((item) => item.ok !== false && getGeneratedResultImageUrl(item));
+        const failedResults = resultItems.filter((item) => item && item.ok === false);
+        const imageUrls = successfulResults
+          .map(getGeneratedResultImageUrl)
+          .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index)
+          .slice(0, 4);
+        const generationId = resolveGenerationIdFromPayload(rawResult) || safeJobId || createClientGenerationId();
+        const responseGenerationType = rawResult.generationType || rawResult.generation_type || generationMeta?.generationType || "paid";
+
+        return {
+          ok: true,
+          results: resultItems,
+          generationId,
+          jobId: safeJobId,
+          originalImageUrl: firstUrlValue(rawResult.originalImageUrl, rawResult.original_image_url, originalImageUrl, selectedImageDataUrl),
+          originalThumbnailUrl: firstUrlValue(
+            rawResult.originalThumbnailUrl,
+            rawResult.original_thumbnail_url,
+            rawResult.originalImageUrl,
+            originalImageUrl,
+            selectedImageDataUrl,
+          ),
+          originalImagePath: normalizeUrlValue(rawResult.originalImagePath || rawResult.original_image_path || originalImagePath),
+          imageUrls,
+          scores: Array.isArray(rawResult.scores) ? rawResult.scores : [],
+          variantLabels: Array.isArray(rawResult.variantLabels) && rawResult.variantLabels.length
+            ? rawResult.variantLabels
+            : successfulResults.map((item, index) => item.label || `결과 ${index + 1}`),
+          failedImages: Array.isArray(rawResult.failedImages) && rawResult.failedImages.length ? rawResult.failedImages : failedResults,
+          warningMessage: typeof rawResult.warningMessage === "string" ? rawResult.warningMessage : "",
+          generationMode: rawResult.generationMode || rawResult.mode || activeGenerationMode,
+          locationPreset: rawResult.locationPreset || rawResult.generationMeta?.locationPreset || selectedLocationPreset || "eiffel",
+          generationMeta: {
+            ...(rawResult.generationMeta || rawResult.generation_meta || {}),
+            jobId: safeJobId,
+            generationId,
+            generationType: responseGenerationType,
+          },
+          imageMetadata: successfulResults.map((item, fallbackIndex) => ({
+            ...item,
+            index: Number.isInteger(item.index) ? item.index : fallbackIndex,
+          })),
+        };
+      }
+
+      function resolveGenerationApplyPayload(data = {}, jobId = "") {
+        if (Array.isArray(data.imageUrls) && data.imageUrls.length) {
+          return { ...data, ok: data.ok !== false };
+        }
+        return buildApplyPayloadFromJobResult(data, jobId);
+      }
+
+      async function completeGenerationAndShowResult(rawResult, options = {}) {
+        const mode = options.mode || activeGenerationMode;
+        const payload = resolveGenerationApplyPayload(
+          rawResult,
+          rawResult?.jobId || rawResult?.job_id || currentGenerationJobId || getStoredActiveGenerationJobId(),
+        );
+
+        if (!payload.imageUrls?.length) {
+          const error = new Error("GENERATION_RESULT_IMAGES_MISSING");
+          error.code = "GENERATION_RESULT_IMAGES_MISSING";
+          error.publicMessage = "생성 결과 이미지를 찾지 못했습니다. 잠시 후 다시 시도해 주세요.";
+          throw error;
+        }
+
+        isGenerating = false;
+        if (generateButton) {
+          generateButton.disabled = false;
+        }
+
+        applyGenerationResultData(payload, mode);
+
+        if (options.refreshAuth !== false) {
+          await refreshAuthState({ showError: false });
+        }
+        void refreshMyPhotosCache();
+        setAppScreen("result", { replaceHistory: options.replaceHistory !== false });
+
+        if (options.toastMessage) {
+          showAccountMenuToast(options.toastMessage);
+        }
       }
 
       async function requestGenerationRun(jobId) {
@@ -16089,7 +16284,6 @@ Important:
               throw error;
             }
             setStatus("완성된 사진을 저장하고 있어요.");
-            clearActiveGenerationJobState({ jobId, reason: "poll-completed", markConsumed: true });
             return result;
           }
 
@@ -16140,10 +16334,19 @@ Important:
           if (status === "succeeded" || status === "success" || status === "completed" || status === "complete") {
             hideError();
             lastDelayedGenerationJobId = "";
-            await refreshAuthState({ showError: false });
-            await refreshMyPhotosCache();
-            showAccountMenuToast("생성이 완료되었습니다. 마이포토박스에서 확인해 주세요.");
-            navigateToScreen("myPhotoBox");
+            const result = extractGenerationResultFromJobPayload(payload, safeJobId);
+            if (!result) {
+              throw createGenerationStatusError({
+                response,
+                parsed,
+                payload,
+                code,
+                fallbackCode: "GENERATION_JOB_FAILED",
+              });
+            }
+            await completeGenerationAndShowResult(result, {
+              toastMessage: "사진 제작이 완료되었어요. 결과를 확인해 주세요.",
+            });
             return;
           }
 
@@ -16256,14 +16459,11 @@ Important:
         setGenerationPendingStatus("진행 중이던 사진 제작을 이어서 확인하고 있어요.");
 
         try {
-          await pollGenerationJobStatus(jobId);
-          isGenerating = false;
-          generateButton.disabled = false;
-          await refreshAuthState({ showError: false });
-          await refreshMyPhotosCache();
-          setGenerationPendingStatus("사진 제작이 완료되었어요.");
-          showAccountMenuToast("사진 제작이 완료되었어요. 결과를 확인해 주세요.");
-          navigateToScreen("myPhotoBox");
+          const result = await pollGenerationJobStatus(jobId);
+          await completeGenerationAndShowResult(result, {
+            mode: activeGenerationMode,
+            toastMessage: "사진 제작이 완료되었어요. 결과를 확인해 주세요.",
+          });
         } catch (error) {
           const recoveryErrorCode = String(error?.code || "").toUpperCase();
           if (recoveryErrorCode === "GENERATION_POLL_CANCELLED") {
@@ -17396,7 +17596,12 @@ ${modeExample}`;
         console.log("[generate] response body or message", sanitizeLogValue(data));
 
         const responseJobId = resolveGenerationJobId(data);
-        const hasImmediateResults = Array.isArray(data.results) || Array.isArray(data.imageUrls) || Array.isArray(data.image_urls) || Array.isArray(data.images);
+        const hasImmediateResults = normalizeGenerationResultItems(data).length > 0 ||
+          Array.isArray(data.results) ||
+          Array.isArray(data.savedPhotos) ||
+          Array.isArray(data.imageUrls) ||
+          Array.isArray(data.image_urls) ||
+          Array.isArray(data.images);
           if (response.ok && parsed.parseOk && responseJobId && !hasImmediateResults) {
             currentGenerationJobId = responseJobId;
             currentGenerationId = responseJobId;
@@ -17416,7 +17621,7 @@ ${modeExample}`;
           data = await pollGenerationJobStatus(responseJobId);
         }
 
-        if (!response.ok || !parsed.parseOk || !data?.ok) {
+        if (!response.ok || !parsed.parseOk || (!data?.ok && !normalizeGenerationResultItems(data).some((item) => item.ok !== false))) {
           const responseCode = String(response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"))).toUpperCase();
           const responseStage = String(data.stage || data.step || data.phase || "").trim();
           const responseMessage = data?.message || data?.errorMessage || data?.error || parsed.message || "";
@@ -17489,32 +17694,25 @@ ${modeExample}`;
           throw error;
         }
 
-        const resultItems = Array.isArray(data.results)
-          ? data.results
-          : (Array.isArray(data.images)
-            ? data.images
-            : (Array.isArray(data.imageUrls || data.image_urls)
-              ? (data.imageUrls || data.image_urls).map((url, index) => ({ ok: true, imageUrl: url, index }))
-              : []));
-        const getGeneratedResultImageUrl = (item) => {
-          const candidates = [
-            item?.imageUrl,
-            item?.image_url,
-            item?.publicUrl,
-            item?.public_url,
-            item?.url,
-            item?.displayUrl,
-            item?.display_url,
-            item?.imageBase64,
-          ];
-          return candidates.map(normalizeUrlValue).find(Boolean) || "";
-        };
-        const successfulResults = resultItems.filter((item) => item?.ok && getGeneratedResultImageUrl(item));
-        const failedResults = resultItems.filter((item) => item && !item.ok);
+        let resultItems = normalizeGenerationResultItems(data);
+        if (!resultItems.length) {
+          resultItems = Array.isArray(data.results)
+            ? data.results
+            : (Array.isArray(data.savedPhotos)
+              ? data.savedPhotos
+              : (Array.isArray(data.images)
+                ? data.images
+                : (Array.isArray(data.imageUrls || data.image_urls)
+                  ? (data.imageUrls || data.image_urls).map((url, index) => ({ ok: true, imageUrl: url, index }))
+                  : [])));
+        }
+        const successfulResults = resultItems.filter((item) => item?.ok !== false && getGeneratedResultImageUrl(item));
+        const failedResults = resultItems.filter((item) => item && item.ok === false);
         const imageUrlsFromResults = successfulResults.map(getGeneratedResultImageUrl);
         const labelsFromResults = successfulResults.map((item) => item.label || `결과 ${item.index + 1}`);
         const imageUrls = imageUrlsFromResults
-          .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index);
+          .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index)
+          .slice(0, 4);
 
         if (!Array.isArray(imageUrls)) {
           throw new Error("서버 응답에 imageUrls 배열이 없습니다.");
@@ -17538,6 +17736,7 @@ ${modeExample}`;
         const responseOriginalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, data.original_thumbnail_url, responseOriginalImageUrl);
 
         return {
+          ok: true,
           results: resultItems,
           generationId,
           originalImageUrl: responseOriginalImageUrl,
@@ -19963,7 +20162,7 @@ ${modeExample}`;
           imageFile,
         });
 
-        applyGenerationResultData(data, mode);
+        return data;
       }
 
       function applyGenerationResultData(data, mode = activeGenerationMode) {
@@ -21673,16 +21872,15 @@ ${modeExample}`;
           setGenerationPendingStatus("사진을 만들고 있어요.");
 
         try {
-          await runGrokPipeline({
+          const data = await runGrokPipeline({
             imageFile: selectedFile,
             originalImage: selectedImageDataUrl,
             mode: activeGenerationMode,
           });
-          isGenerating = false;
-          generateButton.disabled = false;
-          await refreshAuthState({ showError: false });
-          void refreshMyPhotosCache();
-          setAppScreen("result", { replaceHistory: true });
+          await completeGenerationAndShowResult(data, {
+            mode: activeGenerationMode,
+            toastMessage: "사진 제작이 완료되었어요. 결과를 확인해 주세요.",
+          });
         } catch (error) {
           let effectiveError = error;
           const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();

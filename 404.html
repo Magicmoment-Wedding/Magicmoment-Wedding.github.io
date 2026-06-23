@@ -4242,7 +4242,8 @@
 
       .generating-status-copy {
         margin-top: 8px;
-        line-height: 1.45;
+        line-height: 1.55;
+        white-space: pre-line;
       }
 
       .generating-gallery-preview {
@@ -5384,14 +5385,16 @@
           <section class="screen-panel app-screen hidden" id="generatingScreen">
             <div class="generating-layout text-center">
               <div class="generating-content">
-                <div class="loading-orbit">
-                  <span class="material-symbols-outlined text-[34px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                <div id="generatingHeader">
+                  <div class="loading-orbit">
+                    <span class="material-symbols-outlined text-[34px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                  </div>
+                  <div class="generating-copy">
+                    <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
+                    <h2 class="generating-title font-display text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
+                  </div>
                 </div>
-                <div class="generating-copy">
-                  <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
-                  <h2 class="generating-title font-display text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
-                  <p class="generating-status-copy text-xs text-on-surface-variant" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
-                </div>
+                <p class="generating-status-copy text-xs text-on-surface-variant" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
                 <section class="generating-gallery-preview hidden" id="generatingGalleryPreview" aria-label="스타일 갤러리 미리보기">
                   <div class="flex items-center justify-between gap-3 px-1">
                     <div class="text-left">
@@ -5496,9 +5499,8 @@
 	                    생성 결과는 마이포토박스에서 다시 확인할 수 있어요.
 	                  </p>
 	                </div>
-	                <button class="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.24)]" id="resultDoneButton" type="button">
-	                  <span class="material-symbols-outlined text-[19px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-	                  완료
+	                <button class="mt-4 mx-auto flex h-9 items-center justify-center rounded-full bg-primary px-5 text-on-primary text-xs font-semibold shadow-[0_8px_20px_rgba(129,80,92,0.20)]" id="resultDoneButton" type="button">
+	                  사진편집으로 돌아가기
 	                </button>
 	                <p class="mt-2 text-center text-[11px] leading-5 text-on-surface-variant">완료 후에도 마이포토박스에서 다시 확인할 수 있어요.</p>
 	              </div>
@@ -6407,6 +6409,7 @@
       const IS_ONLINE_API_PLACEHOLDER = Boolean(window.MAGIC_AI_STUDIO_CONFIG?.IS_ONLINE_API_PLACEHOLDER);
       const FEATURED_BADGE_TEXT = "AI 추천";
       const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
+      const GENERATING_ORGANIZING_MESSAGE = "AI가 사진을 정리하고 있어요.";
       let supabaseAuthClient = null;
       let supabaseAuthSubscription = null;
       let isHandlingSupabaseAuthStateEvent = false;
@@ -7241,6 +7244,7 @@ Important:
       const creditChargeButtons = Array.from(document.querySelectorAll("[data-credit-package-id]"));
       const screenStartButtons = Array.from(document.querySelectorAll("[data-screen-target]"));
       const generatingStatusText = document.getElementById("generatingStatusText");
+      const generatingHeader = document.getElementById("generatingHeader");
       const photoInput = document.getElementById("photoInput");
       const photoUploadBox = document.getElementById("photoUploadBox");
       const changePhotoButton = document.getElementById("changePhotoButton");
@@ -15654,6 +15658,7 @@ Important:
 
         if (screen === "generating") {
           void loadGeneratingGalleryPreview();
+          syncGeneratingHeaderVisibility();
         } else {
           hideGeneratingGalleryPreview();
         }
@@ -16069,14 +16074,39 @@ Important:
           document.visibilityState === "hidden";
       }
 
+      function hasGeneratingVisualContent() {
+        const galleryVisible = Boolean(
+          generatingGalleryPreview &&
+          !generatingGalleryPreview.classList.contains("hidden") &&
+          generatingGallerySlides.length > 0,
+        );
+        const resultsVisible = appScreen === "generating" && imageUrls.length > 0;
+        return galleryVisible || resultsVisible;
+      }
+
+      function syncGeneratingHeaderVisibility() {
+        if (!generatingHeader) return;
+        generatingHeader.classList.toggle("hidden", hasGeneratingVisualContent());
+      }
+
+      function normalizeGeneratingStatusMessage(message = "") {
+        const normalized = String(message || "").trim();
+        if (normalized === RECOMMENDATION_DESCRIPTION || normalized === "가장 자연스러운 이미지 입니다") {
+          return GENERATING_ORGANIZING_MESSAGE;
+        }
+        return normalized;
+      }
+
       function setGenerationPendingStatus(message = "사진을 만들고 있어요.", { paused = false } = {}) {
         const kakaoCopy = isKakaoInAppBrowser()
           ? "\n카카오톡에서 열어도 생성은 계속 진행됩니다.\n다시 돌아오면 자동으로 결과를 확인해요.\n카카오톡 브라우저에서도 사용할 수 있어요.\n더 안정적인 이용을 원하시면 Safari/Chrome에서 열어 주세요."
           : "";
-        setStatus(paused ? "생성 상태를 다시 확인하고 있어요." : message);
+        const displayMessage = normalizeGeneratingStatusMessage(paused ? "생성 상태를 다시 확인하고 있어요." : message);
+        setStatus(displayMessage);
         if (generatingStatusText && appScreen === "generating") {
-          generatingStatusText.textContent = `${message}\n앱을 잠시 닫아도 괜찮아요.\n완성되면 마이포토박스에서 다시 확인할 수 있어요.${kakaoCopy}`;
+          generatingStatusText.textContent = `${displayMessage}\n앱을 잠시 닫아도 괜찮아요.\n완성되면 마이포토박스에서 다시 확인할 수 있어요.${kakaoCopy}`;
         }
+        syncGeneratingHeaderVisibility();
       }
 
       function extractGenerationResultFromJobPayload(payload = {}, jobId = "") {
@@ -16481,10 +16511,14 @@ Important:
       }
 
       function setStatus(message) {
-        statusText.textContent = message || "";
+        const displayMessage = appScreen === "generating"
+          ? normalizeGeneratingStatusMessage(message)
+          : (message || "");
+        statusText.textContent = displayMessage;
         if (generatingStatusText && appScreen === "generating") {
-          generatingStatusText.textContent = message;
+          generatingStatusText.textContent = displayMessage;
         }
+        syncGeneratingHeaderVisibility();
       }
 
       function hideError() {
@@ -19165,6 +19199,7 @@ ${modeExample}`;
         if (generatingGallerySlider) {
           generatingGallerySlider.innerHTML = "";
         }
+        syncGeneratingHeaderVisibility();
       }
 
       function setGeneratingGallerySlide(index) {
@@ -19201,6 +19236,7 @@ ${modeExample}`;
           </div>
         `).join("");
         generatingGalleryPreview.classList.remove("hidden");
+        syncGeneratingHeaderVisibility();
 
         if (slides.length > 1) {
           generatingGalleryIntervalId = window.setInterval(() => {
@@ -20075,6 +20111,9 @@ ${modeExample}`;
           renderedAdditionalAndFailureCardCount: allResultImages.length + failedImages.length,
           modalResultCount: getImageModalItems().length,
         });
+        if (appScreen === "generating") {
+          syncGeneratingHeaderVisibility();
+        }
       }
 
       async function runGrokPipeline({ imageFile, originalImage, mode = activeGenerationMode }) {
@@ -20129,7 +20168,8 @@ ${modeExample}`;
         });
         renderResults();
         persistResultState();
-        setStatus(data.warningMessage || RECOMMENDATION_DESCRIPTION);
+        setStatus(data.warningMessage || GENERATING_ORGANIZING_MESSAGE);
+        syncGeneratingHeaderVisibility();
         console.log("[client][slider-inputs]", {
           originalImageUrl: originalImageUrl || "local-preview-data-url",
           recommendedImageUrl: Number.isInteger(recommendedIndex) ? imageUrls[recommendedIndex] : imageUrls[0],

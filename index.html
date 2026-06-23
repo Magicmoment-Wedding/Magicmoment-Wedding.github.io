@@ -7589,24 +7589,37 @@ Important:
 
       function resolveGenerationIdFromPayload(payload = {}) {
         return String(
-          payload.generationId ||
           payload.jobId ||
           payload.id ||
-          payload.generation_id ||
-          payload.job_id ||
-          payload.generationMeta?.generationId ||
+          payload.generationJobId ||
+          payload.generation_job_id ||
           payload.generationMeta?.jobId ||
+          payload.generationMeta?.generationJobId ||
+          payload.generationId ||
+          payload.generationMeta?.generationId ||
+          "",
+        ).trim();
+      }
+
+      function resolveMetaGenerationIdFromPayload(payload = {}) {
+        return String(
+          payload.generationId ||
+          payload.generation_id ||
+          payload.generationMeta?.generationId ||
+          payload.resultPayload?.generationId ||
+          payload.result_payload?.generationId ||
           "",
         ).trim();
       }
 
       function ensureCurrentGenerationId() {
         if (!currentGenerationId) {
-          currentGenerationId = generationMeta?.generationId || createClientGenerationId();
+          currentGenerationId = generationMeta?.jobId || currentGenerationJobId || generationMeta?.generationId || createClientGenerationId();
           if (generationMeta) {
             generationMeta = {
               ...generationMeta,
-              generationId: currentGenerationId,
+              jobId: generationMeta.jobId || currentGenerationJobId || "",
+              generationId: generationMeta.generationId || currentGenerationId,
             };
           }
         }
@@ -16065,8 +16078,12 @@ Important:
         const safeJobId = String(
           jobId ||
           rawResult.jobId ||
+          rawResult.id ||
+          rawResult.generationJobId ||
+          rawResult.generation_job_id ||
           rawResult.job_id ||
           rawResult.generationMeta?.jobId ||
+          rawResult.generationMeta?.generationJobId ||
           rawResult.generationMeta?.job_id ||
           currentGenerationJobId ||
           "",
@@ -16078,7 +16095,8 @@ Important:
           .map(getGeneratedResultImageUrl)
           .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index)
           .slice(0, 4);
-        const generationId = resolveGenerationIdFromPayload(rawResult) || safeJobId || createClientGenerationId();
+        const generationId = resolveGenerationIdFromPayload({ ...rawResult, jobId: safeJobId }) || safeJobId || createClientGenerationId();
+        const metaGenerationId = resolveMetaGenerationIdFromPayload(rawResult) || generationId;
         const responseGenerationType = rawResult.generationType || rawResult.generation_type || generationMeta?.generationType || "paid";
 
         return {
@@ -16107,7 +16125,7 @@ Important:
           generationMeta: {
             ...(rawResult.generationMeta || rawResult.generation_meta || {}),
             jobId: safeJobId,
-            generationId,
+            generationId: metaGenerationId,
             generationType: responseGenerationType,
           },
           imageMetadata: successfulResults.map((item, fallbackIndex) => ({
@@ -17774,6 +17792,17 @@ ${modeExample}`;
         });
 
         const generationId = resolveGenerationIdFromPayload(data) || createClientGenerationId();
+        const metaGenerationId = resolveMetaGenerationIdFromPayload(data) || generationId;
+        const jobId = String(
+          data.jobId ||
+          data.id ||
+          data.generationJobId ||
+          data.generation_job_id ||
+          responseJobId ||
+          currentGenerationJobId ||
+          generationId ||
+          "",
+        ).trim();
         const responseGenerationType = data.generationType || data.generation_type || (useFreeGeneration ? "free" : "paid");
         const responseIsFreeGeneration = data.isFreeGeneration === true || data.is_free_generation === true || responseGenerationType === "free";
         const responseHasWatermark = data.hasWatermark === true || data.has_watermark === true || responseIsFreeGeneration;
@@ -17787,6 +17816,7 @@ ${modeExample}`;
           ok: true,
           results: resultItems,
           generationId,
+          jobId,
           originalImageUrl: responseOriginalImageUrl,
           originalThumbnailUrl: responseOriginalThumbnailUrl,
           originalImagePath: imagePath,
@@ -17800,7 +17830,8 @@ ${modeExample}`;
           generationPlaceLabel: selectedLandmark?.label || "",
           generationMeta: {
             ...(data.generationMeta || {}),
-            generationId,
+            jobId,
+            generationId: metaGenerationId,
             usedFreeGeneration: useFreeGeneration,
             freeGenerationNumber: useFreeGeneration ? 1 : null,
             generationType: responseGenerationType,
@@ -19507,6 +19538,7 @@ ${modeExample}`;
         const presetLabel = getPresetDisplayLabel(presetKey);
         const resultLabel = item.label || variantLabels[resultIndex] || `AI 생성 결과 ${resultIndex + 1}`;
         const generationId = ensureCurrentGenerationId();
+        const jobId = generationMeta?.jobId || currentGenerationJobId || currentGenerationId;
         const uploadOriginalImageUrl = originalImageUrl || originalImagePath || null;
         const uploadOriginalImagePath = originalImagePath || null;
         const uploadOriginalThumbnailUrl = originalThumbnailUrl || originalImageUrl || null;
@@ -19528,6 +19560,7 @@ ${modeExample}`;
           }
 
           const payload = {
+            jobId,
             generationId,
             resultIndex,
             imageUrl,
@@ -19543,6 +19576,14 @@ ${modeExample}`;
             originalImagePath: uploadOriginalImagePath,
             originalThumbnailUrl: uploadOriginalThumbnailUrl,
           };
+          console.log("[gallery-upload] payload check", {
+            jobId,
+            generationId,
+            resultIndex,
+            hasImageUrl: Boolean(imageUrl),
+            hasImagePath: Boolean(imagePath),
+            hasOriginalImageUrl: Boolean(uploadOriginalImageUrl),
+          });
           console.log("[gallery-upload] has originalImageUrl:", Boolean(payload.originalImageUrl));
           console.log("[gallery-upload] has originalImagePath:", Boolean(payload.originalImagePath));
           console.log("[gallery-upload] has originalThumbnailUrl:", Boolean(payload.originalThumbnailUrl));
@@ -20224,11 +20265,26 @@ ${modeExample}`;
         imageUrls = data.imageUrls.map(normalizeUrlValue).filter(Boolean);
         imageScores = data.scores;
         failedImages = data.failedImages;
-        currentGenerationId = data.generationId || data.generationMeta?.generationId || createClientGenerationId();
+        const resolvedJobId = String(
+          data.jobId ||
+          data.id ||
+          data.generationJobId ||
+          data.generation_job_id ||
+          data.generationMeta?.jobId ||
+          data.generationMeta?.generationJobId ||
+          currentGenerationJobId ||
+          "",
+        ).trim();
+        const resolvedMetaGenerationId = resolveMetaGenerationIdFromPayload(data);
+        currentGenerationId = resolvedJobId ||
+          resolvedMetaGenerationId ||
+          data.generationMeta?.generationId ||
+          createClientGenerationId();
         currentGenerationGalleryUploadIndex = null;
         generationMeta = {
           ...(data.generationMeta || {}),
-          generationId: currentGenerationId,
+          jobId: resolvedJobId || data.generationMeta?.jobId || data.generationMeta?.job_id || currentGenerationJobId || "",
+          generationId: resolvedMetaGenerationId || currentGenerationId,
           locationPreset: resultLocationPreset,
         };
         imageMetadata = indexImageMetadata(data.imageMetadata);

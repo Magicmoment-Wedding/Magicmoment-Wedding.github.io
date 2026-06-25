@@ -7406,6 +7406,11 @@ Important:
       let isLoadingMyPhotos = false;
       let myPhotosError = "";
       let selectedMyPhoto = null;
+      const MY_PHOTO_PAGE_LIMIT = 16;
+      let myPhotoListOffset = 0;
+      let myPhotoListHasMore = false;
+      let myPhotoListLoadingMore = false;
+      let myPhotoListMoreError = "";
       const myPhotoDetailCache = new Map();
       let myPhotoDetailFetchToken = 0;
       let myPhotoDetailRetryPhoto = null;
@@ -14358,7 +14363,42 @@ Important:
       }
 
       function getMyPhotosSummaryApiUrl() {
-        return getAuthApiUrl("/api/my-photos?summary=1");
+        const params = new URLSearchParams({
+          summary: "1",
+          limit: String(MY_PHOTO_PAGE_LIMIT),
+          offset: String(Math.max(0, Number(myPhotoListOffset) || 0)),
+        });
+        return getAuthApiUrl(`/api/my-photos?${params.toString()}`);
+      }
+
+      function getMyPhotosSummaryApiUrlByOffset(offset = 0) {
+        myPhotoListOffset = Math.max(0, Number(offset) || 0);
+        return getMyPhotosSummaryApiUrl();
+      }
+
+      function getMyPhotosPagination(payload = {}, fallbackCount = 0, requestOffset = 0) {
+        const pageInfo = payload.pageInfo || payload.page_info || payload.pagination || payload.data?.pageInfo || payload.data?.page_info || payload.data?.pagination || {};
+        const fallbackNextOffset = Math.max(0, requestOffset) + Math.max(0, Number(fallbackCount) || 0);
+        const hasMore = Boolean(
+          pageInfo.hasMore === true
+          || pageInfo.has_more === true
+          || payload.hasMore === true
+          || payload.has_more === true,
+        );
+        const nextOffset = Math.max(
+          0,
+          Number(
+            pageInfo.nextOffset
+            || pageInfo.next_offset
+            || payload.nextOffset
+            || payload.next_offset
+            || fallbackNextOffset,
+          ) || fallbackNextOffset,
+        );
+        return {
+          hasMore,
+          nextOffset,
+        };
       }
 
       function getMyPhotoDetailCacheKey(photo = {}) {
@@ -15018,12 +15058,18 @@ Important:
           thumbnailUrl: cardThumbnailUrl || cardImageUrl || "",
           styleLabel,
           presetLabel,
+          mode: rawItem.mode || rawItem.generationMode || rawItem.generation_mode || styleLabel,
+          preset: rawItem.preset || rawItem.presetKey || rawItem.preset_key || presetLabel,
           resultLabel: rawItem.resultLabel || rawItem.result_label || `${styleLabel} · ${presetLabel}`,
           createdAt,
           createdAtLabel: formatMyPhotoDate(createdAt),
+          imageCount: Number(rawItem.imageCount || rawItem.resultCount || images.length || 1) || 1,
           isRecommended: Boolean(fallbackRepresentative.isRecommended),
           recommendedPhoto: fallbackRepresentative,
           galleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery" || hasMyPhotoGalleryUploadHistory(image))
+            || hasMyPhotoGalleryUploadHistory(rawItem)
+            || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
+          isGalleryUploaded: images.some((image) => image.galleryUploaded || image.source === "gallery" || hasMyPhotoGalleryUploadHistory(image))
             || hasMyPhotoGalleryUploadHistory(rawItem)
             || normalizeMyPhotoBoolean(rawItem.galleryUploaded ?? rawItem.gallery_uploaded, false),
           galleryUploadedAt: rawItem.galleryUploadedAt || rawItem.gallery_uploaded_at || fallbackRepresentative.galleryUploadedAt || fallbackRepresentative.gallery_uploaded_at || "",
@@ -15179,8 +15225,9 @@ Important:
         });
       }
 
-      async function fetchMyPhotos() {
-        const response = await fetch(getMyPhotosSummaryApiUrl(), {
+      async function fetchMyPhotos(options = {}) {
+        const offset = Math.max(0, Number(options.offset) || 0);
+        const response = await fetch(getMyPhotosSummaryApiUrlByOffset(offset), {
           method: "GET",
           credentials: "include",
           cache: "no-store",
@@ -15199,13 +15246,19 @@ Important:
           .map(normalizeMyPhotoSummaryItem)
           .filter(Boolean);
 
-        return mergeMyPhotoGenerations(normalizedItems);
+        const mergedItems = mergeMyPhotoGenerations(normalizedItems);
+        const pagination = getMyPhotosPagination(payload, mergedItems.length, offset);
+        return {
+          items: mergedItems,
+          hasMore: pagination.hasMore,
+          nextOffset: pagination.nextOffset,
+        };
       }
 
       function renderMyPhotoCards(photos) {
         if (!myPhotoBoxGrid) return;
 
-        myPhotoBoxGrid.innerHTML = photos.map((photo, index) => {
+        const cardsMarkup = photos.map((photo, index) => {
           const imageUrl = getMyPhotoListImageUrl(photo);
           const styleLabel = photo.styleLabel || "AI Wedding";
           const presetLabel = photo.presetLabel || "웨딩사진";
@@ -15236,6 +15289,21 @@ Important:
             </article>
           `;
         }).join("");
+
+        const loadMoreMarkup = myPhotoListHasMore || myPhotoListLoadingMore || myPhotoListMoreError
+          ? `
+            <section class="my-photo-state-card col-span-full">
+              ${myPhotoListMoreError
+                ? `<p class="text-sm leading-6 text-on-surface-variant">${escapeHtml(myPhotoListMoreError)}</p>`
+                : `<p class="text-sm leading-6 text-on-surface-variant">사진 목록을 더 불러올 수 있어요.</p>`}
+              <button class="mt-4 h-11 rounded-full bg-primary px-6 text-sm font-bold text-on-primary shadow-[0_12px_28px_rgba(129,80,92,0.22)] disabled:opacity-60 disabled:cursor-wait" data-my-photo-load-more type="button" ${myPhotoListLoadingMore ? "disabled" : ""}>
+                ${myPhotoListLoadingMore ? "불러오는 중..." : (myPhotoListMoreError ? "다시 시도" : "더보기")}
+              </button>
+            </section>
+          `
+          : "";
+
+        myPhotoBoxGrid.innerHTML = `${cardsMarkup}${loadMoreMarkup}`;
       }
 
       function renderMyPhotoBoxScreen() {
@@ -15305,10 +15373,17 @@ Important:
 
         isLoadingMyPhotos = true;
         myPhotosError = "";
+        myPhotoListMoreError = "";
+        myPhotoListHasMore = false;
+        myPhotoListLoadingMore = false;
+        myPhotoListOffset = 0;
         renderMyPhotoBoxScreen();
 
         try {
-          myPhotos = await fetchMyPhotos();
+          const firstPage = await fetchMyPhotos({ offset: 0 });
+          myPhotos = firstPage.items;
+          myPhotoListHasMore = firstPage.hasMore;
+          myPhotoListOffset = firstPage.nextOffset;
         } catch (error) {
           if (DEBUG_MODE) {
             console.warn("[client][my-photo-box] fetch failed:", error);
@@ -15321,11 +15396,38 @@ Important:
         }
       }
 
+      async function loadMoreMyPhotos() {
+        if (!currentUser || !myPhotoListHasMore || myPhotoListLoadingMore) return;
+
+        myPhotoListLoadingMore = true;
+        myPhotoListMoreError = "";
+        renderMyPhotoBoxScreen();
+
+        try {
+          const nextPage = await fetchMyPhotos({ offset: myPhotoListOffset });
+          myPhotos = mergeMyPhotoGenerations([...myPhotos, ...nextPage.items]);
+          myPhotoListHasMore = nextPage.hasMore;
+          myPhotoListOffset = nextPage.nextOffset;
+        } catch (error) {
+          if (DEBUG_MODE) {
+            console.warn("[client][my-photo-box] load more failed:", error);
+          }
+          myPhotoListMoreError = "목록을 더 불러오지 못했습니다. 다시 시도해 주세요.";
+        } finally {
+          myPhotoListLoadingMore = false;
+          renderMyPhotoBoxScreen();
+        }
+      }
+
       async function refreshMyPhotosCache() {
         if (!currentUser) return;
 
         try {
-          myPhotos = await fetchMyPhotos();
+          const firstPage = await fetchMyPhotos({ offset: 0 });
+          myPhotos = firstPage.items;
+          myPhotoListHasMore = firstPage.hasMore;
+          myPhotoListOffset = firstPage.nextOffset;
+          myPhotoListMoreError = "";
           myPhotosError = "";
         } catch (error) {
           if (DEBUG_MODE) {
@@ -21788,6 +21890,10 @@ ${modeExample}`;
       myPhotoBoxGrid?.addEventListener("click", (event) => {
         if (event.target instanceof Element && event.target.closest("[data-my-photo-retry]")) {
           void refreshMyPhotoBoxScreen();
+          return;
+        }
+        if (event.target instanceof Element && event.target.closest("[data-my-photo-load-more]")) {
+          void loadMoreMyPhotos();
           return;
         }
 

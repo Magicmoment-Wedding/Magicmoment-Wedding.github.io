@@ -1784,6 +1784,76 @@
         font-weight: 800;
       }
 
+      .admin-compact-card {
+        padding: 8px 10px;
+        gap: 0;
+      }
+
+      .admin-compact-card summary.admin-compact-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .admin-compact-line {
+        flex: 1;
+        min-width: 0;
+        color: #4f2630;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .admin-compact-primary {
+        font-weight: 800;
+      }
+
+      .admin-compact-sep {
+        margin: 0 4px;
+        color: #b39aa1;
+        font-weight: 600;
+      }
+
+      .admin-compact-meta {
+        color: #705e61;
+        font-weight: 700;
+      }
+
+      .admin-compact-card .admin-detail-toggle {
+        flex-shrink: 0;
+        margin-top: 0;
+        white-space: nowrap;
+      }
+
+      .admin-compact-card .admin-detail-panel {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(129, 80, 92, 0.1);
+      }
+
+      .admin-inline-status-badge {
+        display: inline-block;
+        border-radius: 9999px;
+        padding: 2px 7px;
+        color: #fff;
+        background: var(--rose-deep);
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1.2;
+        vertical-align: middle;
+      }
+
+      .admin-inline-status-badge.is-soft {
+        color: #705e61;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(129, 80, 92, 0.12);
+      }
+
+      .admin-inline-status-badge.is-muted {
+        color: #8a6b72;
+        background: rgba(129, 80, 92, 0.12);
+      }
+
       .admin-list-card[open] .admin-detail-toggle .material-symbols-outlined {
         transform: rotate(180deg);
       }
@@ -11034,6 +11104,126 @@ Important:
         return labels[token] || labels[normalizeAdminToken(raw)] || "알 수 없음";
       }
 
+      const ADMIN_GENERATION_CATEGORY_LABELS_KO = {
+        europe: "유럽",
+        europe_style: "유럽",
+        european: "유럽",
+        europesnap: "유럽",
+        paris_snap: "유럽",
+        parissnap: "유럽",
+        korea: "한국",
+        korean: "한국",
+        korea_style: "한국",
+        koreastyle: "한국",
+        disney: "디즈니",
+        disney_live: "디즈니",
+        disneylive: "디즈니",
+        fairytale: "디즈니",
+        studio: "스튜디오",
+        studio_style: "스튜디오",
+      };
+
+      const ADMIN_GENERATION_PRESET_LABELS_KO = {
+        paris_eiffel: "파리 에펠탑",
+        eiffel: "파리 에펠탑",
+        paris_louvre: "루브르 박물관",
+        louvre: "루브르 박물관",
+        venice: "베네치아 선셋 브리지",
+        europe_venice: "베네치아 선셋 브리지",
+        amalfi: "아말피 해안",
+        paris_amafi: "아말피 해안",
+        gyeongbokgung: "궁궐 한복 웨딩",
+        pink_muhly: "핑크뮬리",
+        jeju_gimnyeong: "제주 김녕해변",
+        jeju_gimnyeong_beach: "제주 김녕해변",
+        jeju_saebyeol: "제주 새별오름",
+        jeju_saebyeol_oreum: "제주 새별오름",
+        fairytale_royal_wedding: "신데렐라 로열",
+        cinderella_royal: "신데렐라 로열",
+        cinderella: "신데렐라 로열",
+        belle_romantic: "벨 로맨틱",
+        belle: "벨 로맨틱",
+        aurora_enchanted: "오로라 인첸티드",
+        aurora: "오로라 인첸티드",
+        mulan_oriental_hanbok: "뮬란 한복",
+        mulan: "뮬란 한복",
+        studio_white_bg: "화이트 배경 웨딩",
+        white_background: "화이트 배경 웨딩",
+        studio_sofa: "소파 웨딩 스냅",
+        studio_petals: "꽃잎 웨딩 스냅",
+        studio_hanbok: "한복 웨딩 스냅",
+        seoul_forest: "서울숲",
+      };
+
+      function resolveAdminGenerationLabelToken(value = "") {
+        return normalizeAdminToken(String(value || "").trim()).replace(/style$/, "");
+      }
+
+      function getAdminGenerationCategoryLabelKo(generation = {}) {
+        const raw = getAdminNestedValue(generation, [
+          "style",
+          "generationStyle",
+          "generation_style",
+          "mode",
+          "generationMode",
+          "generation_mode",
+          "presetGroup",
+          "preset_group",
+        ], "");
+        const token = resolveAdminGenerationLabelToken(raw);
+        if (ADMIN_GENERATION_CATEGORY_LABELS_KO[token]) {
+          return ADMIN_GENERATION_CATEGORY_LABELS_KO[token];
+        }
+        const normalizedMode = normalizeGenerationMode(raw);
+        const modeLabels = {
+          [GENERATION_MODES.PARIS_SNAP]: "유럽",
+          [GENERATION_MODES.KOREA_STYLE]: "한국",
+          [GENERATION_MODES.DISNEY_LIVE]: "디즈니",
+          [GENERATION_MODES.STUDIO_STYLE]: "스튜디오",
+        };
+        if (modeLabels[normalizedMode]) return modeLabels[normalizedMode];
+        if (/[가-힣]/.test(String(raw))) return String(raw).trim();
+        return raw ? `알 수 없음 · ${String(raw).trim()}` : "알 수 없음";
+      }
+
+      function getAdminGenerationPresetLabelKo(generation = {}, normalized = {}) {
+        const raw = String(
+          normalized?.preset
+          || getAdminNestedValue(generation, [
+            "presetName",
+            "preset_name",
+            "preset",
+            "presetKey",
+            "preset_key",
+            "location",
+            "locationPreset",
+            "location_preset",
+            "generationPlace",
+            "generation_place",
+          ], ""),
+        ).trim();
+        const token = normalizeAdminToken(raw);
+        if (ADMIN_GENERATION_PRESET_LABELS_KO[token]) {
+          return ADMIN_GENERATION_PRESET_LABELS_KO[token];
+        }
+        const compactToken = token.replace(/_/g, "");
+        const compactMatch = Object.entries(ADMIN_GENERATION_PRESET_LABELS_KO)
+          .find(([key]) => key.replace(/_/g, "") === compactToken);
+        if (compactMatch) return compactMatch[1];
+        if (/[가-힣]/.test(raw)) return raw;
+        return raw ? `알 수 없음 · ${raw}` : "선택 정보 없음";
+      }
+
+      function formatAdminGenerationCompactStylePreset(generation = {}, normalized = {}) {
+        const category = getAdminGenerationCategoryLabelKo(generation);
+        const preset = getAdminGenerationPresetLabelKo(generation, normalized);
+        if (!preset || preset === "선택 정보 없음") return category;
+        if (category.startsWith("알 수 없음") && preset.startsWith("알 수 없음")) {
+          return `${category} · ${preset.replace(/^알 수 없음 ·\s*/, "")}`;
+        }
+        return `${category} · ${preset}`;
+      }
+
       function getAdminGenerationPresetLabel(generation = {}) {
         const raw = getAdminNestedValue(generation, [
           "presetName",
@@ -11138,33 +11328,39 @@ Important:
         const isSelf = isAdminSelfUser(user);
         const deletedAt = user.deletedAt ?? user.deleted_at;
         const deleteReason = user.deleteReason ?? user.delete_reason ?? user.deletedReason ?? user.deleted_reason ?? "";
+        const provider = getAdminProvider(user);
+        const generationCount = getAdminNestedValue(user, ["generationCount", "generation_count", "totalGenerations", "total_generations"], "");
+        const paymentCount = getAdminNestedValue(user, ["paymentCount", "payment_count", "totalPayments", "total_payments"], "");
+        const lastGenerationAt = getAdminNestedValue(user, ["lastGenerationAt", "last_generation_at", "recentGenerationAt", "recent_generation_at"], "");
         return `
-          <details class="admin-data-row admin-list-card admin-user-item">
-            <summary>
-              <div class="admin-card-summary">
-                <div>
-                  <div class="admin-main-title">회원: ${escapeHtml(getAdminUserDisplayName(user))}</div>
-                  <div class="admin-summary-subtext">${escapeHtml(getAdminEmail(user))}</div>
-                </div>
-                <span class="admin-status-badge">${escapeHtml(isDeleted ? "이용중지" : getAdminProvider(user))}</span>
+          <details class="admin-data-row admin-list-card admin-user-item admin-compact-card">
+            <summary class="admin-compact-summary">
+              <div class="admin-compact-line">
+                <span class="admin-compact-primary">회원: ${escapeHtml(getAdminUserDisplayName(user))}</span>
+                <span class="admin-compact-sep">/</span>
+                <span class="admin-compact-meta">${escapeHtml(getAdminEmail(user))}</span>
+                <span class="admin-compact-sep">/</span>
+                <span class="admin-compact-meta">남은 제작 ${escapeHtml(formatAdminUses(getAdminUserRemainingUses(user)))}</span>
+                ${isDeleted ? `<span class="admin-compact-sep">/</span><span class="admin-inline-status-badge is-muted">이용중지</span>` : ""}
               </div>
-              <div class="admin-summary-lines mt-2">
-                <div class="admin-meta-row"><span class="admin-meta-label">남은 제작 횟수</span><span class="admin-meta-value">${escapeHtml(formatAdminUses(getAdminUserRemainingUses(user)))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">가입방식</span><span class="admin-meta-value">${escapeHtml(getAdminProvider(user))}</span></div>
-                ${isDeleted ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(deletedAt))}</span></div>` : ""}
-              </div>
-              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+              <div class="admin-detail-toggle">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
             </summary>
             <div class="admin-detail-panel">
               <div class="admin-meta-list">
+                <div class="admin-meta-row"><span class="admin-meta-label">가입방식</span><span class="admin-meta-value">${escapeHtml(provider)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">provider</span><span class="admin-meta-value">${escapeHtml(provider)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">회원 ID</span><span class="admin-meta-value">${escapeHtml(userId)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">가입일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(user.createdAt ?? user.created_at))}</span></div>
+                ${lastGenerationAt ? `<div class="admin-meta-row"><span class="admin-meta-label">최근 생성</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(lastGenerationAt))}</span></div>` : ""}
+                ${generationCount !== "" ? `<div class="admin-meta-row"><span class="admin-meta-label">생성 수</span><span class="admin-meta-value">${escapeHtml(String(generationCount))}</span></div>` : ""}
+                ${paymentCount !== "" ? `<div class="admin-meta-row"><span class="admin-meta-label">결제 수</span><span class="admin-meta-value">${escapeHtml(String(paymentCount))}</span></div>` : ""}
                 <div class="admin-meta-row"><span class="admin-meta-label">업데이트</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(updatedAt))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">안내완료</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.onboardingCompleted ?? user.onboarding_completed))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">무료대상</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationEligible ?? user.free_generation_eligible))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">무료사용</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.freeGenerationUsed ?? user.free_generation_used))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">관리자</span><span class="admin-meta-value">${escapeHtml(formatAdminBooleanLabel(user.isAdmin ?? user.is_admin ?? user.admin))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">providerUserId</span><span class="admin-meta-value">${escapeHtml(providerUserId)}</span></div>
+                ${isDeleted ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(deletedAt))}</span></div>` : ""}
                 ${isDeleted ? `<div class="admin-meta-row"><span class="admin-meta-label">삭제 사유</span><span class="admin-meta-value">${escapeHtml(deleteReason || "사유 없음")}</span></div>` : ""}
               </div>
               ${isDeleted ? `
@@ -11244,38 +11440,33 @@ Important:
         const generationId = normalized.id || "생성 ID 없음";
         const jobId = normalized.jobId || "job id 없음";
         const statusRaw = normalized.status;
+        const statusLabel = getAdminGenerationStatusLabel(statusRaw);
         const isFailed = normalizeAdminToken(statusRaw) === "failed" || normalizeAdminToken(statusRaw) === "error";
         const generationTypeLabel = getAdminGenerationTypeLabel(normalized.generationType);
         const hasWatermark = generation.watermarked ?? generation.hasWatermark ?? generation.has_watermark ?? generation.watermark;
         const thumbnailUrl = normalized.representativeImageUrl || "";
+        const memberName = normalized.userName || getAdminMemberName(generation);
+        const stylePresetLabel = formatAdminGenerationCompactStylePreset(generation, normalized);
+        const createdAtLabel = formatAdminDate(normalized.createdAt);
         return `
-          <details class="admin-data-row admin-list-card admin-generation-item">
-            <summary>
-              <div class="admin-card-summary">
-                <div>
-                  <div class="admin-main-title">회원: ${escapeHtml(normalized.userName || getAdminMemberName(generation))}</div>
-                  <div class="admin-summary-subtext">${escapeHtml(normalized.userEmail || getAdminMemberEmail(generation))}</div>
-                </div>
-                <div class="admin-badge-stack">
-                  <span class="admin-status-badge">${escapeHtml(getAdminGenerationStatusLabel(statusRaw))}</span>
-                  <span class="admin-status-badge is-soft">${escapeHtml(generationTypeLabel)}</span>
-                </div>
+          <details class="admin-data-row admin-list-card admin-generation-item admin-compact-card">
+            <summary class="admin-compact-summary">
+              <div class="admin-compact-line">
+                <span class="admin-compact-primary">${escapeHtml(memberName)}</span>
+                <span class="admin-compact-sep">/</span>
+                <span class="admin-inline-status-badge">${escapeHtml(statusLabel)}</span>
+                <span class="admin-compact-sep">/</span>
+                <span class="admin-compact-meta">${escapeHtml(stylePresetLabel)}</span>
+                <span class="admin-compact-sep">/</span>
+                <span class="admin-compact-meta">${escapeHtml(createdAtLabel)}</span>
               </div>
-              <div class="admin-summary-lines mt-2">
-                <div class="admin-meta-row"><span class="admin-meta-label">스타일/프리셋</span><span class="admin-meta-value">${escapeHtml(getAdminGenerationStyleLabel(generation))} · ${escapeHtml(normalized.preset || getAdminGenerationPresetLabel(generation))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">이미지 수</span><span class="admin-meta-value">${escapeHtml(String(normalized.imageCount || 0))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">생성일시</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.createdAt))}</span></div>
-                ${isFailed ? `
-                  <div class="admin-meta-row"><span class="admin-meta-label">실패 코드</span><span class="admin-meta-value">${escapeHtml(normalized.errorCode || "없음")}</span></div>
-                  <div class="admin-meta-row"><span class="admin-meta-label">실패 단계</span><span class="admin-meta-value">${escapeHtml(normalized.errorStage || "없음")}</span></div>
-                  <div class="admin-meta-row"><span class="admin-meta-label">실패 메시지</span><span class="admin-meta-value">${escapeHtml(normalized.errorMessage || "생성 중 문제가 발생했습니다.")}</span></div>
-                ` : ""}
-              </div>
-              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+              <div class="admin-detail-toggle">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
             </summary>
             <div class="admin-detail-panel">
               <div class="admin-meta-list">
                 <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(normalized.userEmail || getAdminMemberEmail(generation))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">이미지 수</span><span class="admin-meta-value">${escapeHtml(String(normalized.imageCount || 0))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">생성일시</span><span class="admin-meta-value">${escapeHtml(createdAtLabel)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">mode</span><span class="admin-meta-value">${escapeHtml(normalized.mode || "-")}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">preset</span><span class="admin-meta-value">${escapeHtml(normalized.preset || "-")}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">제작 유형</span><span class="admin-meta-value">${escapeHtml(generationTypeLabel)}</span></div>
@@ -11283,6 +11474,9 @@ Important:
                 <div class="admin-meta-row"><span class="admin-meta-label">시작</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.startedAt))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">완료</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(normalized.completedAt))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">status 원문</span><span class="admin-meta-value">${escapeHtml(statusRaw)}</span></div>
+                ${isFailed ? `<div class="admin-meta-row"><span class="admin-meta-label">실패 코드</span><span class="admin-meta-value">${escapeHtml(normalized.errorCode || "없음")}</span></div>` : ""}
+                ${isFailed ? `<div class="admin-meta-row"><span class="admin-meta-label">실패 단계</span><span class="admin-meta-value">${escapeHtml(normalized.errorStage || "없음")}</span></div>` : ""}
+                ${isFailed ? `<div class="admin-meta-row"><span class="admin-meta-label">실패 메시지</span><span class="admin-meta-value">${escapeHtml(normalized.errorMessage || "생성 중 문제가 발생했습니다.")}</span></div>` : ""}
                 ${thumbnailUrl ? `<div class="admin-meta-row"><span class="admin-meta-label">결과</span><span class="admin-meta-value"><a class="text-primary font-bold" href="${escapeHtml(thumbnailUrl)}" target="_blank" rel="noopener noreferrer">보기</a></span></div>` : ""}
               </div>
               <div class="admin-id-text admin-generation-id mt-2">생성 ID: ${escapeHtml(generationId)}</div>

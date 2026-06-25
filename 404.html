@@ -2828,6 +2828,81 @@
         object-position: center;
       }
 
+      .image-modal-gallery-info {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 9;
+        max-width: min(56%, 228px);
+        padding: 8px 10px;
+        border-radius: 12px;
+        background: rgba(18, 16, 17, 0.58);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        pointer-events: none;
+      }
+
+      .image-modal-gallery-info-category {
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.35;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .image-modal-gallery-info-concept {
+        margin-top: 2px;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.35;
+        color: #fff;
+      }
+
+      .image-modal-gallery-exit {
+        display: none;
+      }
+
+      #imageModal.is-gallery-lightbox .image-modal-header {
+        display: none !important;
+      }
+
+      @media (max-width: 767px) {
+        #imageModal.is-gallery-lightbox:not(.hidden) .image-modal-gallery-exit {
+          position: fixed;
+          z-index: 10030;
+          left: 12px;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          border-radius: 9999px;
+          background: rgba(18, 16, 17, 0.58);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: #fff;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+
+        #imageModal.is-gallery-lightbox:has(.image-modal-thumbnail-strip:not(.hidden)) .image-modal-gallery-exit {
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+        }
+
+        #imageModal.is-gallery-lightbox .image-modal-stage {
+          padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+        }
+      }
+
+      @media (min-width: 768px) {
+        #imageModal.is-gallery-lightbox #imageModalShell {
+          padding-top: 24px;
+        }
+      }
+
       .image-modal-thumbnail-strip.hidden {
         display: none;
       }
@@ -6222,7 +6297,7 @@
 
     <div class="fixed inset-0 z-[90] hidden modal-glass backdrop-blur-md items-center justify-center px-3 py-5 sm:p-8" id="imageModal">
       <div class="relative w-full h-full max-w-6xl flex flex-col gap-4" id="imageModalShell">
-        <div class="image-modal-header glass-panel rounded-full px-3 py-2 flex items-center justify-between gap-3 text-white">
+        <div class="image-modal-header glass-panel rounded-full px-3 py-2 flex items-center justify-between gap-3 text-white" id="imageModalHeader">
           <div class="flex items-center gap-2 min-w-0">
             <span class="font-label-caps text-label-caps uppercase tracking-widest truncate" id="imageModalLabel">이미지 확대</span>
             <span class="hidden shrink-0 rounded-full bg-primary text-on-primary px-3 py-1 font-label-caps text-label-caps uppercase shadow-md" id="imageModalBadge">AI 추천</span>
@@ -6233,6 +6308,10 @@
             <span class="material-symbols-outlined">chevron_left</span>
           </button>
           <div class="image-modal-image-frame">
+            <div class="image-modal-gallery-info hidden" id="imageModalGalleryInfo" aria-hidden="true">
+              <p class="image-modal-gallery-info-category" id="imageModalGalleryInfoCategory"></p>
+              <p class="image-modal-gallery-info-concept" id="imageModalGalleryInfoConcept"></p>
+            </div>
             <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
             <span class="logo-watermark" aria-hidden="true">
               <img src="/images/brand/magic-ai-studio-watermark-white.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
@@ -6275,6 +6354,9 @@
           <button class="hidden mt-2 h-11 items-center justify-center rounded-full bg-white/20 px-5 text-sm font-bold text-white ring-1 ring-white/25 hover:bg-white/30" id="imageModalMyPhotoRetry" type="button">다시 시도</button>
         </div>
       </div>
+      <button class="image-modal-gallery-exit" id="imageModalGalleryExit" type="button" aria-label="스타일 갤러리 닫기">
+        <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+      </button>
     </div>
 
     <div class="fixed inset-0 z-[100] hidden bg-[#171113]/95 px-4 py-5 sm:p-8" id="imageSaveModal">
@@ -6727,6 +6809,66 @@ Important:
         "studio hanbok": "한복샷",
         "hanbok shot": "한복샷",
         "한복샷": "한복샷",
+      };
+      const GALLERY_MODAL_CATEGORY_LABELS = {
+        europe_style: "유럽",
+        parissnap: "유럽",
+        paris_snap: "유럽",
+        europe: "유럽",
+        european: "유럽",
+        europesnap: "유럽",
+        korea_style: "한국",
+        koreastyle: "한국",
+        korea: "한국",
+        disney_style: "디즈니",
+        disneylive: "디즈니",
+        disney_live: "디즈니",
+        disney: "디즈니",
+        studio_style: "스튜디오",
+        studio: "스튜디오",
+        유럽명소스냅: "유럽",
+        파리에펠탑: "유럽",
+        서울명소스냅: "한국",
+        제주도스냅: "한국",
+        제주도: "한국",
+        디즈니실사: "디즈니",
+        스튜디오: "스튜디오",
+        스튜디오스타일: "스튜디오",
+      };
+      const GALLERY_MODAL_CONCEPT_LABELS = {
+        paris_eiffel: "파리 에펠탑",
+        paris_eiffel_tower: "파리 에펠탑",
+        eiffel: "파리 에펠탑",
+        paris_louvre: "루브르 박물관",
+        louvre: "루브르 박물관",
+        europe_venice: "베네치아 선셋 브리지",
+        venice: "베네치아 선셋 브리지",
+        amalfi: "아말피 해안",
+        gyeongbokgung: "궁궐 한복 웨딩",
+        pink_muhly: "핑크뮬리 로맨틱 스냅",
+        jeju_gimnyeong: "제주 김녕해변 스냅",
+        jeju_gimnyeong_beach: "제주 김녕해변 스냅",
+        jeju_saebyeol: "제주 새별오름 스냅",
+        jeju_saebyeol_oreum: "제주 새별오름 스냅",
+        aurora_enchanted: "오로라 인첸티드",
+        cinderella_royal: "신데렐라 로열",
+        fairytale_royal_wedding: "신데렐라 로열",
+        belle_romantic: "벨 로맨틱",
+        mulan_oriental_hanbok: "뮬란 한복",
+        white_background: "화이트 배경 웨딩",
+        studio_white_bg: "화이트 배경 웨딩",
+        sofa_shot: "소파 웨딩 스냅",
+        studio_sofa: "소파 웨딩 스냅",
+        petal_shot: "꽃잎 웨딩 스냅",
+        studio_petals: "꽃잎 웨딩 스냅",
+        hanbok_shot: "한복 웨딩 스냅",
+        studio_hanbok: "한복 웨딩 스냅",
+      };
+      const GALLERY_MODAL_MODE_CATEGORY_LABELS = {
+        [GENERATION_MODES.PARIS_SNAP]: "유럽",
+        [GENERATION_MODES.KOREA_STYLE]: "한국",
+        [GENERATION_MODES.DISNEY_LIVE]: "디즈니",
+        [GENERATION_MODES.STUDIO_STYLE]: "스튜디오",
       };
       const LANDMARK_OPTIONS = {
         eiffel: {
@@ -7260,6 +7402,10 @@ Important:
       const imageModalOriginalThumb = document.getElementById("imageModalOriginalThumb");
       const imageModalOriginalThumbImg = document.getElementById("imageModalOriginalThumbImg");
       const imageModalLabel = document.getElementById("imageModalLabel");
+      const imageModalGalleryInfo = document.getElementById("imageModalGalleryInfo");
+      const imageModalGalleryInfoCategory = document.getElementById("imageModalGalleryInfoCategory");
+      const imageModalGalleryInfoConcept = document.getElementById("imageModalGalleryInfoConcept");
+      const imageModalGalleryExit = document.getElementById("imageModalGalleryExit");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
       const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
@@ -18577,6 +18723,145 @@ ${modeExample}`;
         imageModalOriginalThumbImg?.removeAttribute("src");
       }
 
+      function normalizeGalleryModalLabelToken(value = "") {
+        return String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+      }
+
+      function containsHangulText(value = "") {
+        return /[가-힣]/.test(String(value || ""));
+      }
+
+      function looksLikeRawGalleryModalCode(value = "") {
+        const token = String(value || "").trim();
+        if (!token || containsHangulText(token)) return false;
+        return /^[A-Z0-9_]+$/.test(token) || /^[a-z0-9]+(?:_[a-z0-9]+)+$/.test(token);
+      }
+
+      function humanizeGalleryModalFallbackLabel(value = "") {
+        return String(value || "")
+          .replace(/_/g, " ")
+          .replace(/([a-z])([A-Z])/g, "$1 $2")
+          .replace(/\s+/g, " ")
+          .trim()
+          .split(" ")
+          .filter(Boolean)
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(" ");
+      }
+
+      function resolveGalleryModalMappedLabel(value, labelMap = {}) {
+        const token = normalizeGalleryModalLabelToken(value);
+        if (!token) return "";
+        if (labelMap[token]) return labelMap[token];
+
+        const compactToken = token.replace(/_/g, "");
+        const compactMatch = Object.entries(labelMap).find(([key]) => key.replace(/_/g, "") === compactToken);
+        if (compactMatch) return compactMatch[1];
+
+        if (labelMap === GALLERY_MODAL_CATEGORY_LABELS) {
+          const normalizedMode = normalizeGenerationMode(value);
+          if (GALLERY_MODAL_MODE_CATEGORY_LABELS[normalizedMode]) {
+            return GALLERY_MODAL_MODE_CATEGORY_LABELS[normalizedMode];
+          }
+        }
+
+        if (containsHangulText(value)) return String(value).trim();
+        if (!looksLikeRawGalleryModalCode(value)) return String(value).trim();
+
+        const landmark = LANDMARK_OPTIONS[token];
+        if (landmark?.displayTitleLines?.length) {
+          return landmark.displayTitleLines.join(" ");
+        }
+        if (landmark?.label && containsHangulText(landmark.label)) {
+          return landmark.label;
+        }
+
+        const studioLabel = STUDIO_DISPLAY_LABEL_MAP[token.replace(/_/g, " ")];
+        if (studioLabel) return studioLabel;
+
+        const koreaLabel = KOREA_DISPLAY_LABEL_MAP[token.replace(/_/g, " ")];
+        if (koreaLabel) return koreaLabel;
+
+        return humanizeGalleryModalFallbackLabel(value);
+      }
+
+      function getGalleryLightboxCategoryLabel(item = {}) {
+        const candidates = [
+          item.styleCategory,
+          item.style_category,
+          item.styleLabel,
+          item.style_label,
+          item.styleCategoryLabel,
+          item.style_category_label,
+          item.mode,
+          item.generationMode,
+          item.generation_mode,
+          item.category,
+          item.metadata?.styleCategory,
+          item.metadata?.style_category,
+          item.metadata?.mode,
+        ];
+
+        for (const candidate of candidates) {
+          const label = resolveGalleryModalMappedLabel(candidate, GALLERY_MODAL_CATEGORY_LABELS);
+          if (label) return label;
+        }
+
+        return "스타일 갤러리";
+      }
+
+      function getGalleryLightboxConceptLabel(item = {}) {
+        const candidates = [
+          item.presetKey,
+          item.preset_key,
+          item.preset,
+          item.presetLabel,
+          item.preset_label,
+          item.locationLabel,
+          item.location_label,
+          item.generationPlaceLabel,
+          item.generation_place_label,
+          item.resultLabel,
+          item.result_label,
+          item.title,
+          item.metadata?.presetKey,
+          item.metadata?.preset_key,
+          item.metadata?.presetLabel,
+          item.metadata?.preset_label,
+        ];
+
+        for (const candidate of candidates) {
+          const label = resolveGalleryModalMappedLabel(candidate, GALLERY_MODAL_CONCEPT_LABELS);
+          if (label) return label;
+        }
+
+        return "웨딩 스냅";
+      }
+
+      function hideImageModalGalleryInfo() {
+        imageModalGalleryInfo?.classList.add("hidden");
+        imageModalGalleryInfo?.setAttribute("aria-hidden", "true");
+        if (imageModalGalleryInfoCategory) imageModalGalleryInfoCategory.textContent = "";
+        if (imageModalGalleryInfoConcept) imageModalGalleryInfoConcept.textContent = "";
+      }
+
+      function syncImageModalGalleryInfo(item) {
+        if (!imageModalGalleryInfo || !imageModalGalleryInfoCategory || !imageModalGalleryInfoConcept) return;
+
+        if (!item?.gallerySource) {
+          hideImageModalGalleryInfo();
+          return;
+        }
+
+        const categoryLabel = getGalleryLightboxCategoryLabel(item);
+        const conceptLabel = getGalleryLightboxConceptLabel(item);
+
+        imageModalGalleryInfoCategory.textContent = categoryLabel;
+        imageModalGalleryInfoConcept.textContent = conceptLabel;
+        imageModalGalleryInfo.classList.remove("hidden");
+        imageModalGalleryInfo.setAttribute("aria-hidden", "false");
+      }
+
       function syncImageModalOriginalThumbnail(item) {
         if (!imageModalOriginalThumb || !imageModalOriginalThumbImg) return;
 
@@ -20189,6 +20474,8 @@ ${modeExample}`;
         imageModalImg.draggable = !isGallerySource;
         imageModalImg.dataset.source = isGallerySource ? "gallery" : "result";
         imageModalImageFrame?.classList.toggle("has-logo-watermark", shouldShowLogoWatermark);
+        imageModal.classList.toggle("is-gallery-lightbox", isGallerySource);
+        syncImageModalGalleryInfo(item);
         syncImageModalOriginalThumbnail(item);
         imageModalLabel.textContent = item.label;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
@@ -20322,12 +20609,14 @@ ${modeExample}`;
 
         imageModal.classList.add("hidden");
         imageModal.classList.remove("flex");
+        imageModal.classList.remove("is-gallery-lightbox");
         closePhotoSaveModal();
         resetImageModalSwipeState();
         imageModalImg.onerror = null;
         imageModalImg.removeAttribute("src");
         imageModalImageFrame?.classList.remove("has-logo-watermark");
         hideImageModalOriginalThumbnail();
+        hideImageModalGalleryInfo();
         renderImageModalThumbnailStrip([], 0);
         setImageModalActionsVisible(false);
         setImageModalDoneVisible(false);
@@ -22633,6 +22922,11 @@ ${modeExample}`;
         if (event.target === imageModal || event.target === imageModalShell) {
           closeImageModal();
         }
+      });
+      imageModalGalleryExit?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        closeImageModal();
       });
 
       imageModalPhotoSave?.addEventListener("click", (event) => {

@@ -2807,12 +2807,13 @@
         position: absolute;
         right: 12px;
         bottom: 12px;
-        width: clamp(100px, 16vw, 150px);
-        aspect-ratio: 1 / 1;
+        width: auto;
+        height: auto;
+        max-width: clamp(100px, 16vw, 150px);
+        max-height: clamp(88px, 14vw, 138px);
         border-radius: 15px;
         overflow: hidden;
         border: 2px solid rgba(255, 255, 255, 0.92);
-        background: rgba(255, 255, 255, 0.85);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         z-index: 8;
         pointer-events: none;
@@ -2820,10 +2821,10 @@
 
       .image-modal-original-thumb img {
         display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center center;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
       }
 
       .image-modal-thumbnail-strip.hidden {
@@ -2921,7 +2922,8 @@
         .image-modal-original-thumb {
           right: 10px;
           bottom: 14px;
-          width: clamp(76px, 24vw, 104px);
+          max-width: clamp(76px, 24vw, 104px);
+          max-height: clamp(76px, 24vw, 104px);
         }
 
         .image-modal-pager {
@@ -3291,7 +3293,8 @@
 
       @media (max-width: 640px) {
         .image-modal-original-thumb {
-          width: clamp(90px, 28vw, 120px);
+          max-width: clamp(90px, 28vw, 120px);
+          max-height: clamp(90px, 28vw, 120px);
         }
       }
 

@@ -2809,22 +2809,23 @@
         bottom: 12px;
         width: auto;
         height: auto;
-        max-width: clamp(100px, 16vw, 150px);
-        max-height: clamp(88px, 14vw, 138px);
         border-radius: 15px;
         overflow: hidden;
         border: 2px solid rgba(255, 255, 255, 0.92);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         z-index: 8;
         pointer-events: none;
+        line-height: 0;
       }
 
       .image-modal-original-thumb img {
         display: block;
         width: auto;
         height: auto;
-        max-width: 100%;
-        max-height: 100%;
+        max-width: clamp(72px, 18vw, 160px);
+        max-height: clamp(72px, 22vh, 180px);
+        object-fit: contain;
+        object-position: center;
       }
 
       .image-modal-thumbnail-strip.hidden {
@@ -2922,8 +2923,6 @@
         .image-modal-original-thumb {
           right: 10px;
           bottom: 14px;
-          max-width: clamp(76px, 24vw, 104px);
-          max-height: clamp(76px, 24vw, 104px);
         }
 
         .image-modal-pager {
@@ -3291,12 +3290,6 @@
         }
       }
 
-      @media (max-width: 640px) {
-        .image-modal-original-thumb {
-          max-width: clamp(90px, 28vw, 120px);
-          max-height: clamp(90px, 28vw, 120px);
-        }
-      }
 
       @media (max-width: 360px) {
         #imageModalActionsGrid {
@@ -18587,7 +18580,7 @@ ${modeExample}`;
       function syncImageModalOriginalThumbnail(item) {
         if (!imageModalOriginalThumb || !imageModalOriginalThumbImg) return;
 
-        const originalThumbSrc = item?.gallerySource ? getGalleryOriginalThumbnailUrl(item) : "";
+        const originalThumbSrc = item?.gallerySource ? getGalleryOriginalInsetImageUrl(item) : "";
         if (DEBUG_MODE && item?.gallerySource) {
           console.log("[gallery-modal] originalThumbnailUrl exists:", hasGalleryOriginalThumbnail(item));
           console.log("[gallery-modal] originalImageUrl exists:", hasGalleryOriginalImage(item));
@@ -19529,6 +19522,27 @@ ${modeExample}`;
         if ((slot === 5 || slot === 8) && (!Number.isFinite(ratio) || ratio >= 0.92)) return "is-pattern-wide";
         if (slot === 6 && Number.isFinite(ratio) && ratio >= 1.14) return "is-pattern-wide";
         return "is-pattern-regular";
+      }
+
+      function getGalleryOriginalInsetImageUrl(item) {
+        return firstBrowserImageUrlValue(
+          item?.originalImageUrl,
+          item?.original_image_url,
+          item?.beforeImageUrl,
+          item?.before_image_url,
+          item?.sourceImageUrl,
+          item?.source_image_url,
+          item?.metadata?.originalImageUrl,
+          item?.metadata?.original_image_url,
+          item?.metadata?.beforeImageUrl,
+          item?.metadata?.before_image_url,
+          item?.metadata?.sourceImageUrl,
+          item?.metadata?.source_image_url,
+          item?.originalThumbnailUrl,
+          item?.original_thumbnail_url,
+          item?.metadata?.originalThumbnailUrl,
+          item?.metadata?.original_thumbnail_url
+        );
       }
 
       function getGalleryOriginalThumbnailUrl(item) {

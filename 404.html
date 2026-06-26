@@ -1863,6 +1863,56 @@
         padding: 3px 7px;
       }
 
+      .admin-payment-compact-card {
+        padding: 6px 10px;
+        border-radius: 12px;
+        min-height: 52px;
+        gap: 0;
+      }
+
+      .admin-payment-compact-summary {
+        flex-wrap: nowrap;
+        min-height: 40px;
+      }
+
+      .admin-payment-compact-line {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 0;
+        flex-wrap: nowrap;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .admin-payment-compact-ellipsis {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .admin-payment-compact-amount,
+      .admin-payment-compact-badge {
+        flex-shrink: 0;
+      }
+
+      .admin-payment-compact-card .admin-compact-sep {
+        flex-shrink: 0;
+      }
+
+      .admin-payment-compact-card .admin-detail-toggle {
+        flex-shrink: 0;
+      }
+
+      .admin-payment-detail-panel {
+        background: rgba(255, 248, 250, 0.72);
+        margin: 10px -10px -6px;
+        padding: 10px 10px 8px;
+        border-radius: 0 0 12px 12px;
+      }
+
       .admin-inline-status-badge {
         display: inline-block;
         border-radius: 9999px;
@@ -11121,14 +11171,33 @@ Important:
         const token = normalizeAdminToken(value || "unknown");
         const labels = {
           paid: "결제완료",
-          ready: "결제대기",
+          approved: "결제완료",
+          completed: "결제완료",
+          pending: "확인필요",
+          ready: "확인필요",
           failed: "결제실패",
           canceled: "결제취소",
           cancelled: "결제취소",
           refunded: "환불완료",
-          unknown: "확인필요",
         };
-        return labels[token] || labels.unknown;
+        return labels[token] || "상태확인";
+      }
+
+      function formatAdminPaymentDetailField(value) {
+        const text = String(value ?? "").trim();
+        if (!text || text === "일시 없음" || text === "이메일 없음" || text === "없음" || text === "알 수 없음" || text === "주문번호 없음") {
+          return "-";
+        }
+        return text;
+      }
+
+      function getAdminPaymentStatusBadgeClass(value) {
+        const token = normalizeAdminToken(value || "unknown");
+        if (["paid", "approved", "completed"].includes(token)) return "";
+        if (["pending", "ready"].includes(token)) return "is-soft";
+        if (token === "failed") return "is-muted";
+        if (["canceled", "cancelled", "refunded"].includes(token)) return "is-muted";
+        return "is-soft";
       }
 
       function getAdminGenerationStyleLabel(generation = {}) {
@@ -11442,39 +11511,57 @@ Important:
       }
 
       function renderAdminPaymentCard(payment = {}) {
-        const orderId = getAdminNestedValue(payment, ["orderId", "order_id", "id"], "주문번호 없음");
-        const tid = getAdminNestedValue(payment, ["tid", "transactionId", "transaction_id", "paymentKey", "payment_key"], "없음");
-        const packageId = getAdminNestedValue(payment, ["packageId", "package_id"], "없음");
+        const memberName = getAdminMemberName(payment);
+        const productName = getAdminPaymentProductName(payment);
+        const amountLabel = formatAdminCurrency(payment.amount ?? payment.price);
+        const orderId = getAdminNestedValue(payment, ["orderId", "order_id", "id"], "");
+        const tid = getAdminNestedValue(payment, ["tid", "transactionId", "transaction_id", "paymentKey", "payment_key"], "");
+        const packageId = getAdminNestedValue(payment, ["packageId", "package_id"], "");
         const paymentStatusRaw = getAdminNestedValue(payment, ["status", "paymentStatus", "payment_status"], "unknown");
+        const statusLabel = getAdminPaymentStatusLabel(paymentStatusRaw);
+        const statusBadgeClass = getAdminPaymentStatusBadgeClass(paymentStatusRaw);
+        const memberEmail = getAdminMemberEmail(payment);
+        const payMethod = getAdminNestedValue(payment, ["payMethod", "pay_method", "paymentMethod", "payment_method", "method"], "");
+        const paidAtLabel = formatAdminPaymentDetailField(formatAdminDate(payment.paidAt ?? payment.paid_at ?? payment.createdAt ?? payment.created_at));
+        const createdAtLabel = formatAdminPaymentDetailField(formatAdminDate(payment.createdAt ?? payment.created_at));
+        const provider = getAdminNestedValue(payment, ["provider", "paymentProvider", "payment_provider"], "");
+        const errorCode = getAdminNestedValue(payment, ["errorCode", "error_code", "failCode", "fail_code", "error.code"], "");
+        const errorMessage = getAdminNestedValue(payment, ["errorMessage", "error_message", "errorMsg", "error_msg", "failMessage", "fail_message", "error.message"], "");
+        const creditsLabel = `AI 웨딩사진 제작 이용권 ${getAdminPaymentCredits(payment)}`;
+        const servicePeriod = getAdminPaymentServicePeriodLabel(payment);
         return `
-          <details class="admin-data-row admin-list-card admin-payment-item">
-            <summary>
-              <div class="admin-card-summary">
-                <div>
-                  <div class="admin-main-title">회원: ${escapeHtml(getAdminMemberName(payment))}</div>
-                  <div class="admin-summary-subtext">상품: ${escapeHtml(getAdminPaymentProductName(payment))}</div>
-                </div>
-                <span class="admin-status-badge">${escapeHtml(getAdminPaymentStatusLabel(paymentStatusRaw))}</span>
+          <details class="admin-data-row admin-list-card admin-payment-item admin-compact-card admin-payment-compact-card">
+            <summary class="admin-compact-summary admin-payment-compact-summary">
+              <div class="admin-payment-compact-line">
+                <span class="admin-payment-compact-ellipsis admin-compact-primary">${escapeHtml(memberName)}</span>
+                <span class="admin-compact-sep">·</span>
+                <span class="admin-payment-compact-ellipsis admin-compact-meta">${escapeHtml(productName)}</span>
+                <span class="admin-compact-sep">·</span>
+                <span class="admin-payment-compact-amount">${escapeHtml(amountLabel)}</span>
+                <span class="admin-compact-sep">·</span>
+                <span class="admin-inline-status-badge admin-payment-compact-badge ${statusBadgeClass}">${escapeHtml(statusLabel)}</span>
               </div>
-              <div class="admin-summary-lines mt-2">
-                <div class="admin-meta-row"><span class="admin-meta-label">금액</span><span class="admin-meta-value">${escapeHtml(formatAdminCurrency(payment.amount ?? payment.price))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">상태</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentStatusLabel(paymentStatusRaw))}</span></div>
-              </div>
-              <div class="admin-detail-toggle mt-2">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
+              <div class="admin-detail-toggle">상세보기 <span class="material-symbols-outlined text-[18px]">expand_more</span></div>
             </summary>
-            <div class="admin-detail-panel">
+            <div class="admin-detail-panel admin-payment-detail-panel">
               <div class="admin-meta-list">
-                <div class="admin-meta-row"><span class="admin-meta-label">이메일</span><span class="admin-meta-value">${escapeHtml(getAdminMemberEmail(payment))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">이용권</span><span class="admin-meta-value">AI 웨딩사진 제작 이용권 ${escapeHtml(getAdminPaymentCredits(payment))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">서비스 제공기간</span><span class="admin-meta-value">${escapeHtml(getAdminPaymentServicePeriodLabel(payment))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">packageId</span><span class="admin-meta-value">${escapeHtml(packageId)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">결제일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(payment.paidAt ?? payment.paid_at ?? payment.createdAt ?? payment.created_at))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">생성일</span><span class="admin-meta-value">${escapeHtml(formatAdminDate(payment.createdAt ?? payment.created_at))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">provider</span><span class="admin-meta-value">${escapeHtml(getAdminNestedValue(payment, ["provider", "paymentProvider", "payment_provider"], "알 수 없음"))}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">status 원문</span><span class="admin-meta-value">${escapeHtml(paymentStatusRaw)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">주문번호</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(orderId))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">회원 이메일</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(memberEmail))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">상품명</span><span class="admin-meta-value">${escapeHtml(productName)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">결제금액</span><span class="admin-meta-value">${escapeHtml(amountLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">결제 상태</span><span class="admin-meta-value">${escapeHtml(statusLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">결제수단</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(payMethod))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">결제일</span><span class="admin-meta-value">${escapeHtml(paidAtLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">TID</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(tid))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">오류 코드</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(errorCode))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">오류 메시지</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(errorMessage))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">이용권</span><span class="admin-meta-value">${escapeHtml(creditsLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">서비스 제공기간</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(servicePeriod))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">packageId</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(packageId))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">provider</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(provider))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">생성일</span><span class="admin-meta-value">${escapeHtml(createdAtLabel)}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">status 원문</span><span class="admin-meta-value">${escapeHtml(formatAdminPaymentDetailField(paymentStatusRaw))}</span></div>
               </div>
-              <div class="admin-id-text admin-order-id mt-2">주문번호: ${escapeHtml(orderId)}</div>
-              <div class="admin-id-text mt-2">TID: ${escapeHtml(tid)}</div>
             </div>
           </details>
         `;

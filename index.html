@@ -4673,8 +4673,6 @@
         display: block;
         width: 100%;
         min-width: 0;
-        grid-row: span var(--gallery-row-span, 34);
-        align-self: start;
         padding: 0;
         border: 0;
         border-radius: 18px;
@@ -4686,23 +4684,115 @@
         -webkit-appearance: none;
       }
 
-      .gallery-collage-item:not(.is-loaded) {
-        aspect-ratio: var(--gallery-card-aspect-ratio, 1 / 1.18);
+      .gallery-collage-cell {
+        position: relative;
+        display: block;
+        width: 100%;
+        min-width: 0;
+        grid-row: span var(--gallery-row-span, 34);
+        align-self: start;
       }
 
-      .gallery-collage-item.is-featured,
-      .gallery-collage-item.is-pattern-wide {
+      .gallery-collage-cell.is-featured,
+      .gallery-collage-cell.is-pattern-wide {
         grid-column: 1 / -1;
+      }
+
+      .gallery-collage-cell.is-featured .gallery-collage-item,
+      .gallery-collage-cell.is-pattern-wide .gallery-collage-item {
         border-radius: 22px;
       }
 
-      .gallery-collage-item.is-landscape.is-pattern-regular {
+      .gallery-collage-cell.is-landscape.is-pattern-regular {
         grid-column: 1 / -1;
+      }
+
+      .gallery-collage-cell:not(.is-loaded) {
+        aspect-ratio: var(--gallery-card-aspect-ratio, 1 / 1.18);
+      }
+
+      .gallery-collage-item:not(.is-loaded) {
+        aspect-ratio: var(--gallery-card-aspect-ratio, 1 / 1.18);
       }
 
       .gallery-collage-item:focus-visible {
         outline: 3px solid rgba(112, 30, 52, 0.36);
         outline-offset: 3px;
+      }
+
+      .gallery-like-button {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 9px 5px 7px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 9999px;
+        background: rgba(20, 16, 18, 0.62);
+        color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        cursor: pointer;
+        line-height: 1;
+        transition: transform 160ms ease, background 160ms ease;
+      }
+
+      .gallery-like-button:hover {
+        background: rgba(20, 16, 18, 0.74);
+      }
+
+      .gallery-like-button.is-liked {
+        background: rgba(129, 80, 92, 0.82);
+      }
+
+      .gallery-like-button.is-burst {
+        animation: galleryLikeBurst 360ms ease;
+      }
+
+      .gallery-like-icon {
+        font-size: 16px;
+        line-height: 1;
+        font-variation-settings: "FILL" 0;
+      }
+
+      .gallery-like-button.is-liked .gallery-like-icon {
+        font-variation-settings: "FILL" 1;
+        color: #ffd8df;
+      }
+
+      .gallery-like-count {
+        font-size: 12px;
+        font-weight: 700;
+        min-width: 0.5em;
+      }
+
+      @keyframes galleryLikeBurst {
+        0% {
+          transform: scale(1);
+        }
+
+        45% {
+          transform: scale(1.12);
+        }
+
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .image-modal-gallery-like {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        z-index: 9;
+      }
+
+      .image-modal-gallery-like .gallery-like-button {
+        position: static;
       }
 
       .gallery-main-image {
@@ -4758,9 +4848,9 @@
           --gallery-grid-row: 7px;
         }
 
-        .app-stage.is-gallery-active .gallery-collage-item.is-featured,
-        .app-stage.is-gallery-active .gallery-collage-item.is-pattern-wide,
-        .app-stage.is-gallery-active .gallery-collage-item.is-landscape.is-pattern-regular {
+        .app-stage.is-gallery-active .gallery-collage-cell.is-featured,
+        .app-stage.is-gallery-active .gallery-collage-cell.is-pattern-wide,
+        .app-stage.is-gallery-active .gallery-collage-cell.is-landscape.is-pattern-regular {
           grid-column: span 2;
         }
 
@@ -6929,6 +7019,7 @@
               <p class="image-modal-gallery-info-category" id="imageModalGalleryInfoCategory"></p>
               <p class="image-modal-gallery-info-concept" id="imageModalGalleryInfoConcept"></p>
             </div>
+            <div class="image-modal-gallery-like hidden" id="imageModalGalleryLike" aria-hidden="true"></div>
             <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
             <span class="logo-watermark" aria-hidden="true">
               <img src="/images/brand/magic-ai-studio-watermark-white.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
@@ -8037,6 +8128,7 @@ Important:
       const imageModalGalleryInfo = document.getElementById("imageModalGalleryInfo");
       const imageModalGalleryInfoCategory = document.getElementById("imageModalGalleryInfoCategory");
       const imageModalGalleryInfoConcept = document.getElementById("imageModalGalleryInfoConcept");
+      const imageModalGalleryLike = document.getElementById("imageModalGalleryLike");
       const imageModalGalleryExit = document.getElementById("imageModalGalleryExit");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
@@ -8129,6 +8221,11 @@ Important:
       let activeImageModalIndex = 0;
       let isGenerating = false;
       let galleryImages = [];
+      const galleryLikeRequestInFlight = new Set();
+      let imageModalLastTapAt = 0;
+      let imageModalLastTapX = 0;
+      let imageModalLastTapY = 0;
+      const GALLERY_LIKE_DOUBLE_TAP_MS = 320;
       const uploadedGalleryImageUrls = new Set();
       let currentGenerationId = "";
       let currentGenerationJobId = "";
@@ -19790,6 +19887,105 @@ ${modeExample}`;
         if (imageModalGalleryInfoConcept) imageModalGalleryInfoConcept.textContent = "";
       }
 
+      function hideImageModalGalleryLike() {
+        imageModalGalleryLike?.classList.add("hidden");
+        imageModalGalleryLike?.setAttribute("aria-hidden", "true");
+        if (imageModalGalleryLike) imageModalGalleryLike.innerHTML = "";
+      }
+
+      function formatGalleryLikeCount(value) {
+        const count = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+        if (count < 1000) return String(count);
+        if (count < 10000) {
+          const compact = count / 1000;
+          const rounded = compact >= 10 ? Math.round(compact) : Math.round(compact * 10) / 10;
+          return `${rounded}천`;
+        }
+        const compact = count / 10000;
+        const rounded = compact >= 10 ? Math.round(compact) : Math.round(compact * 10) / 10;
+        return `${rounded}만`;
+      }
+
+      function renderGalleryLikeButtonHtml(item, options = {}) {
+        const galleryItemId = getGalleryItemId(item);
+        if (!galleryItemId) return "";
+        const likeCount = normalizeGalleryLikeCount(item);
+        const isLikedByMe = normalizeGalleryIsLikedByMe(item);
+        const label = `좋아요 ${formatGalleryLikeCount(likeCount)}`;
+        const likedClass = isLikedByMe ? " is-liked" : "";
+        const contextClass = options.context === "modal" ? " gallery-like-button--modal" : "";
+        return `
+          <button
+            type="button"
+            class="gallery-like-button${likedClass}${contextClass}"
+            data-gallery-like-id="${escapeHtml(galleryItemId)}"
+            aria-label="${escapeHtml(label)}"
+            aria-pressed="${isLikedByMe ? "true" : "false"}"
+          >
+            <span class="material-symbols-outlined gallery-like-icon" aria-hidden="true">favorite</span>
+            <span class="gallery-like-count" data-gallery-like-count="${escapeHtml(galleryItemId)}">${escapeHtml(formatGalleryLikeCount(likeCount))}</span>
+          </button>
+        `;
+      }
+
+      function syncGalleryLikeButtonElement(button, item) {
+        if (!button) return;
+        const likeCount = normalizeGalleryLikeCount(item);
+        const isLikedByMe = normalizeGalleryIsLikedByMe(item);
+        button.classList.toggle("is-liked", isLikedByMe);
+        button.setAttribute("aria-pressed", isLikedByMe ? "true" : "false");
+        button.setAttribute("aria-label", `좋아요 ${formatGalleryLikeCount(likeCount)}`);
+        const countEl = button.querySelector(".gallery-like-count");
+        if (countEl) countEl.textContent = formatGalleryLikeCount(likeCount);
+      }
+
+      function syncGalleryLikeUiOnScreen(galleryItemId, patch = {}) {
+        if (!galleryItemId) return;
+        const buttons = document.querySelectorAll(
+          `.gallery-like-button[data-gallery-like-id="${CSS.escape(String(galleryItemId))}"]`
+        );
+        buttons.forEach((button) => {
+          const countEl = button.querySelector(".gallery-like-count");
+          if (patch.likeCount !== undefined && countEl) {
+            countEl.textContent = formatGalleryLikeCount(patch.likeCount);
+          }
+          if (patch.isLikedByMe !== undefined) {
+            button.classList.toggle("is-liked", Boolean(patch.isLikedByMe));
+            button.setAttribute("aria-pressed", patch.isLikedByMe ? "true" : "false");
+          }
+          if (patch.likeCount !== undefined || patch.isLikedByMe !== undefined) {
+            const count = patch.likeCount !== undefined ? patch.likeCount : Number(countEl?.textContent) || 0;
+            const liked = patch.isLikedByMe !== undefined ? patch.isLikedByMe : button.classList.contains("is-liked");
+            button.setAttribute("aria-label", `좋아요 ${formatGalleryLikeCount(count)}`);
+            void liked;
+          }
+        });
+      }
+
+      function syncImageModalGalleryLike(item) {
+        if (!imageModalGalleryLike) return;
+        if (!item?.gallerySource) {
+          hideImageModalGalleryLike();
+          return;
+        }
+        imageModalGalleryLike.innerHTML = renderGalleryLikeButtonHtml(item, { context: "modal" });
+        imageModalGalleryLike.classList.remove("hidden");
+        imageModalGalleryLike.setAttribute("aria-hidden", "false");
+      }
+
+      function playGalleryLikeBurst(galleryItemId) {
+        if (!galleryItemId) return;
+        const buttons = document.querySelectorAll(
+          `.gallery-like-button[data-gallery-like-id="${CSS.escape(String(galleryItemId))}"]`
+        );
+        buttons.forEach((button) => {
+          button.classList.remove("is-burst");
+          void button.offsetWidth;
+          button.classList.add("is-burst");
+          window.setTimeout(() => button.classList.remove("is-burst"), 380);
+        });
+      }
+
       function syncImageModalGalleryInfo(item) {
         if (!imageModalGalleryInfo || !imageModalGalleryInfoCategory || !imageModalGalleryInfoConcept) return;
 
@@ -20325,6 +20521,181 @@ ${modeExample}`;
         return `${FRONT_API_BASE_URL}/api/gallery/upload`;
       }
 
+      function getGalleryLikeUrl(galleryItemId) {
+        return `${FRONT_API_BASE_URL}/api/gallery/${encodeURIComponent(String(galleryItemId))}/like`;
+      }
+
+      function getGalleryItemId(item) {
+        if (!item || typeof item !== "object") return "";
+        const rawId = item.id ?? item.galleryItemId ?? item.gallery_item_id;
+        if (rawId === null || rawId === undefined || rawId === "") return "";
+        return String(rawId);
+      }
+
+      function normalizeGalleryLikeCount(item) {
+        const raw = item?.likeCount ?? item?.likesCount;
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+      }
+
+      function normalizeGalleryIsLikedByMe(item) {
+        const raw = item?.isLikedByMe ?? item?.likedByMe;
+        if (typeof raw === "boolean") return raw;
+        if (raw === 1 || raw === "1" || raw === "true") return true;
+        if (raw === 0 || raw === "0" || raw === "false") return false;
+        return false;
+      }
+
+      function findGalleryItemById(galleryItemId) {
+        const targetId = String(galleryItemId || "");
+        if (!targetId) return null;
+        return galleryImages.find((item) => getGalleryItemId(item) === targetId) || null;
+      }
+
+      function applyGalleryLikeState(galleryItemId, patch = {}) {
+        const targetId = String(galleryItemId || "");
+        if (!targetId) return;
+
+        const updateItem = (item) => {
+          if (!item || getGalleryItemId(item) !== targetId) return item;
+          const next = { ...item };
+          if (patch.likeCount !== undefined) {
+            next.likeCount = normalizeGalleryLikeCount({ likeCount: patch.likeCount });
+          }
+          if (patch.isLikedByMe !== undefined) {
+            next.isLikedByMe = Boolean(patch.isLikedByMe);
+          }
+          return next;
+        };
+
+        galleryImages = galleryImages.map(updateItem);
+
+        if (Array.isArray(modalItemsOverride)) {
+          modalItemsOverride = modalItemsOverride.map(updateItem);
+        }
+
+        const currentItem = getCurrentModalImageItem();
+        if (currentItem && getGalleryItemId(currentItem) === targetId) {
+          syncImageModalGalleryLike(updateItem(currentItem));
+        }
+
+        syncGalleryLikeUiOnScreen(targetId, patch);
+      }
+
+      async function likeGalleryItem(galleryItemId, options = {}) {
+        const targetId = String(galleryItemId || "");
+        if (!targetId) return { ok: false };
+
+        const item = findGalleryItemById(targetId) || getCurrentModalImageItem();
+        if (!item || getGalleryItemId(item) !== targetId) return { ok: false };
+
+        if (normalizeGalleryIsLikedByMe(item)) {
+          if (options.showBurst) playGalleryLikeBurst(targetId);
+          return { ok: true, alreadyLiked: true };
+        }
+
+        if (galleryLikeRequestInFlight.has(targetId)) {
+          return { ok: false, inFlight: true };
+        }
+
+        const previousLikeCount = normalizeGalleryLikeCount(item);
+        const previousIsLikedByMe = normalizeGalleryIsLikedByMe(item);
+
+        galleryLikeRequestInFlight.add(targetId);
+        applyGalleryLikeState(targetId, {
+          likeCount: previousLikeCount + 1,
+          isLikedByMe: true,
+        });
+
+        try {
+          const response = await fetch(getGalleryLikeUrl(targetId), {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          let payload = null;
+          try {
+            payload = await response.json();
+          } catch (_error) {
+            payload = null;
+          }
+
+          if (!response.ok) {
+            const code = payload?.code || payload?.errorCode || "";
+            if (response.status === 401 || code === "LOGIN_REQUIRED") {
+              applyGalleryLikeState(targetId, {
+                likeCount: previousLikeCount,
+                isLikedByMe: previousIsLikedByMe,
+              });
+              showAccountMenuToast("로그인 후 좋아요를 누를 수 있어요.");
+              return { ok: false, loginRequired: true };
+            }
+
+            applyGalleryLikeState(targetId, {
+              likeCount: previousLikeCount,
+              isLikedByMe: previousIsLikedByMe,
+            });
+            showAccountMenuToast(payload?.message || "좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
+            return { ok: false };
+          }
+
+          const serverLikeCount = normalizeGalleryLikeCount({
+            likeCount: payload?.likeCount ?? payload?.likesCount ?? previousLikeCount + 1,
+          });
+          const serverIsLikedByMe =
+            payload?.isLikedByMe !== undefined || payload?.likedByMe !== undefined
+              ? normalizeGalleryIsLikedByMe(payload)
+              : true;
+
+          applyGalleryLikeState(targetId, {
+            likeCount: serverLikeCount,
+            isLikedByMe: serverIsLikedByMe,
+          });
+
+          if (options.showBurst || payload?.alreadyLiked) {
+            playGalleryLikeBurst(targetId);
+          }
+
+          return {
+            ok: true,
+            alreadyLiked: Boolean(payload?.alreadyLiked),
+            likeCount: serverLikeCount,
+            isLikedByMe: serverIsLikedByMe,
+          };
+        } catch (_error) {
+          applyGalleryLikeState(targetId, {
+            likeCount: previousLikeCount,
+            isLikedByMe: previousIsLikedByMe,
+          });
+          showAccountMenuToast("좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
+          return { ok: false };
+        } finally {
+          galleryLikeRequestInFlight.delete(targetId);
+        }
+      }
+
+      function handleGalleryLightboxDoubleTapAt(clientX, clientY) {
+        const item = getCurrentModalImageItem();
+        if (!item?.gallerySource) return;
+
+        const now = Date.now();
+        const isDouble =
+          now - imageModalLastTapAt <= GALLERY_LIKE_DOUBLE_TAP_MS &&
+          Math.hypot(clientX - imageModalLastTapX, clientY - imageModalLastTapY) < 32;
+
+        imageModalLastTapAt = now;
+        imageModalLastTapX = clientX;
+        imageModalLastTapY = clientY;
+
+        if (!isDouble) return;
+
+        imageModalLastTapAt = 0;
+        void likeGalleryItem(getGalleryItemId(item), { showBurst: true, source: "double-tap" });
+      }
+
       async function ensureCurrentUserForGalleryUpload() {
         if (getAuthenticatedUserId(currentUser) || currentUser?.email) {
           return currentUser;
@@ -20689,6 +21060,8 @@ ${modeExample}`;
           status: getGalleryItemStatusToken(rawItem),
           statusLabel: getGalleryItemStatusLabel(rawItem),
           url: imageUrl || displayUrl,
+          likeCount: normalizeGalleryLikeCount(rawItem),
+          isLikedByMe: normalizeGalleryIsLikedByMe(rawItem),
         };
       }
 
@@ -20851,10 +21224,12 @@ ${modeExample}`;
         if (!(image instanceof HTMLImageElement)) return;
 
         const item = image.closest(".gallery-collage-item");
+        const cell = item?.closest(".gallery-collage-cell");
+        const layoutTarget = cell || item;
         const collage = image.closest(".gallery-collage");
         if (!item || !collage || !image.naturalWidth || !image.naturalHeight) return;
 
-        applyGalleryItemLayoutFromRatio(item, image.naturalWidth / image.naturalHeight);
+        applyGalleryItemLayoutFromRatio(layoutTarget, image.naturalWidth / image.naturalHeight);
 
         window.requestAnimationFrame(() => {
           const collageStyle = window.getComputedStyle(collage);
@@ -20863,8 +21238,9 @@ ${modeExample}`;
           const imageHeight = image.getBoundingClientRect().height;
           if (imageHeight > 0) {
             const rowSpan = Math.max(8, Math.ceil((imageHeight + rowGap) / (rowHeight + rowGap)));
-            item.style.setProperty("--gallery-row-span", String(rowSpan));
+            layoutTarget.style.setProperty("--gallery-row-span", String(rowSpan));
           }
+          layoutTarget.classList.add("is-loaded");
           item.classList.add("is-loaded");
         });
       }
@@ -21006,10 +21382,15 @@ ${modeExample}`;
           <div class="gallery-collage ${visibleGalleryItems.length === 1 ? "gallery-collage-single" : ""}">
             ${visibleGalleryItems.map((item, index) => {
               const label = item.resultLabel || item.presetLabel || "갤러리 사진";
+              const patternClass = visibleGalleryItems.length > 1 ? getGalleryCollagePatternClass(item, index) : "";
+              const layoutClass = getGalleryItemLayoutClass(item);
               return `
-                <button class="gallery-collage-item ${visibleGalleryItems.length > 1 ? getGalleryCollagePatternClass(item, index) : ""} ${getGalleryItemLayoutClass(item)}" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(label)} 크게보기"${getGalleryCardAspectRatioStyle(item)}>
-                  <img class="gallery-main-image" alt="${escapeHtml(label)}" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(item.displayUrl || item.imageUrl))}" onerror="this.closest('.gallery-collage-item')?.remove();" />
-                </button>
+                <div class="gallery-collage-cell ${patternClass} ${layoutClass}"${getGalleryCardAspectRatioStyle(item)}>
+                  <button class="gallery-collage-item" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(label)} 크게보기">
+                    <img class="gallery-main-image" alt="${escapeHtml(label)}" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(item.displayUrl || item.imageUrl))}" onerror="this.closest('.gallery-collage-cell')?.remove();" />
+                  </button>
+                  ${renderGalleryLikeButtonHtml(item)}
+                </div>
               `;
             }).join("")}
           </div>
@@ -21037,6 +21418,7 @@ ${modeExample}`;
           ensureApiBaseUrlConfigured();
           const response = await fetch(getGalleryListUrl(), {
             method: "GET",
+            credentials: "include",
             headers: {
               "X-Anonymous-Id": getAnonymousId(),
             },
@@ -21422,6 +21804,7 @@ ${modeExample}`;
         imageModal.classList.toggle("is-gallery-lightbox", isGallerySource);
         syncImageModalGalleryInfo(item);
         syncImageModalOriginalThumbnail(item);
+        syncImageModalGalleryLike(item);
         imageModalLabel.textContent = item.label;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
@@ -21563,6 +21946,7 @@ ${modeExample}`;
         imageModalImageFrame?.classList.remove("has-logo-watermark");
         hideImageModalOriginalThumbnail();
         hideImageModalGalleryInfo();
+        hideImageModalGalleryLike();
         renderImageModalThumbnailStrip([], 0);
         setImageModalActionsVisible(false);
         setImageModalDoneVisible(false);
@@ -21638,16 +22022,16 @@ ${modeExample}`;
 
       function isImageModalSwipeBlockedTarget(target) {
         return target instanceof Element && Boolean(target.closest(
-          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalOriginalThumb",
+          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalOriginalThumb,#imageModalGalleryLike,.gallery-like-button",
         ));
       }
 
       function handleImageModalSwipeStart(event) {
         if (imageModal.classList.contains("hidden")) return;
-        if (getImageModalItems().length < 2) return;
         if (event.pointerType === "mouse" && event.button !== 0) return;
         if (isImageModalSwipeBlockedTarget(event.target)) return;
 
+        const canSwipe = getImageModalItems().length >= 2;
         imageModalSwipeState = {
           pointerId: event.pointerId,
           startX: event.clientX,
@@ -21655,8 +22039,11 @@ ${modeExample}`;
           lastX: event.clientX,
           lastY: event.clientY,
           axis: "",
+          canSwipe,
         };
-        imageModalImageFrame?.setPointerCapture?.(event.pointerId);
+        if (canSwipe) {
+          imageModalImageFrame?.setPointerCapture?.(event.pointerId);
+        }
       }
 
       function handleImageModalSwipeMove(event) {
@@ -21688,11 +22075,19 @@ ${modeExample}`;
         const isHorizontalSwipe =
           Math.abs(dx) >= IMAGE_MODAL_SWIPE_THRESHOLD &&
           Math.abs(dx) > Math.abs(dy) * IMAGE_MODAL_SWIPE_AXIS_RATIO;
+        const isTap = Math.abs(dx) < 12 && Math.abs(dy) < 12;
+        const isTouch = event.pointerType === "touch" || event.pointerType === "pen";
 
         resetImageModalSwipeState();
 
-        if (!isHorizontalSwipe) return;
-        moveImageModal(dx < 0 ? 1 : -1);
+        if (isHorizontalSwipe && imageModalSwipeState.canSwipe) {
+          moveImageModal(dx < 0 ? 1 : -1);
+          return;
+        }
+
+        if (isTap && isTouch && isCurrentModalGallerySource()) {
+          handleGalleryLightboxDoubleTapAt(event.clientX, event.clientY);
+        }
       }
 
       function renderResults() {
@@ -23208,6 +23603,16 @@ ${modeExample}`;
       });
 
       galleryContent?.addEventListener("click", (event) => {
+        const likeButton = event.target instanceof Element
+          ? event.target.closest(".gallery-like-button[data-gallery-like-id]")
+          : null;
+        if (likeButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          void likeGalleryItem(likeButton.dataset.galleryLikeId, { source: "card" });
+          return;
+        }
+
         const target = event.target instanceof Element
           ? event.target.closest("[data-gallery-modal-index]")
           : null;
@@ -23904,6 +24309,21 @@ ${modeExample}`;
       imageModalImageFrame?.addEventListener("pointerup", handleImageModalSwipeEnd);
       imageModalImageFrame?.addEventListener("pointercancel", resetImageModalSwipeState);
       imageModalImageFrame?.addEventListener("lostpointercapture", resetImageModalSwipeState);
+      imageModalImageFrame?.addEventListener("click", (event) => {
+        const likeButton = event.target instanceof Element
+          ? event.target.closest(".gallery-like-button[data-gallery-like-id]")
+          : null;
+        if (!likeButton) return;
+        event.preventDefault();
+        event.stopPropagation();
+        void likeGalleryItem(likeButton.dataset.galleryLikeId, { source: "modal" });
+      });
+      imageModalImageFrame?.addEventListener("dblclick", (event) => {
+        if (!isCurrentModalGallerySource()) return;
+        if (isImageModalSwipeBlockedTarget(event.target)) return;
+        event.preventDefault();
+        void likeGalleryItem(getGalleryItemId(getCurrentModalImageItem()), { showBurst: true, source: "double-click" });
+      });
       imageModalGalleryUpload?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();

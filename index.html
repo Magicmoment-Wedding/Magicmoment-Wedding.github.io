@@ -3563,6 +3563,21 @@
           -webkit-backdrop-filter: blur(12px);
         }
 
+        #imageModal.is-gallery-lightbox .image-modal-gallery-info {
+          top: calc(env(safe-area-inset-top, 0px) + 14px);
+          right: calc(14px + env(safe-area-inset-right, 0px));
+          left: auto;
+          max-width: min(56vw, 200px);
+        }
+
+        #imageModal.is-gallery-lightbox .image-modal-gallery-info-category,
+        #imageModal.is-gallery-lightbox .image-modal-gallery-info-concept {
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
+        }
+
         #imageModal.is-gallery-lightbox .image-modal-stage {
           padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
         }

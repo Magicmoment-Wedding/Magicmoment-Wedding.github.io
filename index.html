@@ -3709,6 +3709,35 @@
         -webkit-text-fill-color: transparent;
       }
 
+      .landing-section-head {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+      }
+
+      .landing-section-head .landing-eyebrow {
+        margin: 0;
+      }
+
+      .landing-section-head .landing-section-title {
+        margin-top: 12px;
+      }
+
+      .landing-section-head .landing-copy {
+        margin-top: 16px;
+      }
+
+      .landing-section-inner.single-column .landing-section-head {
+        align-items: center;
+        text-align: center;
+      }
+
+      .landing-section-inner.single-column .landing-section-head .landing-copy {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
       .landing-copy {
         max-width: 560px;
         color: #6f5960;
@@ -4830,6 +4859,37 @@
         }
       }
 
+      @media (max-width: 859px) {
+        .landing-section-head {
+          align-items: center;
+          text-align: center;
+        }
+
+        .landing-section-head .landing-eyebrow {
+          width: 100%;
+          text-align: center;
+        }
+
+        .landing-section-title {
+          width: 100%;
+          max-width: 22em;
+          margin-left: auto;
+          margin-right: auto;
+          text-align: center;
+          font-size: clamp(30px, 8.5vw, 38px);
+          line-height: 1.12;
+          font-weight: 800;
+          letter-spacing: -0.045em;
+          word-break: keep-all;
+        }
+
+        .landing-section-head .landing-copy {
+          text-align: center;
+          margin-left: auto;
+          margin-right: auto;
+        }
+      }
+
       @media (max-width: 420px) {
         .landing-sections {
           padding: 6px 14px 80px;
@@ -4852,16 +4912,8 @@
           gap: 28px;
         }
 
-        .landing-title {
-          font-size: 34px;
-        }
-
         .landing-hero-copy {
           gap: 12px;
-        }
-
-        .landing-hero-copy .landing-title {
-          font-size: 32px;
         }
 
         .landing-hero-copy .landing-copy {
@@ -5006,11 +5058,11 @@
                 <input class="before-after-input" type="range" min="8" max="92" value="50" aria-label="Before After 비교 슬라이더" />
               </div>
               <div class="landing-hero-copy">
-                <div>
+                <div class="landing-section-head">
                   <p class="landing-eyebrow">BEFORE / AFTER</p>
-                <h1 class="landing-title mt-3"><span class="block sm:inline">클릭 한 번에</span>
+                <h1 class="landing-title landing-section-title"><span class="block sm:inline">클릭 한 번에</span>
                   <span class="block sm:inline">만나는 감성사진</span></h1>
-                <p class="landing-copy mt-4">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
+                <p class="landing-copy">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>
                 <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
                   <span>사진 올리고 시작하기</span>
@@ -5023,11 +5075,11 @@
           <section class="landing-section landing-gallery-preview-section" aria-label="스타일 갤러리 프리뷰">
             <div class="landing-section-inner">
               <div class="flex flex-col gap-4">
-                <div class="mt-2">
+                <div class="landing-section-head">
                   <p class="landing-eyebrow">STYLE GALLERY</p>
-                  <h2 class="landing-title mt-3 text-[clamp(30px,5vw,46px)]"><span class="block sm:inline">스타일 갤러리를</span>
+                  <h2 class="landing-title landing-section-title"><span class="block sm:inline">스타일 갤러리를</span>
                     <span class="block sm:inline">둘러보세요</span></h2>
-                  <p class="landing-copy mt-3">다른 사진들은 어떤 분위기로 바뀌었을까요?</p>
+                  <p class="landing-copy">다른 사진들은 어떤 분위기로 바뀌었을까요?</p>
                 </div>
                 <button class="landing-secondary-button w-full sm:w-fit" data-screen-target="gallery" type="button">
                   <span>갤러리 보러가기</span>
@@ -5081,9 +5133,11 @@
                 <img src="public/landing-gallery/landing-gallery-3.jpeg" alt="한옥 커스텀 웨딩 콘셉트" width="1000" height="553" loading="lazy" decoding="async" />
               </div>
               <div class="flex flex-col gap-5">
-                <p class="landing-eyebrow">CUSTOM CONCEPT</p>
-                <h2 class="landing-title"><span class="block sm:inline">어떤 장면도</span>
-                  <span class="block sm:inline">만들 수 있어요</span></h2>
+                <div class="landing-section-head">
+                  <p class="landing-eyebrow">CUSTOM CONCEPT</p>
+                  <h2 class="landing-title landing-section-title"><span class="block sm:inline">어떤 장면도</span>
+                    <span class="block sm:inline">만들 수 있어요</span></h2>
+                </div>
                 <ul class="landing-custom-copy-list" aria-label="커스터마이징 서비스 안내">
                   <li>원하는 장소, 분위기, 콘셉트가 있다면 커스텀 제작으로 더 특별하게 완성해보세요.</li>
                   <li>포토테이블용 사진이나 식전영상용 이미지로도 활용할 수 있어요.</li>
@@ -5098,10 +5152,11 @@
 
           <section class="landing-section" aria-label="요금제">
             <div class="landing-section-inner single-column">
-              <div class="text-center">
+              <div class="landing-section-head">
                 <p class="landing-eyebrow">OUR PLANS</p>
-                <h2 class="landing-title mt-3">원하는 만큼 사진을 준비하세요</h2>
-                <p class="landing-copy mx-auto mt-3">가볍게 체험하거나, 예식에 필요한 사진까지 충분히 준비해보세요.</p>
+                <h2 class="landing-title landing-section-title"><span class="block sm:inline">원하는 만큼 사진을</span>
+                  <span class="block sm:inline">준비하세요</span></h2>
+                <p class="landing-copy">가볍게 체험하거나, 예식에 필요한 사진까지 충분히 준비해보세요.</p>
               </div>
               <div class="landing-pricing-grid">
                 <article class="landing-plan-card">

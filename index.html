@@ -3738,6 +3738,29 @@
         margin-right: auto;
       }
 
+      .landing-plans-title {
+        margin: 0;
+        width: 100%;
+        color: var(--rose-deep);
+        font-family: Outfit, var(--font-sans-kr);
+        font-size: clamp(22px, 5.2vw, 34px);
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      .landing-plans-section-head .landing-copy {
+        margin-top: 12px;
+        max-width: 36em;
+      }
+
+      .landing-plans-section .landing-section-inner {
+        gap: clamp(18px, 4vw, 32px);
+      }
+
       .landing-copy {
         max-width: 560px;
         color: #6f5960;
@@ -5150,13 +5173,11 @@
             </div>
           </section>
 
-          <section class="landing-section" aria-label="요금제">
+          <section class="landing-section landing-plans-section" aria-label="요금제">
             <div class="landing-section-inner single-column">
-              <div class="landing-section-head">
-                <p class="landing-eyebrow">OUR PLANS</p>
-                <h2 class="landing-title landing-section-title"><span class="block sm:inline">원하는 만큼 사진을</span>
-                  <span class="block sm:inline">준비하세요</span></h2>
-                <p class="landing-copy">가볍게 체험하거나, 예식에 필요한 사진까지 충분히 준비해보세요.</p>
+              <div class="landing-section-head landing-plans-section-head">
+                <h2 class="landing-plans-title">OUR PLANS</h2>
+                <p class="landing-copy">가볍게 체험할 수 있는 상품부터 충분히 제작할 수 있는 상품까지, 다양한 요금제가 준비되어 있어요.</p>
               </div>
               <div class="landing-pricing-grid">
                 <article class="landing-plan-card">

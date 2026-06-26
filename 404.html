@@ -2290,15 +2290,16 @@
 
       .open-event-banner {
         position: fixed;
-        top: calc(12px + env(safe-area-inset-top, 0px));
-        right: 14px;
+        top: clamp(24px, 2.5vw, 32px);
+        left: clamp(24px, 2.5vw, 32px);
+        right: auto;
         z-index: 45;
-        width: min(248px, calc(100vw - 28px));
+        width: clamp(280px, 20vw, 320px);
         pointer-events: none;
       }
 
       body.is-landing-screen .open-event-banner {
-        top: calc(76px + env(safe-area-inset-top, 0px));
+        top: clamp(24px, 2.5vw, 32px);
       }
 
       .open-event-banner:not(.hidden) {
@@ -2307,180 +2308,194 @@
 
       .open-event-banner-inner {
         position: relative;
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
-        padding: 14px 38px 12px 14px;
-        border-radius: 20px;
-        border: 1px solid rgba(154, 90, 106, 0.24);
+        min-height: 520px;
+        padding: 18px 16px 14px;
+        border-radius: 22px;
+        border: 1px solid rgba(179, 71, 88, 0.22);
         background:
-          radial-gradient(120% 90% at 100% 0%, rgba(244, 182, 195, 0.28), transparent 58%),
-          radial-gradient(80% 60% at 0% 100%, rgba(255, 217, 224, 0.18), transparent 62%),
-          linear-gradient(155deg, rgba(255, 255, 255, 0.97), rgba(255, 245, 247, 0.93) 48%, rgba(255, 236, 241, 0.9));
+          radial-gradient(90% 55% at 88% 6%, rgba(255, 183, 183, 0.34), transparent 58%),
+          radial-gradient(70% 45% at 8% 92%, rgba(255, 233, 230, 0.42), transparent 62%),
+          linear-gradient(168deg, #fffaf8 0%, #fff6f3 42%, #fff0ec 100%);
         box-shadow:
-          0 20px 48px rgba(129, 80, 92, 0.2),
-          0 4px 14px rgba(129, 80, 92, 0.08),
-          inset 0 1px 0 rgba(255, 255, 255, 0.94);
-        backdrop-filter: blur(10px);
-      }
-
-      .open-event-banner-inner::before,
-      .open-event-banner-inner::after {
-        content: "";
-        position: absolute;
-        top: 58%;
-        width: 11px;
-        height: 11px;
-        border-radius: 9999px;
-        background: rgba(255, 248, 250, 0.98);
-        border: 1px solid rgba(154, 90, 106, 0.16);
-        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.7);
-        transform: translateY(-50%);
-        pointer-events: none;
+          0 18px 42px rgba(122, 58, 68, 0.14),
+          0 4px 12px rgba(129, 80, 92, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.92),
+          inset 0 0 0 1px rgba(247, 227, 198, 0.35);
       }
 
       .open-event-banner-inner::before {
-        left: -6px;
-      }
-
-      .open-event-banner-inner::after {
-        right: -6px;
-      }
-
-      .open-event-banner-sparkle {
+        content: "";
         position: absolute;
-        top: 40px;
-        right: 34px;
-        color: #c9929f;
-        font-size: 15px;
-        line-height: 1;
-        opacity: 0.9;
+        inset: 6px;
+        border-radius: 16px;
+        border: 1px solid rgba(246, 199, 167, 0.28);
         pointer-events: none;
       }
 
+      .open-event-banner-ribbon-deco {
+        position: absolute;
+        top: -2px;
+        right: 10px;
+        width: 72px;
+        height: 88px;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .open-event-banner-ribbon-deco svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        filter: drop-shadow(0 4px 8px rgba(129, 80, 92, 0.12));
+      }
+
+      .open-event-banner-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 3;
+        width: 28px;
+        height: 28px;
+        border: 1px solid rgba(179, 71, 88, 0.16);
+        border-radius: 9999px;
+        display: grid;
+        place-items: center;
+        color: #7a3a44;
+        background: rgba(255, 250, 248, 0.92);
+        cursor: pointer;
+        transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+      }
+
+      .open-event-banner-close:hover {
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 6px 14px rgba(129, 80, 92, 0.12);
+        transform: scale(1.04);
+      }
+
       .open-event-banner-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding-bottom: 8px;
-        border-bottom: 1px dashed rgba(154, 90, 106, 0.22);
+        position: relative;
+        z-index: 2;
+        padding-right: 36px;
       }
 
       .open-event-banner-badge {
         display: inline-flex;
         align-items: center;
-        padding: 4px 8px;
-        border-radius: 9999px;
-        color: #fff;
-        background: linear-gradient(135deg, #9b6170, #81505c);
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid rgba(179, 71, 88, 0.38);
+        color: #7a3a44;
+        background: rgba(255, 250, 248, 0.82);
         font-family: Outfit, var(--font-sans-kr);
         font-size: 9px;
         font-weight: 800;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.16em;
         line-height: 1;
-        box-shadow: 0 6px 14px rgba(129, 80, 92, 0.18);
-      }
-
-      .open-event-banner-icon {
-        color: #b57a88;
-        font-size: 18px;
-        line-height: 1;
-        opacity: 0.92;
       }
 
       .open-event-banner-highlight {
-        margin: 10px 0 0;
+        position: relative;
+        z-index: 2;
+        margin: 22px 0 0;
+        text-align: center;
       }
 
       .open-event-banner-ribbon {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 6px 11px;
-        border-radius: 9px;
-        color: #fff9fa;
-        background: linear-gradient(135deg, #a46372 0%, #81505c 100%);
-        font-size: 11px;
+        justify-content: center;
+        gap: 5px;
+        min-width: 86%;
+        padding: 10px 14px;
+        border-radius: 9999px;
+        color: #fffaf8;
+        background: linear-gradient(135deg, #df6e7e 0%, #b34758 52%, #9a4a58 100%);
+        font-size: 13px;
         font-weight: 800;
-        line-height: 1.25;
-        letter-spacing: -0.01em;
+        line-height: 1.3;
+        letter-spacing: -0.02em;
         word-break: keep-all;
         box-shadow:
-          0 8px 18px rgba(129, 80, 92, 0.22),
-          inset 0 1px 0 rgba(255, 255, 255, 0.22);
-        position: relative;
+          0 10px 22px rgba(179, 71, 88, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
       }
 
-      .open-event-banner-ribbon::after {
-        content: "";
-        position: absolute;
-        right: -5px;
-        top: 50%;
-        width: 8px;
-        height: 8px;
-        border-radius: 2px;
-        background: #6f4450;
-        transform: translateY(-50%) rotate(45deg);
-        opacity: 0.55;
-      }
-
-      .open-event-banner-ribbon-icon {
-        font-size: 13px;
+      .open-event-banner-ribbon-sparkle {
+        color: rgba(255, 250, 248, 0.92);
+        font-size: 10px;
         line-height: 1;
         opacity: 0.95;
       }
 
       .open-event-banner-product {
-        margin-top: 9px;
+        position: relative;
+        z-index: 2;
+        margin: 18px 0 0;
+        text-align: center;
         color: #4f2630;
-        font-size: 15px;
-        font-weight: 800;
-        line-height: 1.3;
+        font-family: var(--font-display, "Cormorant Garamond", serif);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.25;
         letter-spacing: -0.02em;
         word-break: keep-all;
       }
 
-      .open-event-banner-price {
+      .open-event-banner-price-box {
+        position: relative;
+        z-index: 2;
+        margin: 16px 8px 0;
+        padding: 14px 12px 12px;
+        border-radius: 14px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(179, 71, 88, 0.12);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.95),
+          0 6px 16px rgba(129, 80, 92, 0.06);
+      }
+
+      .open-event-banner-price-row {
         display: flex;
-        align-items: baseline;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 7px;
-        padding: 7px 9px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.58);
-        border: 1px solid rgba(154, 90, 106, 0.1);
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin: 0;
         line-height: 1.2;
       }
 
       .open-event-banner-price-original {
-        color: #9a7f86;
-        font-size: 11px;
-        font-weight: 600;
+        color: #b39aa1;
+        font-size: 12px;
+        font-weight: 500;
         text-decoration: line-through;
-        text-decoration-color: rgba(154, 90, 106, 0.45);
+        text-decoration-color: rgba(154, 90, 106, 0.42);
       }
 
       .open-event-banner-price-arrow {
-        color: #b39aa1;
+        color: #c4a8ae;
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
       }
 
       .open-event-banner-price-sale {
-        color: var(--rose-deep);
-        font-size: 19px;
+        display: block;
+        margin: 6px 0 0;
+        color: #b34758;
+        font-size: 32px;
         font-weight: 900;
-        letter-spacing: -0.03em;
-      }
-
-      .open-event-banner-divider {
-        margin: 10px 0 8px;
-        height: 0;
-        border-top: 1px dashed rgba(154, 90, 106, 0.28);
+        line-height: 1;
+        letter-spacing: -0.04em;
       }
 
       .open-event-banner-copy {
-        margin: 0;
+        position: relative;
+        z-index: 2;
+        margin: 14px 0 0;
+        text-align: center;
         color: #705e61;
         font-size: 11px;
         font-weight: 600;
@@ -2488,35 +2503,84 @@
         word-break: keep-all;
       }
 
-      .open-event-banner-close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 26px;
-        height: 26px;
-        border: 1px solid rgba(154, 90, 106, 0.12);
-        border-radius: 9999px;
-        display: grid;
-        place-items: center;
-        color: #81505c;
-        background: rgba(255, 255, 255, 0.88);
-        cursor: pointer;
-        transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+      .open-event-banner-summer-deco {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 6px;
+        margin: auto 4px 0;
+        padding: 18px 2px 6px;
+        min-height: 72px;
       }
 
-      .open-event-banner-close:hover {
-        background: rgba(255, 255, 255, 0.98);
-        box-shadow: 0 6px 14px rgba(129, 80, 92, 0.14);
-        transform: scale(1.04);
+      .open-event-banner-summer-icons {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        opacity: 0.82;
+      }
+
+      .open-event-banner-summer-icons svg {
+        display: block;
+        color: #df6e7e;
+      }
+
+      .open-event-banner-summer-icon--hibiscus {
+        width: 28px;
+        height: 28px;
+      }
+
+      .open-event-banner-summer-icon--shell {
+        width: 22px;
+        height: 22px;
+      }
+
+      .open-event-banner-summer-icon--starfish {
+        width: 24px;
+        height: 24px;
+      }
+
+      .open-event-banner-summer-sparkles {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        color: #f6c7a7;
+        font-size: 11px;
+        line-height: 1;
+        opacity: 0.9;
+      }
+
+      .open-event-banner-summer-stamp {
+        flex-shrink: 0;
+        width: 54px;
+        height: 54px;
+        border-radius: 9999px;
+        border: 1.5px dashed rgba(179, 71, 88, 0.42);
+        display: grid;
+        place-items: center;
+        color: #b34758;
+        font-family: Outfit, var(--font-sans-kr);
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.15;
+        text-align: center;
+        text-transform: uppercase;
+        transform: rotate(-12deg);
+        opacity: 0.88;
       }
 
       .open-event-banner-dismiss {
+        position: relative;
+        z-index: 2;
         display: flex;
         align-items: center;
         gap: 7px;
         margin-top: 10px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(154, 90, 106, 0.08);
+        padding-top: 10px;
+        border-top: 1px solid rgba(179, 71, 88, 0.1);
         color: #8a6b72;
         font-size: 10px;
         font-weight: 600;
@@ -2529,36 +2593,164 @@
         width: 14px;
         height: 14px;
         margin: 0;
-        accent-color: var(--rose-deep);
+        accent-color: #b34758;
         flex-shrink: 0;
+      }
+
+      @media (max-width: 1024px) and (min-width: 641px) {
+        .open-event-banner {
+          width: clamp(240px, 28vw, 280px);
+        }
+
+        .open-event-banner-inner {
+          min-height: 460px;
+        }
+
+        .open-event-banner-ribbon-deco {
+          width: 62px;
+          height: 76px;
+        }
+
+        .open-event-banner-product {
+          font-size: 20px;
+        }
+
+        .open-event-banner-price-sale {
+          font-size: 28px;
+        }
       }
 
       @media (max-width: 640px) {
         .open-event-banner {
-          right: 10px;
-          width: min(236px, calc(100vw - 20px));
+          top: calc(72px + env(safe-area-inset-top, 0px));
+          left: 14px;
+          width: clamp(160px, 42vw, 190px);
+          max-width: 48vw;
         }
 
         body.is-landing-screen .open-event-banner {
-          top: calc(70px + env(safe-area-inset-top, 0px));
+          top: calc(72px + env(safe-area-inset-top, 0px));
         }
 
         .open-event-banner-inner {
-          padding: 13px 36px 11px 13px;
-          border-radius: 18px;
+          min-height: 300px;
+          padding: 12px 10px 10px;
+          border-radius: 16px;
         }
 
-        .open-event-banner-product {
-          font-size: 14px;
+        .open-event-banner-inner::before {
+          inset: 4px;
+          border-radius: 12px;
+        }
+
+        .open-event-banner-ribbon-deco {
+          width: 44px;
+          height: 54px;
+          right: 6px;
+        }
+
+        .open-event-banner-close {
+          top: 8px;
+          right: 8px;
+          width: 24px;
+          height: 24px;
+        }
+
+        .open-event-banner-badge {
+          padding: 4px 7px;
+          font-size: 7px;
+          letter-spacing: 0.12em;
+        }
+
+        .open-event-banner-highlight {
+          margin-top: 14px;
         }
 
         .open-event-banner-ribbon {
+          min-width: 0;
+          width: 100%;
+          padding: 7px 8px;
           font-size: 10px;
-          padding: 5px 9px;
+          border-radius: 9999px;
+        }
+
+        .open-event-banner-ribbon-sparkle {
+          font-size: 8px;
+        }
+
+        .open-event-banner-product {
+          margin-top: 12px;
+          font-size: 15px;
+        }
+
+        .open-event-banner-price-box {
+          margin: 10px 0 0;
+          padding: 10px 8px 8px;
+          border-radius: 11px;
+        }
+
+        .open-event-banner-price-original {
+          font-size: 9px;
+        }
+
+        .open-event-banner-price-arrow {
+          font-size: 9px;
         }
 
         .open-event-banner-price-sale {
-          font-size: 18px;
+          margin-top: 4px;
+          font-size: 22px;
+        }
+
+        .open-event-banner-copy {
+          margin-top: 10px;
+          font-size: 9px;
+        }
+
+        .open-event-banner-summer-deco {
+          min-height: 48px;
+          padding: 10px 0 2px;
+        }
+
+        .open-event-banner-summer-icons {
+          gap: 5px;
+        }
+
+        .open-event-banner-summer-icon--hibiscus {
+          width: 18px;
+          height: 18px;
+        }
+
+        .open-event-banner-summer-icon--shell {
+          width: 15px;
+          height: 15px;
+        }
+
+        .open-event-banner-summer-icon--starfish {
+          width: 16px;
+          height: 16px;
+        }
+
+        .open-event-banner-summer-sparkles {
+          display: none;
+        }
+
+        .open-event-banner-summer-stamp {
+          width: 40px;
+          height: 40px;
+          font-size: 6px;
+        }
+
+        .open-event-banner-dismiss {
+          margin-top: 8px;
+          padding-top: 8px;
+          font-size: 8px;
+          gap: 5px;
+        }
+
+        .open-event-banner-dismiss input {
+          width: 12px;
+          height: 12px;
         }
       }
 
@@ -5495,28 +5687,62 @@
   >
     <aside class="open-event-banner hidden" id="openEventBanner" role="complementary" aria-label="오픈 이벤트 안내">
       <div class="open-event-banner-inner">
-        <span class="open-event-banner-sparkle material-symbols-outlined" aria-hidden="true">spark</span>
+        <div class="open-event-banner-ribbon-deco" aria-hidden="true">
+          <svg viewBox="0 0 72 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M36 8C28 8 22 14 22 22C22 30 28 36 36 36C44 36 50 30 50 22C50 14 44 8 36 8Z" fill="#DF6E7E"/>
+            <path d="M18 30L8 52L22 46L18 30Z" fill="#E88A96"/>
+            <path d="M54 30L64 52L50 46L54 30Z" fill="#E88A96"/>
+            <path d="M30 36L26 78H46L42 36H30Z" fill="#FFB7B7"/>
+            <path d="M34 36V74" stroke="#F7E3C6" stroke-width="1.2" stroke-opacity="0.6"/>
+            <path d="M38 36V74" stroke="#F7E3C6" stroke-width="1.2" stroke-opacity="0.6"/>
+          </svg>
+        </div>
         <button class="open-event-banner-close" id="openEventBannerClose" type="button" aria-label="배너 닫기">
           <span class="material-symbols-outlined text-[16px]">close</span>
         </button>
         <div class="open-event-banner-header">
           <span class="open-event-banner-badge">OPEN EVENT</span>
-          <span class="open-event-banner-icon material-symbols-outlined" aria-hidden="true">redeem</span>
         </div>
-        <p class="open-event-banner-highlight">
+        <div class="open-event-banner-highlight">
           <span class="open-event-banner-ribbon">
-            <span class="open-event-banner-ribbon-icon material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+            <span class="open-event-banner-ribbon-sparkle" aria-hidden="true">✦</span>
             시간한정 오픈특가
+            <span class="open-event-banner-ribbon-sparkle" aria-hidden="true">✦</span>
           </span>
-        </p>
+        </div>
         <p class="open-event-banner-product">첫 설렘 패스</p>
-        <p class="open-event-banner-price">
-          <span class="open-event-banner-price-original">49,800원</span>
-          <span class="open-event-banner-price-arrow" aria-hidden="true">→</span>
+        <div class="open-event-banner-price-box">
+          <p class="open-event-banner-price-row">
+            <span class="open-event-banner-price-original">49,800원</span>
+            <span class="open-event-banner-price-arrow" aria-hidden="true">→</span>
+          </p>
           <span class="open-event-banner-price-sale">19,800원</span>
-        </p>
-        <div class="open-event-banner-divider" aria-hidden="true"></div>
+        </div>
         <p class="open-event-banner-copy">지금 특별가로 시작해보세요</p>
+        <div class="open-event-banner-summer-deco" aria-hidden="true">
+          <div class="open-event-banner-summer-icons">
+            <svg class="open-event-banner-summer-icon--hibiscus" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="3" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M14 4C14 4 11 8 14 11C17 8 14 4 14 4Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              <path d="M24 14C24 14 20 11 17 14C20 17 24 14 24 14Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              <path d="M14 24C14 24 17 20 14 17C11 20 14 24 14 24Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+              <path d="M4 14C4 14 8 17 11 14C8 11 4 14 4 14Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+            </svg>
+            <svg class="open-event-banner-summer-icon--shell" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 14C4 14 6 6 11 6C16 6 18 14 18 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M6 14H16" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+              <path d="M8 10H14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-opacity="0.7"/>
+            </svg>
+            <svg class="open-event-banner-summer-icon--starfish" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 4L13.8 9.2L19 8L15.5 12L19 16L13.8 14.8L12 20L10.2 14.8L5 16L8.5 12L5 8L10.2 9.2L12 4Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="open-event-banner-summer-sparkles">
+            <span>✦</span>
+            <span>✧</span>
+          </div>
+          <div class="open-event-banner-summer-stamp">SUMMER<br/>LIMITED</div>
+        </div>
         <label class="open-event-banner-dismiss" for="openEventBannerDismissDay">
           <input id="openEventBannerDismissDay" type="checkbox" />
           <span>하루 동안 보지 않기</span>

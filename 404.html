@@ -2232,6 +2232,152 @@
         padding: 18px;
       }
 
+      .site-guide-pass-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .site-guide-pass-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 12px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        box-shadow: 0 10px 24px rgba(129, 80, 92, 0.06);
+        text-align: center;
+      }
+
+      .site-guide-pass-name {
+        color: #4f2630;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: keep-all;
+      }
+
+      .site-guide-pass-uses {
+        color: #705e61;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.45;
+        word-break: keep-all;
+      }
+
+      .site-guide-pass-price {
+        margin-top: 2px;
+        color: var(--rose-deep);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      @media (min-width: 520px) {
+        .site-guide-pass-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (min-width: 720px) {
+        .site-guide-pass-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      .open-event-banner {
+        position: fixed;
+        top: calc(12px + env(safe-area-inset-top, 0px));
+        right: 12px;
+        z-index: 45;
+        width: min(220px, calc(100vw - 24px));
+        pointer-events: none;
+      }
+
+      body.is-landing-screen .open-event-banner {
+        top: calc(72px + env(safe-area-inset-top, 0px));
+      }
+
+      .open-event-banner:not(.hidden) {
+        pointer-events: auto;
+      }
+
+      .open-event-banner-inner {
+        position: relative;
+        padding: 12px 34px 10px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 241, 244, 0.9));
+        box-shadow: 0 14px 34px rgba(129, 80, 92, 0.16);
+      }
+
+      .open-event-banner-eyebrow {
+        color: #9a5a6a;
+        font-family: Outfit, var(--font-sans-kr);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        line-height: 1.2;
+      }
+
+      .open-event-banner-title {
+        margin-top: 4px;
+        color: #4f2630;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: keep-all;
+      }
+
+      .open-event-banner-copy {
+        margin-top: 3px;
+        color: #705e61;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.45;
+        word-break: keep-all;
+      }
+
+      .open-event-banner-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        border: 0;
+        border-radius: 9999px;
+        display: grid;
+        place-items: center;
+        color: #81505c;
+        background: rgba(255, 255, 255, 0.82);
+        cursor: pointer;
+      }
+
+      .open-event-banner-dismiss {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        color: #8a6b72;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.3;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .open-event-banner-dismiss input {
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        accent-color: var(--rose-deep);
+      }
+
       .site-guide-faq-list {
         display: grid;
         gap: 10px;
@@ -5054,6 +5200,20 @@
   <body
     class="bg-background text-on-background font-body-large antialiased min-h-screen flex flex-col items-center relative overflow-x-hidden"
   >
+    <aside class="open-event-banner hidden" id="openEventBanner" role="complementary" aria-label="오픈 이벤트 안내">
+      <div class="open-event-banner-inner">
+        <button class="open-event-banner-close" id="openEventBannerClose" type="button" aria-label="배너 닫기">
+          <span class="material-symbols-outlined text-[16px]">close</span>
+        </button>
+        <p class="open-event-banner-eyebrow">오픈 이벤트</p>
+        <p class="open-event-banner-title">첫 설렘 패스 19,800원</p>
+        <p class="open-event-banner-copy">지금 특별가로 시작해보세요</p>
+        <label class="open-event-banner-dismiss" for="openEventBannerDismissDay">
+          <input id="openEventBannerDismissDay" type="checkbox" />
+          <span>하루 동안 보지 않기</span>
+        </label>
+      </div>
+    </aside>
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
         <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인/회원가입 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
@@ -5186,9 +5346,9 @@
                     <p class="landing-plan-title">첫 설렘 패스</p>
                     <div class="mt-3 flex items-end gap-3">
                       <p class="landing-plan-copy line-through">49,800원</p>
-                      <p class="landing-plan-price">1,000원</p>
+                      <p class="landing-plan-price">19,800원</p>
                     </div>
-                    <p class="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">기간 한정 할인</p>
+                    <p class="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">오픈 이벤트 특별가</p>
                     <div class="mt-3 space-y-1">
                       <p class="landing-plan-copy">처음이라면 가볍게 체험해보세요.</p>
                       <p class="landing-plan-copy">AI 웨딩사진 제작 8회</p>
@@ -5916,15 +6076,22 @@
                       <p>남은 제작 횟수가 부족하면 이용권 관리 화면에서 구매할 수 있습니다.</p>
                       <p>스타일 갤러리에 결과 사진을 업로드하면 제작권 1회가 지급되며, 보상은 1인당 최대 3회까지 제공됩니다.</p>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2">
-                      <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
-                        <p class="text-xs text-on-surface-variant">첫 설렘 패스</p>
-                        <p class="mt-1 text-sm font-bold text-primary">1,000원</p>
-                      </div>
-                      <div class="rounded-[18px] bg-white/68 px-3 py-3 text-center">
-                        <p class="text-xs text-on-surface-variant">포토테이블 준비 패스</p>
-                        <p class="mt-1 text-sm font-bold text-primary">99,000원</p>
-                      </div>
+                    <div class="site-guide-pass-grid">
+                      <article class="site-guide-pass-card">
+                        <p class="site-guide-pass-name">첫 설렘 패스</p>
+                        <p class="site-guide-pass-uses">AI 웨딩사진 제작 8회 · 오픈 이벤트 특별가</p>
+                        <p class="site-guide-pass-price">19,800원</p>
+                      </article>
+                      <article class="site-guide-pass-card">
+                        <p class="site-guide-pass-name">포토테이블 준비 패스</p>
+                        <p class="site-guide-pass-uses">AI 웨딩사진 제작 20회</p>
+                        <p class="site-guide-pass-price">99,000원</p>
+                      </article>
+                      <article class="site-guide-pass-card">
+                        <p class="site-guide-pass-name">프리미엄 커스텀 제작</p>
+                        <p class="site-guide-pass-uses">맞춤 제작 · 별도 상담</p>
+                        <p class="site-guide-pass-price">199,000원</p>
+                      </article>
                     </div>
                     <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="siteGuideCreditButton" type="button">
                       이용권 관리로 이동
@@ -5989,7 +6156,7 @@
               <article class="rounded-DEFAULT p-4 glass-panel glow-shadow border border-primary/25" id="openEventCreditCard">
                 <div class="flex items-start justify-between gap-4">
                   <div>
-                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">기간 한정 할인</p>
+                    <p class="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">오픈 이벤트 특별가</p>
                     <p class="mt-3 font-display text-[23px] leading-tight text-on-surface">첫 설렘 패스</p>
                     <p class="mt-1 text-sm text-on-surface-variant">처음이라면 가볍게 체험해보세요.</p>
                     <p class="mt-1 text-sm text-on-surface-variant">AI 웨딩사진 제작 8회</p>
@@ -5997,7 +6164,7 @@
                   </div>
                   <div class="text-right shrink-0">
                     <p class="text-xs text-on-surface-variant line-through">49,800원</p>
-                    <p class="font-display text-primary text-[26px] leading-none">1,000원</p>
+                    <p class="font-display text-primary text-[26px] leading-none">19,800원</p>
                   </div>
                 </div>
                 <button class="mt-4 w-full h-12 rounded-full bg-primary text-on-primary text-sm font-semibold disabled:opacity-60 disabled:cursor-wait" data-credit-package-id="open_first_spark_pass_8" type="button">
@@ -7595,6 +7762,11 @@ Important:
       const creditBalanceText = document.getElementById("creditBalanceText");
       const creditStatusText = document.getElementById("creditStatusText");
       const openEventCreditCard = document.getElementById("openEventCreditCard");
+      const openEventBanner = document.getElementById("openEventBanner");
+      const openEventBannerClose = document.getElementById("openEventBannerClose");
+      const openEventBannerDismissDay = document.getElementById("openEventBannerDismissDay");
+      const OPEN_EVENT_BANNER_HIDDEN_UNTIL_KEY = "magicAiStudioOpenEventBannerHiddenUntil";
+      let openEventBannerSessionDismissed = false;
       const creditChargeButtons = Array.from(document.querySelectorAll("[data-credit-package-id]"));
       const screenStartButtons = Array.from(document.querySelectorAll("[data-screen-target]"));
       const generatingStatusText = document.getElementById("generatingStatusText");
@@ -7921,11 +8093,11 @@ Important:
       const guideFaqItems = [
         {
           question: "원본 사진은 안전하게 보관되나요?",
-          answer: "고객님의 원본 사진은 AI 사진 생성에만 사용되며, 생성 작업이 끝난 뒤 바로 삭제되는 정책으로 안내하고 있습니다. 실제 운영 정책과 삭제 자동화 구현 상태는 운영 전 확인이 필요합니다.",
+          answer: "고객님의 원본 사진은 AI 사진 생성에만 사용됩니다. 생성 작업이 끝난 뒤에는 서비스 운영 정책에 따라 안전하게 관리되며, 불필요한 원본 이미지는 보관하지 않습니다.",
         },
         {
           question: "생성된 사진은 언제까지 보관되나요?",
-          answer: "생성된 사진은 고객님이 다운로드할 수 있도록 생성 후 최대 7일간 보관 후 삭제되는 것으로 안내합니다. 실제 서버 삭제 자동화 구현 여부는 확인이 필요합니다.",
+          answer: "생성된 사진은 고객님이 다운로드하고 마이포토박스에서 확인할 수 있도록 일정 기간 보관됩니다. 필요한 사진은 미리 저장해 주세요.",
         },
         {
           question: "사진 생성에는 이용권이 얼마나 필요한가요?",
@@ -7933,31 +8105,31 @@ Important:
         },
         {
           question: "생성에 실패해도 이용권이 사용되나요?",
-          answer: "이미지 생성에 실패한 경우 이용권은 사용 처리되지 않도록 안내하고 있습니다.",
+          answer: "이미지 생성에 실패한 경우 이용권은 사용 처리되지 않습니다.",
         },
         {
           question: "스타일 갤러리에 사진을 올리면 어떻게 되나요?",
-          answer: "선택한 결과 사진 1장이 스타일 갤러리에 공개됩니다. 다른 고객들이 스타일 예시로 볼 수 있으며, 보상은 1인당 최대 3회까지 제공됩니다.",
+          answer: "선택한 결과 사진 1장이 스타일 갤러리에 공개됩니다. 다른 고객들이 스타일 예시로 볼 수 있으며, 업로드 보상으로 제작 횟수 1회가 지급됩니다. 보상은 1인당 최대 3회까지 제공됩니다.",
         },
         {
           question: "스타일 갤러리에 올린 사진은 삭제할 수 있나요?",
-          answer: "로그인/회원 기능과 마이포토박스가 완성되면 직접 관리할 수 있도록 준비 중입니다. 현재는 문의하기를 통해 삭제 요청할 수 있습니다.",
+          answer: "스타일 갤러리에 올린 사진은 문의를 통해 삭제 요청할 수 있습니다. 어시스턴트에서 카카오톡 문의를 남겨주시면 확인 후 도와드릴게요.",
         },
         {
           question: "얼굴이 많이 바뀌나요?",
-          answer: "Magic Ai Studio는 얼굴과 포즈를 최대한 유지하고, 배경과 분위기를 자연스럽게 바꾸는 것을 목표로 합니다. 다만 AI 생성 특성상 일부 결과에서 차이가 생길 수 있으니 4장 중 가장 자연스러운 사진을 선택해 주세요.",
+          answer: "Magic AI Studio는 얼굴과 포즈를 최대한 유지하고, 배경과 분위기를 자연스럽게 바꾸는 것을 목표로 합니다. 다만 AI 생성 특성상 일부 결과에서 차이가 생길 수 있어요. 4장 중 가장 자연스러운 사진을 선택해 주세요.",
         },
         {
           question: "어떤 사진을 올리면 결과가 잘 나오나요?",
-          answer: "얼굴이 선명하고, 너무 어둡지 않고, 인물이 과하게 잘리지 않은 사진이 좋습니다. 손이나 얼굴이 가려진 사진, 너무 작은 얼굴, 단체사진은 결과가 불안정할 수 있습니다.",
+          answer: "얼굴이 선명하고, 너무 어둡지 않으며, 인물이 과하게 잘리지 않은 사진이 좋습니다. 손이나 얼굴이 가려진 사진, 얼굴이 너무 작은 사진, 단체 사진은 결과가 불안정할 수 있습니다.",
         },
         {
           question: "다운로드한 사진은 어디에 저장되나요?",
-          answer: "기기와 브라우저마다 다릅니다. 그래서 다운로드 버튼보다 사진을 길게 눌러 사진 앱 또는 갤러리에 저장하는 방식을 권장합니다.",
+          answer: "기기와 브라우저마다 저장 위치가 다를 수 있습니다. 사진을 길게 눌러 휴대폰 사진 앱 또는 갤러리에 저장하는 방식을 권장합니다.",
         },
         {
           question: "문의는 어디서 하나요?",
-          answer: "톱니바퀴 메뉴의 문의하기 또는 하단 어시스턴트 메뉴를 통해 문의할 수 있습니다.",
+          answer: "하단 메뉴의 “어시스턴트”를 누르면 카카오톡으로 문의할 수 있습니다. 이용권, 사진 생성, 갤러리 삭제 요청 등 도움이 필요한 내용을 남겨주세요.",
         },
       ];
 
@@ -13011,6 +13183,8 @@ Important:
           passUses: 8,
           servicePeriodMonths: 3,
           toastName: "첫 설렘 패스",
+          price: 19800,
+          originalPrice: 49800,
         },
         credits_200: {
           productCode: "bridal_mood_pass_8",
@@ -13038,6 +13212,8 @@ Important:
           passUses: 8,
           servicePeriodMonths: 3,
           toastName: "첫 설렘 패스",
+          price: 19800,
+          originalPrice: 49800,
         },
         bridal_mood_pass_8: {
           productCode: "bridal_mood_pass_8",
@@ -13061,6 +13237,56 @@ Important:
 
       function getPaymentPassProduct(packageId) {
         return PAYMENT_PASS_PRODUCTS[String(packageId || "").trim()] || null;
+      }
+
+      function readOpenEventBannerHiddenUntil() {
+        try {
+          const raw = localStorage.getItem(OPEN_EVENT_BANNER_HIDDEN_UNTIL_KEY);
+          const value = Number(raw);
+          return Number.isFinite(value) ? value : 0;
+        } catch (error) {
+          return 0;
+        }
+      }
+
+      function writeOpenEventBannerHiddenUntil(timestamp) {
+        try {
+          localStorage.setItem(OPEN_EVENT_BANNER_HIDDEN_UNTIL_KEY, String(timestamp));
+        } catch (error) {
+          // Banner preference is optional UI state.
+        }
+      }
+
+      function isBlockingOverlayOpen() {
+        return Boolean(
+          loginModalOverlay?.classList.contains("is-open")
+          || customerInfoModalOverlay?.classList.contains("is-open")
+          || assistantKakaoModalOverlay?.classList.contains("is-open")
+          || googleInAppBrowserModalOverlay?.classList.contains("is-open")
+          || duplicateProviderModalOverlay?.classList.contains("is-open"),
+        );
+      }
+
+      function shouldShowOpenEventBanner() {
+        if (!openEventBanner || openEventBannerSessionDismissed) return false;
+        if (appScreen === "admin") return false;
+        if (isBlockingOverlayOpen()) return false;
+        if (!imageModal?.classList.contains("hidden")) return false;
+        return Date.now() >= readOpenEventBannerHiddenUntil();
+      }
+
+      function syncOpenEventBannerVisibility() {
+        if (!openEventBanner) return;
+        openEventBanner.classList.toggle("hidden", !shouldShowOpenEventBanner());
+      }
+
+      function closeOpenEventBanner({ dismissForDay = false } = {}) {
+        if (dismissForDay) {
+          writeOpenEventBannerHiddenUntil(Date.now() + 24 * 60 * 60 * 1000);
+        } else {
+          openEventBannerSessionDismissed = true;
+        }
+        syncOpenEventBannerVisibility();
       }
 
       function syncEditorGenerationCopy() {
@@ -13286,6 +13512,7 @@ Important:
             passUses: passProduct?.passUses,
             servicePeriodMonths: passProduct?.servicePeriodMonths,
             legacyPackageId: passProduct?.legacyPackageId || undefined,
+            amount: passProduct?.price,
           }),
         });
         const payload = await response.json().catch(() => ({}));
@@ -13310,8 +13537,12 @@ Important:
 
         const payment = normalizeNicePaymentPayload(payload);
         if (passProduct) {
+          const resolvedAmount = Number(passProduct.price) > 0
+            ? Number(passProduct.price)
+            : Number(payment.amount);
           return {
             ...payment,
+            amount: Number.isFinite(resolvedAmount) && resolvedAmount > 0 ? resolvedAmount : payment.amount,
             goodsName: passProduct.orderName,
             productName: passProduct.productName,
             orderName: passProduct.orderName,
@@ -13404,9 +13635,9 @@ Important:
 
       function requestNicePayment(payment) {
         const clientId = payment.clientId || payment.clientKey;
-        const amount = Number(payment.amount);
-        const orderId = String(payment.orderId || "").trim();
         const paymentProduct = getPaymentPassProduct(payment.productCode || payment.packageId);
+        const amount = Number(payment.amount) || Number(paymentProduct?.price) || 0;
+        const orderId = String(payment.orderId || "").trim();
         const goodsName = String(paymentProduct?.orderName || payment.orderName || payment.goodsName || "").trim();
         const returnUrl = String(payment.returnUrl || "").trim();
 
@@ -16275,6 +16506,7 @@ Important:
         appScreen = screen;
         rememberAppScreen(screen);
         const isLanding = screen === "landing";
+        document.body.classList.toggle("is-landing-screen", isLanding);
         landingScreen.classList.toggle("hidden", !isLanding);
         appStage.classList.toggle("hidden", isLanding);
         appStage.classList.toggle("flex", !isLanding);
@@ -16338,6 +16570,7 @@ Important:
 
         syncLandingAuthButtonUi();
         syncBottomNavUi();
+        syncOpenEventBannerVisibility();
 
         if (replaceHistory) {
           replaceAppHistoryState(screen, imageModal.classList.contains("hidden") ? null : "image", activeImageModalIndex);
@@ -21014,6 +21247,7 @@ ${modeExample}`;
         if (options.pushHistory !== false) {
           pushAppHistoryState(appScreen, "image", activeImageModalIndex);
         }
+        syncOpenEventBannerVisibility();
       }
 
       function normalizeModalResult(result, fallbackIndex = 0) {
@@ -21121,6 +21355,7 @@ ${modeExample}`;
         appBottomNav?.classList.remove("is-modal-hidden");
         syncBottomNavUi();
         document.body.style.overflow = "";
+        syncOpenEventBannerVisibility();
       }
 
       async function completeResultFlow() {
@@ -21829,6 +22064,7 @@ ${modeExample}`;
         window.requestAnimationFrame(() => {
           loginModalPanel.querySelector("button")?.focus({ preventScroll: true });
         });
+        syncOpenEventBannerVisibility();
       }
 
       function closeLoginModal(options = {}) {
@@ -21840,6 +22076,7 @@ ${modeExample}`;
         if (options.restoreFocus && activeLoginModalTrigger instanceof HTMLElement) {
           activeLoginModalTrigger.focus({ preventScroll: true });
         }
+        syncOpenEventBannerVisibility();
       }
 
       function openPolicyScreen(policy) {
@@ -23416,6 +23653,10 @@ ${modeExample}`;
           closeImageModal();
         }
       });
+      openEventBannerClose?.addEventListener("click", () => {
+        closeOpenEventBanner({ dismissForDay: Boolean(openEventBannerDismissDay?.checked) });
+      });
+
       imageModalGalleryExit?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();

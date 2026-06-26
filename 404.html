@@ -5044,6 +5044,41 @@
         min-height: 210px;
       }
 
+      .gallery-load-more-wrap {
+        padding: 16px 0 calc(env(safe-area-inset-bottom, 0px) + 96px);
+        text-align: center;
+      }
+
+      .gallery-load-more-sentinel {
+        width: 100%;
+        height: 1px;
+        pointer-events: none;
+      }
+
+      .gallery-load-more-status,
+      .gallery-load-more-error {
+        margin: 0 0 8px;
+        color: #8a6b72;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.45;
+      }
+
+      .gallery-load-more-retry {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 18px;
+        border: 1px solid rgba(129, 80, 92, 0.18);
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.72);
+        color: #81505c;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
       @media (min-width: 640px) {
         .app-stage.is-gallery-active .gallery-collage,
         .app-stage.is-gallery-active .gallery-loading-grid {
@@ -8462,6 +8497,16 @@ Important:
       let activeImageModalIndex = 0;
       let isGenerating = false;
       let galleryImages = [];
+      let galleryPagination = {
+        limit: 7,
+        offset: 0,
+        nextOffset: 0,
+        hasMore: true,
+      };
+      let isLoadingGallery = false;
+      let isLoadingMoreGallery = false;
+      let galleryLoadMoreError = "";
+      let galleryLoadMoreObserver = null;
       const galleryLikeRequestInFlight = new Set();
       let imageModalLastTapAt = 0;
       let imageModalLastTapX = 0;
@@ -20750,8 +20795,156 @@ ${modeExample}`;
         return Boolean(getCurrentModalImageItem()?.gallerySource);
       }
 
-      function getGalleryListUrl() {
-        return `${FRONT_API_BASE_URL}/api/gallery`;
+      function getGalleryListUrl(limit, offset) {
+        const params = new URLSearchParams({
+          limit: String(limit),
+          offset: String(offset),
+        });
+        return `${FRONT_API_BASE_URL}/api/gallery?${params.toString()}`;
+      }
+
+      function getGalleryPageSize() {
+        return window.innerWidth < 768 ? 5 : 7;
+      }
+
+      function normalizeGalleryPagination(payload = {}, fallbackCount = 0, requestOffset = 0, requestLimit = 7) {
+        const pageInfo = payload.pageInfo || payload.page_info || payload.pagination || payload.data?.pageInfo || payload.data?.page_info || payload.data?.pagination || {};
+        const limit = Math.max(1, Number(pageInfo.limit ?? payload.limit ?? requestLimit) || requestLimit);
+        const offset = Math.max(0, Number(pageInfo.offset ?? payload.offset ?? requestOffset) || requestOffset);
+        const fallbackNextOffset = Math.max(0, requestOffset) + Math.max(0, Number(fallbackCount) || 0);
+        const hasMore = Boolean(
+          pageInfo.hasMore === true
+          || pageInfo.has_more === true
+          || payload.hasMore === true
+          || payload.has_more === true,
+        );
+        const nextOffset = Math.max(
+          0,
+          Number(
+            pageInfo.nextOffset
+            || pageInfo.next_offset
+            || payload.nextOffset
+            || payload.next_offset
+            || fallbackNextOffset,
+          ) || fallbackNextOffset,
+        );
+        return {
+          limit,
+          offset,
+          nextOffset,
+          hasMore,
+        };
+      }
+
+      function mergeGalleryItems(existing = [], incoming = []) {
+        const seen = new Set();
+        const merged = [];
+        [...existing, ...incoming].forEach((item) => {
+          const key = getGalleryItemId(item) || String(item?.imagePath || item?.imageUrl || item?.displayUrl || "").trim();
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          merged.push(item);
+        });
+        return merged;
+      }
+
+      function disconnectGalleryLoadMoreObserver() {
+        galleryLoadMoreObserver?.disconnect();
+        galleryLoadMoreObserver = null;
+      }
+
+      function setupGalleryLoadMoreObserver() {
+        disconnectGalleryLoadMoreObserver();
+        if (!galleryContent || appScreen !== "gallery") return;
+        if (!galleryPagination?.hasMore || galleryLoadMoreError) return;
+
+        const sentinel = galleryContent.querySelector("[data-gallery-load-more-sentinel]");
+        if (!sentinel) return;
+
+        galleryLoadMoreObserver = new IntersectionObserver((entries) => {
+          const entry = entries[0];
+          if (!entry?.isIntersecting) return;
+          void loadMoreGallery();
+        }, {
+          root: null,
+          rootMargin: "240px 0px",
+          threshold: 0,
+        });
+        galleryLoadMoreObserver.observe(sentinel);
+      }
+
+      async function fetchGalleryPage({ offset = 0, limit = getGalleryPageSize(), replace = false } = {}) {
+        ensureApiBaseUrlConfigured();
+        const response = await fetch(getGalleryListUrl(limit, offset), {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "X-Anonymous-Id": getAnonymousId(),
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Gallery fetch failed: ${response.status}`);
+        }
+
+        const payload = await response.json().catch(() => ({}));
+        const items = normalizeGalleryItems(payload);
+        galleryPagination = normalizeGalleryPagination(payload, items.length, offset, limit);
+
+        if (replace) {
+          galleryImages = items;
+          brokenGalleryLightboxItemKeys.clear();
+        } else {
+          galleryImages = mergeGalleryItems(galleryImages, items);
+        }
+
+        galleryImages.forEach((item) => {
+          const key = item.imagePath || item.imageUrl;
+          if (key) uploadedGalleryImageUrls.add(key);
+        });
+
+        return { items, pagination: galleryPagination };
+      }
+
+      async function loadMoreGallery() {
+        if (!galleryPagination?.hasMore) return;
+        if (isLoadingGallery || isLoadingMoreGallery) return;
+
+        isLoadingMoreGallery = true;
+        galleryLoadMoreError = "";
+        renderGalleryScreen();
+
+        try {
+          const limit = galleryPagination.limit || getGalleryPageSize();
+          const offset = Number.isFinite(galleryPagination.nextOffset)
+            ? galleryPagination.nextOffset
+            : galleryImages.length;
+          await fetchGalleryPage({ offset, limit, replace: false });
+          galleryLoadMoreError = "";
+          renderGalleryScreen();
+          syncOpenGalleryLightboxAfterGalleryRefresh("append");
+        } catch (error) {
+          if (DEBUG_MODE) {
+            console.warn("[client][gallery] load-more failed:", error);
+          }
+          galleryLoadMoreError = "더 불러오지 못했습니다. 다시 시도";
+          renderGalleryScreen();
+        } finally {
+          isLoadingMoreGallery = false;
+          setupGalleryLoadMoreObserver();
+        }
+      }
+
+      function maybePrefetchGalleryLightboxPage() {
+        if (!galleryPagination?.hasMore) return;
+        if (isLoadingGallery || isLoadingMoreGallery) return;
+        const items = getImageModalItems();
+        if (!items.length) return;
+        const remaining = items.length - 1 - activeImageModalIndex;
+        if (remaining <= 2) {
+          void loadMoreGallery();
+        }
       }
 
       function getGalleryPreviewUrl(limit = 10) {
@@ -21584,9 +21777,27 @@ ${modeExample}`;
       function renderGallerySkeleton() {
         if (!galleryContent) return;
 
+        const skeletonCount = getGalleryPageSize();
         galleryContent.innerHTML = `
           <div class="gallery-loading-grid" aria-hidden="true">
-            ${Array.from({ length: 6 }, () => `<div class="gallery-skeleton-card"></div>`).join("")}
+            ${Array.from({ length: skeletonCount }, () => `<div class="gallery-skeleton-card"></div>`).join("")}
+          </div>
+        `;
+      }
+
+      function renderGalleryLoadMoreFooter() {
+        if (!galleryPagination?.hasMore && !isLoadingMoreGallery && !galleryLoadMoreError) {
+          return "";
+        }
+
+        return `
+          <div class="gallery-load-more-wrap">
+            ${isLoadingMoreGallery ? `<p class="gallery-load-more-status">사진을 더 불러오는 중...</p>` : ""}
+            ${galleryLoadMoreError ? `
+              <p class="gallery-load-more-error">${escapeHtml(galleryLoadMoreError)}</p>
+              <button type="button" class="gallery-load-more-retry" data-gallery-load-more-retry>다시 시도</button>
+            ` : ""}
+            ${galleryPagination?.hasMore ? `<div class="gallery-load-more-sentinel" data-gallery-load-more-sentinel aria-hidden="true"></div>` : ""}
           </div>
         `;
       }
@@ -21635,6 +21846,7 @@ ${modeExample}`;
               `;
             }).join("")}
           </div>
+          ${renderGalleryLoadMoreFooter()}
         `;
 
         window.requestAnimationFrame(() => {
@@ -21643,11 +21855,23 @@ ${modeExample}`;
               updateGalleryImageLayout(image);
             }
           });
+          setupGalleryLoadMoreObserver();
         });
       }
 
       async function refreshGalleryScreen() {
         if (!galleryContent) return;
+        if (isLoadingGallery) return;
+
+        const pageSize = getGalleryPageSize();
+        galleryPagination = {
+          limit: pageSize,
+          offset: 0,
+          nextOffset: 0,
+          hasMore: true,
+        };
+        galleryLoadMoreError = "";
+        disconnectGalleryLoadMoreObserver();
 
         if (galleryImages.length) {
           renderGalleryScreen();
@@ -21655,28 +21879,10 @@ ${modeExample}`;
           renderGallerySkeleton();
         }
 
+        isLoadingGallery = true;
         try {
           ensureApiBaseUrlConfigured();
-          const response = await fetch(getGalleryListUrl(), {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "X-Anonymous-Id": getAnonymousId(),
-            },
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `Gallery fetch failed: ${response.status}`);
-          }
-
-          const payload = await response.json().catch(() => ({}));
-          galleryImages = normalizeGalleryItems(payload);
-          brokenGalleryLightboxItemKeys.clear();
-          galleryImages.forEach((item) => {
-            const key = item.imagePath || item.imageUrl;
-            if (key) uploadedGalleryImageUrls.add(key);
-          });
+          await fetchGalleryPage({ offset: 0, limit: pageSize, replace: true });
           renderGalleryScreen();
           syncOpenGalleryLightboxAfterGalleryRefresh("refresh");
         } catch (error) {
@@ -21688,6 +21894,8 @@ ${modeExample}`;
           } else {
             renderGallerySkeleton();
           }
+        } finally {
+          isLoadingGallery = false;
         }
       }
 
@@ -22071,6 +22279,7 @@ ${modeExample}`;
             lightboxCount: items.length,
             ids: getGalleryVisibleDebugIds(items),
           });
+          maybePrefetchGalleryLightboxPage();
         }
       }
 
@@ -22236,6 +22445,9 @@ ${modeExample}`;
         activeImageModalIndex = (activeImageModalIndex + direction + items.length) % items.length;
         playImageModalSwipeFeedback(direction);
         renderImageModal();
+        if (isCurrentModalGallerySource()) {
+          maybePrefetchGalleryLightboxPage();
+        }
       }
 
       function playImageModalSwipeFeedback(direction = 1) {
@@ -23844,6 +24056,11 @@ ${modeExample}`;
       });
 
       galleryContent?.addEventListener("click", (event) => {
+        if (event.target instanceof Element && event.target.closest("[data-gallery-load-more-retry]")) {
+          void loadMoreGallery();
+          return;
+        }
+
         const likeButton = event.target instanceof Element
           ? event.target.closest(".gallery-like-button[data-gallery-like-id]")
           : null;

@@ -4615,6 +4615,37 @@
         margin-top: -2px;
       }
 
+      .generating-hero-intro {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        width: 100%;
+      }
+
+      .generating-content:has(#generatingGalleryPreview:not(.hidden)) {
+        gap: clamp(8px, 1.6vh, 12px);
+      }
+
+      .generating-content:has(#generatingGalleryPreview:not(.hidden)) .generating-hero-intro {
+        display: none;
+      }
+
+      .generating-content:has(#generatingGalleryPreview:not(.hidden)) .generating-status-copy {
+        margin-top: 0;
+      }
+
+      #generatingScreen:has(#generatingGalleryPreview:not(.hidden)) {
+        padding-top: 8px;
+      }
+
+      #generatingScreen:has(#generatingGalleryPreview:not(.hidden)) .generating-layout {
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 112px);
+        padding: 4px 0 8px;
+      }
+
       .generating-title {
         margin-top: 6px;
         font-size: 28px;
@@ -4712,6 +4743,22 @@
         .generating-status-copy::first-line {
           font-size: clamp(17px, 5vw, 20px);
           line-height: 1.32;
+        }
+
+        .generating-content:has(#generatingGalleryPreview:not(.hidden)) {
+          gap: 8px;
+        }
+
+        #generatingScreen:has(#generatingGalleryPreview:not(.hidden)) {
+          padding-top: 6px;
+          padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+        }
+
+        #generatingScreen:has(#generatingGalleryPreview:not(.hidden)) .generating-layout {
+          align-items: center;
+          justify-content: center;
+          min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 96px);
+          padding: 2px 0 6px;
         }
 
         .generating-gallery-preview {
@@ -5830,14 +5877,14 @@
           <section class="screen-panel app-screen hidden" id="generatingScreen">
             <div class="generating-layout text-center">
               <div class="generating-content">
-                <div class="loading-orbit">
-                  <span class="material-symbols-outlined text-[34px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-                </div>
-                <div class="generating-copy">
+                <div class="generating-hero-intro">
+                  <div class="loading-orbit">
+                    <span class="material-symbols-outlined text-[34px] text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                  </div>
                   <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
                   <h2 class="generating-title font-display text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
-                  <p class="generating-status-copy" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
                 </div>
+                <p class="generating-status-copy" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
                 <section class="generating-gallery-preview hidden" id="generatingGalleryPreview" aria-label="스타일 갤러리 미리보기">
                   <div class="flex items-center justify-between gap-3 px-1">
                     <div class="text-left">

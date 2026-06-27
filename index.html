@@ -4622,8 +4622,23 @@
       }
 
       .generating-status-copy {
-        margin-top: 8px;
-        line-height: 1.45;
+        margin-top: 10px;
+        max-width: min(100%, 22em);
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        white-space: pre-line;
+        font-size: 13px;
+        font-weight: 450;
+        line-height: 1.65;
+        color: #8a737a;
+      }
+
+      .generating-status-copy::first-line {
+        font-size: clamp(18px, 4.8vw, 22px);
+        font-weight: 800;
+        line-height: 1.35;
+        color: #4a323a;
       }
 
       .generating-gallery-preview {
@@ -4689,7 +4704,14 @@
         }
 
         .generating-status-copy {
-          margin-top: 6px;
+          margin-top: 8px;
+          font-size: 12px;
+          line-height: 1.6;
+        }
+
+        .generating-status-copy::first-line {
+          font-size: clamp(17px, 5vw, 20px);
+          line-height: 1.32;
         }
 
         .generating-gallery-preview {
@@ -5814,7 +5836,7 @@
                 <div class="generating-copy">
                   <p class="font-label-caps text-label-caps uppercase text-primary">Generating</p>
                   <h2 class="generating-title font-display text-on-surface">사진을 영화처럼<br />다듬는 중</h2>
-                  <p class="generating-status-copy text-xs text-on-surface-variant" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
+                  <p class="generating-status-copy" id="generatingStatusText">완성까지 잠시만 기다려 주세요.</p>
                 </div>
                 <section class="generating-gallery-preview hidden" id="generatingGalleryPreview" aria-label="스타일 갤러리 미리보기">
                   <div class="flex items-center justify-between gap-3 px-1">

@@ -2288,119 +2288,6 @@
         }
       }
 
-      .open-event-banner {
-        position: fixed;
-        top: clamp(24px, 2.5vw, 32px);
-        left: clamp(24px, 2.5vw, 32px);
-        right: auto;
-        z-index: 100;
-        width: clamp(300px, 22vw, 340px);
-        pointer-events: none;
-      }
-
-      body.is-landing-screen .open-event-banner {
-        top: clamp(24px, 2.5vw, 32px);
-      }
-
-      .open-event-banner:not(.hidden) {
-        pointer-events: auto;
-      }
-
-      .open-event-banner-inner {
-        position: relative;
-        display: block;
-        line-height: 0;
-      }
-
-      .open-event-banner-picture,
-      .open-event-banner-image {
-        display: block;
-        width: 100%;
-        height: auto;
-      }
-
-      .open-event-banner-close {
-        position: absolute;
-        top: 2.6%;
-        right: 2.6%;
-        z-index: 2;
-        width: 9.2%;
-        aspect-ratio: 1;
-        padding: 0;
-        border: 0;
-        border-radius: 9999px;
-        background: transparent;
-        cursor: pointer;
-        transition: background 160ms ease;
-      }
-
-      .open-event-banner-close:hover {
-        background: rgba(255, 255, 255, 0.18);
-      }
-
-      .open-event-banner-close:focus-visible {
-        outline: 2px solid rgba(179, 71, 88, 0.55);
-        outline-offset: 2px;
-      }
-
-      .open-event-banner-dismiss {
-        position: absolute;
-        bottom: 2.4%;
-        left: 9%;
-        right: 9%;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        height: 5.2%;
-        min-height: 18px;
-        margin: 0;
-        padding: 0;
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .open-event-banner-dismiss input {
-        width: 13%;
-        height: 100%;
-        max-width: 22px;
-        max-height: 22px;
-        margin: 0;
-        flex-shrink: 0;
-        opacity: 0.01;
-        cursor: pointer;
-      }
-
-      @media (max-width: 640px) {
-        .open-event-banner {
-          top: calc(78px + env(safe-area-inset-top, 0px));
-          left: 13px;
-          width: clamp(170px, 42vw, 190px);
-          max-width: 44vw;
-        }
-
-        body.is-landing-screen .open-event-banner {
-          top: calc(78px + env(safe-area-inset-top, 0px));
-        }
-
-        .open-event-banner-close {
-          top: 2.8%;
-          right: 2.8%;
-          width: 10%;
-        }
-
-        .open-event-banner-dismiss {
-          bottom: 2.6%;
-          left: 8%;
-          right: 8%;
-          height: 5.8%;
-          min-height: 14px;
-        }
-
-        .open-event-banner-dismiss input {
-          max-width: 16px;
-          max-height: 16px;
-        }
-      }
       .site-guide-faq-list {
         display: grid;
         gap: 10px;
@@ -5312,27 +5199,6 @@
   <body
     class="bg-background text-on-background font-body-large antialiased min-h-screen flex flex-col items-center relative overflow-x-hidden"
   >
-    <aside class="open-event-banner hidden" id="openEventBanner" role="complementary" aria-label="오픈 이벤트 안내">
-      <div class="open-event-banner-inner">
-        <picture class="open-event-banner-picture">
-          <source media="(max-width: 767px)" srcset="/public/images/event/event_banner_luxury_ribbon_mobile_asset.png" width="233" height="403" />
-          <img
-            class="open-event-banner-image"
-            src="/public/images/event/event_banner_luxury_ribbon_desktop_asset.png"
-            alt="오픈 이벤트: 시간한정 오픈특가 첫 설렘 패스 19,800원"
-            width="390"
-            height="650"
-            decoding="async"
-            onerror="this.closest('#openEventBanner')?.classList.add('hidden');"
-          />
-        </picture>
-        <button class="open-event-banner-close" id="openEventBannerClose" type="button" aria-label="배너 닫기"></button>
-        <label class="open-event-banner-dismiss" for="openEventBannerDismissDay">
-          <input id="openEventBannerDismissDay" type="checkbox" />
-          <span class="sr-only">하루 동안 보지 않기</span>
-        </label>
-      </div>
-    </aside>
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
         <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인/회원가입 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
@@ -7881,11 +7747,6 @@ Important:
       const creditBalanceText = document.getElementById("creditBalanceText");
       const creditStatusText = document.getElementById("creditStatusText");
       const openEventCreditCard = document.getElementById("openEventCreditCard");
-      const openEventBanner = document.getElementById("openEventBanner");
-      const openEventBannerClose = document.getElementById("openEventBannerClose");
-      const openEventBannerDismissDay = document.getElementById("openEventBannerDismissDay");
-      const OPEN_EVENT_BANNER_HIDDEN_UNTIL_KEY = "magicAiStudioOpenEventBannerHiddenUntil";
-      let openEventBannerSessionDismissed = false;
       const creditChargeButtons = Array.from(document.querySelectorAll("[data-credit-package-id]"));
       const screenStartButtons = Array.from(document.querySelectorAll("[data-screen-target]"));
       const generatingStatusText = document.getElementById("generatingStatusText");
@@ -13372,56 +13233,6 @@ Important:
         return PAYMENT_PASS_PRODUCTS[String(packageId || "").trim()] || null;
       }
 
-      function readOpenEventBannerHiddenUntil() {
-        try {
-          const raw = localStorage.getItem(OPEN_EVENT_BANNER_HIDDEN_UNTIL_KEY);
-          const value = Number(raw);
-          return Number.isFinite(value) ? value : 0;
-        } catch (error) {
-          return 0;
-        }
-      }
-
-      function writeOpenEventBannerHiddenUntil(timestamp) {
-        try {
-          localStorage.setItem(OPEN_EVENT_BANNER_HIDDEN_UNTIL_KEY, String(timestamp));
-        } catch (error) {
-          // Banner preference is optional UI state.
-        }
-      }
-
-      function isBlockingOverlayOpen() {
-        return Boolean(
-          loginModalOverlay?.classList.contains("is-open")
-          || customerInfoModalOverlay?.classList.contains("is-open")
-          || assistantKakaoModalOverlay?.classList.contains("is-open")
-          || googleInAppBrowserModalOverlay?.classList.contains("is-open")
-          || duplicateProviderModalOverlay?.classList.contains("is-open"),
-        );
-      }
-
-      function shouldShowOpenEventBanner() {
-        if (!openEventBanner || openEventBannerSessionDismissed) return false;
-        if (appScreen === "admin") return false;
-        if (isBlockingOverlayOpen()) return false;
-        if (!imageModal?.classList.contains("hidden")) return false;
-        return Date.now() >= readOpenEventBannerHiddenUntil();
-      }
-
-      function syncOpenEventBannerVisibility() {
-        if (!openEventBanner) return;
-        openEventBanner.classList.toggle("hidden", !shouldShowOpenEventBanner());
-      }
-
-      function closeOpenEventBanner({ dismissForDay = false } = {}) {
-        if (dismissForDay) {
-          writeOpenEventBannerHiddenUntil(Date.now() + 24 * 60 * 60 * 1000);
-        } else {
-          openEventBannerSessionDismissed = true;
-        }
-        syncOpenEventBannerVisibility();
-      }
-
       function syncEditorGenerationCopy() {
         if (!generateButton) return;
         const label = generateButton.querySelector("span:first-child");
@@ -16703,7 +16514,6 @@ Important:
 
         syncLandingAuthButtonUi();
         syncBottomNavUi();
-        syncOpenEventBannerVisibility();
 
         if (replaceHistory) {
           replaceAppHistoryState(screen, imageModal.classList.contains("hidden") ? null : "image", activeImageModalIndex);
@@ -21717,7 +21527,6 @@ ${modeExample}`;
         if (options.pushHistory !== false) {
           pushAppHistoryState(appScreen, "image", activeImageModalIndex);
         }
-        syncOpenEventBannerVisibility();
       }
 
       function normalizeModalResult(result, fallbackIndex = 0) {
@@ -21825,7 +21634,6 @@ ${modeExample}`;
         appBottomNav?.classList.remove("is-modal-hidden");
         syncBottomNavUi();
         document.body.style.overflow = "";
-        syncOpenEventBannerVisibility();
       }
 
       async function completeResultFlow() {
@@ -22542,7 +22350,6 @@ ${modeExample}`;
         window.requestAnimationFrame(() => {
           loginModalPanel.querySelector("button")?.focus({ preventScroll: true });
         });
-        syncOpenEventBannerVisibility();
       }
 
       function closeLoginModal(options = {}) {
@@ -22554,7 +22361,6 @@ ${modeExample}`;
         if (options.restoreFocus && activeLoginModalTrigger instanceof HTMLElement) {
           activeLoginModalTrigger.focus({ preventScroll: true });
         }
-        syncOpenEventBannerVisibility();
       }
 
       function openPolicyScreen(policy) {
@@ -24139,10 +23945,6 @@ ${modeExample}`;
           closeImageModal();
         }
       });
-      openEventBannerClose?.addEventListener("click", () => {
-        closeOpenEventBanner({ dismissForDay: Boolean(openEventBannerDismissDay?.checked) });
-      });
-
       imageModalGalleryExit?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();

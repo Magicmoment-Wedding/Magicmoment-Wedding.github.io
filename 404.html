@@ -5315,14 +5315,15 @@
     <aside class="open-event-banner hidden" id="openEventBanner" role="complementary" aria-label="오픈 이벤트 안내">
       <div class="open-event-banner-inner">
         <picture class="open-event-banner-picture">
-          <source media="(max-width: 767px)" srcset="/images/event/event_banner_luxury_ribbon_mobile_asset.png" width="233" height="403" />
+          <source media="(max-width: 767px)" srcset="/public/images/event/event_banner_luxury_ribbon_mobile_asset.png" width="233" height="403" />
           <img
             class="open-event-banner-image"
-            src="/images/event/event_banner_luxury_ribbon_desktop_asset.png"
+            src="/public/images/event/event_banner_luxury_ribbon_desktop_asset.png"
             alt="오픈 이벤트: 시간한정 오픈특가 첫 설렘 패스 19,800원"
             width="390"
             height="650"
             decoding="async"
+            onerror="this.closest('#openEventBanner')?.classList.add('hidden');"
           />
         </picture>
         <button class="open-event-banner-close" id="openEventBannerClose" type="button" aria-label="배너 닫기"></button>

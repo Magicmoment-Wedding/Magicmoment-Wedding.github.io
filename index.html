@@ -3069,8 +3069,18 @@
       }
 
       .image-modal-gallery-exit,
-      .image-modal-result-exit {
+      .image-modal-result-exit,
+      .image-modal-my-photo-exit {
         display: none;
+      }
+
+      #imageModal.is-my-photo-lightbox #imageModalBadge,
+      #imageModal.is-my-photo-lightbox .image-modal-thumbnail-recommended {
+        display: none !important;
+      }
+
+      #imageModal.is-my-photo-lightbox #imageModalGalleryPolicy {
+        display: none !important;
       }
 
       #imageModal.is-gallery-lightbox .image-modal-header {
@@ -3079,18 +3089,22 @@
 
       @media (min-width: 768px) {
         #imageModal.is-result-lightbox .image-modal-gallery-info,
-        #imageModal.is-result-lightbox .image-modal-result-exit {
+        #imageModal.is-result-lightbox .image-modal-result-exit,
+        #imageModal.is-my-photo-lightbox .image-modal-gallery-info,
+        #imageModal.is-my-photo-lightbox .image-modal-my-photo-exit {
           display: none !important;
         }
       }
 
       @media (max-width: 767px) {
-        #imageModal.is-result-lightbox .image-modal-header {
+        #imageModal.is-result-lightbox .image-modal-header,
+        #imageModal.is-my-photo-lightbox .image-modal-header {
           display: none !important;
         }
 
         #imageModal.is-gallery-lightbox:not(.hidden) .image-modal-gallery-exit,
-        #imageModal.is-result-lightbox:not(.hidden) .image-modal-result-exit {
+        #imageModal.is-result-lightbox:not(.hidden) .image-modal-result-exit,
+        #imageModal.is-my-photo-lightbox:not(.hidden) .image-modal-my-photo-exit {
           position: fixed;
           z-index: 10030;
           top: calc(env(safe-area-inset-top, 0px) + 12px);
@@ -3111,7 +3125,8 @@
         }
 
         #imageModal.is-gallery-lightbox .image-modal-gallery-info,
-        #imageModal.is-result-lightbox .image-modal-gallery-info {
+        #imageModal.is-result-lightbox .image-modal-gallery-info,
+        #imageModal.is-my-photo-lightbox .image-modal-gallery-info {
           top: calc(env(safe-area-inset-top, 0px) + 14px);
           right: calc(14px + env(safe-area-inset-right, 0px));
           left: auto;
@@ -3121,7 +3136,9 @@
         #imageModal.is-gallery-lightbox .image-modal-gallery-info-category,
         #imageModal.is-gallery-lightbox .image-modal-gallery-info-concept,
         #imageModal.is-result-lightbox .image-modal-gallery-info-category,
-        #imageModal.is-result-lightbox .image-modal-gallery-info-concept {
+        #imageModal.is-result-lightbox .image-modal-gallery-info-concept,
+        #imageModal.is-my-photo-lightbox .image-modal-gallery-info-category,
+        #imageModal.is-my-photo-lightbox .image-modal-gallery-info-concept {
           overflow: hidden;
           display: -webkit-box;
           -webkit-box-orient: vertical;
@@ -3129,7 +3146,8 @@
         }
 
         #imageModal.is-gallery-lightbox .image-modal-stage,
-        #imageModal.is-result-lightbox .image-modal-stage {
+        #imageModal.is-result-lightbox .image-modal-stage,
+        #imageModal.is-my-photo-lightbox .image-modal-stage {
           padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
           padding-bottom: 4px;
         }
@@ -3137,7 +3155,9 @@
         #imageModal.is-gallery-lightbox #imageModalPrevMobile,
         #imageModal.is-gallery-lightbox #imageModalNextMobile,
         #imageModal.is-result-lightbox #imageModalPrevMobile,
-        #imageModal.is-result-lightbox #imageModalNextMobile {
+        #imageModal.is-result-lightbox #imageModalNextMobile,
+        #imageModal.is-my-photo-lightbox #imageModalPrevMobile,
+        #imageModal.is-my-photo-lightbox #imageModalNextMobile {
           display: none !important;
           pointer-events: none;
         }
@@ -3166,12 +3186,25 @@
           padding-bottom: 2px;
         }
 
+        #imageModal.is-my-photo-lightbox .image-modal-pager {
+          padding-top: 2px;
+          padding-bottom: 2px;
+        }
+
         #imageModal.is-result-lightbox #imageModalImg {
           max-height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 220px));
         }
 
         #imageModal.is-result-lightbox .image-modal-image-frame {
           max-height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 220px));
+        }
+
+        #imageModal.is-my-photo-lightbox #imageModalImg {
+          max-height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 200px));
+        }
+
+        #imageModal.is-my-photo-lightbox .image-modal-image-frame {
+          max-height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 200px));
         }
       }
 
@@ -4877,14 +4910,16 @@
       .auth-processing-overlay {
         position: fixed;
         inset: 0;
-        z-index: 1000;
+        z-index: 10050;
         display: none;
         align-items: center;
         justify-content: center;
         padding: 24px;
-        background: rgba(255, 248, 250, 0.88);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background:
+          radial-gradient(120% 72% at 50% -18%, rgba(244, 182, 195, 0.28), transparent 58%),
+          rgba(255, 248, 250, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         overscroll-behavior: contain;
         touch-action: none;
       }
@@ -4899,46 +4934,50 @@
       }
 
       .auth-processing-card {
-        width: min(320px, 100%);
-        border-radius: 28px;
-        padding: 28px 22px;
-        background: rgba(255, 255, 255, 0.94);
-        box-shadow: 0 18px 60px rgba(90, 40, 58, 0.16);
+        width: min(300px, 100%);
+        border-radius: 24px;
+        padding: 26px 22px 24px;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 18px 48px rgba(90, 40, 58, 0.14);
         text-align: center;
       }
 
+      .auth-processing-eyebrow {
+        margin: 0;
+        color: rgba(129, 80, 92, 0.72);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
       .auth-processing-spinner {
-        width: 34px;
-        height: 34px;
-        margin: 18px auto;
+        width: 32px;
+        height: 32px;
+        margin: 16px auto 14px;
         border-radius: 9999px;
-        border: 3px solid rgba(129, 80, 92, 0.18);
+        border: 3px solid rgba(129, 80, 92, 0.16);
         border-top-color: var(--rose-deep);
         animation: orbitSpin 0.8s linear infinite;
       }
 
       .auth-processing-title {
+        margin: 0;
         color: var(--rose-deep);
-        font-size: 20px;
-        font-weight: 900;
-        line-height: 1.3;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.45;
+        white-space: pre-line;
         word-break: keep-all;
       }
 
       .auth-processing-copy {
-        margin-top: 8px;
-        color: #6f5b60;
-        font-size: 14px;
-        line-height: 1.65;
-        word-break: keep-all;
-      }
-
-      .auth-processing-help {
-        margin-top: 14px;
-        color: #81505c;
-        font-size: 12px;
-        font-weight: 800;
-        line-height: 1.5;
+        margin: 10px 0 0;
+        color: #8a7378;
+        font-size: 13px;
+        line-height: 1.55;
         word-break: keep-all;
       }
 
@@ -6554,24 +6593,21 @@
               <span>어시스턴트</span>
             </button>
           </nav>
-
-          <div class="auth-processing-overlay" id="authProcessingOverlay" aria-hidden="true">
-            <section class="auth-processing-card" role="status" aria-live="polite" aria-labelledby="authProcessingTitle" aria-describedby="authProcessingMessage">
-              <span class="brand-logo brand-logo-horizontal brand-logo-md" aria-label="Magic Ai Studio">
-                <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
-                <span class="brand-logo-fallback">Magic Ai Studio</span>
-              </span>
-              <div class="auth-processing-spinner" aria-hidden="true"></div>
-              <h3 class="auth-processing-title" id="authProcessingTitle">회원가입 중입니다</h3>
-              <p class="auth-processing-copy" id="authProcessingMessage">계정을 생성하고 정보를 불러오고 있어요. 잠시만 기다려 주세요.</p>
-              <p class="auth-processing-help">앱을 닫지 말고 잠시 기다려 주세요.</p>
-            </section>
-          </div>
         </div>
       </section>
     </main>
 
     <div class="account-menu-toast" id="accountMenuToast" role="status" aria-live="polite"></div>
+
+    <div class="auth-processing-overlay" id="authProcessingOverlay" aria-hidden="true">
+      <section class="auth-processing-card" role="status" aria-live="polite" aria-labelledby="authProcessingTitle" aria-describedby="authProcessingMessage">
+        <p class="auth-processing-eyebrow" id="authProcessingEyebrow">LOGIN</p>
+        <div class="auth-processing-spinner" aria-hidden="true"></div>
+        <h3 class="auth-processing-title" id="authProcessingTitle">로그인 중입니다.
+잠시 기다려 주세요.</h3>
+        <p class="auth-processing-copy" id="authProcessingMessage">계정 정보를 확인하고 있어요.</p>
+      </section>
+    </div>
 
     <div class="login-modal-overlay" id="loginModalOverlay" aria-hidden="true">
       <section class="login-modal-panel" id="loginModalPanel" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle" aria-describedby="loginModalDescription">
@@ -6862,6 +6898,9 @@
         <span class="material-symbols-outlined text-[22px]">arrow_back</span>
       </button>
       <button class="image-modal-result-exit" id="imageModalResultExit" type="button" aria-label="생성 결과 닫기">
+        <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+      </button>
+      <button class="image-modal-my-photo-exit" id="imageModalMyPhotoExit" type="button" aria-label="마이포토박스 닫기">
         <span class="material-symbols-outlined text-[22px]">arrow_back</span>
       </button>
     </div>
@@ -7924,6 +7963,7 @@ Important:
       const imageModalGalleryInfoConcept = document.getElementById("imageModalGalleryInfoConcept");
       const imageModalGalleryExit = document.getElementById("imageModalGalleryExit");
       const imageModalResultExit = document.getElementById("imageModalResultExit");
+      const imageModalMyPhotoExit = document.getElementById("imageModalMyPhotoExit");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
       const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
@@ -8964,11 +9004,14 @@ Important:
       function getAuthProcessingCopy(mode = "login", subMessage = "") {
         const authMode = mode === "signup" ? "signup" : "login";
         return {
-          title: authMode === "signup" ? "회원가입 중입니다" : "로그인 중입니다",
+          eyebrow: authMode === "signup" ? "JOIN" : "LOGIN",
+          title: authMode === "signup"
+            ? "회원가입 중입니다.\n잠시 기다려 주세요."
+            : "로그인 중입니다.\n잠시 기다려 주세요.",
           message: subMessage || (
             authMode === "signup"
-              ? "계정을 생성하고 정보를 불러오고 있어요. 잠시만 기다려 주세요."
-              : "계정 정보를 확인하고 있어요. 잠시만 기다려 주세요."
+              ? "계정을 생성하고 정보를 불러오고 있어요."
+              : "계정 정보를 확인하고 있어요."
           ),
         };
       }
@@ -9008,6 +9051,7 @@ Important:
         if (!authProcessingOverlay) return;
         const authMode = mode === "signup" ? "signup" : "login";
         const copy = getAuthProcessingCopy(mode, subMessage);
+        if (authProcessingEyebrow) authProcessingEyebrow.textContent = copy.eyebrow;
         if (authProcessingTitle) authProcessingTitle.textContent = copy.title;
         if (authProcessingMessage) authProcessingMessage.textContent = copy.message;
         authFlowState = `${authMode}-processing`;
@@ -19653,7 +19697,38 @@ ${modeExample}`;
           return;
         }
 
-        if (!item?.url || item?.myPhotoSource) {
+        if (item?.myPhotoSource) {
+          const photo = selectedMyPhoto || {};
+          const labelContext = {
+            mode: photo.mode,
+            generationMode: photo.mode,
+            styleCategory: photo.styleLabel,
+            styleLabel: photo.styleLabel,
+            style_label: photo.styleLabel,
+            presetLabel: photo.presetLabel,
+            presetKey: photo.preset,
+            preset: photo.preset,
+            title: photo.presetLabel,
+            resultLabel: photo.resultLabel,
+          };
+          let categoryLabel = getGalleryLightboxCategoryLabel(labelContext);
+          let conceptLabel = getGalleryLightboxConceptLabel(labelContext);
+
+          if (categoryLabel === "스타일 갤러리") {
+            categoryLabel = String(photo.styleLabel || "").trim() || "기타";
+          }
+          if (!conceptLabel || conceptLabel === "웨딩 스냅") {
+            conceptLabel = String(photo.presetLabel || "").trim() || "콘셉트 확인 중";
+          }
+
+          imageModalGalleryInfoCategory.textContent = categoryLabel;
+          imageModalGalleryInfoConcept.textContent = conceptLabel;
+          imageModalGalleryInfo.classList.remove("hidden");
+          imageModalGalleryInfo.setAttribute("aria-hidden", "false");
+          return;
+        }
+
+        if (!item?.url) {
           hideImageModalGalleryInfo();
           return;
         }
@@ -21618,6 +21693,7 @@ ${modeExample}`;
         if (!item) return;
 
         const isGallerySource = Boolean(item.gallerySource);
+        const isMyPhotoSource = Boolean(item.myPhotoSource);
         const isFreshResultSource = Boolean(!item.gallerySource && !item.myPhotoSource);
         const shouldShowLogoWatermark = shouldShowWatermarkForModalItem(item);
         logMyPhotoWatermarkDebug(item, shouldShowLogoWatermark);
@@ -21630,6 +21706,7 @@ ${modeExample}`;
         imageModalImageFrame?.classList.toggle("has-logo-watermark", shouldShowLogoWatermark);
         imageModal.classList.toggle("is-gallery-lightbox", isGallerySource);
         imageModal.classList.toggle("is-result-lightbox", isFreshResultSource);
+        imageModal.classList.toggle("is-my-photo-lightbox", isMyPhotoSource);
         syncImageModalGalleryInfo(item);
         syncImageModalOriginalThumbnail(item);
         imageModalLabel.textContent = item.label;
@@ -21767,6 +21844,7 @@ ${modeExample}`;
         imageModal.classList.remove("flex");
         imageModal.classList.remove("is-gallery-lightbox");
         imageModal.classList.remove("is-result-lightbox");
+        imageModal.classList.remove("is-my-photo-lightbox");
         closePhotoSaveModal();
         resetImageModalSwipeState();
         imageModalImg.onerror = null;
@@ -22310,6 +22388,7 @@ ${modeExample}`;
       const bottomAssistantButton = document.getElementById("bottomAssistantButton");
       const appBottomNav = document.querySelector(".app-bottom-nav");
       const authProcessingOverlay = document.getElementById("authProcessingOverlay");
+      const authProcessingEyebrow = document.getElementById("authProcessingEyebrow");
       const authProcessingTitle = document.getElementById("authProcessingTitle");
       const authProcessingMessage = document.getElementById("authProcessingMessage");
       const bottomNavItems = Array.from(document.querySelectorAll("[data-bottom-nav]"));
@@ -24105,6 +24184,11 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         void completeResultFlow();
+      });
+      imageModalMyPhotoExit?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        closeImageModal();
       });
 
       imageModalPhotoSave?.addEventListener("click", (event) => {

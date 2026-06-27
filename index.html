@@ -4739,22 +4739,23 @@
 
       .generating-status-copy {
         margin-top: 10px;
-        max-width: min(100%, 22em);
+        max-width: min(100%, 320px);
         margin-left: auto;
         margin-right: auto;
         text-align: center;
         white-space: pre-line;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 450;
-        line-height: 1.65;
+        line-height: 1.5;
         color: #8a737a;
       }
 
       .generating-status-copy::first-line {
-        font-size: clamp(18px, 4.8vw, 22px);
-        font-weight: 800;
-        line-height: 1.35;
+        font-size: clamp(22px, 5.2vw, 26px);
+        font-weight: 650;
+        line-height: 1.3;
         color: #4a323a;
+        white-space: nowrap;
       }
 
       .generating-gallery-preview {
@@ -4821,13 +4822,14 @@
 
         .generating-status-copy {
           margin-top: 8px;
-          font-size: 12px;
-          line-height: 1.6;
+          font-size: 14px;
+          line-height: 1.5;
         }
 
         .generating-status-copy::first-line {
-          font-size: clamp(17px, 5vw, 20px);
-          line-height: 1.32;
+          font-size: clamp(22px, 6vw, 24px);
+          font-weight: 600;
+          line-height: 1.28;
         }
 
         .generating-content:has(#generatingGalleryPreview:not(.hidden)) {
@@ -17209,13 +17211,30 @@ Important:
           document.visibilityState === "hidden";
       }
 
+      function formatGeneratingStatusHeadline(message = "") {
+        const text = String(message || "").trim();
+        if (!text) return "사진을 만들고 있어요.";
+
+        const exactMap = {
+          "제작 가능 횟수를 확인하고 있습니다.": "제작 가능 횟수 확인 중",
+          "생성 결과 이미지를 불러오고 있습니다.": "결과 이미지 불러오는 중",
+        };
+        if (exactMap[text]) return exactMap[text];
+        if (/제작\s*가능\s*횟수/.test(text) && /확인/.test(text)) return "제작 가능 횟수 확인 중";
+        if (/결과.*이미지/.test(text) && /불러/.test(text)) return "결과 이미지 불러오는 중";
+
+        return text;
+      }
+
       function setGenerationPendingStatus(message = "사진을 만들고 있어요.", { paused = false } = {}) {
         const kakaoCopy = isKakaoInAppBrowser()
           ? "\n카카오톡에서 열어도 생성은 계속 진행됩니다.\n다시 돌아오면 자동으로 결과를 확인해요.\n카카오톡 브라우저에서도 사용할 수 있어요.\n더 안정적인 이용을 원하시면 Safari/Chrome에서 열어 주세요."
           : "";
-        setStatus(paused ? "생성 상태를 다시 확인하고 있어요." : message);
+        const statusMessage = paused ? "생성 상태를 다시 확인하고 있어요." : message;
+        setStatus(statusMessage);
         if (generatingStatusText && appScreen === "generating") {
-          generatingStatusText.textContent = `${message}\n앱을 잠시 닫아도 괜찮아요.\n완성되면 마이포토박스에서 다시 확인할 수 있어요.${kakaoCopy}`;
+          const headline = formatGeneratingStatusHeadline(statusMessage);
+          generatingStatusText.textContent = `${headline}\n완성되면 마이포토박스에서 확인할 수 있어요.${kakaoCopy}`;
         }
       }
 
@@ -17890,7 +17909,12 @@ Important:
       function setStatus(message) {
         statusText.textContent = message || "";
         if (generatingStatusText && appScreen === "generating") {
-          generatingStatusText.textContent = message;
+          if (!message) {
+            generatingStatusText.textContent = "";
+            return;
+          }
+          const headline = formatGeneratingStatusHeadline(message);
+          generatingStatusText.textContent = `${headline}\n완성되면 마이포토박스에서 확인할 수 있어요.`;
         }
       }
 

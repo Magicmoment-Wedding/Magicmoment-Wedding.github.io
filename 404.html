@@ -5137,81 +5137,6 @@
         outline-offset: 3px;
       }
 
-      .gallery-like-button {
-        position: absolute;
-        left: 10px;
-        bottom: 10px;
-        z-index: 4;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 5px 9px 5px 7px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 9999px;
-        background: rgba(20, 16, 18, 0.62);
-        color: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        cursor: pointer;
-        line-height: 1;
-        transition: transform 160ms ease, background 160ms ease;
-      }
-
-      .gallery-like-button:hover {
-        background: rgba(20, 16, 18, 0.74);
-      }
-
-      .gallery-like-button.is-liked {
-        background: rgba(129, 80, 92, 0.82);
-      }
-
-      .gallery-like-button.is-burst {
-        animation: galleryLikeBurst 360ms ease;
-      }
-
-      .gallery-like-icon {
-        font-size: 16px;
-        line-height: 1;
-        font-variation-settings: "FILL" 0;
-      }
-
-      .gallery-like-button.is-liked .gallery-like-icon {
-        font-variation-settings: "FILL" 1;
-        color: #ffd8df;
-      }
-
-      .gallery-like-count {
-        font-size: 12px;
-        font-weight: 700;
-        min-width: 0.5em;
-      }
-
-      @keyframes galleryLikeBurst {
-        0% {
-          transform: scale(1);
-        }
-
-        45% {
-          transform: scale(1.12);
-        }
-
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      .image-modal-gallery-like {
-        position: absolute;
-        left: 12px;
-        bottom: 12px;
-        z-index: 9;
-      }
-
-      .image-modal-gallery-like .gallery-like-button {
-        position: static;
-      }
-
       .gallery-main-image {
         display: block;
         width: 100%;
@@ -5238,10 +5163,22 @@
       .gallery-skeleton-card {
         min-height: 170px;
         border-radius: 18px;
-        background: linear-gradient(110deg, rgba(255,255,255,0.42) 8%, rgba(255,255,255,0.78) 18%, rgba(255,255,255,0.42) 33%);
+        background: linear-gradient(110deg, rgba(196, 190, 194, 0.42) 8%, rgba(232, 228, 230, 0.78) 18%, rgba(196, 190, 194, 0.42) 33%);
         background-size: 200% 100%;
-        box-shadow: 0 10px 26px rgba(129, 80, 92, 0.08);
+        box-shadow: 0 8px 20px rgba(129, 80, 92, 0.06);
         animation: gallerySkeletonPulse 1.25s ease-in-out infinite;
+      }
+
+      .gallery-skeleton-cell {
+        align-self: start;
+        grid-row: span var(--gallery-row-span, 34);
+      }
+
+      .gallery-skeleton-card--inline {
+        width: 100%;
+        min-height: 158px;
+        aspect-ratio: 3 / 4;
+        border-radius: 18px;
       }
 
       .gallery-skeleton-card:first-child {
@@ -5255,7 +5192,7 @@
       }
 
       .gallery-load-more-wrap {
-        padding: 16px 0 calc(env(safe-area-inset-bottom, 0px) + 96px);
+        padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 88px);
         text-align: center;
       }
 
@@ -5265,21 +5202,13 @@
         pointer-events: none;
       }
 
-      .gallery-load-more-status,
-      .gallery-load-more-error {
-        margin: 0 0 8px;
-        color: #8a6b72;
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 1.45;
-      }
-
       .gallery-load-more-retry {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 40px;
-        padding: 0 18px;
+        min-height: 36px;
+        margin-top: 8px;
+        padding: 0 16px;
         border: 1px solid rgba(129, 80, 92, 0.18);
         border-radius: 9999px;
         background: rgba(255, 255, 255, 0.72);
@@ -7547,8 +7476,7 @@
               <p class="image-modal-gallery-info-category" id="imageModalGalleryInfoCategory"></p>
               <p class="image-modal-gallery-info-concept" id="imageModalGalleryInfoConcept"></p>
             </div>
-            <div class="image-modal-gallery-like hidden" id="imageModalGalleryLike" aria-hidden="true"></div>
-            <img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
+<img alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-[28px] shadow-2xl select-none border border-white/20" id="imageModalImg" />
             <span class="logo-watermark" aria-hidden="true">
               <img src="/images/brand/magic-ai-studio-watermark-white.png" alt="" decoding="async" onerror="console.warn('[watermark] logo image failed to load', this.currentSrc || this.src); this.closest('.logo-watermark')?.classList.add('is-logo-missing');" />
             </span>
@@ -8656,7 +8584,6 @@ Important:
       const imageModalGalleryInfo = document.getElementById("imageModalGalleryInfo");
       const imageModalGalleryInfoCategory = document.getElementById("imageModalGalleryInfoCategory");
       const imageModalGalleryInfoConcept = document.getElementById("imageModalGalleryInfoConcept");
-      const imageModalGalleryLike = document.getElementById("imageModalGalleryLike");
       const imageModalGalleryExit = document.getElementById("imageModalGalleryExit");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
@@ -8757,13 +8684,8 @@ Important:
       };
       let isLoadingGallery = false;
       let isLoadingMoreGallery = false;
-      let galleryLoadMoreError = "";
+      let galleryLoadMoreFailed = false;
       let galleryLoadMoreObserver = null;
-      const galleryLikeRequestInFlight = new Set();
-      let imageModalLastTapAt = 0;
-      let imageModalLastTapX = 0;
-      let imageModalLastTapY = 0;
-      const GALLERY_LIKE_DOUBLE_TAP_MS = 320;
       const uploadedGalleryImageUrls = new Set();
       let currentGenerationId = "";
       let currentGenerationJobId = "";
@@ -20425,105 +20347,6 @@ ${modeExample}`;
         if (imageModalGalleryInfoConcept) imageModalGalleryInfoConcept.textContent = "";
       }
 
-      function hideImageModalGalleryLike() {
-        imageModalGalleryLike?.classList.add("hidden");
-        imageModalGalleryLike?.setAttribute("aria-hidden", "true");
-        if (imageModalGalleryLike) imageModalGalleryLike.innerHTML = "";
-      }
-
-      function formatGalleryLikeCount(value) {
-        const count = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
-        if (count < 1000) return String(count);
-        if (count < 10000) {
-          const compact = count / 1000;
-          const rounded = compact >= 10 ? Math.round(compact) : Math.round(compact * 10) / 10;
-          return `${rounded}천`;
-        }
-        const compact = count / 10000;
-        const rounded = compact >= 10 ? Math.round(compact) : Math.round(compact * 10) / 10;
-        return `${rounded}만`;
-      }
-
-      function renderGalleryLikeButtonHtml(item, options = {}) {
-        const galleryItemId = getGalleryItemId(item);
-        if (!galleryItemId) return "";
-        const likeCount = normalizeGalleryLikeCount(item);
-        const isLikedByMe = normalizeGalleryIsLikedByMe(item);
-        const label = `좋아요 ${formatGalleryLikeCount(likeCount)}`;
-        const likedClass = isLikedByMe ? " is-liked" : "";
-        const contextClass = options.context === "modal" ? " gallery-like-button--modal" : "";
-        return `
-          <button
-            type="button"
-            class="gallery-like-button${likedClass}${contextClass}"
-            data-gallery-like-id="${escapeHtml(galleryItemId)}"
-            aria-label="${escapeHtml(label)}"
-            aria-pressed="${isLikedByMe ? "true" : "false"}"
-          >
-            <span class="material-symbols-outlined gallery-like-icon" aria-hidden="true">favorite</span>
-            <span class="gallery-like-count" data-gallery-like-count="${escapeHtml(galleryItemId)}">${escapeHtml(formatGalleryLikeCount(likeCount))}</span>
-          </button>
-        `;
-      }
-
-      function syncGalleryLikeButtonElement(button, item) {
-        if (!button) return;
-        const likeCount = normalizeGalleryLikeCount(item);
-        const isLikedByMe = normalizeGalleryIsLikedByMe(item);
-        button.classList.toggle("is-liked", isLikedByMe);
-        button.setAttribute("aria-pressed", isLikedByMe ? "true" : "false");
-        button.setAttribute("aria-label", `좋아요 ${formatGalleryLikeCount(likeCount)}`);
-        const countEl = button.querySelector(".gallery-like-count");
-        if (countEl) countEl.textContent = formatGalleryLikeCount(likeCount);
-      }
-
-      function syncGalleryLikeUiOnScreen(galleryItemId, patch = {}) {
-        if (!galleryItemId) return;
-        const buttons = document.querySelectorAll(
-          `.gallery-like-button[data-gallery-like-id="${CSS.escape(String(galleryItemId))}"]`
-        );
-        buttons.forEach((button) => {
-          const countEl = button.querySelector(".gallery-like-count");
-          if (patch.likeCount !== undefined && countEl) {
-            countEl.textContent = formatGalleryLikeCount(patch.likeCount);
-          }
-          if (patch.isLikedByMe !== undefined) {
-            button.classList.toggle("is-liked", Boolean(patch.isLikedByMe));
-            button.setAttribute("aria-pressed", patch.isLikedByMe ? "true" : "false");
-          }
-          if (patch.likeCount !== undefined || patch.isLikedByMe !== undefined) {
-            const count = patch.likeCount !== undefined ? patch.likeCount : Number(countEl?.textContent) || 0;
-            const liked = patch.isLikedByMe !== undefined ? patch.isLikedByMe : button.classList.contains("is-liked");
-            button.setAttribute("aria-label", `좋아요 ${formatGalleryLikeCount(count)}`);
-            void liked;
-          }
-        });
-      }
-
-      function syncImageModalGalleryLike(item) {
-        if (!imageModalGalleryLike) return;
-        if (!item?.gallerySource) {
-          hideImageModalGalleryLike();
-          return;
-        }
-        imageModalGalleryLike.innerHTML = renderGalleryLikeButtonHtml(item, { context: "modal" });
-        imageModalGalleryLike.classList.remove("hidden");
-        imageModalGalleryLike.setAttribute("aria-hidden", "false");
-      }
-
-      function playGalleryLikeBurst(galleryItemId) {
-        if (!galleryItemId) return;
-        const buttons = document.querySelectorAll(
-          `.gallery-like-button[data-gallery-like-id="${CSS.escape(String(galleryItemId))}"]`
-        );
-        buttons.forEach((button) => {
-          button.classList.remove("is-burst");
-          void button.offsetWidth;
-          button.classList.add("is-burst");
-          window.setTimeout(() => button.classList.remove("is-burst"), 380);
-        });
-      }
-
       function syncImageModalGalleryInfo(item) {
         if (!imageModalGalleryInfo || !imageModalGalleryInfoCategory || !imageModalGalleryInfoConcept) return;
 
@@ -21108,7 +20931,7 @@ ${modeExample}`;
       function setupGalleryLoadMoreObserver() {
         disconnectGalleryLoadMoreObserver();
         if (!galleryContent || appScreen !== "gallery") return;
-        if (!galleryPagination?.hasMore || galleryLoadMoreError) return;
+        if (!galleryPagination?.hasMore || galleryLoadMoreFailed) return;
 
         const sentinel = galleryContent.querySelector("[data-gallery-load-more-sentinel]");
         if (!sentinel) return;
@@ -21129,7 +20952,6 @@ ${modeExample}`;
         ensureApiBaseUrlConfigured();
         const response = await fetch(getGalleryListUrl(limit, offset), {
           method: "GET",
-          credentials: "include",
           headers: {
             "X-Anonymous-Id": getAnonymousId(),
           },
@@ -21164,7 +20986,7 @@ ${modeExample}`;
         if (isLoadingGallery || isLoadingMoreGallery) return;
 
         isLoadingMoreGallery = true;
-        galleryLoadMoreError = "";
+        galleryLoadMoreFailed = false;
         renderGalleryScreen();
 
         try {
@@ -21173,14 +20995,14 @@ ${modeExample}`;
             ? galleryPagination.nextOffset
             : galleryImages.length;
           await fetchGalleryPage({ offset, limit, replace: false });
-          galleryLoadMoreError = "";
+          galleryLoadMoreFailed = false;
           renderGalleryScreen();
           syncOpenGalleryLightboxAfterGalleryRefresh("append");
         } catch (error) {
           if (DEBUG_MODE) {
             console.warn("[client][gallery] load-more failed:", error);
           }
-          galleryLoadMoreError = "더 불러오지 못했습니다. 다시 시도";
+          galleryLoadMoreFailed = true;
           renderGalleryScreen();
         } finally {
           isLoadingMoreGallery = false;
@@ -21207,10 +21029,6 @@ ${modeExample}`;
         return `${FRONT_API_BASE_URL}/api/gallery/upload`;
       }
 
-      function getGalleryLikeUrl(galleryItemId) {
-        return `${FRONT_API_BASE_URL}/api/gallery/${encodeURIComponent(String(galleryItemId))}/like`;
-      }
-
       function getGalleryItemId(item) {
         if (!item || typeof item !== "object") return "";
         const rawId = item.id ?? item.galleryItemId ?? item.gallery_item_id;
@@ -21230,156 +21048,6 @@ ${modeExample}`;
         if (raw === 1 || raw === "1" || raw === "true") return true;
         if (raw === 0 || raw === "0" || raw === "false") return false;
         return false;
-      }
-
-      function findGalleryItemById(galleryItemId) {
-        const targetId = String(galleryItemId || "");
-        if (!targetId) return null;
-        return galleryImages.find((item) => getGalleryItemId(item) === targetId) || null;
-      }
-
-      function applyGalleryLikeState(galleryItemId, patch = {}) {
-        const targetId = String(galleryItemId || "");
-        if (!targetId) return;
-
-        const updateItem = (item) => {
-          if (!item || getGalleryItemId(item) !== targetId) return item;
-          const next = { ...item };
-          if (patch.likeCount !== undefined) {
-            next.likeCount = normalizeGalleryLikeCount({ likeCount: patch.likeCount });
-          }
-          if (patch.isLikedByMe !== undefined) {
-            next.isLikedByMe = Boolean(patch.isLikedByMe);
-          }
-          return next;
-        };
-
-        galleryImages = galleryImages.map(updateItem);
-
-        if (Array.isArray(modalItemsOverride)) {
-          modalItemsOverride = modalItemsOverride.map(updateItem);
-        }
-
-        const currentItem = getCurrentModalImageItem();
-        if (currentItem && getGalleryItemId(currentItem) === targetId) {
-          syncImageModalGalleryLike(updateItem(currentItem));
-        }
-
-        syncGalleryLikeUiOnScreen(targetId, patch);
-      }
-
-      async function likeGalleryItem(galleryItemId, options = {}) {
-        const targetId = String(galleryItemId || "");
-        if (!targetId) return { ok: false };
-
-        const item = findGalleryItemById(targetId) || getCurrentModalImageItem();
-        if (!item || getGalleryItemId(item) !== targetId) return { ok: false };
-
-        if (normalizeGalleryIsLikedByMe(item)) {
-          if (options.showBurst) playGalleryLikeBurst(targetId);
-          return { ok: true, alreadyLiked: true };
-        }
-
-        if (galleryLikeRequestInFlight.has(targetId)) {
-          return { ok: false, inFlight: true };
-        }
-
-        const previousLikeCount = normalizeGalleryLikeCount(item);
-        const previousIsLikedByMe = normalizeGalleryIsLikedByMe(item);
-
-        galleryLikeRequestInFlight.add(targetId);
-        applyGalleryLikeState(targetId, {
-          likeCount: previousLikeCount + 1,
-          isLikedByMe: true,
-        });
-
-        try {
-          const response = await fetch(getGalleryLikeUrl(targetId), {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              Accept: "application/json",
-            },
-          });
-
-          let payload = null;
-          try {
-            payload = await response.json();
-          } catch (_error) {
-            payload = null;
-          }
-
-          if (!response.ok) {
-            const code = payload?.code || payload?.errorCode || "";
-            if (response.status === 401 || code === "LOGIN_REQUIRED") {
-              applyGalleryLikeState(targetId, {
-                likeCount: previousLikeCount,
-                isLikedByMe: previousIsLikedByMe,
-              });
-              showAccountMenuToast("로그인 후 좋아요를 누를 수 있어요.");
-              return { ok: false, loginRequired: true };
-            }
-
-            applyGalleryLikeState(targetId, {
-              likeCount: previousLikeCount,
-              isLikedByMe: previousIsLikedByMe,
-            });
-            showAccountMenuToast(payload?.message || "좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
-            return { ok: false };
-          }
-
-          const serverLikeCount = normalizeGalleryLikeCount({
-            likeCount: payload?.likeCount ?? payload?.likesCount ?? previousLikeCount + 1,
-          });
-          const serverIsLikedByMe =
-            payload?.isLikedByMe !== undefined || payload?.likedByMe !== undefined
-              ? normalizeGalleryIsLikedByMe(payload)
-              : true;
-
-          applyGalleryLikeState(targetId, {
-            likeCount: serverLikeCount,
-            isLikedByMe: serverIsLikedByMe,
-          });
-
-          if (options.showBurst || payload?.alreadyLiked) {
-            playGalleryLikeBurst(targetId);
-          }
-
-          return {
-            ok: true,
-            alreadyLiked: Boolean(payload?.alreadyLiked),
-            likeCount: serverLikeCount,
-            isLikedByMe: serverIsLikedByMe,
-          };
-        } catch (_error) {
-          applyGalleryLikeState(targetId, {
-            likeCount: previousLikeCount,
-            isLikedByMe: previousIsLikedByMe,
-          });
-          showAccountMenuToast("좋아요를 처리하지 못했어요. 잠시 후 다시 시도해 주세요.");
-          return { ok: false };
-        } finally {
-          galleryLikeRequestInFlight.delete(targetId);
-        }
-      }
-
-      function handleGalleryLightboxDoubleTapAt(clientX, clientY) {
-        const item = getCurrentModalImageItem();
-        if (!item?.gallerySource) return;
-
-        const now = Date.now();
-        const isDouble =
-          now - imageModalLastTapAt <= GALLERY_LIKE_DOUBLE_TAP_MS &&
-          Math.hypot(clientX - imageModalLastTapX, clientY - imageModalLastTapY) < 32;
-
-        imageModalLastTapAt = now;
-        imageModalLastTapX = clientX;
-        imageModalLastTapY = clientY;
-
-        if (!isDouble) return;
-
-        imageModalLastTapAt = 0;
-        void likeGalleryItem(getGalleryItemId(item), { showBurst: true, source: "double-tap" });
       }
 
       async function ensureCurrentUserForGalleryUpload() {
@@ -22026,6 +21694,29 @@ ${modeExample}`;
         }
       }
 
+      function getGalleryAppendSkeletonCount() {
+        if (!galleryPagination?.hasMore) return 0;
+        if (galleryLoadMoreFailed) return 0;
+        if (isLoadingMoreGallery) return getGalleryPageSize();
+        return Math.min(getGalleryPageSize(), 3);
+      }
+
+      function renderGalleryAppendSkeletonHtml(itemCount = 0) {
+        const skeletonCount = getGalleryAppendSkeletonCount();
+        if (!skeletonCount) return "";
+        return Array.from({ length: skeletonCount }, (_, offset) => {
+          const index = itemCount + offset;
+          const totalCells = itemCount + skeletonCount;
+          const patternClass = totalCells > 1 ? getGalleryCollagePatternClass({}, index) : "";
+          const layoutClass = getGalleryItemLayoutClass({});
+          return `
+            <div class="gallery-collage-cell gallery-skeleton-cell ${patternClass} ${layoutClass}" aria-hidden="true">
+              <div class="gallery-skeleton-card gallery-skeleton-card--inline"></div>
+            </div>
+          `;
+        }).join("");
+      }
+
       function renderGallerySkeleton() {
         if (!galleryContent) return;
 
@@ -22038,18 +21729,14 @@ ${modeExample}`;
       }
 
       function renderGalleryLoadMoreFooter() {
-        if (!galleryPagination?.hasMore && !isLoadingMoreGallery && !galleryLoadMoreError) {
+        if (!galleryPagination?.hasMore && !galleryLoadMoreFailed) {
           return "";
         }
 
         return `
           <div class="gallery-load-more-wrap">
-            ${isLoadingMoreGallery ? `<p class="gallery-load-more-status">사진을 더 불러오는 중...</p>` : ""}
-            ${galleryLoadMoreError ? `
-              <p class="gallery-load-more-error">${escapeHtml(galleryLoadMoreError)}</p>
-              <button type="button" class="gallery-load-more-retry" data-gallery-load-more-retry>다시 시도</button>
-            ` : ""}
-            ${galleryPagination?.hasMore ? `<div class="gallery-load-more-sentinel" data-gallery-load-more-sentinel aria-hidden="true"></div>` : ""}
+            ${galleryLoadMoreFailed ? `<button type="button" class="gallery-load-more-retry" data-gallery-load-more-retry>다시 시도</button>` : ""}
+            ${galleryPagination?.hasMore && !galleryLoadMoreFailed ? `<div class="gallery-load-more-sentinel" data-gallery-load-more-sentinel aria-hidden="true"></div>` : ""}
           </div>
         `;
       }
@@ -22082,21 +21769,24 @@ ${modeExample}`;
           visibleIds: getGalleryVisibleDebugIds(visibleGalleryItems),
         });
 
+        const appendSkeletonCount = getGalleryAppendSkeletonCount();
+        const collageSingleClass = visibleGalleryItems.length === 1 && !appendSkeletonCount ? "gallery-collage-single" : "";
+
         galleryContent.innerHTML = `
-          <div class="gallery-collage ${visibleGalleryItems.length === 1 ? "gallery-collage-single" : ""}">
+          <div class="gallery-collage ${collageSingleClass}">
             ${visibleGalleryItems.map((item, index) => {
               const label = item.resultLabel || item.presetLabel || "갤러리 사진";
-              const patternClass = visibleGalleryItems.length > 1 ? getGalleryCollagePatternClass(item, index) : "";
+              const patternClass = visibleGalleryItems.length > 1 || appendSkeletonCount ? getGalleryCollagePatternClass(item, index) : "";
               const layoutClass = getGalleryItemLayoutClass(item);
               return `
                 <div class="gallery-collage-cell ${patternClass} ${layoutClass}"${getGalleryCardAspectRatioStyle(item)}>
                   <button class="gallery-collage-item" data-gallery-modal-index="${index}" type="button" aria-label="${escapeHtml(label)} 크게보기">
                     <img class="gallery-main-image" alt="${escapeHtml(label)}" decoding="async" draggable="false" loading="lazy" src="${escapeHtml(toDisplayUrl(item.displayUrl || item.imageUrl))}" onerror="this.closest('.gallery-collage-cell')?.remove();" />
                   </button>
-                  ${renderGalleryLikeButtonHtml(item)}
                 </div>
               `;
             }).join("")}
+            ${renderGalleryAppendSkeletonHtml(visibleGalleryItems.length)}
           </div>
           ${renderGalleryLoadMoreFooter()}
         `;
@@ -22122,7 +21812,7 @@ ${modeExample}`;
           nextOffset: 0,
           hasMore: true,
         };
-        galleryLoadMoreError = "";
+        galleryLoadMoreFailed = false;
         disconnectGalleryLoadMoreObserver();
 
         if (galleryImages.length) {
@@ -22505,7 +22195,6 @@ ${modeExample}`;
         imageModal.classList.toggle("is-gallery-lightbox", isGallerySource);
         syncImageModalGalleryInfo(item);
         syncImageModalOriginalThumbnail(item);
-        syncImageModalGalleryLike(item);
         imageModalLabel.textContent = item.label;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
@@ -22648,7 +22337,6 @@ ${modeExample}`;
         imageModalImageFrame?.classList.remove("has-logo-watermark");
         hideImageModalOriginalThumbnail();
         hideImageModalGalleryInfo();
-        hideImageModalGalleryLike();
         renderImageModalThumbnailStrip([], 0);
         setImageModalActionsVisible(false);
         setImageModalDoneVisible(false);
@@ -22727,7 +22415,7 @@ ${modeExample}`;
 
       function isImageModalSwipeBlockedTarget(target) {
         return target instanceof Element && Boolean(target.closest(
-          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalOriginalThumb,#imageModalGalleryLike,.gallery-like-button",
+          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalOriginalThumb",
         ));
       }
 
@@ -22777,21 +22465,15 @@ ${modeExample}`;
 
         const dx = event.clientX - imageModalSwipeState.startX;
         const dy = event.clientY - imageModalSwipeState.startY;
+        const canSwipe = imageModalSwipeState.canSwipe;
         const isHorizontalSwipe =
           Math.abs(dx) >= IMAGE_MODAL_SWIPE_THRESHOLD &&
           Math.abs(dx) > Math.abs(dy) * IMAGE_MODAL_SWIPE_AXIS_RATIO;
-        const isTap = Math.abs(dx) < 12 && Math.abs(dy) < 12;
-        const isTouch = event.pointerType === "touch" || event.pointerType === "pen";
 
         resetImageModalSwipeState();
 
-        if (isHorizontalSwipe && imageModalSwipeState.canSwipe) {
+        if (isHorizontalSwipe && canSwipe) {
           moveImageModal(dx < 0 ? 1 : -1);
-          return;
-        }
-
-        if (isTap && isTouch && isCurrentModalGallerySource()) {
-          handleGalleryLightboxDoubleTapAt(event.clientX, event.clientY);
         }
       }
 
@@ -24313,16 +23995,6 @@ ${modeExample}`;
           return;
         }
 
-        const likeButton = event.target instanceof Element
-          ? event.target.closest(".gallery-like-button[data-gallery-like-id]")
-          : null;
-        if (likeButton) {
-          event.preventDefault();
-          event.stopPropagation();
-          void likeGalleryItem(likeButton.dataset.galleryLikeId, { source: "card" });
-          return;
-        }
-
         const target = event.target instanceof Element
           ? event.target.closest("[data-gallery-modal-index]")
           : null;
@@ -25019,21 +24691,6 @@ ${modeExample}`;
       imageModalImageFrame?.addEventListener("pointerup", handleImageModalSwipeEnd);
       imageModalImageFrame?.addEventListener("pointercancel", resetImageModalSwipeState);
       imageModalImageFrame?.addEventListener("lostpointercapture", resetImageModalSwipeState);
-      imageModalImageFrame?.addEventListener("click", (event) => {
-        const likeButton = event.target instanceof Element
-          ? event.target.closest(".gallery-like-button[data-gallery-like-id]")
-          : null;
-        if (!likeButton) return;
-        event.preventDefault();
-        event.stopPropagation();
-        void likeGalleryItem(likeButton.dataset.galleryLikeId, { source: "modal" });
-      });
-      imageModalImageFrame?.addEventListener("dblclick", (event) => {
-        if (!isCurrentModalGallerySource()) return;
-        if (isImageModalSwipeBlockedTarget(event.target)) return;
-        event.preventDefault();
-        void likeGalleryItem(getGalleryItemId(getCurrentModalImageItem()), { showBurst: true, source: "double-click" });
-      });
       imageModalGalleryUpload?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();

@@ -3068,7 +3068,8 @@
         color: rgba(255, 255, 255, 0.96);
       }
 
-      .image-modal-gallery-exit {
+      .image-modal-gallery-exit,
+      .image-modal-result-exit {
         display: none;
       }
 
@@ -3076,8 +3077,20 @@
         display: none !important;
       }
 
+      @media (min-width: 768px) {
+        #imageModal.is-result-lightbox .image-modal-gallery-info,
+        #imageModal.is-result-lightbox .image-modal-result-exit {
+          display: none !important;
+        }
+      }
+
       @media (max-width: 767px) {
-        #imageModal.is-gallery-lightbox:not(.hidden) .image-modal-gallery-exit {
+        #imageModal.is-result-lightbox .image-modal-header {
+          display: none !important;
+        }
+
+        #imageModal.is-gallery-lightbox:not(.hidden) .image-modal-gallery-exit,
+        #imageModal.is-result-lightbox:not(.hidden) .image-modal-result-exit {
           position: fixed;
           z-index: 10030;
           top: calc(env(safe-area-inset-top, 0px) + 12px);
@@ -3097,7 +3110,8 @@
           -webkit-backdrop-filter: blur(12px);
         }
 
-        #imageModal.is-gallery-lightbox .image-modal-gallery-info {
+        #imageModal.is-gallery-lightbox .image-modal-gallery-info,
+        #imageModal.is-result-lightbox .image-modal-gallery-info {
           top: calc(env(safe-area-inset-top, 0px) + 14px);
           right: calc(14px + env(safe-area-inset-right, 0px));
           left: auto;
@@ -3105,21 +3119,59 @@
         }
 
         #imageModal.is-gallery-lightbox .image-modal-gallery-info-category,
-        #imageModal.is-gallery-lightbox .image-modal-gallery-info-concept {
+        #imageModal.is-gallery-lightbox .image-modal-gallery-info-concept,
+        #imageModal.is-result-lightbox .image-modal-gallery-info-category,
+        #imageModal.is-result-lightbox .image-modal-gallery-info-concept {
           overflow: hidden;
           display: -webkit-box;
           -webkit-box-orient: vertical;
           -webkit-line-clamp: 1;
         }
 
-        #imageModal.is-gallery-lightbox .image-modal-stage {
+        #imageModal.is-gallery-lightbox .image-modal-stage,
+        #imageModal.is-result-lightbox .image-modal-stage {
           padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+          padding-bottom: 4px;
         }
 
         #imageModal.is-gallery-lightbox #imageModalPrevMobile,
-        #imageModal.is-gallery-lightbox #imageModalNextMobile {
+        #imageModal.is-gallery-lightbox #imageModalNextMobile,
+        #imageModal.is-result-lightbox #imageModalPrevMobile,
+        #imageModal.is-result-lightbox #imageModalNextMobile {
           display: none !important;
           pointer-events: none;
+        }
+
+        #imageModal.is-result-lightbox #imageModalDone {
+          display: none !important;
+          pointer-events: none;
+        }
+
+        #imageModal.is-result-lightbox #imageModalGalleryPolicy {
+          display: none !important;
+        }
+
+        #imageModal.is-result-lightbox #imageModalDoneHelp {
+          max-width: min(100%, 390px);
+          margin-top: 0;
+          padding: 0 2px;
+          font-size: 10px;
+          line-height: 1.45;
+          color: rgba(255, 255, 255, 0.58);
+          text-align: center;
+        }
+
+        #imageModal.is-result-lightbox .image-modal-pager {
+          padding-top: 2px;
+          padding-bottom: 2px;
+        }
+
+        #imageModal.is-result-lightbox #imageModalImg {
+          max-height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 220px));
+        }
+
+        #imageModal.is-result-lightbox .image-modal-image-frame {
+          max-height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 220px));
         }
       }
 
@@ -6809,6 +6861,9 @@
       <button class="image-modal-gallery-exit" id="imageModalGalleryExit" type="button" aria-label="스타일 갤러리 닫기">
         <span class="material-symbols-outlined text-[22px]">arrow_back</span>
       </button>
+      <button class="image-modal-result-exit" id="imageModalResultExit" type="button" aria-label="생성 결과 닫기">
+        <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+      </button>
     </div>
 
     <div class="fixed inset-0 z-[100] hidden bg-[#171113]/95 px-4 py-5 sm:p-8" id="imageSaveModal">
@@ -7868,6 +7923,7 @@ Important:
       const imageModalGalleryInfoCategory = document.getElementById("imageModalGalleryInfoCategory");
       const imageModalGalleryInfoConcept = document.getElementById("imageModalGalleryInfoConcept");
       const imageModalGalleryExit = document.getElementById("imageModalGalleryExit");
+      const imageModalResultExit = document.getElementById("imageModalResultExit");
       const imageModalBadge = document.getElementById("imageModalBadge");
       const imageModalPhotoSave = document.getElementById("imageModalPhotoSave");
       const imageModalGalleryUpload = document.getElementById("imageModalGalleryUpload");
@@ -19586,13 +19642,37 @@ ${modeExample}`;
       function syncImageModalGalleryInfo(item) {
         if (!imageModalGalleryInfo || !imageModalGalleryInfoCategory || !imageModalGalleryInfoConcept) return;
 
-        if (!item?.gallerySource) {
+        if (item?.gallerySource) {
+          const categoryLabel = getGalleryLightboxCategoryLabel(item);
+          const conceptLabel = getGalleryLightboxConceptLabel(item);
+
+          imageModalGalleryInfoCategory.textContent = categoryLabel;
+          imageModalGalleryInfoConcept.textContent = conceptLabel;
+          imageModalGalleryInfo.classList.remove("hidden");
+          imageModalGalleryInfo.setAttribute("aria-hidden", "false");
+          return;
+        }
+
+        if (!item?.url || item?.myPhotoSource) {
           hideImageModalGalleryInfo();
           return;
         }
 
-        const categoryLabel = getGalleryLightboxCategoryLabel(item);
-        const conceptLabel = getGalleryLightboxConceptLabel(item);
+        const categoryLabel = getGalleryLightboxCategoryLabel({
+          mode: activeGenerationMode,
+          generationMode: activeGenerationMode,
+          styleCategory: getLocationCategoryForMode(activeGenerationMode),
+        });
+        const featuredPrefix = `${getFeaturedLabel()} · `;
+        const rawConceptLabel = String(item.label || "").trim();
+        const conceptLabel = rawConceptLabel.startsWith(featuredPrefix)
+          ? rawConceptLabel.slice(featuredPrefix.length).trim()
+          : rawConceptLabel;
+
+        if (!categoryLabel && !conceptLabel) {
+          hideImageModalGalleryInfo();
+          return;
+        }
 
         imageModalGalleryInfoCategory.textContent = categoryLabel;
         imageModalGalleryInfoConcept.textContent = conceptLabel;
@@ -21549,6 +21629,7 @@ ${modeExample}`;
         imageModalImg.dataset.source = isGallerySource ? "gallery" : "result";
         imageModalImageFrame?.classList.toggle("has-logo-watermark", shouldShowLogoWatermark);
         imageModal.classList.toggle("is-gallery-lightbox", isGallerySource);
+        imageModal.classList.toggle("is-result-lightbox", isFreshResultSource);
         syncImageModalGalleryInfo(item);
         syncImageModalOriginalThumbnail(item);
         imageModalLabel.textContent = item.label;
@@ -21685,6 +21766,7 @@ ${modeExample}`;
         imageModal.classList.add("hidden");
         imageModal.classList.remove("flex");
         imageModal.classList.remove("is-gallery-lightbox");
+        imageModal.classList.remove("is-result-lightbox");
         closePhotoSaveModal();
         resetImageModalSwipeState();
         imageModalImg.onerror = null;
@@ -24018,6 +24100,11 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         closeImageModal();
+      });
+      imageModalResultExit?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void completeResultFlow();
       });
 
       imageModalPhotoSave?.addEventListener("click", (event) => {

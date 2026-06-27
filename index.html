@@ -4635,7 +4635,8 @@
 
       .gallery-load-more-sentinel {
         width: 100%;
-        height: 1px;
+        height: 24px;
+        min-height: 24px;
         pointer-events: none;
       }
 
@@ -8037,6 +8038,10 @@ Important:
       let isLoadingMoreGallery = false;
       let galleryLoadMoreFailed = false;
       let galleryLoadMoreObserver = null;
+      let galleryScrollFallbackRafId = null;
+      let galleryAutoLoadMoreAttempts = 0;
+      const GALLERY_AUTO_LOAD_MORE_MAX = 2;
+      let galleryScrollFallbackActive = false;
       const uploadedGalleryImageUrls = new Set();
       let currentGenerationId = "";
       let currentGenerationJobId = "";
@@ -20237,29 +20242,98 @@ ${modeExample}`;
         const pageInfo = payload.pageInfo || payload.page_info || payload.pagination || payload.data?.pageInfo || payload.data?.page_info || payload.data?.pagination || {};
         const limit = Math.max(1, Number(pageInfo.limit ?? payload.limit ?? requestLimit) || requestLimit);
         const offset = Math.max(0, Number(pageInfo.offset ?? payload.offset ?? requestOffset) || requestOffset);
-        const fallbackNextOffset = Math.max(0, requestOffset) + Math.max(0, Number(fallbackCount) || 0);
-        const hasMore = Boolean(
-          pageInfo.hasMore === true
-          || pageInfo.has_more === true
-          || payload.hasMore === true
-          || payload.has_more === true,
+        const itemCount = Math.max(0, Number(fallbackCount) || 0);
+        const fallbackNextOffset = Math.max(0, requestOffset) + itemCount;
+        const explicitHasMore = pageInfo.hasMore ?? pageInfo.has_more ?? payload.hasMore ?? payload.has_more;
+        const hasMore = explicitHasMore === true
+          || (explicitHasMore !== false && itemCount >= limit);
+        const rawNextOffset = Number(
+          pageInfo.nextOffset
+          ?? pageInfo.next_offset
+          ?? payload.nextOffset
+          ?? payload.next_offset,
         );
-        const nextOffset = Math.max(
-          0,
-          Number(
-            pageInfo.nextOffset
-            || pageInfo.next_offset
-            || payload.nextOffset
-            || payload.next_offset
-            || fallbackNextOffset,
-          ) || fallbackNextOffset,
-        );
+        const nextOffset = Number.isFinite(rawNextOffset) && rawNextOffset > offset
+          ? rawNextOffset
+          : fallbackNextOffset;
         return {
           limit,
           offset,
           nextOffset,
           hasMore,
         };
+      }
+
+      function resolveGalleryLoadMoreOffset() {
+        const limit = galleryPagination?.limit || getGalleryPageSize();
+        const currentOffset = Number.isFinite(galleryPagination?.offset) ? galleryPagination.offset : 0;
+        const storedNext = Number(galleryPagination?.nextOffset);
+        const itemCount = galleryImages.length;
+        if (Number.isFinite(storedNext) && storedNext >= itemCount && storedNext > currentOffset) {
+          return storedNext;
+        }
+        return Math.max(itemCount, currentOffset + limit);
+      }
+
+      function getGalleryScrollRoot() {
+        if (!galleryScreen || galleryScreen.classList.contains("hidden")) return null;
+        return galleryScreen;
+      }
+
+      function isGalleryNearBottom() {
+        const margin = 500;
+        const scrollRoot = getGalleryScrollRoot();
+        if (scrollRoot) {
+          return scrollRoot.scrollTop + scrollRoot.clientHeight >= scrollRoot.scrollHeight - margin;
+        }
+        const doc = document.documentElement;
+        return window.innerHeight + window.scrollY >= doc.scrollHeight - margin;
+      }
+
+      function unbindGalleryScrollFallback() {
+        if (!galleryScrollFallbackActive) return;
+        galleryScreen?.removeEventListener("scroll", handleGalleryScrollFallback);
+        window.removeEventListener("scroll", handleGalleryScrollFallback);
+        galleryScrollFallbackActive = false;
+        if (galleryScrollFallbackRafId) {
+          window.cancelAnimationFrame(galleryScrollFallbackRafId);
+          galleryScrollFallbackRafId = null;
+        }
+      }
+
+      function handleGalleryScrollFallback() {
+        if (galleryScrollFallbackRafId) return;
+        galleryScrollFallbackRafId = window.requestAnimationFrame(() => {
+          galleryScrollFallbackRafId = null;
+          if (appScreen !== "gallery") return;
+          if (!galleryPagination?.hasMore || galleryLoadMoreFailed) return;
+          if (isLoadingGallery || isLoadingMoreGallery) return;
+          if (!isGalleryNearBottom()) return;
+          console.info("[gallery][front] scroll fallback near bottom");
+          void loadMoreGalleryItems();
+        });
+      }
+
+      function bindGalleryScrollFallback() {
+        unbindGalleryScrollFallback();
+        if (appScreen !== "gallery") return;
+        galleryScreen?.addEventListener("scroll", handleGalleryScrollFallback, { passive: true });
+        window.addEventListener("scroll", handleGalleryScrollFallback, { passive: true });
+        galleryScrollFallbackActive = true;
+      }
+
+      function maybeAutoLoadMoreGalleryItems() {
+        if (!galleryPagination?.hasMore || galleryLoadMoreFailed) return;
+        if (isLoadingGallery || isLoadingMoreGallery) return;
+        if (galleryAutoLoadMoreAttempts >= GALLERY_AUTO_LOAD_MORE_MAX) return;
+        if (!getGalleryAppendSkeletonCount()) return;
+
+        galleryAutoLoadMoreAttempts += 1;
+        console.info("[gallery][front] auto load more attempt", {
+          attempt: galleryAutoLoadMoreAttempts,
+          maxAttempts: GALLERY_AUTO_LOAD_MORE_MAX,
+        });
+        void loadMoreGalleryItems();
       }
 
       function mergeGalleryItems(existing = [], incoming = []) {
@@ -20277,6 +20351,7 @@ ${modeExample}`;
       function disconnectGalleryLoadMoreObserver() {
         galleryLoadMoreObserver?.disconnect();
         galleryLoadMoreObserver = null;
+        unbindGalleryScrollFallback();
       }
 
       function setupGalleryLoadMoreObserver() {
@@ -20287,21 +20362,38 @@ ${modeExample}`;
         const sentinel = galleryContent.querySelector("[data-gallery-load-more-sentinel]");
         if (!sentinel) return;
 
+        const scrollRoot = getGalleryScrollRoot();
+        console.info("[gallery][front] sentinel mounted", {
+          root: scrollRoot ? "galleryScreen" : "viewport",
+          hasMore: galleryPagination.hasMore,
+          nextOffset: galleryPagination.nextOffset,
+        });
+
         galleryLoadMoreObserver = new IntersectionObserver((entries) => {
-          const entry = entries[0];
-          if (!entry?.isIntersecting) return;
-          void loadMoreGallery();
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            console.info("[gallery][front] sentinel visible");
+            void loadMoreGalleryItems();
+          });
         }, {
-          root: null,
-          rootMargin: "240px 0px",
+          root: scrollRoot,
+          rootMargin: "400px 0px",
           threshold: 0,
         });
         galleryLoadMoreObserver.observe(sentinel);
+        bindGalleryScrollFallback();
       }
 
       async function fetchGalleryPage({ offset = 0, limit = getGalleryPageSize(), replace = false } = {}) {
         ensureApiBaseUrlConfigured();
-        const response = await fetch(getGalleryListUrl(limit, offset), {
+        const requestUrl = getGalleryListUrl(limit, offset);
+        if (replace || offset === 0) {
+          console.info("[gallery][front] first page request", { url: requestUrl, limit, offset });
+        } else {
+          console.info("[gallery][front] load more request", { url: requestUrl, limit, offset });
+        }
+
+        const response = await fetch(requestUrl, {
           method: "GET",
           headers: {
             "X-Anonymous-Id": getAnonymousId(),
@@ -20316,12 +20408,30 @@ ${modeExample}`;
         const payload = await response.json().catch(() => ({}));
         const items = normalizeGalleryItems(payload);
         galleryPagination = normalizeGalleryPagination(payload, items.length, offset, limit);
+        console.info("[gallery][front] pagination state", galleryPagination);
+
+        if (replace || offset === 0) {
+          console.info("[gallery][front] first page success", { count: items.length });
+        } else {
+          console.info("[gallery][front] load more success", { count: items.length });
+        }
+
+        if (!galleryPagination.hasMore) {
+          console.info("[gallery][front] hasMore false");
+        }
 
         if (replace) {
           galleryImages = items;
           brokenGalleryLightboxItemKeys.clear();
         } else {
+          const beforeCount = galleryImages.length;
           galleryImages = mergeGalleryItems(galleryImages, items);
+          const appendCount = galleryImages.length - beforeCount;
+          const duplicateSkipped = Math.max(0, items.length - appendCount);
+          console.info("[gallery][front] append count", appendCount);
+          if (duplicateSkipped) {
+            console.info("[gallery][front] duplicate skipped count", duplicateSkipped);
+          }
         }
 
         galleryImages.forEach((item) => {
@@ -20332,7 +20442,7 @@ ${modeExample}`;
         return { items, pagination: galleryPagination };
       }
 
-      async function loadMoreGallery() {
+      async function loadMoreGalleryItems() {
         if (!galleryPagination?.hasMore) return;
         if (isLoadingGallery || isLoadingMoreGallery) return;
 
@@ -20342,23 +20452,32 @@ ${modeExample}`;
 
         try {
           const limit = galleryPagination.limit || getGalleryPageSize();
-          const offset = Number.isFinite(galleryPagination.nextOffset)
-            ? galleryPagination.nextOffset
-            : galleryImages.length;
+          const offset = resolveGalleryLoadMoreOffset();
           await fetchGalleryPage({ offset, limit, replace: false });
           galleryLoadMoreFailed = false;
           renderGalleryScreen();
           syncOpenGalleryLightboxAfterGalleryRefresh("append");
         } catch (error) {
-          if (DEBUG_MODE) {
-            console.warn("[client][gallery] load-more failed:", error);
-          }
+          console.warn("[gallery][front] load more failed", error);
           galleryLoadMoreFailed = true;
           renderGalleryScreen();
         } finally {
           isLoadingMoreGallery = false;
           setupGalleryLoadMoreObserver();
+          if (galleryPagination?.hasMore && !galleryLoadMoreFailed) {
+            window.requestAnimationFrame(() => {
+              if (isGalleryNearBottom()) {
+                handleGalleryScrollFallback();
+              } else {
+                maybeAutoLoadMoreGalleryItems();
+              }
+            });
+          }
         }
+      }
+
+      function loadMoreGallery() {
+        return loadMoreGalleryItems();
       }
 
       function maybePrefetchGalleryLightboxPage() {
@@ -20368,7 +20487,7 @@ ${modeExample}`;
         if (!items.length) return;
         const remaining = items.length - 1 - activeImageModalIndex;
         if (remaining <= 2) {
-          void loadMoreGallery();
+          void loadMoreGalleryItems();
         }
       }
 
@@ -21149,6 +21268,9 @@ ${modeExample}`;
             }
           });
           setupGalleryLoadMoreObserver();
+          if (!isLoadingGallery && !isLoadingMoreGallery) {
+            maybeAutoLoadMoreGalleryItems();
+          }
         });
       }
 
@@ -21160,10 +21282,11 @@ ${modeExample}`;
         galleryPagination = {
           limit: pageSize,
           offset: 0,
-          nextOffset: 0,
+          nextOffset: pageSize,
           hasMore: true,
         };
         galleryLoadMoreFailed = false;
+        galleryAutoLoadMoreAttempts = 0;
         disconnectGalleryLoadMoreObserver();
 
         if (galleryImages.length) {
@@ -21189,6 +21312,8 @@ ${modeExample}`;
           }
         } finally {
           isLoadingGallery = false;
+          setupGalleryLoadMoreObserver();
+          maybeAutoLoadMoreGalleryItems();
         }
       }
 
@@ -23360,6 +23485,9 @@ ${modeExample}`;
         if (!(image instanceof HTMLImageElement)) return;
         if (!image.classList.contains("gallery-main-image")) return;
         updateGalleryImageLayout(image);
+        if (appScreen === "gallery" && galleryPagination?.hasMore && !galleryLoadMoreFailed) {
+          setupGalleryLoadMoreObserver();
+        }
       }, true);
 
       galleryContent?.addEventListener("dragstart", (event) => {

@@ -1174,6 +1174,10 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.76);
       }
 
+      #myPhotoBoxAuthedContent:not(.hidden) {
+        margin-top: 8px;
+      }
+
       .my-photo-state-card {
         border-radius: 28px;
         padding: 24px 18px;
@@ -6144,11 +6148,6 @@
               </section>
 
               <section class="hidden flex-col gap-4" id="myPhotoBoxAuthedContent">
-                <div class="my-photo-hero">
-                  <h2 class="font-display text-[26px] leading-tight text-on-surface">내가 만든 사진을 다시 확인하고 저장할 수 있어요.</h2>
-                  <p class="mt-2 text-sm leading-6 text-on-surface-variant">생성 결과와 갤러리 업로드 이력을 한 곳에서 관리할 수 있도록 준비 중입니다.</p>
-                </div>
-
                 <div class="my-photo-grid" id="myPhotoBoxGrid"></div>
 
                 <section class="my-photo-state-card hidden" id="myPhotoBoxEmptyState">

@@ -1621,15 +1621,97 @@
         color: #fff;
       }
 
-      .signup-guide-hint-box {
-        margin-top: 14px;
-        padding: 14px 16px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.78);
-        border: 1px solid rgba(212, 119, 106, 0.14);
+      .signup-guide-visual-card {
+        margin-top: 18px;
+        border-radius: 22px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(212, 119, 106, 0.12);
+        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
       }
 
-      .signup-guide-hint-box p {
+      .signup-guide-placeholder-media {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .signup-guide-placeholder-media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .signup-guide-before-after-placeholder {
+        position: relative;
+      }
+
+      .signup-guide-before-after-placeholder .signup-guide-placeholder-media {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: clamp(220px, 42dvh, 360px);
+      }
+
+      .signup-guide-before-after-panel {
+        position: relative;
+        min-height: inherit;
+        background:
+          linear-gradient(180deg, rgba(255, 244, 246, 0.96), rgba(255, 232, 236, 0.82));
+      }
+
+      .signup-guide-before-after-panel.is-after {
+        background:
+          linear-gradient(180deg, rgba(244, 228, 232, 0.96), rgba(232, 210, 218, 0.84));
+      }
+
+      .signup-guide-before-after-panel .signup-guide-visual-surface {
+        position: absolute;
+        inset: 28px 14px 18px;
+        border-radius: 16px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(240, 220, 226, 0.55));
+        border: 1px dashed rgba(129, 80, 92, 0.16);
+      }
+
+      .signup-guide-before-after-panel.is-after .signup-guide-visual-surface {
+        background:
+          linear-gradient(145deg, rgba(255, 248, 250, 0.82), rgba(212, 119, 106, 0.18));
+      }
+
+      .signup-guide-before-after-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #81505c;
+      }
+
+      .signup-guide-before-after-divider {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 0 12px rgba(129, 80, 92, 0.12);
+        pointer-events: none;
+      }
+
+      .signup-guide-copy-block {
+        margin-top: 14px;
+        text-align: center;
+      }
+
+      .signup-guide-copy-block p {
         margin: 0;
         font-size: 14px;
         line-height: 1.65;
@@ -1637,29 +1719,117 @@
         word-break: keep-all;
       }
 
-      .signup-guide-hint-box p + p {
-        margin-top: 8px;
+      .signup-guide-copy-block p + p {
+        margin-top: 6px;
       }
 
-      .signup-guide-example-image-wrap {
-        margin-top: 12px;
+      .signup-guide-style-mock {
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(212, 119, 106, 0.12);
+        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
       }
 
-      .signup-guide-example-image {
-        display: block;
-        width: 100%;
-        max-height: 180px;
-        object-fit: cover;
+      .signup-guide-style-mock-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .signup-guide-style-mock-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 92px;
+        padding: 12px 10px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(129, 80, 92, 0.1);
+        color: #6f5558;
+        text-align: center;
+      }
+
+      .signup-guide-style-mock-option.is-active {
+        background: rgba(255, 236, 232, 0.92);
+        border-color: rgba(212, 119, 106, 0.34);
+        box-shadow: 0 10px 24px rgba(212, 119, 106, 0.14);
+        color: #81505c;
+      }
+
+      .signup-guide-style-mock-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(129, 80, 92, 0.08);
+        color: #81505c;
+      }
+
+      .signup-guide-style-mock-option.is-active .signup-guide-style-mock-icon {
+        background: rgba(212, 119, 106, 0.16);
+      }
+
+      .signup-guide-style-mock-label {
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .signup-guide-gallery-mock,
+      .signup-guide-myphotobox-mock {
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(212, 119, 106, 0.12);
+        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
+      }
+
+      .signup-guide-gallery-mock-hero,
+      .signup-guide-myphotobox-mock-hero {
+        min-height: clamp(140px, 28dvh, 220px);
         border-radius: 16px;
+        background:
+          linear-gradient(145deg, rgba(255, 244, 246, 0.96), rgba(240, 220, 226, 0.72));
+        border: 1px dashed rgba(129, 80, 92, 0.14);
+      }
+
+      .signup-guide-gallery-mock-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .signup-guide-gallery-mock-tile {
+        display: block;
+        aspect-ratio: 3 / 4;
+        border-radius: 12px;
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.82), rgba(244, 214, 220, 0.62));
         border: 1px solid rgba(129, 80, 92, 0.08);
       }
 
-      .signup-guide-image-caption {
-        margin: 8px 0 0;
-        text-align: center;
-        font-size: 12px;
-        line-height: 1.5;
-        color: #8d7477;
+      .signup-guide-myphotobox-mock-thumbs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .signup-guide-myphotobox-mock-thumbs span {
+        display: block;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        background:
+          linear-gradient(160deg, rgba(255, 255, 255, 0.82), rgba(244, 214, 220, 0.62));
+        border: 1px solid rgba(129, 80, 92, 0.08);
       }
 
       .signup-guide-info-card {
@@ -1693,25 +1863,6 @@
       .signup-guide-info-card.is-highlight p:first-child {
         font-weight: 800;
         color: #4a3736;
-      }
-
-      .signup-guide-gallery-card {
-        overflow: hidden;
-        padding: 0;
-      }
-
-      .signup-guide-gallery-card img {
-        display: block;
-        width: 100%;
-        max-height: 220px;
-        object-fit: cover;
-      }
-
-      .signup-guide-gallery-card .signup-guide-info-card {
-        margin: 0;
-        border: none;
-        border-radius: 0;
-        background: rgba(255, 255, 255, 0.92);
       }
 
       .signup-guide-footer {
@@ -8649,12 +8800,7 @@ Important:
         studioPhoto: null,
         concept: null,
       };
-      const SIGNUP_GUIDE_STEP_COUNT = 4;
-      const SIGNUP_GUIDE_ONBOARDING_IMAGES = {
-        beforeAfter: "public/images/onboarding/signup_guide_before_after_studio.png",
-        studioStyle: "public/images/onboarding/signup_guide_studio_style_recommendation.png",
-        galleryPreview: "public/images/onboarding/signup_guide_gallery_preview.png",
-      };
+      const SIGNUP_GUIDE_STEP_COUNT = 5;
       let isCompletingOnboarding = false;
       let lastGenerationUsedFreeCredit = false;
       let lastDelayedGenerationJobId = "";
@@ -15477,111 +15623,107 @@ Important:
               <span class="signup-guide-choice-check" aria-hidden="true"><span class="material-symbols-outlined text-[14px]">check</span></span>
             </button>
           </div>
-          ${hasStudioPhoto ? `
-            <div class="signup-guide-hint-box">
-              <p>좋아요. 흰 배경, 선명한 얼굴, 고화질 사진일수록 결과가 더 자연스럽게 나와요.</p>
-              <p>정면에 가깝고 얼굴이 가려지지 않은 사진을 추천해요.</p>
-            </div>
-            <div class="signup-guide-example-image-wrap">
-              <img class="signup-guide-example-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.beforeAfter}" alt="선명한 스튜디오 원본 사진 예시" decoding="async" />
-              <p class="signup-guide-image-caption">선명한 원본일수록 자연스러운 결과가 나와요.</p>
-            </div>
-          ` : ""}
-          ${noStudioPhoto ? `
-            <div class="signup-guide-hint-box">
-              <p>괜찮아요. Studio Style에서 흰배경샷, 쇼파샷, 꽃잎샷, 한복샷 같은 스튜디오 콘셉트를 추천해드릴게요.</p>
-              <p>일상 사진도 얼굴이 선명하면 웨딩 스튜디오 느낌으로 바꿀 수 있어요.</p>
-            </div>
-            <div class="signup-guide-example-image-wrap">
-              <img class="signup-guide-example-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle}" alt="Studio Style 추천 예시" decoding="async" />
-              <p class="signup-guide-image-caption">스튜디오 사진이 없어도 Studio Style로 시작할 수 있어요.</p>
-            </div>
-          ` : ""}
         `;
       }
 
-      function renderSignupGuideConceptStep() {
-        const concepts = [
-          {
-            value: "europe",
-            label: "유럽 감성",
-            description: "파리, 베네치아, 아말피처럼 여행 스냅 느낌",
-            icon: "🗼",
-          },
-          {
-            value: "korea",
-            label: "한국 감성",
-            description: "서울숲, 제주, 핑크뮬리처럼 자연스러운 야외 감성",
-            icon: "🌸",
-          },
-          {
-            value: "disney",
-            label: "디즈니 실사풍",
-            description: "동화 같은 분위기를 실사 톤으로",
-            icon: "✨",
-          },
-          {
-            value: "studio",
-            label: "스튜디오 스타일",
-            description: "흰배경, 쇼파, 꽃잎, 한복 콘셉트",
-            icon: "📷",
-          },
+      function renderSignupGuideBeforeAfterStep() {
+        return `
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("사진 한 장으로 분위기가 달라져요", "분위기가 달라져요")}</h2>
+          <p class="signup-guide-subtitle">원본은 유지하고, 원하는 스타일로 바꿔볼 수 있어요.</p>
+          <div class="signup-guide-divider" aria-hidden="true">♥</div>
+          <div class="signup-guide-visual-card signup-guide-before-after-placeholder" data-signup-guide-placeholder="before-after">
+            <div class="signup-guide-placeholder-media">
+              <div class="signup-guide-before-after-panel is-before">
+                <span class="signup-guide-before-after-label">Before</span>
+                <div class="signup-guide-visual-surface" aria-hidden="true"></div>
+              </div>
+              <div class="signup-guide-before-after-panel is-after">
+                <span class="signup-guide-before-after-label">After</span>
+                <div class="signup-guide-visual-surface" aria-hidden="true"></div>
+              </div>
+            </div>
+            <span class="signup-guide-before-after-divider" aria-hidden="true"></span>
+          </div>
+        `;
+      }
+
+      function renderSignupGuideStyleButtonsStep() {
+        const styleOptions = [
+          { label: "Europe Style", icon: "travel_explore", active: true },
+          { label: "Korea Style", icon: "forest", active: false },
+          { label: "Disney Style", icon: "auto_awesome", active: false },
+          { label: "Studio Style", icon: "photo_camera", active: false },
         ];
 
         return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("어떤 컨셉이 마음에 드시나요?", "마음에 드시나요?")}</h2>
-          <p class="signup-guide-subtitle">처음 만들어보고 싶은 분위기를 골라보세요.</p>
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("원하는 분위기를 골라보세요", "분위기를 골라보세요")}</h2>
+          <p class="signup-guide-subtitle">유럽, 한국, 디즈니, 스튜디오 스타일 중 원하는 콘셉트를 선택할 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-choice-grid">
-            ${concepts.map((concept) => `
-              <button class="signup-guide-choice-card is-grid ${signupGuideSelections.concept === concept.value ? "is-selected" : ""}" data-signup-guide-choice="concept" data-choice-value="${escapeHtml(concept.value)}" type="button">
-                <span class="signup-guide-choice-icon" aria-hidden="true">${concept.icon}</span>
-                <span class="signup-guide-choice-copy">
-                  <span class="signup-guide-choice-label">${escapeHtml(concept.label)}</span>
-                  <span class="signup-guide-choice-description">${escapeHtml(concept.description)}</span>
-                </span>
-                <span class="signup-guide-choice-check" aria-hidden="true"><span class="material-symbols-outlined text-[14px]">check</span></span>
-              </button>
-            `).join("")}
+          <div class="signup-guide-style-mock" data-signup-guide-placeholder="style-buttons">
+            <div class="signup-guide-style-mock-grid">
+              ${styleOptions.map((option) => `
+                <div class="signup-guide-style-mock-option ${option.active ? "is-active" : ""}">
+                  <span class="signup-guide-style-mock-icon material-symbols-outlined text-[18px]" aria-hidden="true">${option.icon}</span>
+                  <span class="signup-guide-style-mock-label">${escapeHtml(option.label)}</span>
+                </div>
+              `).join("")}
+            </div>
           </div>
         `;
       }
 
       function renderSignupGuideGalleryStep() {
         return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("다양한 컨셉을 활용해보세요", "활용해보세요")}</h2>
-          <p class="signup-guide-subtitle">다른 고객들의 결과를 보며 원하는 분위기를 찾아볼 수 있어요.</p>
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("다양한 스타일을 살펴보세요", "살펴보세요")}</h2>
+          <p class="signup-guide-subtitle">스타일 갤러리에서 다양한 결과를 둘러볼 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-gallery-card signup-guide-info-card">
-            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.galleryPreview}" alt="스타일 갤러리 미리보기" decoding="async" />
-            <div class="signup-guide-info-card">
-              <p>스타일 갤러리에서 다양한 결과를 둘러보고, 마음에 드는 콘셉트를 참고해보세요.</p>
-              <p>결과 사진을 스타일 갤러리에 올리면 제작권 1회가 지급돼요.</p>
+          <div class="signup-guide-gallery-mock" data-signup-guide-placeholder="gallery">
+            <div class="signup-guide-gallery-mock-hero signup-guide-placeholder-media" aria-hidden="true"></div>
+            <div class="signup-guide-gallery-mock-grid" aria-hidden="true">
+              ${Array.from({ length: 6 }, () => '<span class="signup-guide-gallery-mock-tile"></span>').join("")}
             </div>
+          </div>
+          <div class="signup-guide-copy-block">
+            <p>다른 결과를 보며 원하는 분위기를 참고할 수 있어요.</p>
           </div>
         `;
       }
 
-      function renderSignupGuideStartStep() {
+      function renderSignupGuideMyPhotoBoxStep() {
         return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("이제 첫 사진을 만들어볼까요?", "만들어볼까요?")}</h2>
-          <p class="signup-guide-subtitle">사진 한 장을 올리고 원하는 스타일을 골라보세요.</p>
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("완성된 사진은 마이포토박스에", "마이포토박스에")}</h2>
+          <p class="signup-guide-subtitle">내가 만든 사진을 한곳에 모아볼 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
+          <div class="signup-guide-myphotobox-mock" data-signup-guide-placeholder="myphotobox">
+            <div class="signup-guide-myphotobox-mock-hero signup-guide-placeholder-media" aria-hidden="true"></div>
+            <div class="signup-guide-myphotobox-mock-thumbs" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
           <div class="signup-guide-info-card is-highlight">
             <p>신규 가입 고객에게 첫 제작 1회가 제공돼요.</p>
           </div>
           <div class="signup-guide-info-card">
-            <p>AI가 4장의 결과를 만들어드리고, 마음에 드는 사진을 저장할 수 있어요.</p>
             <p>완성된 사진은 마이포토박스에서 다시 확인할 수 있어요.</p>
+            <p>저장한 결과를 다시 확인할 수 있어요.</p>
           </div>
         `;
       }
 
       function renderSignupGuideStepContent(stepIndex) {
         if (stepIndex === 0) return renderSignupGuideStudioPhotoStep();
-        if (stepIndex === 1) return renderSignupGuideConceptStep();
-        if (stepIndex === 2) return renderSignupGuideGalleryStep();
-        return renderSignupGuideStartStep();
+        if (stepIndex === 1) return renderSignupGuideBeforeAfterStep();
+        if (stepIndex === 2) return renderSignupGuideStyleButtonsStep();
+        if (stepIndex === 3) return renderSignupGuideGalleryStep();
+        return renderSignupGuideMyPhotoBoxStep();
+      }
+
+      function isSignupGuideContinueDisabled(stepIndex) {
+        if (isCompletingOnboarding) return true;
+        if (stepIndex === 0 && !signupGuideSelections.studioPhoto) return true;
+        return false;
       }
 
       function getFirstOnboardingPages() {
@@ -15685,6 +15827,7 @@ Important:
         const currentStep = Math.min(Math.max(siteGuidePageIndex, 0), stepCount - 1);
         const isPreview = isSignupGuidePreviewMode();
         const isLastStep = currentStep === stepCount - 1;
+        const continueDisabled = isSignupGuideContinueDisabled(currentStep);
         const buttonLabel = isLastStep
           ? (isPreview
             ? "미리보기 닫기"
@@ -15710,7 +15853,7 @@ Important:
               ${renderSignupGuideStepContent(currentStep)}
             </div>
             <div class="signup-guide-footer">
-              <button class="signup-guide-continue-button" id="siteGuideNextButton" type="button" ${isCompletingOnboarding ? "disabled" : ""}>
+              <button class="signup-guide-continue-button" id="siteGuideNextButton" type="button" ${continueDisabled ? "disabled" : ""}>
                 <span>${buttonLabel}</span>
                 <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
               </button>

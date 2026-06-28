@@ -547,6 +547,50 @@
         display: none;
       }
 
+      .account-menu-item-admin-tool {
+        font-size: 13px;
+      }
+
+      .account-menu-item-admin-tool span:last-child {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+      }
+
+      .account-menu-item-admin-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: rgba(129, 80, 92, 0.72);
+      }
+
+      .signup-guide-preview-banner {
+        display: grid;
+        gap: 4px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        border-radius: 16px;
+        background: rgba(129, 80, 92, 0.08);
+        border: 1px dashed rgba(129, 80, 92, 0.24);
+      }
+
+      .signup-guide-preview-badge {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #81505c;
+      }
+
+      .signup-guide-preview-note {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #6b5659;
+      }
+
       .account-user-avatar {
         width: 40px;
         height: 40px;
@@ -1272,19 +1316,22 @@
         padding-bottom: 18px;
       }
 
-      #siteGuideScreen {
+      #siteGuideScreen,
+      #contactGuideScreen {
         height: 100%;
         min-height: 0;
         overflow: hidden;
         padding-bottom: 0;
       }
 
-      #siteGuideScreen:not(.hidden) {
+      #siteGuideScreen:not(.hidden),
+      #contactGuideScreen:not(.hidden) {
         display: flex;
         flex-direction: column;
       }
 
-      #siteGuideScreen .app-topbar {
+      #siteGuideScreen .app-topbar,
+      #contactGuideScreen .app-topbar {
         flex-shrink: 0;
       }
 
@@ -6197,22 +6244,6 @@
               <section class="site-guide-card site-guide-info-card site-guide-general-only">
                 <div class="flex items-start gap-3">
                   <div class="my-photo-icon shrink-0 m-0" aria-hidden="true">
-                    <span class="material-symbols-outlined text-[25px]">verified_user</span>
-                  </div>
-                  <div class="min-w-0">
-                    <h2 class="font-display text-[25px] leading-tight text-on-surface">사진 보관 안내</h2>
-                    <div class="mt-3 space-y-2 text-sm leading-6 text-on-surface-variant">
-                      <p>고객님의 원본 사진은 AI 사진 생성에만 사용되며, 생성 후 바로 삭제되는 정책으로 운영됩니다.</p>
-                      <p>생성된 결과 사진은 다운로드 편의를 위해 최대 7일간 보관된 뒤 삭제됩니다.</p>
-                      <p>스타일 갤러리에 직접 업로드한 사진은 공개 갤러리에 표시되며, 삭제를 원하실 경우 문의하기를 통해 요청하실 수 있습니다.</p>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section class="site-guide-card site-guide-info-card site-guide-general-only">
-                <div class="flex items-start gap-3">
-                  <div class="my-photo-icon shrink-0 m-0" aria-hidden="true">
                     <span class="material-symbols-outlined text-[25px]">account_balance_wallet</span>
                   </div>
                   <div class="min-w-0 flex-1">
@@ -6245,16 +6276,71 @@
                   </div>
                 </div>
               </section>
+            </div>
+          </section>
 
-              <section class="site-guide-general-only">
-                <h2 class="mb-3 text-[17px] font-bold text-on-surface">자주 묻는 질문</h2>
-                <div class="site-guide-faq-list" id="siteGuideFaqList"></div>
+          <section class="screen-panel app-screen hidden" id="contactGuideScreen">
+            <div class="app-topbar">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button" aria-label="뒤로가기">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+              </button>
+              <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm app-topbar-logo" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+              </button>
+              <span class="w-9"></span>
+            </div>
+
+            <div class="site-guide-scroll mt-4 flex flex-col gap-4">
+              <section class="site-guide-hero">
+                <span class="brand-logo brand-logo-horizontal brand-logo-sm" aria-label="Magic Ai Studio">
+                  <img src="public/branding/ai-studio-logo-horizontal.png" alt="Magic Ai Studio" decoding="async" onerror="this.closest('.brand-logo')?.classList.add('is-fallback')" />
+                  <span class="brand-logo-fallback">Magic Ai Studio</span>
+                </span>
+                <p class="font-label-caps text-label-caps uppercase text-primary/80">Contact</p>
+                <h1 class="mt-2 font-display text-[30px] leading-tight text-on-surface">문의하기</h1>
+                <p class="mt-2 text-sm leading-6 text-on-surface-variant">사진 보관, 갤러리 삭제, 이용권 등 궁금한 점을 먼저 확인하신 뒤 어시스턴트를 통해 카카오톡으로 문의하실 수 있어요.</p>
               </section>
 
-              <section class="site-guide-card site-guide-info-card site-guide-general-only text-center">
+              <section class="site-guide-card site-guide-info-card">
+                <div class="flex items-start gap-3">
+                  <div class="my-photo-icon shrink-0 m-0" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[25px]">support_agent</span>
+                  </div>
+                  <div class="min-w-0">
+                    <h2 class="font-display text-[22px] leading-tight text-on-surface">카카오톡 문의 안내</h2>
+                    <p class="mt-3 text-sm leading-6 text-on-surface-variant">어시스턴트를 누르면 카카오톡으로 문의할 수 있어요.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="site-guide-card site-guide-info-card">
+                <div class="flex items-start gap-3">
+                  <div class="my-photo-icon shrink-0 m-0" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[25px]">verified_user</span>
+                  </div>
+                  <div class="min-w-0">
+                    <h2 class="font-display text-[25px] leading-tight text-on-surface">사진 보관 안내</h2>
+                    <div class="mt-3 space-y-2 text-sm leading-6 text-on-surface-variant">
+                      <p>고객님의 원본 사진은 AI 사진 생성에만 사용되며, 생성 후 바로 삭제되는 정책으로 운영됩니다.</p>
+                      <p>생성된 결과 사진은 다운로드 편의를 위해 최대 7일간 보관된 뒤 삭제됩니다.</p>
+                      <p>스타일 갤러리에 직접 업로드한 사진은 공개 갤러리에 표시되며, 삭제를 원하실 경우 문의하기를 통해 요청하실 수 있습니다.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section>
+                <h2 class="mb-3 text-[17px] font-bold text-on-surface">자주 묻는 질문</h2>
+                <div class="site-guide-faq-list" id="contactGuideFaqList"></div>
+              </section>
+
+              <section class="site-guide-card site-guide-info-card text-center">
                 <h2 class="font-display text-[25px] leading-tight text-on-surface">더 궁금한 점이 있으신가요?</h2>
                 <p class="mt-2 text-sm leading-6 text-on-surface-variant">어시스턴트에게 문의하면 원하는 스타일과 사용 방법을 함께 안내해드릴게요.</p>
-                <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="siteGuideContactButton" type="button">
+                <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" id="contactGuideContactButton" type="button">
                   더 궁금한 점 문의하기
                 </button>
               </section>
@@ -6567,6 +6653,13 @@
                 <button class="account-menu-item hidden" data-account-menu-action="admin" id="accountMenuAdminItem" type="button">
                   <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">admin_panel_settings</span>
                   <span>관리자</span>
+                </button>
+                <button class="account-menu-item account-menu-item-admin-tool hidden" data-account-menu-action="signup-guide-preview" id="accountMenuSignupGuidePreviewItem" type="button">
+                  <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">preview</span>
+                  <span>
+                    <span>신규가입 안내 미리보기</span>
+                    <span class="account-menu-item-admin-label">관리자 전용</span>
+                  </span>
                 </button>
                 <button class="account-menu-item" data-account-menu-action="contact" type="button">
                   <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">support_agent</span>
@@ -7873,6 +7966,7 @@ Important:
       const galleryScreen = document.getElementById("galleryScreen");
       const myPhotoBoxScreen = document.getElementById("myPhotoBoxScreen");
       const siteGuideScreen = document.getElementById("siteGuideScreen");
+      const contactGuideScreen = document.getElementById("contactGuideScreen");
       const creditsScreen = document.getElementById("creditsScreen");
       const adminScreen = document.getElementById("adminScreen");
       const termsScreen = document.getElementById("termsScreen");
@@ -7886,9 +7980,9 @@ Important:
       const myPhotoBoxLoginButton = document.getElementById("myPhotoBoxLoginButton");
       const myPhotoBoxCreateButton = document.getElementById("myPhotoBoxCreateButton");
       const siteGuideStepsContainer = document.getElementById("siteGuideSteps");
-      const siteGuideFaqList = document.getElementById("siteGuideFaqList");
+      const contactGuideFaqList = document.getElementById("contactGuideFaqList");
       const siteGuideCreditButton = document.getElementById("siteGuideCreditButton");
-      const siteGuideContactButton = document.getElementById("siteGuideContactButton");
+      const contactGuideContactButton = document.getElementById("contactGuideContactButton");
       const authTabList = document.querySelector(".auth-tab-list");
       const authTabButtons = Array.from(document.querySelectorAll("[data-auth-tab]"));
       const authTabPanels = Array.from(document.querySelectorAll("[data-auth-panel]"));
@@ -7905,6 +7999,7 @@ Important:
       const policyTargetButtons = Array.from(document.querySelectorAll("[data-policy-target]"));
       const policyBackButtons = Array.from(document.querySelectorAll("[data-policy-back]"));
       const accountMenuAdminItem = document.getElementById("accountMenuAdminItem");
+      const accountMenuSignupGuidePreviewItem = document.getElementById("accountMenuSignupGuidePreviewItem");
       const accountMenuUserLinkedProviders = document.getElementById("accountMenuUserLinkedProviders");
       const generatingGalleryPreview = document.getElementById("generatingGalleryPreview");
       const generatingGallerySlider = document.getElementById("generatingGallerySlider");
@@ -9973,6 +10068,7 @@ Important:
         accountMenuUserCard?.classList.toggle("hidden", !hasUser);
         accountMenuCustomerInfoButton?.classList.toggle("hidden", !hasUser);
         accountMenuAdminItem?.classList.toggle("hidden", !(hasUser && canShowAdminEntry()));
+        accountMenuSignupGuidePreviewItem?.classList.toggle("hidden", !(hasUser && canShowAdminEntry()));
 
         if (!hasUser) return;
 
@@ -14843,7 +14939,34 @@ Important:
       }
 
       function isFirstOnboardingOpen() {
-        return appScreen === "siteGuide" && siteGuideMode === "firstOnboarding";
+        return appScreen === "siteGuide" && (siteGuideMode === "firstOnboarding" || siteGuideMode === "firstOnboardingPreview");
+      }
+
+      function isSignupGuidePreviewMode() {
+        return siteGuideMode === "firstOnboardingPreview";
+      }
+
+      function isFirstOnboardingGuideMode() {
+        return siteGuideMode === "firstOnboarding" || siteGuideMode === "firstOnboardingPreview";
+      }
+
+      function exitSignupGuidePreview(options = {}) {
+        if (!isSignupGuidePreviewMode()) return;
+        siteGuideMode = "general";
+        siteGuidePageIndex = 0;
+        isCompletingOnboarding = false;
+        const returnScreen = options.returnScreen || "home";
+        if (appScreen === returnScreen) {
+          renderSiteGuideScreen();
+          if (options.showToast !== false) {
+            showAccountMenuToast("미리보기를 종료했습니다.");
+          }
+          return;
+        }
+        navigateToScreen(returnScreen);
+        if (options.showToast !== false) {
+          showAccountMenuToast("미리보기를 종료했습니다.");
+        }
       }
 
       function syncBottomNavUi(activeKey = getBottomNavKeyForScreen(appScreen)) {
@@ -14975,14 +15098,23 @@ Important:
         const pageCount = pages.length;
         const currentPage = Math.min(Math.max(siteGuidePageIndex, 0), pageCount - 1);
         const pageSteps = pages[currentPage];
+        const isPreview = isSignupGuidePreviewMode();
         const buttonLabel = currentPage === pageCount - 1
-          ? (isCompletingOnboarding ? "이용안내 완료 처리 중..." : "확인하고 무료 1회 받기")
+          ? (isPreview
+            ? "미리보기 닫기"
+            : (isCompletingOnboarding ? "이용안내 완료 처리 중..." : "확인하고 무료 1회 받기"))
           : "다음";
         const priorStepCount = pages.slice(0, currentPage).reduce((total, page) => total + page.length, 0);
 
         siteGuideStepsContainer.innerHTML = `
           <div class="onboarding-page is-first-onboarding">
             <div class="first-onboarding-scroll">
+              ${isPreview ? `
+                <div class="signup-guide-preview-banner" role="status" aria-live="polite">
+                  <span class="signup-guide-preview-badge">미리보기 모드</span>
+                  <p class="signup-guide-preview-note">미리보기에서는 무료 제작권이 지급되지 않습니다.</p>
+                </div>
+              ` : ""}
               <div class="onboarding-cards-grid">
                 ${pageSteps.map((step, offset) => {
                   const stepNumber = priorStepCount + offset + 1;
@@ -14995,8 +15127,9 @@ Important:
               <button class="onboarding-footer-button" id="siteGuideNextButton" type="button" ${isCompletingOnboarding ? "disabled" : ""}>
                 ${buttonLabel}
               </button>
+              ${isPreview ? `<p class="signup-guide-preview-note mt-2 text-center">미리보기에서는 무료 제작권이 지급되지 않습니다.</p>` : ""}
             </div>
-            ${isCompletingOnboarding ? `
+            ${!isPreview && isCompletingOnboarding ? `
               <div class="onboarding-processing-overlay" role="status" aria-live="polite">
                 <div class="onboarding-processing-spinner" aria-hidden="true"></div>
                 <strong class="text-primary">이용안내 완료 처리 중입니다. 잠시만 기다려 주세요.</strong>
@@ -15006,24 +15139,29 @@ Important:
         `;
       }
 
+      function renderContactGuideScreen() {
+        if (contactGuideFaqList && !contactGuideFaqList.dataset.rendered) {
+          contactGuideFaqList.innerHTML = guideFaqItems.map((item, index) => `
+            <details class="site-guide-faq" ${index === 0 ? "open" : ""}>
+              <summary>${escapeHtml(item.question)}</summary>
+              <div class="site-guide-faq-answer">${escapeHtml(item.answer)}</div>
+            </details>
+          `).join("");
+          contactGuideFaqList.dataset.rendered = "true";
+        }
+        syncBottomNavUi();
+      }
+
       function renderSiteGuideScreen() {
-        const isFirstOnboardingMode = siteGuideMode === "firstOnboarding";
+        const isFirstOnboardingMode = isFirstOnboardingGuideMode();
         siteGuideScreen?.classList.toggle("is-first-onboarding", isFirstOnboardingMode);
+        siteGuideScreen?.classList.toggle("is-preview-mode", isSignupGuidePreviewMode());
         if (isFirstOnboardingMode) {
           renderFirstTimeOnboardingGuide();
         } else {
           renderGeneralSiteGuide();
         }
 
-        if (siteGuideFaqList && !siteGuideFaqList.dataset.rendered) {
-          siteGuideFaqList.innerHTML = guideFaqItems.map((item, index) => `
-            <details class="site-guide-faq" ${index === 0 ? "open" : ""}>
-              <summary>${escapeHtml(item.question)}</summary>
-              <div class="site-guide-faq-answer">${escapeHtml(item.answer)}</div>
-            </details>
-          `).join("");
-          siteGuideFaqList.dataset.rendered = "true";
-        }
         syncBottomNavUi();
       }
 
@@ -15070,7 +15208,8 @@ Important:
       }
 
       async function handleSiteGuideNext() {
-        if (siteGuideMode !== "firstOnboarding") {
+        const isPreview = isSignupGuidePreviewMode();
+        if (!isFirstOnboardingGuideMode()) {
           return;
         }
 
@@ -15082,6 +15221,15 @@ Important:
         if (siteGuidePageIndex < pageCount - 1) {
           siteGuidePageIndex += 1;
           renderSiteGuideScreen();
+          return;
+        }
+
+        if (isPreview) {
+          exitSignupGuidePreview();
+          return;
+        }
+
+        if (siteGuideMode !== "firstOnboarding") {
           return;
         }
 
@@ -16617,6 +16765,8 @@ Important:
           }
         }
 
+        const previousScreen = appScreen;
+
         appScreen = screen;
         rememberAppScreen(screen);
         const isLanding = screen === "landing";
@@ -16629,6 +16779,12 @@ Important:
           stopUploadTipRotator();
         }
 
+        if (previousScreen === "siteGuide" && screen !== "siteGuide" && siteGuideMode === "firstOnboardingPreview") {
+          siteGuideMode = "general";
+          siteGuidePageIndex = 0;
+          isCompletingOnboarding = false;
+        }
+
         const screens = [
           { name: "home", element: homeScreen, activeClass: "" },
           { name: "editor", element: editorScreen, activeClass: "" },
@@ -16637,6 +16793,7 @@ Important:
           { name: "gallery", element: galleryScreen, activeClass: "" },
           { name: "myPhotoBox", element: myPhotoBoxScreen, activeClass: "" },
           { name: "siteGuide", element: siteGuideScreen, activeClass: "" },
+          { name: "contactGuide", element: contactGuideScreen, activeClass: "" },
           { name: "credits", element: creditsScreen, activeClass: "" },
           { name: "admin", element: adminScreen, activeClass: "" },
           { name: "terms", element: termsScreen, activeClass: "" },
@@ -16670,6 +16827,10 @@ Important:
 
         if (screen === "siteGuide") {
           renderSiteGuideScreen();
+        }
+
+        if (screen === "contactGuide") {
+          renderContactGuideScreen();
         }
 
         if (screen === "admin") {
@@ -22803,6 +22964,18 @@ ${modeExample}`;
         navigateToScreen("myPhotoBox");
       }
 
+      function handleSignupGuidePreviewClick() {
+        if (!canShowAdminEntry()) {
+          showAccountMenuToast("관리자 권한이 필요합니다.");
+          return;
+        }
+        closeAccountMenu();
+        siteGuideMode = "firstOnboardingPreview";
+        siteGuidePageIndex = 0;
+        isCompletingOnboarding = false;
+        navigateToScreen("siteGuide");
+      }
+
       function handleSiteGuideClick() {
         closeAccountMenu();
         siteGuideMode = "general";
@@ -22835,7 +23008,7 @@ ${modeExample}`;
 
       function handleContactClick() {
         closeAccountMenu();
-        openAssistantKakaoModal();
+        navigateToScreen("contactGuide");
       }
 
       function handleKakaoLogin(button) {
@@ -23107,6 +23280,10 @@ ${modeExample}`;
         }
         if (action === "admin") {
           handleAdminClick();
+          return;
+        }
+        if (action === "signup-guide-preview") {
+          handleSignupGuidePreviewClick();
           return;
         }
         if (action === "contact") {
@@ -23491,7 +23668,7 @@ ${modeExample}`;
         navigateToScreen("credits");
       });
 
-      siteGuideContactButton?.addEventListener("click", () => {
+      contactGuideContactButton?.addEventListener("click", () => {
         openAssistantKakaoModal();
       });
 

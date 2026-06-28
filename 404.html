@@ -132,7 +132,17 @@
         const legacyAuthMode = window.sessionStorage.getItem("magic_auth_mode");
         const legacyLoginStarted = window.sessionStorage.getItem("magic_login_started") === "true";
         const legacySignupProcessing = window.sessionStorage.getItem("magic_signup_processing") === "true";
-        if (authFlowProcessing || legacySignupProcessing || (legacyAuthMode && legacyLoginStarted)) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const authStatus = String(urlParams.get("auth") || "").toLowerCase();
+        const loginStatus = String(urlParams.get("login") || "").toLowerCase();
+        const authSuccessFlag = String(urlParams.get("auth_success") || "").toLowerCase();
+        const hasOAuthReturnQuery = authStatus === "success"
+          || loginStatus === "success"
+          || authSuccessFlag === "1"
+          || authSuccessFlag === "true"
+          || Boolean(urlParams.get("provider"))
+          || Boolean(urlParams.get("code") && /\/auth\/callback/i.test(window.location.pathname));
+        if (authFlowProcessing || legacySignupProcessing || (legacyAuthMode && legacyLoginStarted) || hasOAuthReturnQuery) {
           document.documentElement.classList.add("auth-flow-pending");
         }
       } catch (error) {
@@ -8550,6 +8560,9 @@ Important:
       const MAX_CONSUMED_GENERATION_JOB_IDS = 40;
       let activeGenerationPollToken = 0;
       let hasRequestedStartupGenerationRecovery = false;
+      let generationRecoveryDebounceTimerId = null;
+      let pendingGenerationRecoveryReason = null;
+      const GENERATION_RECOVERY_DEBOUNCE_MS = 400;
       let currentGenerationGalleryUploadIndex = null;
       let galleryUploadLimitReached = false;
       let isGalleryUploading = false;
@@ -9546,6 +9559,7 @@ Important:
         authProcessingOverlay.classList.add("is-active");
         authProcessingOverlay.setAttribute("aria-hidden", "false");
         scheduleAuthProcessingTimeouts(mode);
+        console.log("[auth-ui] login overlay show", { mode: authMode });
       }
 
       function hideAuthProcessingOverlay() {
@@ -9554,6 +9568,7 @@ Important:
         document.body?.classList.remove("overflow-hidden");
         authProcessingOverlay?.classList.remove("is-active");
         authProcessingOverlay?.setAttribute("aria-hidden", "true");
+        console.log("[auth-ui] login overlay hide");
       }
 
       function clearAuthStartState() {
@@ -15175,6 +15190,8 @@ Important:
         const pendingAuthProcessingMode = getPendingAuthProcessingMode();
         if (pendingAuthProcessingMode) {
           showAuthProcessingOverlay(pendingAuthProcessingMode);
+        } else if (hasAuthSuccessQuery(loginParams) || hasSupabaseAuthCallbackQuery(loginParams)) {
+          showAuthProcessingOverlay(getAuthModeFromParams(loginParams));
         }
         const paymentStatus = getPaymentRedirectStatus();
         const loginReturnView = getLoginRedirectReturnView();
@@ -18512,7 +18529,47 @@ Important:
         }
       }
 
+      function isAuthProcessingActive() {
+        if (document.documentElement.classList.contains("auth-flow-pending")) return true;
+        if (authFlowState === "login-processing" || authFlowState === "signup-processing") return true;
+        const overlay = typeof authProcessingOverlay !== "undefined"
+          ? authProcessingOverlay
+          : document.getElementById("authProcessingOverlay");
+        return Boolean(overlay?.classList.contains("is-active"));
+      }
+
+      function shouldSkipActiveGenerationRecovery(reason = "") {
+        if (isAuthProcessingActive() || !authChecked) {
+          console.log("[generation-recovery] skipped during auth processing", { reason });
+          return true;
+        }
+        if (!getAuthenticatedUserId(currentUser)) {
+          console.log("[generation-recovery] skipped no current user", { reason });
+          return true;
+        }
+        return false;
+      }
+
+      function scheduleRecoverActiveGenerationJob(reason = "startup") {
+        const debouncedReasons = new Set(["visibilitychange", "pageshow", "focus"]);
+        if (!debouncedReasons.has(reason)) {
+          void recoverActiveGenerationJob(reason);
+          return;
+        }
+        pendingGenerationRecoveryReason = reason;
+        if (generationRecoveryDebounceTimerId) {
+          window.clearTimeout(generationRecoveryDebounceTimerId);
+        }
+        generationRecoveryDebounceTimerId = window.setTimeout(() => {
+          generationRecoveryDebounceTimerId = null;
+          const pendingReason = pendingGenerationRecoveryReason || reason;
+          pendingGenerationRecoveryReason = null;
+          void recoverActiveGenerationJob(pendingReason);
+        }, GENERATION_RECOVERY_DEBOUNCE_MS);
+      }
+
       async function fetchRecentActiveGenerationJob() {
+        console.log("[generation-recovery] recent-active request");
         try {
           const response = await fetch(`${FRONT_API_BASE_URL}/api/generate/recent-active`, {
             method: "GET",
@@ -18521,20 +18578,46 @@ Important:
           });
           const parsed = await parseJsonResponseBody(response);
           const payload = parsed.data || {};
-          if (!response.ok || !parsed.parseOk || payload?.ok === false) return null;
+          if (!response.ok || !parsed.parseOk || payload?.ok === false) {
+            console.log("[generation-recovery] recent-active result", {
+              ok: false,
+              status: response.status,
+              hasJob: false,
+            });
+            return null;
+          }
           const jobId = resolveGenerationJobId(payload);
-          if (!jobId) return null;
-          return {
+          if (!jobId) {
+            console.log("[generation-recovery] recent-active result", {
+              ok: true,
+              status: response.status,
+              hasJob: false,
+            });
+            return null;
+          }
+          const result = {
             jobId,
             status: getGenerationJobStatus(payload) || "pending",
           };
+          console.log("[generation-recovery] recent-active result", {
+            ok: true,
+            status: response.status,
+            hasJob: true,
+            jobStatus: result.status,
+          });
+          return result;
         } catch (error) {
+          console.log("[generation-recovery] recent-active result", {
+            ok: false,
+            error: String(error?.message || error),
+          });
           console.warn("[generation] recent active lookup failed", error);
           return null;
         }
       }
 
       async function recoverActiveGenerationJob(reason = "startup") {
+        if (shouldSkipActiveGenerationRecovery(reason)) return;
         if (reason === "startup") {
           if (hasRequestedStartupGenerationRecovery) return;
           hasRequestedStartupGenerationRecovery = true;
@@ -24580,11 +24663,11 @@ ${modeExample}`;
           return;
         }
 
-        void recoverActiveGenerationJob("visibilitychange");
+        scheduleRecoverActiveGenerationJob("visibilitychange");
       });
 
       window.addEventListener("pageshow", () => {
-        void recoverActiveGenerationJob("pageshow");
+        scheduleRecoverActiveGenerationJob("pageshow");
       });
 
       window.addEventListener("pagehide", () => {
@@ -24594,7 +24677,7 @@ ${modeExample}`;
       });
 
       window.addEventListener("focus", () => {
-        void recoverActiveGenerationJob("focus");
+        scheduleRecoverActiveGenerationJob("focus");
       });
 
       window.addEventListener("online", () => {

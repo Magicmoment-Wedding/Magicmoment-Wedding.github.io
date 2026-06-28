@@ -3317,8 +3317,20 @@
       }
 
       .result-comparison-slider {
-        height: clamp(240px, 44dvh, 330px);
+        width: 100%;
+        min-height: clamp(360px, 58dvh, 540px);
+        height: min(72svh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 300px));
+        max-height: min(72svh, 620px);
         aspect-ratio: auto;
+        background:
+          radial-gradient(120% 80% at 50% 0%, rgba(244, 182, 195, 0.14), transparent 62%),
+          rgba(255, 248, 250, 0.9);
+      }
+
+      .result-comparison-slider #comparisonAfterImage,
+      .result-comparison-slider #comparisonBeforeImage {
+        object-fit: contain;
+        object-position: center;
       }
 
       .result-scroll-hint {
@@ -3330,9 +3342,9 @@
 
       @media (min-width: 640px) {
         .result-comparison-slider {
-          height: auto;
-          aspect-ratio: 4 / 5;
-          max-height: none;
+          min-height: 440px;
+          height: min(68svh, 680px);
+          max-height: 680px;
         }
       }
 
@@ -6432,7 +6444,7 @@
 
           <section class="screen-panel app-screen hidden" id="resultScreen">
             <div class="app-topbar">
-              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" data-screen-target="home" type="button">
+              <button class="w-9 h-9 rounded-full bg-white/70 text-primary flex items-center justify-center" id="resultScreenBackButton" type="button" aria-label="사진편집으로 돌아가기">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
               </button>
               <button class="app-topbar-logo-button" data-action="go-landing" type="button" aria-label="랜딩페이지로 이동" title="랜딩페이지로 이동">
@@ -6461,9 +6473,9 @@
                 role="slider"
                 tabindex="0"
               >
-                <img alt="AI 추천 결과" class="absolute inset-0 w-full h-full object-cover" draggable="false" id="comparisonAfterImage" />
+                <img alt="AI 추천 결과" class="absolute inset-0 w-full h-full object-contain" draggable="false" id="comparisonAfterImage" />
                 <div class="absolute inset-0 overflow-hidden" id="comparisonBeforeClip" style="clip-path: inset(0 50% 0 0);">
-                  <img alt="업로드 원본 이미지" class="absolute inset-0 w-full h-full object-cover max-w-none" draggable="false" id="comparisonBeforeImage" />
+                  <img alt="업로드 원본 이미지" class="absolute inset-0 w-full h-full object-contain max-w-none" draggable="false" id="comparisonBeforeImage" />
                 </div>
                 <div class="pointer-events-none absolute inset-y-0 z-20 flex items-center justify-center -translate-x-1/2" id="comparisonHandle" style="left: 50%;">
                   <span class="absolute inset-y-0 w-[2px] bg-white/90 shadow-[0_0_18px_rgba(0,0,0,0.35)]"></span>
@@ -8349,6 +8361,7 @@ Important:
       const editorScreen = document.getElementById("editorScreen");
       const generatingScreen = document.getElementById("generatingScreen");
       const resultScreen = document.getElementById("resultScreen");
+      const resultScreenBackButton = document.getElementById("resultScreenBackButton");
       const galleryScreen = document.getElementById("galleryScreen");
       const myPhotoBoxScreen = document.getElementById("myPhotoBoxScreen");
       const siteGuideScreen = document.getElementById("siteGuideScreen");
@@ -22723,6 +22736,20 @@ ${modeExample}`;
         document.body.style.overflow = "";
       }
 
+      function returnToEditorKeepingUploadedPhoto() {
+        closeImageModal({ useHistory: false });
+        closePhotoSaveModal();
+        isGenerating = false;
+        if (generateButton) {
+          generateButton.disabled = !selectedFile;
+        }
+        setStatus(selectedFile || selectedImageDataUrl
+          ? "사진이 준비되었습니다. 다시 생성하거나 사진을 변경할 수 있어요."
+          : "사진을 먼저 올려주세요.");
+        hideError();
+        setAppScreen("editor", { replaceHistory: true });
+      }
+
       async function completeResultFlow() {
         clearActiveGenerationJobState({
           jobId: currentGenerationJobId || getStoredActiveGenerationJobId() || generationMeta?.jobId || generationMeta?.job_id || currentGenerationId,
@@ -25083,7 +25110,7 @@ ${modeExample}`;
       imageModalResultExit?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        void completeResultFlow();
+        closeImageModal();
       });
       imageModalMyPhotoExit?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -25122,6 +25149,11 @@ ${modeExample}`;
         event.preventDefault();
         event.stopPropagation();
         void completeResultFlow();
+      });
+      resultScreenBackButton?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        returnToEditorKeepingUploadedPhoto();
       });
       resultDoneButton?.addEventListener("click", (event) => {
         event.preventDefault();

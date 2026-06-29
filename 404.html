@@ -1706,6 +1706,67 @@
         pointer-events: none;
       }
 
+      .signup-guide-home-studio-placeholder .signup-guide-before-after-panel.is-before {
+        background:
+          linear-gradient(180deg, rgba(255, 248, 240, 0.96), rgba(244, 232, 218, 0.84));
+      }
+
+      .signup-guide-home-studio-placeholder .signup-guide-before-after-panel.is-after {
+        background:
+          linear-gradient(180deg, rgba(255, 252, 252, 0.98), rgba(244, 228, 232, 0.88));
+      }
+
+      .signup-guide-home-studio-placeholder .signup-guide-before-after-label.is-home {
+        text-transform: none;
+        letter-spacing: 0;
+        font-size: 11px;
+      }
+
+      .signup-guide-good-photo-mock {
+        margin-top: 18px;
+        padding: 14px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(212, 119, 106, 0.12);
+        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
+      }
+
+      .signup-guide-good-photo-surface {
+        min-height: clamp(200px, 38dvh, 320px);
+        border-radius: 16px;
+        background:
+          linear-gradient(160deg, rgba(255, 252, 252, 0.96), rgba(244, 220, 226, 0.72));
+        border: 1px dashed rgba(129, 80, 92, 0.14);
+      }
+
+      .signup-guide-good-photo-badges {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .signup-guide-good-photo-badges span {
+        padding: 6px 10px;
+        border-radius: 9999px;
+        background: rgba(255, 236, 232, 0.92);
+        border: 1px solid rgba(212, 119, 106, 0.18);
+        font-size: 11px;
+        font-weight: 700;
+        color: #81505c;
+      }
+
+      .signup-guide-subcopy {
+        margin: 10px auto 0;
+        max-width: 28rem;
+        text-align: center;
+        font-size: 13px;
+        line-height: 1.65;
+        color: #7a6467;
+        word-break: keep-all;
+      }
+
       .signup-guide-copy-block {
         margin-top: 14px;
         text-align: center;
@@ -15626,25 +15687,51 @@ Important:
         `;
       }
 
-      function renderSignupGuideBeforeAfterStep() {
+      function renderSignupGuideHasStudioPhotoStep() {
         return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("사진 한 장으로 분위기가 달라져요", "분위기가 달라져요")}</h2>
-          <p class="signup-guide-subtitle">원본은 유지하고, 원하는 스타일로 바꿔볼 수 있어요.</p>
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("좋아요. 선명한 사진일수록 결과가 더 자연스러워요.", "더 자연스러워요.")}</h2>
+          <p class="signup-guide-subtitle">얼굴이 잘 보이고, 흔들림이 적은 사진을 추천해요.</p>
+          <p class="signup-guide-subcopy">정면에 가깝고 얼굴이 가려지지 않은 사진일수록 AI 결과가 자연스럽게 나와요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-visual-card signup-guide-before-after-placeholder" data-signup-guide-placeholder="before-after">
+          <div class="signup-guide-good-photo-mock" data-signup-guide-placeholder="good-original-photo">
+            <div class="signup-guide-placeholder-media">
+              <div class="signup-guide-good-photo-surface" aria-hidden="true"></div>
+            </div>
+            <div class="signup-guide-good-photo-badges" aria-hidden="true">
+              <span>정면</span>
+              <span>선명한 얼굴</span>
+              <span>밝은 사진</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderSignupGuideNoStudioPhotoStep() {
+        return `
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 없어도 괜찮아요.", "괜찮아요.")}</h2>
+          <p class="signup-guide-subtitle">집구석 사진도 스튜디오 사진처럼 바꿔주는<br />Studio Style을 이용해보세요.</p>
+          <div class="signup-guide-divider" aria-hidden="true">♥</div>
+          <div class="signup-guide-visual-card signup-guide-before-after-placeholder signup-guide-home-studio-placeholder" data-signup-guide-placeholder="studio-style-example">
             <div class="signup-guide-placeholder-media">
               <div class="signup-guide-before-after-panel is-before">
-                <span class="signup-guide-before-after-label">Before</span>
+                <span class="signup-guide-before-after-label is-home">집에서</span>
                 <div class="signup-guide-visual-surface" aria-hidden="true"></div>
               </div>
               <div class="signup-guide-before-after-panel is-after">
-                <span class="signup-guide-before-after-label">After</span>
+                <span class="signup-guide-before-after-label is-home">Studio Style</span>
                 <div class="signup-guide-visual-surface" aria-hidden="true"></div>
               </div>
             </div>
             <span class="signup-guide-before-after-divider" aria-hidden="true"></span>
           </div>
         `;
+      }
+
+      function renderSignupGuideStudioPhotoFollowUpStep() {
+        if (signupGuideSelections.studioPhoto === "no") {
+          return renderSignupGuideNoStudioPhotoStep();
+        }
+        return renderSignupGuideHasStudioPhotoStep();
       }
 
       function renderSignupGuideStyleButtonsStep() {
@@ -15714,7 +15801,7 @@ Important:
 
       function renderSignupGuideStepContent(stepIndex) {
         if (stepIndex === 0) return renderSignupGuideStudioPhotoStep();
-        if (stepIndex === 1) return renderSignupGuideBeforeAfterStep();
+        if (stepIndex === 1) return renderSignupGuideStudioPhotoFollowUpStep();
         if (stepIndex === 2) return renderSignupGuideStyleButtonsStep();
         if (stepIndex === 3) return renderSignupGuideGalleryStep();
         return renderSignupGuideMyPhotoBoxStep();

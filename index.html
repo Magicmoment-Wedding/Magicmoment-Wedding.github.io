@@ -1478,6 +1478,18 @@
         overscroll-behavior: contain;
       }
 
+      .signup-guide-flow-title {
+        margin: 0 0 10px;
+        font-family: var(--font-display, inherit);
+        font-size: clamp(15px, 4vw, 17px);
+        line-height: 1.45;
+        font-weight: 700;
+        color: #81505c;
+        text-align: center;
+        letter-spacing: -0.01em;
+        word-break: keep-all;
+      }
+
       .signup-guide-question {
         margin: 0;
         font-family: var(--font-display, inherit);
@@ -1500,7 +1512,7 @@
         max-width: 28rem;
         text-align: center;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.65;
         color: #7a6467;
         word-break: keep-all;
       }
@@ -1621,140 +1633,54 @@
         color: #fff;
       }
 
-      .signup-guide-visual-card {
-        margin-top: 18px;
-        border-radius: 22px;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(212, 119, 106, 0.12);
-        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
-      }
-
-      .signup-guide-placeholder-media {
-        position: relative;
-        overflow: hidden;
-      }
-
-      .signup-guide-placeholder-media img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .signup-guide-before-after-placeholder {
-        position: relative;
-      }
-
-      .signup-guide-before-after-placeholder .signup-guide-placeholder-media {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        min-height: clamp(220px, 42dvh, 360px);
-      }
-
-      .signup-guide-before-after-panel {
-        position: relative;
-        min-height: inherit;
-        background:
-          linear-gradient(180deg, rgba(255, 244, 246, 0.96), rgba(255, 232, 236, 0.82));
-      }
-
-      .signup-guide-before-after-panel.is-after {
-        background:
-          linear-gradient(180deg, rgba(244, 228, 232, 0.96), rgba(232, 210, 218, 0.84));
-      }
-
-      .signup-guide-before-after-panel .signup-guide-visual-surface {
-        position: absolute;
-        inset: 28px 14px 18px;
-        border-radius: 16px;
-        background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(240, 220, 226, 0.55));
-        border: 1px dashed rgba(129, 80, 92, 0.16);
-      }
-
-      .signup-guide-before-after-panel.is-after .signup-guide-visual-surface {
-        background:
-          linear-gradient(145deg, rgba(255, 248, 250, 0.82), rgba(212, 119, 106, 0.18));
-      }
-
-      .signup-guide-before-after-label {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 2;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        background: rgba(255, 255, 255, 0.82);
-        border: 1px solid rgba(129, 80, 92, 0.1);
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #81505c;
-      }
-
-      .signup-guide-before-after-divider {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 50%;
-        width: 2px;
-        transform: translateX(-50%);
-        background: rgba(255, 255, 255, 0.88);
-        box-shadow: 0 0 12px rgba(129, 80, 92, 0.12);
-        pointer-events: none;
-      }
-
-      .signup-guide-home-studio-placeholder .signup-guide-before-after-panel.is-before {
-        background:
-          linear-gradient(180deg, rgba(255, 248, 240, 0.96), rgba(244, 232, 218, 0.84));
-      }
-
-      .signup-guide-home-studio-placeholder .signup-guide-before-after-panel.is-after {
-        background:
-          linear-gradient(180deg, rgba(255, 252, 252, 0.98), rgba(244, 228, 232, 0.88));
-      }
-
-      .signup-guide-home-studio-placeholder .signup-guide-before-after-label.is-home {
-        text-transform: none;
-        letter-spacing: 0;
-        font-size: 11px;
-      }
-
-      .signup-guide-good-photo-mock {
+      .signup-guide-image-card {
         margin-top: 18px;
         padding: 14px;
         border-radius: 22px;
         background: rgba(255, 255, 255, 0.88);
         border: 1px solid rgba(212, 119, 106, 0.12);
         box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
+        overflow: hidden;
       }
 
-      .signup-guide-good-photo-surface {
-        min-height: clamp(200px, 38dvh, 320px);
+      .signup-guide-image-card img {
+        display: block;
+        width: 100%;
+        max-height: clamp(220px, 42dvh, 380px);
+        margin: 0 auto;
+        object-fit: contain;
+        object-position: center;
         border-radius: 16px;
-        background:
-          linear-gradient(160deg, rgba(255, 252, 252, 0.96), rgba(244, 220, 226, 0.72));
-        border: 1px dashed rgba(129, 80, 92, 0.14);
       }
 
-      .signup-guide-good-photo-badges {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 12px;
+      .signup-guide-studio-compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
       }
 
-      .signup-guide-good-photo-badges span {
-        padding: 6px 10px;
+      .signup-guide-studio-compare-panel {
+        position: relative;
+        min-width: 0;
+      }
+
+      .signup-guide-studio-compare-panel img {
+        max-height: clamp(180px, 36dvh, 320px);
+      }
+
+      .signup-guide-image-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        padding: 4px 10px;
         border-radius: 9999px;
-        background: rgba(255, 236, 232, 0.92);
-        border: 1px solid rgba(212, 119, 106, 0.18);
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(129, 80, 92, 0.1);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 800;
         color: #81505c;
+        pointer-events: none;
       }
 
       .signup-guide-subcopy {
@@ -1784,65 +1710,6 @@
         margin-top: 6px;
       }
 
-      .signup-guide-style-mock {
-        margin-top: 18px;
-        padding: 14px;
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(212, 119, 106, 0.12);
-        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
-      }
-
-      .signup-guide-style-mock-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .signup-guide-style-mock-option {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 92px;
-        padding: 12px 10px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.92);
-        border: 1px solid rgba(129, 80, 92, 0.1);
-        color: #6f5558;
-        text-align: center;
-      }
-
-      .signup-guide-style-mock-option.is-active {
-        background: rgba(255, 236, 232, 0.92);
-        border-color: rgba(212, 119, 106, 0.34);
-        box-shadow: 0 10px 24px rgba(212, 119, 106, 0.14);
-        color: #81505c;
-      }
-
-      .signup-guide-style-mock-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 9999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(129, 80, 92, 0.08);
-        color: #81505c;
-      }
-
-      .signup-guide-style-mock-option.is-active .signup-guide-style-mock-icon {
-        background: rgba(212, 119, 106, 0.16);
-      }
-
-      .signup-guide-style-mock-label {
-        font-size: 12px;
-        font-weight: 800;
-        line-height: 1.2;
-      }
-
-      .signup-guide-gallery-mock,
       .signup-guide-myphotobox-mock {
         margin-top: 18px;
         padding: 14px;
@@ -1852,29 +1719,12 @@
         box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
       }
 
-      .signup-guide-gallery-mock-hero,
       .signup-guide-myphotobox-mock-hero {
         min-height: clamp(140px, 28dvh, 220px);
         border-radius: 16px;
         background:
           linear-gradient(145deg, rgba(255, 244, 246, 0.96), rgba(240, 220, 226, 0.72));
         border: 1px dashed rgba(129, 80, 92, 0.14);
-      }
-
-      .signup-guide-gallery-mock-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .signup-guide-gallery-mock-tile {
-        display: block;
-        aspect-ratio: 3 / 4;
-        border-radius: 12px;
-        background:
-          linear-gradient(160deg, rgba(255, 255, 255, 0.82), rgba(244, 214, 220, 0.62));
-        border: 1px solid rgba(129, 80, 92, 0.08);
       }
 
       .signup-guide-myphotobox-mock-thumbs {
@@ -8862,6 +8712,13 @@ Important:
         concept: null,
       };
       const SIGNUP_GUIDE_STEP_COUNT = 5;
+      const SIGNUP_GUIDE_ONBOARDING_IMAGES = {
+        whiteBackground: "public/images/onboarding/white-background.png",
+        studioStyle1: "public/images/onboarding/studio-style-1.png",
+        studioStyle2: "public/images/onboarding/studio-style-2.png",
+        category: "public/images/onboarding/category.png",
+        styleGallery: "public/images/onboarding/style-gallery.png",
+      };
       let isCompletingOnboarding = false;
       let lastGenerationUsedFreeCredit = false;
       let lastDelayedGenerationJobId = "";
@@ -15665,6 +15522,7 @@ Important:
         const noStudioPhoto = selected === "no";
 
         return `
+          <p class="signup-guide-flow-title">더 멋진 사진을 위한 제작 가이드</p>
           <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 있으신가요?", "있으신가요?")}</h2>
           <p class="signup-guide-subtitle">사진 상태에 맞춰 더 좋은 시작 방법을 알려드릴게요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
@@ -15689,19 +15547,12 @@ Important:
 
       function renderSignupGuideHasStudioPhotoStep() {
         return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("좋아요. 선명한 사진일수록 결과가 더 자연스러워요.", "더 자연스러워요.")}</h2>
-          <p class="signup-guide-subtitle">얼굴이 잘 보이고, 흔들림이 적은 사진을 추천해요.</p>
-          <p class="signup-guide-subcopy">정면에 가깝고 얼굴이 가려지지 않은 사진일수록 AI 결과가 자연스럽게 나와요.</p>
+          <h2 class="signup-guide-question">${renderSignupGuideTitle("좋아요. 컨셉과 잘 맞는 사진일수록 결과가 더 자연스러워요.", "더 자연스러워요.")}</h2>
+          <p class="signup-guide-subtitle">포즈와 의상이 선택한 스타일과 어울릴수록<br />사진이 더 자연스럽게 나와요.</p>
+          <p class="signup-guide-subcopy">고화질 원본에 가까운 사진,<br />흰색 배경처럼 깔끔한 사진을 추천해요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-good-photo-mock" data-signup-guide-placeholder="good-original-photo">
-            <div class="signup-guide-placeholder-media">
-              <div class="signup-guide-good-photo-surface" aria-hidden="true"></div>
-            </div>
-            <div class="signup-guide-good-photo-badges" aria-hidden="true">
-              <span>정면</span>
-              <span>선명한 얼굴</span>
-              <span>밝은 사진</span>
-            </div>
+          <div class="signup-guide-image-card">
+            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.whiteBackground}" alt="흰색 배경 스튜디오 사진 예시" decoding="async" />
           </div>
         `;
       }
@@ -15711,18 +15562,17 @@ Important:
           <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 없어도 괜찮아요.", "괜찮아요.")}</h2>
           <p class="signup-guide-subtitle">집구석 사진도 스튜디오 사진처럼 바꿔주는<br />Studio Style을 이용해보세요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-visual-card signup-guide-before-after-placeholder signup-guide-home-studio-placeholder" data-signup-guide-placeholder="studio-style-example">
-            <div class="signup-guide-placeholder-media">
-              <div class="signup-guide-before-after-panel is-before">
-                <span class="signup-guide-before-after-label is-home">집에서</span>
-                <div class="signup-guide-visual-surface" aria-hidden="true"></div>
+          <div class="signup-guide-image-card">
+            <div class="signup-guide-studio-compare">
+              <div class="signup-guide-studio-compare-panel">
+                <span class="signup-guide-image-label">집에서</span>
+                <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle1}" alt="집에서 찍은 사진 예시" decoding="async" />
               </div>
-              <div class="signup-guide-before-after-panel is-after">
-                <span class="signup-guide-before-after-label is-home">Studio Style</span>
-                <div class="signup-guide-visual-surface" aria-hidden="true"></div>
+              <div class="signup-guide-studio-compare-panel">
+                <span class="signup-guide-image-label">Studio Style</span>
+                <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle2}" alt="Studio Style 결과 예시" decoding="async" />
               </div>
             </div>
-            <span class="signup-guide-before-after-divider" aria-hidden="true"></span>
           </div>
         `;
       }
@@ -15735,26 +15585,12 @@ Important:
       }
 
       function renderSignupGuideStyleButtonsStep() {
-        const styleOptions = [
-          { label: "Europe Style", icon: "travel_explore", active: true },
-          { label: "Korea Style", icon: "forest", active: false },
-          { label: "Disney Style", icon: "auto_awesome", active: false },
-          { label: "Studio Style", icon: "photo_camera", active: false },
-        ];
-
         return `
           <h2 class="signup-guide-question">${renderSignupGuideTitle("원하는 분위기를 골라보세요", "분위기를 골라보세요")}</h2>
-          <p class="signup-guide-subtitle">유럽, 한국, 디즈니, 스튜디오 스타일 중 원하는 콘셉트를 선택할 수 있어요.</p>
+          <p class="signup-guide-subtitle">유럽, 한국, 디즈니, 스튜디오 스타일 중<br />사진에 어울리는 콘셉트를 선택할 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-style-mock" data-signup-guide-placeholder="style-buttons">
-            <div class="signup-guide-style-mock-grid">
-              ${styleOptions.map((option) => `
-                <div class="signup-guide-style-mock-option ${option.active ? "is-active" : ""}">
-                  <span class="signup-guide-style-mock-icon material-symbols-outlined text-[18px]" aria-hidden="true">${option.icon}</span>
-                  <span class="signup-guide-style-mock-label">${escapeHtml(option.label)}</span>
-                </div>
-              `).join("")}
-            </div>
+          <div class="signup-guide-image-card">
+            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.category}" alt="스타일 카테고리 선택 예시" decoding="async" />
           </div>
         `;
       }
@@ -15762,16 +15598,11 @@ Important:
       function renderSignupGuideGalleryStep() {
         return `
           <h2 class="signup-guide-question">${renderSignupGuideTitle("다양한 스타일을 살펴보세요", "살펴보세요")}</h2>
-          <p class="signup-guide-subtitle">스타일 갤러리에서 다양한 결과를 둘러볼 수 있어요.</p>
+          <p class="signup-guide-subtitle">스타일 갤러리를 보고<br />사진에 맞는 컨셉을 찾아보세요.</p>
+          <p class="signup-guide-subcopy">포즈나 의상이 어울릴수록<br />사진이 더 찰떡같이 나와요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-gallery-mock" data-signup-guide-placeholder="gallery">
-            <div class="signup-guide-gallery-mock-hero signup-guide-placeholder-media" aria-hidden="true"></div>
-            <div class="signup-guide-gallery-mock-grid" aria-hidden="true">
-              ${Array.from({ length: 6 }, () => '<span class="signup-guide-gallery-mock-tile"></span>').join("")}
-            </div>
-          </div>
-          <div class="signup-guide-copy-block">
-            <p>다른 결과를 보며 원하는 분위기를 참고할 수 있어요.</p>
+          <div class="signup-guide-image-card">
+            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.styleGallery}" alt="스타일 갤러리 화면 예시" decoding="async" />
           </div>
         `;
       }

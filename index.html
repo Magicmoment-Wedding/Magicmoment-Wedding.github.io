@@ -1634,38 +1634,49 @@
       }
 
       .signup-guide-image-card {
-        margin-top: 18px;
-        padding: 14px;
+        margin-top: 14px;
+        padding: 10px;
         border-radius: 22px;
         background: rgba(255, 255, 255, 0.88);
         border: 1px solid rgba(212, 119, 106, 0.12);
         box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
         overflow: hidden;
+        width: 100%;
       }
 
       .signup-guide-image-card img {
         display: block;
         width: 100%;
-        max-height: clamp(220px, 42dvh, 380px);
+        max-width: 100%;
+        max-height: clamp(240px, 44dvh, 400px);
         margin: 0 auto;
         object-fit: contain;
         object-position: center;
         border-radius: 16px;
       }
 
+      .signup-guide-image-card:has(.signup-guide-studio-compare),
+      .signup-guide-image-card.is-myphotobox {
+        padding: 6px 4px;
+      }
+
       .signup-guide-studio-compare {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        width: 100%;
       }
 
       .signup-guide-studio-compare-panel {
         position: relative;
         min-width: 0;
+        width: 100%;
       }
 
       .signup-guide-studio-compare-panel img {
-        max-height: clamp(180px, 36dvh, 320px);
+        width: 100%;
+        max-width: 100%;
+        max-height: clamp(260px, 44dvh, 460px);
       }
 
       .signup-guide-image-label {
@@ -1711,7 +1722,25 @@
       }
 
       .signup-guide-image-card.is-myphotobox img {
-        max-height: clamp(240px, 48dvh, 420px);
+        width: 100%;
+        max-width: 100%;
+        max-height: min(58dvh, 540px);
+        min-height: clamp(280px, 52dvh, 500px);
+      }
+
+      @media (min-width: 640px) {
+        .signup-guide-studio-compare {
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .signup-guide-studio-compare-panel img {
+          max-height: clamp(220px, 38dvh, 360px);
+        }
+
+        .signup-guide-image-card.is-myphotobox img {
+          min-height: clamp(320px, 48dvh, 480px);
+        }
       }
 
       .signup-guide-info-card {

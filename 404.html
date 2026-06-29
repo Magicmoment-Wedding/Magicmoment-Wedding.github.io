@@ -1507,6 +1507,13 @@
         font-weight: 700;
       }
 
+      .signup-guide-question.is-compact-title {
+        max-width: 17.5rem;
+        margin: 0 auto;
+        font-size: clamp(19px, 4.8vw, 23px);
+        line-height: 1.34;
+      }
+
       .signup-guide-subtitle {
         margin: 10px auto 0;
         max-width: 28rem;
@@ -1656,27 +1663,34 @@
       }
 
       .signup-guide-image-card:has(.signup-guide-studio-compare),
+      .signup-guide-image-card.is-studio-style-compare,
       .signup-guide-image-card.is-myphotobox {
-        padding: 6px 4px;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.88);
       }
 
       .signup-guide-studio-compare {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
         width: 100%;
       }
 
       .signup-guide-studio-compare-panel {
         position: relative;
-        min-width: 0;
         width: 100%;
+        max-width: none;
       }
 
       .signup-guide-studio-compare-panel img {
+        display: block;
         width: 100%;
-        max-width: 100%;
-        max-height: clamp(260px, 44dvh, 460px);
+        max-width: none;
+        height: auto;
+        max-height: none;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 16px;
       }
 
       .signup-guide-image-label {
@@ -1723,23 +1737,53 @@
 
       .signup-guide-image-card.is-myphotobox img {
         width: 100%;
-        max-width: 100%;
-        max-height: min(58dvh, 540px);
-        min-height: clamp(280px, 52dvh, 500px);
+        max-width: none;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+        margin: 0;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 16px;
       }
 
-      @media (min-width: 640px) {
+      @media (max-width: 768px) {
         .signup-guide-studio-compare {
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .signup-guide-studio-compare-panel {
+          width: 100%;
+          max-width: none;
         }
 
         .signup-guide-studio-compare-panel img {
-          max-height: clamp(220px, 38dvh, 360px);
+          width: 100%;
+          max-width: none;
+          max-height: none;
+          height: auto;
         }
 
         .signup-guide-image-card.is-myphotobox img {
-          min-height: clamp(320px, 48dvh, 480px);
+          max-height: min(64dvh, 620px);
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .signup-guide-studio-compare {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .signup-guide-studio-compare-panel img {
+          max-height: clamp(240px, 36dvh, 360px);
+        }
+
+        .signup-guide-image-card.is-myphotobox img {
+          max-height: min(52dvh, 520px);
         }
       }
 
@@ -15438,7 +15482,7 @@ Important:
         siteGuidePageIndex = 0;
         resetSignupGuideSelections();
         isCompletingOnboarding = false;
-        const returnScreen = options.returnScreen || "home";
+        const returnScreen = options.returnScreen || "editor";
         if (appScreen === returnScreen) {
           renderSiteGuideScreen();
           if (options.showToast !== false) {
@@ -15548,7 +15592,7 @@ Important:
 
       function renderSignupGuideHasStudioPhotoStep() {
         return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("좋아요. 컨셉과 잘 맞는 사진일수록 결과가 더 자연스러워요.", "더 자연스러워요.")}</h2>
+          <h2 class="signup-guide-question is-compact-title">좋아요.<br />컨셉과 잘 맞는 사진일수록<br />결과가 <em class="signup-guide-title-accent">더 자연스러워요.</em></h2>
           <p class="signup-guide-subtitle">포즈와 의상이 선택한 스타일과 어울릴수록<br />사진이 더 자연스럽게 나와요.</p>
           <p class="signup-guide-subcopy">고화질 원본에 가까운 사진,<br />흰색 배경처럼 깔끔한 사진을 추천해요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
@@ -15563,7 +15607,7 @@ Important:
           <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 없어도 괜찮아요.", "괜찮아요.")}</h2>
           <p class="signup-guide-subtitle">집구석 사진도 스튜디오 사진처럼 바꿔주는<br />Studio Style을 이용해보세요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card">
+          <div class="signup-guide-image-card is-studio-style-compare">
             <div class="signup-guide-studio-compare">
               <div class="signup-guide-studio-compare-panel">
                 <span class="signup-guide-image-label">집에서</span>

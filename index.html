@@ -1714,29 +1714,16 @@
       #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
         width: 100%;
         padding: 0;
-        margin-top: 18px;
+        margin-top: 16px;
         margin-bottom: 18px;
-        overflow: hidden;
-        border-radius: 28px;
+        overflow: visible;
+        border-radius: 0;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        display: block;
         width: 100%;
         margin-top: 0;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card {
-        position: relative;
-        width: 100%;
-        max-width: none;
-        flex: 0 0 auto;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card + .onboarding-studio-guide-image-card {
-        margin-top: 2px;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
@@ -1758,9 +1745,9 @@
         max-width: none;
         padding: 0;
         margin: 0;
-        overflow: hidden;
-        line-height: 0;
-        border-radius: 28px;
+        overflow: visible;
+        line-height: normal;
+        border-radius: 0;
         background: transparent;
         border: none;
         box-shadow: none;
@@ -1774,11 +1761,10 @@
         height: auto;
         margin: 0;
         padding: 0;
-        transform: scale(1.42);
-        transform-origin: center center;
-        object-fit: cover;
-        object-position: center center;
-        border-radius: 0;
+        transform: none;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 16px;
       }
 
       #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox + .signup-guide-info-card {
@@ -8782,12 +8768,11 @@ Important:
       };
       const SIGNUP_GUIDE_STEP_COUNT = 5;
       const SIGNUP_GUIDE_ONBOARDING_IMAGES = {
-        whiteBackground: "public/images/onboarding/white-background.png",
-        studioStyle1: "public/images/onboarding/studio-style-1.png",
-        studioStyle2: "public/images/onboarding/studio-style-2.png",
-        category: "public/images/onboarding/category.png",
-        styleGallery: "public/images/onboarding/style-gallery.png",
-        myPhotoBox: "public/images/onboarding/my-photobox.png",
+        whiteBackground: "/images/onboarding/white-background.png",
+        studioStyle: "/images/onboarding/studio-style.png",
+        category: "/images/onboarding/category.png",
+        styleGallery: "/images/onboarding/style-gallery.png",
+        myPhotoBox: "/images/onboarding/my-photobox.png",
       };
       let isCompletingOnboarding = false;
       let lastGenerationUsedFreeCredit = false;
@@ -15633,16 +15618,7 @@ Important:
           <p class="signup-guide-subtitle">집구석 사진도 스튜디오 사진처럼 바꿔주는<br />Studio Style을 이용해보세요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
           <div class="signup-guide-image-card is-studio-style-compare">
-            <div class="signup-guide-studio-compare onboarding-studio-guide-images">
-              <div class="signup-guide-studio-compare-panel onboarding-studio-guide-image-card">
-                <span class="signup-guide-image-label">집에서</span>
-                <img class="onboarding-studio-guide-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle1}" alt="집에서 찍은 사진 예시" decoding="async" />
-              </div>
-              <div class="signup-guide-studio-compare-panel onboarding-studio-guide-image-card">
-                <span class="signup-guide-image-label">Studio Style</span>
-                <img class="onboarding-studio-guide-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle2}" alt="Studio Style 결과 예시" decoding="async" />
-              </div>
-            </div>
+            <img class="onboarding-studio-guide-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle}" alt="Studio Style 안내 이미지" decoding="async" />
           </div>
         `;
       }

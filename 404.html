@@ -1663,7 +1663,7 @@
       }
 
       .signup-guide-image-card:has(.signup-guide-studio-compare),
-      .signup-guide-image-card.is-studio-style-compare,
+      .signup-guide-image-card.is-studio-style-asset,
       .signup-guide-image-card.is-myphotobox {
         padding: 0;
         background: transparent;
@@ -1678,33 +1678,12 @@
         width: 100%;
       }
 
-      .signup-guide-studio-compare-panel {
-        position: relative;
-        width: 100%;
-        max-width: none;
-      }
-
-      .signup-guide-image-label {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 2;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(129, 80, 92, 0.1);
-        font-size: 11px;
-        font-weight: 800;
-        color: #81505c;
-        pointer-events: none;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-studio-style-compare),
+      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-studio-style-asset),
       #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-myphotobox) {
         margin-bottom: 24px;
       }
 
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-compare {
+      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-asset {
         width: 100%;
         padding: 0;
         margin-top: 6px;
@@ -1718,12 +1697,6 @@
         margin-bottom: 18px;
         overflow: visible;
         border-radius: 0;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
-        display: block;
-        width: 100%;
-        margin-top: 0;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
@@ -15617,7 +15590,7 @@ Important:
           <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 없어도 괜찮아요.", "괜찮아요.")}</h2>
           <p class="signup-guide-subtitle">집구석 사진도 스튜디오 사진처럼 바꿔주는<br />Studio Style을 이용해보세요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card is-studio-style-compare">
+          <div class="signup-guide-image-card is-studio-style-asset">
             <img class="onboarding-studio-guide-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle}" alt="Studio Style 안내 이미지" decoding="async" />
           </div>
         `;

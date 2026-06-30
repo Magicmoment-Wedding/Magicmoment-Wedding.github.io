@@ -1714,8 +1714,10 @@
       #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
         width: 100%;
         padding: 0;
-        margin-top: 6px;
+        margin-top: 18px;
         margin-bottom: 18px;
+        overflow: hidden;
+        border-radius: 28px;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
@@ -1755,9 +1757,10 @@
         width: 100%;
         max-width: none;
         padding: 0;
-        margin: 8px 0 0;
-        overflow: visible;
-        line-height: normal;
+        margin: 0;
+        overflow: hidden;
+        line-height: 0;
+        border-radius: 28px;
         background: transparent;
         border: none;
         box-shadow: none;
@@ -1771,10 +1774,11 @@
         height: auto;
         margin: 0;
         padding: 0;
-        transform: none;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
+        transform: scale(1.42);
+        transform-origin: center center;
+        object-fit: cover;
+        object-position: center center;
+        border-radius: 0;
       }
 
       #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox + .signup-guide-info-card {

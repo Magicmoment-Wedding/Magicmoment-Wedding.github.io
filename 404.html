@@ -1699,24 +1699,42 @@
         pointer-events: none;
       }
 
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-compare,
+      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-studio-style-compare),
+      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-myphotobox) {
+        margin-bottom: 24px;
+      }
+
+      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-compare {
+        width: 100%;
+        padding: 0;
+        margin-top: 6px;
+        margin-bottom: 6px;
+      }
+
       #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
         width: 100%;
         padding: 0;
-        margin-top: 12px;
+        margin-top: 6px;
+        margin-bottom: 18px;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 20px;
         width: 100%;
+        margin-top: 0;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card {
         position: relative;
         width: 100%;
         max-width: none;
+        flex: 0 0 auto;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card + .onboarding-studio-guide-image-card {
+        margin-top: 2px;
       }
 
       #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
@@ -1737,9 +1755,9 @@
         width: 100%;
         max-width: none;
         padding: 0;
-        margin: 0;
+        margin: 8px 0 0;
         overflow: visible;
-        line-height: 0;
+        line-height: normal;
         background: transparent;
         border: none;
         box-shadow: none;
@@ -1757,6 +1775,10 @@
         object-fit: contain;
         object-position: center;
         border-radius: 16px;
+      }
+
+      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox + .signup-guide-info-card {
+        margin-top: 4px;
       }
 
       .signup-guide-subcopy {

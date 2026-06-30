@@ -1664,6 +1664,7 @@
 
       .signup-guide-image-card:has(.signup-guide-studio-compare),
       .signup-guide-image-card.is-studio-style-asset,
+      .signup-guide-image-card.is-style-category,
       .signup-guide-image-card.is-myphotobox {
         padding: 0;
         background: transparent;
@@ -1679,6 +1680,7 @@
       }
 
       #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-studio-style-asset),
+      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-style-category),
       #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-myphotobox) {
         margin-bottom: 24px;
       }
@@ -1688,6 +1690,28 @@
         padding: 0;
         margin-top: 6px;
         margin-bottom: 6px;
+      }
+
+      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-style-category {
+        width: 100%;
+        padding: 0;
+        margin-top: 16px;
+        margin-bottom: 6px;
+        overflow: visible;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-category-image {
+        display: block;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        transform: none;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 16px;
       }
 
       #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
@@ -15608,8 +15632,8 @@ Important:
           <h2 class="signup-guide-question">${renderSignupGuideTitle("원하는 분위기를 골라보세요", "분위기를 골라보세요")}</h2>
           <p class="signup-guide-subtitle">유럽, 한국, 디즈니, 스튜디오 스타일 중<br />사진에 어울리는 콘셉트를 선택할 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card">
-            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.category}" alt="스타일 카테고리 선택 예시" decoding="async" />
+          <div class="signup-guide-image-card is-style-category">
+            <img class="onboarding-category-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.category}" alt="스타일 카테고리 선택 예시" decoding="async" />
           </div>
         `;
       }

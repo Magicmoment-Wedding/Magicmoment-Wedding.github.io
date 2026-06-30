@@ -1666,7 +1666,9 @@
       .signup-guide-image-card.is-studio-style-compare,
       .signup-guide-image-card.is-myphotobox {
         padding: 0;
-        background: rgba(255, 255, 255, 0.88);
+        background: transparent;
+        border: none;
+        box-shadow: none;
       }
 
       .signup-guide-studio-compare {
@@ -1682,17 +1684,6 @@
         max-width: none;
       }
 
-      .signup-guide-studio-compare-panel img {
-        display: block;
-        width: 100%;
-        max-width: none;
-        height: auto;
-        max-height: none;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
-      }
-
       .signup-guide-image-label {
         position: absolute;
         top: 10px;
@@ -1706,6 +1697,66 @@
         font-weight: 800;
         color: #81505c;
         pointer-events: none;
+      }
+
+      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-compare,
+      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
+        width: 100%;
+        padding: 0;
+        margin-top: 12px;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card {
+        position: relative;
+        width: 100%;
+        max-width: none;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
+        display: block;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        transform: none;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 16px;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-frame {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+        margin: 0;
+        overflow: visible;
+        line-height: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+      }
+
+      #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-image {
+        display: block;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        height: auto;
+        margin: 0;
+        padding: 0;
+        transform: none;
+        object-fit: contain;
+        object-position: center;
+        border-radius: 16px;
       }
 
       .signup-guide-subcopy {
@@ -1733,146 +1784,6 @@
 
       .signup-guide-copy-block p + p {
         margin-top: 6px;
-      }
-
-      .signup-guide-image-card.is-myphotobox img {
-        width: 100%;
-        max-width: none;
-        height: auto;
-        min-height: 0;
-        max-height: none;
-        margin: 0;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
-      }
-
-      @media (max-width: 768px) {
-        .signup-guide-studio-compare {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .signup-guide-studio-compare-panel {
-          width: 100%;
-          max-width: none;
-        }
-
-        .signup-guide-studio-compare-panel img {
-          width: 100%;
-          max-width: none;
-          max-height: none;
-          height: auto;
-        }
-
-        .signup-guide-image-card.is-myphotobox img {
-          max-height: min(64dvh, 620px);
-        }
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-compare {
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        background: transparent;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        width: 100%;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card {
-        position: relative;
-        width: 100%;
-        max-width: none;
-        overflow: hidden;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(212, 119, 106, 0.12);
-        box-shadow: 0 10px 28px rgba(129, 80, 92, 0.08);
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
-        display: block;
-        width: 100%;
-        max-width: none;
-        height: auto;
-        max-height: none;
-        margin: 0;
-        object-fit: cover;
-        object-position: center;
-        border-radius: 0;
-        transform: scale(1.28);
-        transform-origin: center center;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        background: transparent;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-frame {
-        overflow: hidden;
-        width: 100%;
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(212, 119, 106, 0.12);
-        box-shadow: 0 10px 28px rgba(129, 80, 92, 0.08);
-        line-height: 0;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-image {
-        display: block;
-        width: 100%;
-        max-width: none;
-        height: auto;
-        min-height: 0;
-        max-height: none;
-        margin: 0;
-        object-fit: cover;
-        object-position: center center;
-        border-radius: 0;
-        transform: scale(1.36);
-        transform-origin: center center;
-      }
-
-      @media (max-width: 1023px) {
-        #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-images {
-          display: flex !important;
-          flex-direction: column !important;
-          grid-template-columns: none !important;
-          gap: 16px !important;
-          width: 100% !important;
-        }
-
-        #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image-card {
-          width: 100% !important;
-          max-width: none !important;
-          flex: 0 0 auto !important;
-        }
-
-        #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
-          width: 100% !important;
-          max-width: none !important;
-          max-height: none !important;
-          height: auto !important;
-        }
-      }
-
-      @media (max-width: 768px) {
-        #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
-          transform: scale(1.34);
-        }
-
-        #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-image {
-          transform: scale(1.42);
-        }
       }
 
       .signup-guide-info-card {

@@ -2086,45 +2086,6 @@
         border: 1px solid rgba(129, 80, 92, 0.1);
       }
 
-      .admin-visits-table-wrap {
-        width: 100%;
-        overflow-x: auto;
-        border-radius: 16px;
-        border: 1px solid rgba(129, 80, 92, 0.12);
-        background: rgba(255, 255, 255, 0.72);
-      }
-
-      .admin-visits-table {
-        width: 100%;
-        min-width: 620px;
-        border-collapse: collapse;
-        font-size: 12px;
-        color: #5d484d;
-      }
-
-      .admin-visits-table th,
-      .admin-visits-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid rgba(129, 80, 92, 0.1);
-        text-align: right;
-        white-space: nowrap;
-      }
-
-      .admin-visits-table th:first-child,
-      .admin-visits-table td:first-child {
-        text-align: left;
-      }
-
-      .admin-visits-table thead th {
-        color: #4f2630;
-        font-weight: 800;
-        background: rgba(255, 248, 250, 0.82);
-      }
-
-      .admin-visits-table tbody tr:last-child td {
-        border-bottom: none;
-      }
-
       .admin-data-list {
         display: grid;
         gap: 8px;
@@ -13133,7 +13094,6 @@ Important:
         const visibleGalleryItems = galleryItems.slice(0, adminVisibleGalleryCount);
         const visitStats = normalizeAdminVisitStatsPayload(visitStatsPayload);
         const visitSummary = visitStats.summary;
-        const visitRows = visitStats.rows;
         const payloadWarnings = [
           ...getAdminPayloadWarnings(summaryPayload),
           ...getAdminPayloadWarnings(usersPayload),
@@ -13201,36 +13161,6 @@ Important:
             </div>
             ${visitStatsLoading ? `<div class="admin-empty mt-3">방문 통계를 불러오는 중...</div>` : ""}
             ${visitStatsError ? `<div class="admin-empty mt-3">방문 통계를 불러오지 못했습니다.</div>` : ""}
-            ${!visitStatsLoading && !visitStatsError ? `
-              <div class="admin-visits-table-wrap mt-3">
-                <table class="admin-visits-table" aria-label="일별 방문 비교표">
-                  <thead>
-                    <tr>
-                      <th>날짜</th>
-                      <th>방문 수</th>
-                      <th>고유 방문자</th>
-                      <th>로그인 방문</th>
-                      <th>모바일</th>
-                      <th>데스크탑</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${visitRows.length
-                      ? visitRows.map((row) => `
-                        <tr>
-                          <td>${escapeHtml(String(row.date || "-"))}</td>
-                          <td>${escapeHtml(String(row.visits ?? 0))}</td>
-                          <td>${escapeHtml(String(row.uniqueVisitors ?? 0))}</td>
-                          <td>${escapeHtml(String(row.loggedInVisits ?? 0))}</td>
-                          <td>${escapeHtml(String(row.mobileVisits ?? 0))}</td>
-                          <td>${escapeHtml(String(row.desktopVisits ?? 0))}</td>
-                        </tr>
-                      `).join("")
-                      : `<tr><td colspan="6">표시할 방문 데이터가 없습니다.</td></tr>`}
-                  </tbody>
-                </table>
-              </div>
-            ` : ""}
           </section>
 
           <div class="admin-dashboard-grid">

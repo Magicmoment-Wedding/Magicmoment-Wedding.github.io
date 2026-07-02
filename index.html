@@ -2086,6 +2086,45 @@
         border: 1px solid rgba(129, 80, 92, 0.1);
       }
 
+      .admin-visits-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 16px;
+        border: 1px solid rgba(129, 80, 92, 0.12);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .admin-visits-table {
+        width: 100%;
+        min-width: 620px;
+        border-collapse: collapse;
+        font-size: 12px;
+        color: #5d484d;
+      }
+
+      .admin-visits-table th,
+      .admin-visits-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(129, 80, 92, 0.1);
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .admin-visits-table th:first-child,
+      .admin-visits-table td:first-child {
+        text-align: left;
+      }
+
+      .admin-visits-table thead th {
+        color: #4f2630;
+        font-weight: 800;
+        background: rgba(255, 248, 250, 0.82);
+      }
+
+      .admin-visits-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
       .admin-data-list {
         display: grid;
         gap: 8px;
@@ -7716,6 +7755,8 @@
       const LOGO_HORIZONTAL_SRC = "public/branding/ai-studio-logo-horizontal.png";
       const LOGO_VERTICAL_SRC = "public/branding/ai-studio-logo-vertical.png";
       const ANONYMOUS_ID_STORAGE_KEY = "magic_ai_anonymous_id";
+      const VISITOR_ANALYTICS_ID_STORAGE_KEY = "mas_anonymous_id";
+      const VISIT_ANALYTICS_SESSION_DATE_KEY = "mas_visit_sent_date";
       const RESULT_STATE_STORAGE_KEY = "magic_ai_last_result_state";
       const APP_SCREEN_STORAGE_KEY = "magic_ai_app_screen";
       const LOGIN_RETURN_VIEW_STORAGE_KEY = "magic_login_return_view";
@@ -9082,6 +9123,29 @@ Important:
         return `anonymous_${Date.now()}_${randomString}`;
       }
 
+      function createVisitorAnalyticsId() {
+        if (window.crypto?.randomUUID) {
+          return `anon_${window.crypto.randomUUID()}`;
+        }
+        const randomString = Math.random().toString(36).slice(2, 12);
+        return `anon_${Date.now()}_${randomString}`;
+      }
+
+      function getVisitorAnalyticsId() {
+        const storedId = localStorage.getItem(VISITOR_ANALYTICS_ID_STORAGE_KEY);
+        if (storedId) return storedId;
+
+        const fallbackId = localStorage.getItem(ANONYMOUS_ID_STORAGE_KEY);
+        if (fallbackId) {
+          localStorage.setItem(VISITOR_ANALYTICS_ID_STORAGE_KEY, fallbackId);
+          return fallbackId;
+        }
+
+        const nextId = createVisitorAnalyticsId();
+        localStorage.setItem(VISITOR_ANALYTICS_ID_STORAGE_KEY, nextId);
+        return nextId;
+      }
+
       function getAnonymousId() {
         const storedId = localStorage.getItem(ANONYMOUS_ID_STORAGE_KEY);
         if (storedId) return storedId;
@@ -9141,6 +9205,79 @@ Important:
 
       function getAuthApiUrl(path) {
         return `${FRONT_API_BASE_URL}${path}`;
+      }
+
+      function getCurrentVisitDateKey() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function getAnalyticsDeviceType() {
+        const platform = getSavePlatform();
+        return platform === "desktop" ? "desktop" : "mobile";
+      }
+
+      function getAnalyticsBrowserName() {
+        const userAgent = String(navigator.userAgent || "");
+        if (/SamsungBrowser/i.test(userAgent)) return "samsung";
+        if (/Whale/i.test(userAgent)) return "whale";
+        if (/NAVER/i.test(userAgent)) return "naver";
+        if (/KAKAOTALK/i.test(userAgent)) return "kakao";
+        if (/Instagram/i.test(userAgent)) return "instagram";
+        if (/Edg/i.test(userAgent)) return "edge";
+        if (/Firefox/i.test(userAgent)) return "firefox";
+        if (/Chrome|CriOS/i.test(userAgent) && !/Edg/i.test(userAgent)) return "chrome";
+        if (/Safari/i.test(userAgent) && !/Chrome|CriOS|Chromium|Edg/i.test(userAgent)) return "safari";
+        return "unknown";
+      }
+
+      function buildVisitAnalyticsPayload() {
+        return {
+          anonymousId: getVisitorAnalyticsId(),
+          pagePath: window.location.pathname || "/",
+          referrer: document.referrer || "",
+          deviceType: getAnalyticsDeviceType(),
+          browserName: getAnalyticsBrowserName(),
+          isLoggedIn: Boolean(isAuthenticatedUser()),
+          eventType: "page_view",
+        };
+      }
+
+      function sendVisitAnalyticsOnLandingEntry() {
+        const visitDateKey = getCurrentVisitDateKey();
+        const sentDate = sessionStorage.getItem(VISIT_ANALYTICS_SESSION_DATE_KEY);
+        if (sentDate === visitDateKey) return;
+
+        sessionStorage.setItem(VISIT_ANALYTICS_SESSION_DATE_KEY, visitDateKey);
+        const endpoint = getAuthApiUrl("/api/analytics/visit");
+        const payload = buildVisitAnalyticsPayload();
+        const body = JSON.stringify(payload);
+
+        try {
+          const shouldUseBeacon = typeof navigator.sendBeacon === "function";
+          if (shouldUseBeacon) {
+            const blob = new Blob([body], { type: "application/json" });
+            const beaconAccepted = navigator.sendBeacon(endpoint, blob);
+            if (beaconAccepted) return;
+          }
+        } catch (error) {
+          console.warn("[analytics/visit] sendBeacon failed", error);
+        }
+
+        fetch(endpoint, {
+          method: "POST",
+          keepalive: true,
+          credentials: "omit",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body,
+        }).catch((error) => {
+          console.warn("[analytics/visit] request failed", error);
+        });
       }
 
       function sanitizeLoginReturnView(value) {
@@ -11336,6 +11473,23 @@ Important:
         }
       }
 
+      async function fetchAdminVisitStats(days = 30) {
+        const safeDays = Number.isFinite(Number(days)) ? Math.max(1, Math.min(90, Number(days))) : 30;
+        try {
+          return await fetchAdminJson(`/api/admin/analytics/visits?days=${safeDays}`);
+        } catch (error) {
+          console.error("[admin/analytics/visits] failed", {
+            status: error.statusCode || error.status,
+            code: error.code,
+            stage: error.stage,
+            url: error.url,
+            message: error.message,
+            rawPreview: error.rawPreview,
+          });
+          throw error;
+        }
+      }
+
       function getAdminPayloadArray(payload = {}, keys = []) {
         for (const key of keys) {
           const value = payload?.[key] ?? payload?.data?.[key];
@@ -11345,6 +11499,29 @@ Important:
         if (Array.isArray(payload?.items)) return payload.items;
         if (Array.isArray(payload?.rows)) return payload.rows;
         return [];
+      }
+
+      function normalizeAdminVisitStatsPayload(payload = {}) {
+        const rows = getAdminPayloadArray(payload, ["rows", "items", "daily", "visitsByDay", "visitRows"]).map((row = {}) => ({
+          date: String(row.date || row.day || row.visitDate || row.visit_date || "").trim(),
+          visits: Number(row.visits ?? row.visitCount ?? row.visit_count ?? row.totalVisits ?? 0) || 0,
+          uniqueVisitors: Number(row.uniqueVisitors ?? row.unique_visitors ?? row.uniqueCount ?? 0) || 0,
+          loggedInVisits: Number(row.loggedInVisits ?? row.logged_in_visits ?? row.memberVisits ?? row.authVisits ?? 0) || 0,
+          mobileVisits: Number(row.mobileVisits ?? row.mobile_visits ?? row.mobile ?? 0) || 0,
+          desktopVisits: Number(row.desktopVisits ?? row.desktop_visits ?? row.desktop ?? 0) || 0,
+        }));
+
+        const summaryRaw = getAdminPayloadObject(payload, ["summary", "totals", "stats"]);
+        const summary = {
+          todayVisits: Number(summaryRaw.todayVisits ?? summaryRaw.today_visits ?? summaryRaw.today ?? 0) || 0,
+          yesterdayVisits: Number(summaryRaw.yesterdayVisits ?? summaryRaw.yesterday_visits ?? summaryRaw.yesterday ?? 0) || 0,
+          last7DaysVisits: Number(summaryRaw.last7DaysVisits ?? summaryRaw.last7daysVisits ?? summaryRaw.last_7_days_visits ?? summaryRaw.weekVisits ?? 0) || 0,
+          last30DaysVisits: Number(summaryRaw.last30DaysVisits ?? summaryRaw.last30daysVisits ?? summaryRaw.last_30_days_visits ?? summaryRaw.monthVisits ?? 0) || 0,
+          todayUniqueVisitors: Number(summaryRaw.todayUniqueVisitors ?? summaryRaw.today_unique_visitors ?? summaryRaw.todayUnique ?? 0) || 0,
+          yesterdayUniqueVisitors: Number(summaryRaw.yesterdayUniqueVisitors ?? summaryRaw.yesterday_unique_visitors ?? summaryRaw.yesterdayUnique ?? 0) || 0,
+        };
+
+        return { rows, summary };
       }
 
       function getAdminGalleryPayloadItems(payload = {}) {
@@ -12938,9 +13115,9 @@ Important:
         `;
       }
 
-      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, galleryPayload = {}, galleryError = null, errors = [] } = {}) {
+      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, galleryPayload = {}, galleryError = null, visitStatsPayload = {}, visitStatsError = null, visitStatsLoading = false, errors = [] } = {}) {
         if (!adminContent) return;
-        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, galleryPayload, galleryError, errors };
+        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, galleryPayload, galleryError, visitStatsPayload, visitStatsError, visitStatsLoading, errors };
         const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
         const normalizedUsers = usersError ? { users: [], total: 0 } : normalizeAdminUsersPayload(usersPayload);
         const users = normalizedUsers.users;
@@ -12954,12 +13131,16 @@ Important:
         const normalizedGallery = normalizeAdminGalleryPayload(galleryPayload);
         const galleryItems = galleryError ? [] : normalizedGallery.items;
         const visibleGalleryItems = galleryItems.slice(0, adminVisibleGalleryCount);
+        const visitStats = normalizeAdminVisitStatsPayload(visitStatsPayload);
+        const visitSummary = visitStats.summary;
+        const visitRows = visitStats.rows;
         const payloadWarnings = [
           ...getAdminPayloadWarnings(summaryPayload),
           ...getAdminPayloadWarnings(usersPayload),
           ...getAdminPayloadWarnings(paymentsPayload),
           ...getAdminPayloadWarnings(generationsPayload),
           ...getAdminPayloadWarnings(galleryPayload),
+          ...getAdminPayloadWarnings(visitStatsPayload),
         ];
         const payloadFailedSections = [
           ...getAdminPayloadFailedSections(summaryPayload),
@@ -12967,6 +13148,7 @@ Important:
           ...getAdminPayloadFailedSections(paymentsPayload),
           ...getAdminPayloadFailedSections(generationsPayload),
           ...getAdminPayloadFailedSections(galleryPayload),
+          ...getAdminPayloadFailedSections(visitStatsPayload),
         ];
         const allErrors = [...new Set([...errors, ...payloadFailedSections])];
         const totalUsers = summary.activeUsers ?? summary.activeUserCount ?? summary.totalActiveUsers ?? summary.totalUsers ?? summary.users ?? summary.userCount ?? displayUsers.length;
@@ -13005,6 +13187,50 @@ Important:
               <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">매출</p><p class="mt-1 text-xl font-black">${escapeHtml(formatAdminCurrency(totalRevenue))}</p></div>
               <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">생성</p><p class="mt-1 text-xl font-black">${escapeHtml(String(totalGenerations ?? 0))}</p></div>
             </div>
+          </section>
+
+          <section class="admin-panel-card">
+            <h2 class="font-display text-[23px] leading-tight text-on-surface">방문 통계</h2>
+            <div class="admin-stat-grid mt-3">
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">오늘 방문</p><p class="mt-1 text-xl font-black">${escapeHtml(String(visitSummary.todayVisits ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">어제 방문</p><p class="mt-1 text-xl font-black">${escapeHtml(String(visitSummary.yesterdayVisits ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">최근 7일 방문</p><p class="mt-1 text-xl font-black">${escapeHtml(String(visitSummary.last7DaysVisits ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">최근 30일 방문</p><p class="mt-1 text-xl font-black">${escapeHtml(String(visitSummary.last30DaysVisits ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">오늘 고유 방문자</p><p class="mt-1 text-xl font-black">${escapeHtml(String(visitSummary.todayUniqueVisitors ?? 0))}</p></div>
+              <div class="admin-stat-card"><p class="text-xs font-bold text-on-surface-variant">어제 고유 방문자</p><p class="mt-1 text-xl font-black">${escapeHtml(String(visitSummary.yesterdayUniqueVisitors ?? 0))}</p></div>
+            </div>
+            ${visitStatsLoading ? `<div class="admin-empty mt-3">방문 통계를 불러오는 중...</div>` : ""}
+            ${visitStatsError ? `<div class="admin-empty mt-3">방문 통계를 불러오지 못했습니다.</div>` : ""}
+            ${!visitStatsLoading && !visitStatsError ? `
+              <div class="admin-visits-table-wrap mt-3">
+                <table class="admin-visits-table" aria-label="일별 방문 비교표">
+                  <thead>
+                    <tr>
+                      <th>날짜</th>
+                      <th>방문 수</th>
+                      <th>고유 방문자</th>
+                      <th>로그인 방문</th>
+                      <th>모바일</th>
+                      <th>데스크탑</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${visitRows.length
+                      ? visitRows.map((row) => `
+                        <tr>
+                          <td>${escapeHtml(String(row.date || "-"))}</td>
+                          <td>${escapeHtml(String(row.visits ?? 0))}</td>
+                          <td>${escapeHtml(String(row.uniqueVisitors ?? 0))}</td>
+                          <td>${escapeHtml(String(row.loggedInVisits ?? 0))}</td>
+                          <td>${escapeHtml(String(row.mobileVisits ?? 0))}</td>
+                          <td>${escapeHtml(String(row.desktopVisits ?? 0))}</td>
+                        </tr>
+                      `).join("")
+                      : `<tr><td colspan="6">표시할 방문 데이터가 없습니다.</td></tr>`}
+                  </tbody>
+                </table>
+              </div>
+            ` : ""}
           </section>
 
           <div class="admin-dashboard-grid">
@@ -13136,6 +13362,9 @@ Important:
           generationsError: null,
           galleryPayload: {},
           galleryError: null,
+          visitStatsPayload: {},
+          visitStatsError: null,
+          visitStatsLoading: true,
           errors: [],
         };
         renderAdminDashboard(initialDashboardArgs);
@@ -13172,6 +13401,11 @@ Important:
             .then((galleryPayload) => updateAdminDashboardSection({ galleryPayload, galleryError: null }))
             .catch((error) => updateAdminDashboardSection({ galleryPayload: {}, galleryError: error }, "갤러리 관리"));
         }, 240);
+        window.setTimeout(() => {
+          void fetchAdminVisitStats()
+            .then((visitStatsPayload) => updateAdminDashboardSection({ visitStatsPayload, visitStatsError: null, visitStatsLoading: false }))
+            .catch((error) => updateAdminDashboardSection({ visitStatsPayload: {}, visitStatsError: error, visitStatsLoading: false }, "방문 통계"));
+        }, 320);
       }
 
       async function refreshAdminUsersAndSummary({ deletedUserId = "", includeActivity = false } = {}) {
@@ -17657,6 +17891,9 @@ Important:
         appStage.classList.toggle("hidden", isLanding);
         appStage.classList.toggle("flex", !isLanding);
         appStage.classList.toggle("is-gallery-active", !isLanding && screen === "gallery");
+        if (isLanding) {
+          sendVisitAnalyticsOnLandingEntry();
+        }
         if (screen !== "editor") {
           stopUploadTipRotator();
         }

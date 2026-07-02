@@ -3454,6 +3454,45 @@
         padding: 12px;
       }
 
+      .result-gallery-reward-card {
+        margin-top: 4px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(255, 251, 249, 0.94), rgba(255, 242, 238, 0.88));
+        border: 1px solid rgba(201, 147, 122, 0.28);
+        box-shadow: 0 10px 28px rgba(129, 80, 92, 0.06);
+      }
+
+      .result-gallery-reward-card-title {
+        margin: 0;
+        color: #4a3736;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .result-gallery-reward-card-copy {
+        margin: 6px 0 0;
+        color: #5f4a4e;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .result-gallery-reward-card-copy em {
+        color: #b86b7a;
+        font-style: normal;
+        font-weight: 700;
+      }
+
+      .result-gallery-reward-card-limit {
+        margin: 8px 0 0;
+        padding-top: 8px;
+        border-top: 1px solid rgba(201, 147, 122, 0.16);
+        color: #8a737a;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
       @media (min-width: 640px) {
         .result-comparison-slider {
           min-height: 440px;
@@ -3642,7 +3681,48 @@
         display: none !important;
       }
 
-      #imageModal.is-my-photo-lightbox #imageModalGalleryPolicy {
+      #imageModal.is-my-photo-lightbox #imageModalGalleryPolicy,
+      #imageModal.is-result-lightbox #imageModalGalleryPolicy {
+        display: none !important;
+      }
+
+      .image-modal-gallery-reward-note {
+        display: none;
+        width: 100%;
+        max-width: 390px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        background: rgba(255, 248, 246, 0.1);
+        border: 1px solid rgba(255, 214, 204, 0.22);
+        text-align: center;
+        pointer-events: none;
+      }
+
+      .image-modal-gallery-reward-note p {
+        margin: 0;
+        color: rgba(255, 248, 246, 0.88);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      .image-modal-gallery-reward-note p + p {
+        margin-top: 4px;
+      }
+
+      .image-modal-gallery-consent-note {
+        margin-top: 8px !important;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.62) !important;
+        font-size: 10px !important;
+      }
+
+      #imageModal.is-result-lightbox .image-modal-gallery-reward-note,
+      #imageModal.is-my-photo-lightbox .image-modal-gallery-reward-note {
+        display: block;
+      }
+
+      #imageModal.is-gallery-lightbox .image-modal-gallery-reward-note {
         display: none !important;
       }
 
@@ -3728,10 +3808,6 @@
         #imageModal.is-result-lightbox #imageModalDone {
           display: none !important;
           pointer-events: none;
-        }
-
-        #imageModal.is-result-lightbox #imageModalGalleryPolicy {
-          display: none !important;
         }
 
         #imageModal.is-result-lightbox #imageModalDoneHelp {
@@ -4016,6 +4092,11 @@
           pointer-events: auto;
         }
 
+        #imageModal.is-result-lightbox #imageModalActionsGrid,
+        #imageModal.is-my-photo-lightbox #imageModalActionsGrid {
+          grid-template-columns: 1fr;
+        }
+
         #imageModalPhotoSave,
         #imageModalGalleryUpload {
           grid-column: auto;
@@ -4222,6 +4303,11 @@
         #imageModalGalleryPolicy {
           max-width: 100%;
           padding: 0 4px;
+          text-align: left;
+        }
+
+        .image-modal-gallery-reward-note {
+          max-width: 100%;
           text-align: left;
         }
 
@@ -6698,6 +6784,11 @@
                 </div>
                 <div class="result-grid" id="thumbnailList"></div>
               </section>
+              <div class="result-gallery-reward-card" id="resultGalleryRewardCard" role="note">
+                <p class="result-gallery-reward-card-title">마음에 드는 사진이 있나요?</p>
+                <p class="result-gallery-reward-card-copy">스타일 갤러리에 공개하면 <em>무료 제작 이용권 1회</em>를 추가로 드려요.</p>
+                <p class="result-gallery-reward-card-limit">공개 업로드 보상은 1인 최대 3회까지 제공됩니다.</p>
+              </div>
               <div class="mt-4 hidden rounded-[22px] border border-white/70 bg-white/60 px-4 py-4 shadow-[0_14px_34px_rgba(129,80,92,0.12)]" id="resultActionButtons">
                 <div class="flex items-start gap-3">
                   <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -6705,7 +6796,7 @@
                   </span>
 	                  <p class="text-sm leading-6 text-on-surface">
 	                    사진이 완성되었습니다.<br />
-	                    크게보기에서 사진 저장과 스타일 갤러리 업로드를 선택할 수 있어요.<br />
+	                    크게보기에서 사진 저장과 스타일 갤러리 공개를 선택할 수 있어요.<br />
 	                    완료를 누르면 사진편집 화면으로 돌아갑니다.<br />
 	                    생성 결과는 마이포토박스에서 다시 확인할 수 있어요.
 	                  </p>
@@ -7546,21 +7637,26 @@
         </div>
         <div class="image-modal-thumbnail-strip hidden" id="imageModalThumbnailStrip" aria-label="같은 생성 결과 썸네일"></div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
+          <div class="image-modal-gallery-reward-note" id="imageModalGalleryRewardNote" role="note">
+            <p>스타일 갤러리에 공개될 사진이에요.</p>
+            <p>공개 업로드가 완료되면 무료 제작 이용권 1회가 지급됩니다.</p>
+            <p class="image-modal-gallery-consent-note">선택한 결과 사진이 스타일 갤러리에 공개되는 것에 동의합니다.</p>
+          </div>
           <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
             <button class="hidden h-14 min-w-0 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalPhotoSave" type="button">
               <span class="material-symbols-outlined text-[21px]">photo_library</span>
               <span>사진으로 저장</span>
             </button>
-            <button class="hidden h-12 min-w-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:text-sm" id="imageModalGalleryUpload" type="button" aria-label="현재 이미지 갤러리에 올리기" title="갤러리 올리기">
+            <button class="hidden h-12 min-w-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:text-sm" id="imageModalGalleryUpload" type="button" aria-label="스타일 갤러리에 공개하고 무료 제작 이용권 받기" title="스타일 갤러리에 공개">
               <span class="material-symbols-outlined text-[19px]">cloud_upload</span>
-              <span>갤러리 등록</span>
+              <span>갤러리에 올리고 1회 받기</span>
             </button>
           </div>
           <button class="hidden h-14 items-center justify-center rounded-full bg-primary px-5 text-[16px] font-bold text-on-primary shadow-[0_14px_34px_rgba(129,80,92,0.28)] transition-colors hover:bg-primary/95" id="imageModalDone" type="button">
             완료
           </button>
           <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalDoneHelp">완료 후에도 마이포토박스에서 다시 확인할 수 있어요.</p>
-          <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalGalleryPolicy">스타일 갤러리에 사진을 등록하면 제작권 1회를 받을 수 있어요. 갤러리 업로드 보상은 1인당 최대 3회까지 제공됩니다.</p>
+          <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalGalleryPolicy">스타일 갤러리에 공개하면 무료 제작 이용권 1회를 받을 수 있어요. 공개 업로드 보상은 1인 최대 3회까지 제공됩니다.</p>
           <p class="image-modal-status min-h-5 text-sm text-white/80" id="imageModalStatus"></p>
           <button class="hidden mt-2 h-11 items-center justify-center rounded-full bg-white/20 px-5 text-sm font-bold text-white ring-1 ring-white/25 hover:bg-white/30" id="imageModalMyPhotoRetry" type="button">다시 시도</button>
         </div>
@@ -14212,15 +14308,15 @@ Important:
 
       function getGalleryUploadSuccessMessage(payload = {}) {
         if (payload.rewardGranted === true || payload.reward_granted === true) {
-          return "스타일 갤러리에 등록되었습니다. 제작권 1회가 지급되었습니다.";
+          return "스타일 갤러리에 공개됐어요. 무료 제작 이용권 1회가 지급되었습니다.";
         }
         if (payload.rewardLimitReached === true || payload.reward_limit_reached === true) {
-          return "스타일 갤러리에 등록되었습니다. 갤러리 업로드 보상은 1인당 최대 3회까지 제공됩니다.";
+          return "스타일 갤러리에 공개됐어요. 무료 제작 이용권 보상은 최대 3회까지 제공됩니다.";
         }
         if (payload.rewardAlreadyGranted === true || payload.reward_already_granted === true) {
-          return "이미 보상이 지급된 사진입니다. 스타일 갤러리 등록 상태만 업데이트되었습니다.";
+          return "이미 보상이 지급된 사진입니다. 스타일 갤러리 공개 상태만 업데이트되었습니다.";
         }
-        return "스타일 갤러리에 등록되었습니다.";
+        return "스타일 갤러리에 공개됐어요.";
       }
 
       function showCreditStatus(message, type = "success", options = {}) {
@@ -21671,21 +21767,21 @@ ${modeExample}`;
           } else if (isBlockedByGenerationLimit) {
             label.textContent = "1장 등록됨";
           } else {
-            label.textContent = "갤러리 등록";
+            label.textContent = "갤러리에 올리고 1회 받기";
           }
         }
         imageModalGalleryUpload.disabled = Boolean(isBlockedByUserLimit || isBlockedByGenerationLimit);
         imageModalGalleryUpload.title = isUploaded || isCurrentGenerationUploadedImage
-          ? "스타일 갤러리 등록됨"
-          : "스타일 갤러리 올리기";
+          ? "스타일 갤러리에 공개됨"
+          : "스타일 갤러리에 공개";
 
         if (imageModalGalleryPolicy) {
           imageModalGalleryPolicy.classList.toggle("hidden", item?.gallerySource || !item?.url);
           imageModalGalleryPolicy.textContent = galleryUploadLimitReached
-            ? "스타일 갤러리 등록 가능 여부를 확인해 주세요."
+            ? "공개 업로드 보상 가능 여부를 확인해 주세요."
             : hasGenerationUpload
-              ? "이미 1장을 등록했어요 · 한 번의 생성 결과에서는 1장만 올릴 수 있어요."
-              : "4장 중 1장만 갤러리에 올릴 수 있어요. 갤러리 업로드 시 제작권 1회가 지급됩니다. 단, 1인당 최대 3회까지 제공됩니다.";
+              ? "이미 1장을 공개했어요 · 한 번의 생성 결과에서는 1장만 공개할 수 있어요."
+              : "4장 중 1장만 스타일 갤러리에 공개할 수 있어요. 공개 시 무료 제작 이용권 1회가 지급됩니다. 공개 업로드 보상은 1인 최대 3회까지 제공됩니다.";
         }
       }
 

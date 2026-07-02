@@ -4560,6 +4560,65 @@
         transform: translateY(-1px);
       }
 
+      .landing-free-ticket-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin: 0;
+        padding: 8px 14px;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, rgba(255, 248, 246, 0.96), rgba(255, 236, 232, 0.88));
+        border: 1px solid rgba(212, 119, 106, 0.28);
+        box-shadow: 0 8px 22px rgba(129, 80, 92, 0.08);
+        color: #5f4a4e;
+        font-size: 12px;
+        line-height: 1.45;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .landing-free-ticket-badge em {
+        color: #c96b7a;
+        font-style: normal;
+        font-weight: 700;
+      }
+
+      .landing-pricing-free-note {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto 6px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(255, 251, 249, 0.96), rgba(255, 240, 236, 0.9));
+        border: 1px solid rgba(212, 119, 106, 0.22);
+        text-align: center;
+      }
+
+      .landing-pricing-free-note-title {
+        margin: 0;
+        color: #4a3736;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .landing-pricing-free-note-copy {
+        margin: 4px 0 0;
+        color: #8a737a;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .editor-free-ticket-note {
+        margin: 8px 0 0;
+        text-align: center;
+        color: #8a737a;
+        font-size: 12px;
+        line-height: 1.5;
+        font-weight: 500;
+      }
+
       .before-after-compare {
         --split: 50%;
         position: relative;
@@ -5957,6 +6016,7 @@
                   <span class="block sm:inline">만나는 감성사진</span></h1>
                 <p class="landing-copy">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>
+                <p class="landing-free-ticket-badge" role="note">🎁 <em>첫 방문 시 무료 제작 이용권 증정</em></p>
                 <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
                   <span>사진 올리고 시작하기</span>
                   <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -6048,6 +6108,10 @@
               <div class="landing-section-head landing-plans-section-head">
                 <h2 class="landing-plans-title">OUR PLANS</h2>
                 <p class="landing-copy">가볍게 체험할 수 있는 상품부터 충분히 제작할 수 있는 상품까지, 다양한 요금제가 준비되어 있어요.</p>
+              </div>
+              <div class="landing-pricing-free-note" role="note">
+                <p class="landing-pricing-free-note-title">처음이라면 먼저 무료로 경험해보세요</p>
+                <p class="landing-pricing-free-note-copy">첫 방문 시 무료 제작 이용권 1회 증정</p>
               </div>
               <div class="landing-pricing-grid">
                 <article class="landing-plan-card">
@@ -6528,6 +6592,7 @@
               <span class="font-semibold">로그인 확인 중...</span>
               <span class="text-[11px] opacity-80">잠시만 기다려 주세요.</span>
             </button>
+            <p class="editor-free-ticket-note" role="note">첫 방문 시 1회 무료 제작 가능</p>
           </section>
 
           <section class="screen-panel app-screen hidden" id="generatingScreen">

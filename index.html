@@ -4543,29 +4543,6 @@
         margin-right: auto;
       }
 
-      .landing-plans-title {
-        margin: 0;
-        width: 100%;
-        color: var(--rose-deep);
-        font-family: Outfit, var(--font-sans-kr);
-        font-size: clamp(22px, 5.2vw, 34px);
-        line-height: 1.15;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        text-align: center;
-        word-break: keep-all;
-      }
-
-      .landing-plans-section-head .landing-copy {
-        margin-top: 12px;
-        max-width: 36em;
-      }
-
-      .landing-plans-section .landing-section-inner {
-        gap: clamp(18px, 4vw, 32px);
-      }
-
       .landing-copy {
         max-width: 560px;
         color: #6f5960;
@@ -4670,30 +4647,57 @@
         font-weight: 700;
       }
 
-      .landing-pricing-free-note {
-        width: 100%;
-        max-width: 640px;
-        margin: 0 auto 6px;
-        padding: 14px 16px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, rgba(255, 251, 249, 0.96), rgba(255, 240, 236, 0.9));
-        border: 1px solid rgba(212, 119, 106, 0.22);
-        text-align: center;
+      .landing-start-free-section .landing-section-inner {
+        gap: 0;
       }
 
-      .landing-pricing-free-note-title {
+      .landing-start-free-card {
+        width: min(720px, 100%);
+        margin: 0 auto;
+        padding: clamp(28px, 5vw, 44px);
+        border-radius: 28px;
+        text-align: center;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 236, 232, 0.42));
+        border: 1px solid rgba(212, 119, 106, 0.18);
+        box-shadow:
+          0 20px 56px rgba(129, 80, 92, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.86);
+      }
+
+      .landing-start-free-title {
+        margin: 12px auto 0;
+        max-width: 16em;
+        font-size: clamp(22px, 4.8vw, 30px);
+        line-height: 1.35;
+        word-break: keep-all;
+      }
+
+      .landing-start-free-benefits {
+        margin-top: 18px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(255, 251, 249, 0.96), rgba(255, 240, 236, 0.9));
+        border: 1px solid rgba(212, 119, 106, 0.16);
+      }
+
+      .landing-start-free-benefit {
         margin: 0;
+        color: #8a737a;
+        font-size: 13px;
+        line-height: 1.6;
+        font-weight: 500;
+        word-break: keep-all;
+      }
+
+      .landing-start-free-benefit + .landing-start-free-benefit {
+        margin-top: 6px;
+      }
+
+      .landing-start-free-benefit.is-highlight {
         color: #4a3736;
         font-size: 14px;
         font-weight: 700;
-        line-height: 1.5;
-      }
-
-      .landing-pricing-free-note-copy {
-        margin: 4px 0 0;
-        color: #8a737a;
-        font-size: 12px;
-        line-height: 1.55;
       }
 
       .editor-free-ticket-note {
@@ -4877,8 +4881,7 @@
         word-break: keep-all;
       }
 
-      .landing-photo-card,
-      .landing-plan-card {
+      .landing-photo-card {
         overflow: hidden;
         border-radius: 26px;
         background: rgba(255, 255, 255, 0.62);
@@ -5009,76 +5012,6 @@
         display: block;
         object-fit: cover;
         object-position: center;
-      }
-
-      .landing-pricing-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 14px;
-      }
-
-      .landing-plan-card {
-        min-height: 212px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 16px;
-      }
-
-      .landing-plan-card.is-featured {
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 217, 224, 0.46));
-        border-color: rgba(129, 80, 92, 0.28);
-        box-shadow: 0 22px 58px rgba(129, 80, 92, 0.19);
-      }
-
-      .landing-plan-eyebrow {
-        margin-bottom: 12px;
-        color: #9a6f78;
-        font-family: Outfit, sans-serif;
-        font-size: 10px;
-        line-height: 1;
-        letter-spacing: 0.12em;
-        font-weight: 700;
-      }
-
-      .landing-plan-title {
-        color: #2a2224;
-        font-size: 16px;
-        line-height: 1.25;
-        font-weight: 700;
-        word-break: keep-all;
-      }
-
-      .landing-plan-price {
-        color: var(--rose-deep);
-        font-family: var(--font-sans-kr);
-        font-size: 30px;
-        line-height: 1;
-        font-weight: 800;
-        letter-spacing: -0.025em;
-      }
-
-      .landing-plan-copy {
-        color: #725e63;
-        font-size: 13px;
-        line-height: 1.5;
-        word-break: keep-all;
-      }
-
-      .landing-plan-button {
-        min-height: 40px;
-        border-radius: 14px;
-        color: var(--rose-deep);
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(129, 80, 92, 0.16);
-        font-size: 12px;
-        font-weight: 700;
-      }
-
-      .landing-plan-card.is-featured .landing-plan-button {
-        color: #fff;
-        background: var(--rose-deep);
       }
 
       .landing-final-cta {
@@ -5899,15 +5832,6 @@
           padding: 0;
         }
 
-        .landing-pricing-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 18px;
-        }
-
-        .landing-plan-card {
-          min-height: 248px;
-          padding: 28px;
-        }
       }
 
       @media (max-width: 859px) {
@@ -6002,18 +5926,9 @@
           padding: 24px 18px;
         }
 
-        .landing-plan-card {
-          min-height: 214px;
-          padding: 12px;
-          border-radius: 22px;
-        }
-
-        .landing-plan-title {
-          font-size: 13px;
-        }
-
-        .landing-plan-price {
-          font-size: 23px;
+        .landing-start-free-card {
+          border-radius: 24px;
+          padding: 24px 18px;
         }
 
         .app-stage {
@@ -6202,60 +6117,19 @@
             </div>
           </section>
 
-          <section class="landing-section landing-plans-section" aria-label="요금제">
+          <section class="landing-section landing-start-free-section" aria-label="무료 시작">
             <div class="landing-section-inner single-column">
-              <div class="landing-section-head landing-plans-section-head">
-                <h2 class="landing-plans-title">OUR PLANS</h2>
-                <p class="landing-copy">가볍게 체험할 수 있는 상품부터 충분히 제작할 수 있는 상품까지, 다양한 요금제가 준비되어 있어요.</p>
-              </div>
-              <div class="landing-pricing-free-note" role="note">
-                <p class="landing-pricing-free-note-title">처음이라면 먼저 무료로 경험해보세요</p>
-                <p class="landing-pricing-free-note-copy">처음 사용자 무료 제작 이용권 3회 증정</p>
-                <p class="landing-pricing-free-note-copy">갤러리 공유 시 추가 2회 지급</p>
-              </div>
-              <div class="landing-pricing-grid">
-                <article class="landing-plan-card">
-                  <div>
-                    <p class="landing-plan-eyebrow">OPEN EVENT</p>
-                    <p class="landing-plan-title">첫 설렘 패스</p>
-                    <div class="mt-3 flex items-end gap-3">
-                      <p class="landing-plan-copy line-through">49,800원</p>
-                      <p class="landing-plan-price">19,800원</p>
-                    </div>
-                    <p class="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">오픈 이벤트 특별가</p>
-                    <div class="mt-3 space-y-1">
-                      <p class="landing-plan-copy">처음이라면 가볍게 체험해보세요.</p>
-                      <p class="landing-plan-copy">AI 웨딩사진 제작 8회</p>
-                    </div>
-                  </div>
-                  <button class="landing-plan-button" data-screen-target="credits" type="button">이용권 선택하기</button>
-                </article>
-                <article class="landing-plan-card">
-                  <div>
-                    <p class="landing-plan-eyebrow">STANDARD</p>
-                    <p class="landing-plan-title">포토테이블<br />준비 패스</p>
-                    <p class="landing-plan-price mt-3">99,000원</p>
-                    <div class="mt-3 space-y-1">
-                      <p class="landing-plan-copy">스튜디오 사진이 없어도, 이미 찍은 사진이 있어도.</p>
-                      <p class="landing-plan-copy">예식에 놓을 감성사진을 충분히 준비해보세요.</p>
-                      <p class="landing-plan-copy">AI 웨딩사진 제작 20회</p>
-                    </div>
-                  </div>
-                  <button class="landing-plan-button" data-screen-target="credits" type="button">이용권 선택하기</button>
-                </article>
-                <article class="landing-plan-card is-featured">
-                  <div>
-                    <p class="landing-plan-eyebrow">PREMIUM</p>
-                    <p class="landing-plan-title">프리미엄 커스텀 제작</p>
-                    <p class="landing-plan-price mt-3">199,000원</p>
-                    <div class="mt-3 space-y-1">
-                      <p class="landing-plan-copy">어떤 콘셉트도 이야기만 하세요.</p>
-                      <p class="landing-plan-copy">원하는 분위기로 맞춤 제작해드립니다.</p>
-                      <p class="landing-plan-copy">포토테이블 제작도 대행해 드려요.</p>
-                    </div>
-                  </div>
-                  <button class="landing-plan-button" data-action="open-assistant-chat" type="button">커스텀 문의하기</button>
-                </article>
+              <div class="landing-start-free-card">
+                <p class="landing-eyebrow">START FREE</p>
+                <h2 class="landing-title landing-start-free-title">처음이라면 먼저 무료로 경험해보세요</h2>
+                <div class="landing-start-free-benefits" role="note">
+                  <p class="landing-start-free-benefit is-highlight">처음 사용자 무료 제작 이용권 3회 증정</p>
+                  <p class="landing-start-free-benefit">사진을 올리고 원하는 스타일만 고르면 바로 시작할 수 있어요.</p>
+                </div>
+                <button class="landing-primary-button landing-signup-start-button mt-6 w-full sm:w-fit" id="landingStartFreeButton" type="button">
+                  <span>무료이용권 받고 시작하기</span>
+                  <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </button>
               </div>
             </div>
           </section>
@@ -8648,6 +8522,7 @@ Important:
       const landingScreen = document.getElementById("landingScreen");
       const landingAuthButton = document.getElementById("landingAuthButton");
       const landingHeroStartButton = document.getElementById("landingHeroStartButton");
+      const landingStartFreeButton = document.getElementById("landingStartFreeButton");
       const landingFinalStartButton = document.getElementById("landingFinalStartButton");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
@@ -24659,6 +24534,7 @@ ${modeExample}`;
 
       landingAuthButton?.addEventListener("click", handleLandingAuthButtonClick);
       landingHeroStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingHeroStartButton));
+      landingStartFreeButton?.addEventListener("click", () => handleLandingSignupStartClick(landingStartFreeButton));
       landingFinalStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingFinalStartButton));
 
       accountMenuClose?.addEventListener("click", () => {

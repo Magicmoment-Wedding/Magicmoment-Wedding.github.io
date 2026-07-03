@@ -5098,6 +5098,19 @@
         margin-right: auto;
       }
 
+      .landing-final-start-button span:first-child {
+        white-space: normal;
+        text-align: center;
+        line-height: 1.35;
+      }
+
+      @media (max-width: 639px) {
+        .landing-final-start-button {
+          font-size: 13px;
+          padding: 0 16px;
+        }
+      }
+
       .landing-business-footer {
         width: 100%;
         margin-top: clamp(8px, 2vw, 24px);
@@ -6251,8 +6264,8 @@
               <p class="landing-eyebrow">START</p>
               <h2 class="landing-title mt-3">우리 사진도 한번 바꿔볼까요?</h2>
               <p class="landing-copy mt-3">사진을 올리고 원하는 분위기를 고르면 새로운 웨딩 사진이 완성돼요.</p>
-              <button class="landing-primary-button mt-6 w-full sm:w-fit" data-screen-target="editor" type="button">
-                <span>사진 올리고 시작하기</span>
+              <button class="landing-primary-button landing-final-start-button mt-6 w-full sm:w-fit" id="landingFinalStartButton" type="button">
+                <span>무료이용권 받고 시작하기</span>
                 <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
               </button>
             </div>
@@ -8634,6 +8647,7 @@ Important:
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
       const landingAuthButton = document.getElementById("landingAuthButton");
+      const landingFinalStartButton = document.getElementById("landingFinalStartButton");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
       const editorScreen = document.getElementById("editorScreen");
@@ -23860,6 +23874,15 @@ ${modeExample}`;
         openLoginModal(landingAuthButton, { tab: "login", returnView: "landing" });
       }
 
+      function handleLandingFinalStartButtonClick() {
+        if (getAuthenticatedUserId(currentUser)) {
+          navigateToScreen("editor");
+          return;
+        }
+
+        openLoginModal(landingFinalStartButton, { tab: "signup", returnView: "editor" });
+      }
+
       function showAccountMenuToast(message) {
         if (!accountMenuToast) return;
 
@@ -24634,6 +24657,7 @@ ${modeExample}`;
       }
 
       landingAuthButton?.addEventListener("click", handleLandingAuthButtonClick);
+      landingFinalStartButton?.addEventListener("click", handleLandingFinalStartButtonClick);
 
       accountMenuClose?.addEventListener("click", () => {
         closeAccountMenu({ restoreFocus: true });

@@ -5098,14 +5098,14 @@
         margin-right: auto;
       }
 
-      .landing-final-start-button span:first-child {
+      .landing-signup-start-button span:first-child {
         white-space: normal;
         text-align: center;
         line-height: 1.35;
       }
 
       @media (max-width: 639px) {
-        .landing-final-start-button {
+        .landing-signup-start-button {
           font-size: 13px;
           padding: 0 16px;
         }
@@ -6116,8 +6116,8 @@
                 <p class="landing-copy">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>
                 <p class="landing-free-ticket-badge" role="note">🎁 <em>처음 사용자 무료 제작 이용권 3회 증정</em></p>
-                <button class="landing-primary-button w-full sm:w-fit" data-screen-target="editor" type="button">
-                  <span>사진 올리고 시작하기</span>
+                <button class="landing-primary-button landing-signup-start-button w-full sm:w-fit" id="landingHeroStartButton" type="button">
+                  <span>무료이용권 받고 시작하기</span>
                   <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
                 </button>
               </div>
@@ -6264,7 +6264,7 @@
               <p class="landing-eyebrow">START</p>
               <h2 class="landing-title mt-3">우리 사진도 한번 바꿔볼까요?</h2>
               <p class="landing-copy mt-3">사진을 올리고 원하는 분위기를 고르면 새로운 웨딩 사진이 완성돼요.</p>
-              <button class="landing-primary-button landing-final-start-button mt-6 w-full sm:w-fit" id="landingFinalStartButton" type="button">
+              <button class="landing-primary-button landing-signup-start-button mt-6 w-full sm:w-fit" id="landingFinalStartButton" type="button">
                 <span>무료이용권 받고 시작하기</span>
                 <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
               </button>
@@ -8647,6 +8647,7 @@ Important:
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
       const landingAuthButton = document.getElementById("landingAuthButton");
+      const landingHeroStartButton = document.getElementById("landingHeroStartButton");
       const landingFinalStartButton = document.getElementById("landingFinalStartButton");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
@@ -23864,6 +23865,15 @@ ${modeExample}`;
         openAccountMenu(trigger);
       }
 
+      function handleLandingSignupStartClick(triggerButton) {
+        if (getAuthenticatedUserId(currentUser)) {
+          navigateToScreen("editor");
+          return;
+        }
+
+        openLoginModal(triggerButton, { tab: "signup", returnView: "editor" });
+      }
+
       function handleLandingAuthButtonClick() {
         if (getAuthenticatedUserId(currentUser)) {
           openAccountMenu(landingAuthButton);
@@ -23872,15 +23882,6 @@ ${modeExample}`;
         }
 
         openLoginModal(landingAuthButton, { tab: "login", returnView: "landing" });
-      }
-
-      function handleLandingFinalStartButtonClick() {
-        if (getAuthenticatedUserId(currentUser)) {
-          navigateToScreen("editor");
-          return;
-        }
-
-        openLoginModal(landingFinalStartButton, { tab: "signup", returnView: "editor" });
       }
 
       function showAccountMenuToast(message) {
@@ -24657,7 +24658,8 @@ ${modeExample}`;
       }
 
       landingAuthButton?.addEventListener("click", handleLandingAuthButtonClick);
-      landingFinalStartButton?.addEventListener("click", handleLandingFinalStartButtonClick);
+      landingHeroStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingHeroStartButton));
+      landingFinalStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingFinalStartButton));
 
       accountMenuClose?.addEventListener("click", () => {
         closeAccountMenu({ restoreFocus: true });

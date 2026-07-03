@@ -4647,59 +4647,6 @@
         font-weight: 700;
       }
 
-      .landing-start-free-section .landing-section-inner {
-        gap: 0;
-      }
-
-      .landing-start-free-card {
-        width: min(720px, 100%);
-        margin: 0 auto;
-        padding: clamp(28px, 5vw, 44px);
-        border-radius: 28px;
-        text-align: center;
-        background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 236, 232, 0.42));
-        border: 1px solid rgba(212, 119, 106, 0.18);
-        box-shadow:
-          0 20px 56px rgba(129, 80, 92, 0.12),
-          inset 0 1px 0 rgba(255, 255, 255, 0.86);
-      }
-
-      .landing-start-free-title {
-        margin: 12px auto 0;
-        max-width: 16em;
-        font-size: clamp(22px, 4.8vw, 30px);
-        line-height: 1.35;
-        word-break: keep-all;
-      }
-
-      .landing-start-free-benefits {
-        margin-top: 18px;
-        padding: 16px 18px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, rgba(255, 251, 249, 0.96), rgba(255, 240, 236, 0.9));
-        border: 1px solid rgba(212, 119, 106, 0.16);
-      }
-
-      .landing-start-free-benefit {
-        margin: 0;
-        color: #8a737a;
-        font-size: 13px;
-        line-height: 1.6;
-        font-weight: 500;
-        word-break: keep-all;
-      }
-
-      .landing-start-free-benefit + .landing-start-free-benefit {
-        margin-top: 6px;
-      }
-
-      .landing-start-free-benefit.is-highlight {
-        color: #4a3736;
-        font-size: 14px;
-        font-weight: 700;
-      }
-
       .editor-free-ticket-note {
         margin: 8px 0 0;
         text-align: center;
@@ -5926,11 +5873,6 @@
           padding: 24px 18px;
         }
 
-        .landing-start-free-card {
-          border-radius: 24px;
-          padding: 24px 18px;
-        }
-
         .app-stage {
           padding: 0;
         }
@@ -6109,30 +6051,10 @@
                   <li>원하는 장소, 분위기, 콘셉트가 있다면 커스텀 제작으로 더 특별하게 완성해보세요.</li>
                   <li>포토테이블용 사진이나 식전영상용 이미지로도 활용할 수 있어요.</li>
                 </ul>
-                <button class="landing-primary-button w-full sm:w-fit" data-action="open-assistant-chat" type="button">
-                  <span>커스텀 문의하기</span>
-                  <span class="material-symbols-outlined text-[19px]">auto_fix_high</span>
-                </button>
               </div>
             </div>
           </section>
 
-          <section class="landing-section landing-start-free-section" aria-label="무료 시작">
-            <div class="landing-section-inner single-column">
-              <div class="landing-start-free-card">
-                <p class="landing-eyebrow">START FREE</p>
-                <h2 class="landing-title landing-start-free-title">처음이라면 먼저 무료로 경험해보세요</h2>
-                <div class="landing-start-free-benefits" role="note">
-                  <p class="landing-start-free-benefit is-highlight">처음 사용자 무료 제작 이용권 3회 증정</p>
-                  <p class="landing-start-free-benefit">사진을 올리고 원하는 스타일만 고르면 바로 시작할 수 있어요.</p>
-                </div>
-                <button class="landing-primary-button landing-signup-start-button mt-6 w-full sm:w-fit" id="landingStartFreeButton" type="button">
-                  <span>무료이용권 받고 시작하기</span>
-                  <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-          </section>
           <section class="landing-section" aria-label="시작하기">
             <div class="landing-final-cta">
               <p class="landing-eyebrow">START</p>
@@ -8522,7 +8444,6 @@ Important:
       const landingScreen = document.getElementById("landingScreen");
       const landingAuthButton = document.getElementById("landingAuthButton");
       const landingHeroStartButton = document.getElementById("landingHeroStartButton");
-      const landingStartFreeButton = document.getElementById("landingStartFreeButton");
       const landingFinalStartButton = document.getElementById("landingFinalStartButton");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
@@ -24534,7 +24455,6 @@ ${modeExample}`;
 
       landingAuthButton?.addEventListener("click", handleLandingAuthButtonClick);
       landingHeroStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingHeroStartButton));
-      landingStartFreeButton?.addEventListener("click", () => handleLandingSignupStartClick(landingStartFreeButton));
       landingFinalStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingFinalStartButton));
 
       accountMenuClose?.addEventListener("click", () => {

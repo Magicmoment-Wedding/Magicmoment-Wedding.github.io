@@ -5934,6 +5934,7 @@
       })();
     </script>
     <script src="./config.js?v=20260620-real-supabase-key"></script>
+    <script src="./services/event-analytics.js?v=20260703-funnel"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -11263,6 +11264,23 @@ Important:
         }
       }
 
+      async function fetchAdminFunnelStats(days = 7) {
+        const safeDays = Number.isFinite(Number(days)) ? Math.max(1, Math.min(90, Number(days))) : 7;
+        try {
+          return await fetchAdminJson(`/api/admin/analytics/funnel?days=${safeDays}`);
+        } catch (error) {
+          console.error("[admin/analytics/funnel] failed", {
+            status: error.statusCode || error.status,
+            code: error.code,
+            stage: error.stage,
+            url: error.url,
+            message: error.message,
+            rawPreview: error.rawPreview,
+          });
+          throw error;
+        }
+      }
+
       function getAdminPayloadArray(payload = {}, keys = []) {
         for (const key of keys) {
           const value = payload?.[key] ?? payload?.data?.[key];
@@ -11295,6 +11313,24 @@ Important:
         };
 
         return { rows, summary };
+      }
+
+      function normalizeAdminFunnelStatsPayload(payload = {}) {
+        const cards = getAdminPayloadArray(payload, ["cards"]).map((card = {}) => ({
+          eventName: String(card.eventName || card.event_name || "").trim(),
+          label: String(card.label || card.title || card.eventName || card.event_name || "").trim(),
+          today: Number(card.today ?? card.todayCount ?? card.today_count ?? 0) || 0,
+          lastDays: Number(card.lastDays ?? card.last_days ?? card.rangeCount ?? card.range_count ?? 0) || 0,
+        }));
+        const summaryRaw = getAdminPayloadObject(payload, ["summary"]);
+        const today = summaryRaw.today && typeof summaryRaw.today === "object" ? summaryRaw.today : {};
+        const lastDays = summaryRaw.lastDays && typeof summaryRaw.lastDays === "object" ? summaryRaw.lastDays : {};
+        return {
+          cards,
+          today,
+          lastDays,
+          days: Number(payload?.days ?? payload?.data?.days ?? 7) || 7,
+        };
       }
 
       function getAdminGalleryPayloadItems(payload = {}) {
@@ -12888,9 +12924,9 @@ Important:
         `;
       }
 
-      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, galleryPayload = {}, galleryError = null, visitStatsPayload = {}, visitStatsError = null, visitStatsLoading = false, errors = [] } = {}) {
+      function renderAdminDashboard({ summaryPayload = {}, usersPayload = {}, usersError = null, paymentsPayload = {}, generationsPayload = {}, generationsError = null, galleryPayload = {}, galleryError = null, visitStatsPayload = {}, visitStatsError = null, visitStatsLoading = false, funnelStatsPayload = {}, funnelStatsError = null, funnelStatsLoading = false, errors = [] } = {}) {
         if (!adminContent) return;
-        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, galleryPayload, galleryError, visitStatsPayload, visitStatsError, visitStatsLoading, errors };
+        lastAdminDashboardRenderArgs = { summaryPayload, usersPayload, usersError, paymentsPayload, generationsPayload, generationsError, galleryPayload, galleryError, visitStatsPayload, visitStatsError, visitStatsLoading, funnelStatsPayload, funnelStatsError, funnelStatsLoading, errors };
         const summary = getAdminPayloadObject(summaryPayload, ["summary"]);
         const normalizedUsers = usersError ? { users: [], total: 0 } : normalizeAdminUsersPayload(usersPayload);
         const users = normalizedUsers.users;
@@ -12906,6 +12942,18 @@ Important:
         const visibleGalleryItems = galleryItems.slice(0, adminVisibleGalleryCount);
         const visitStats = normalizeAdminVisitStatsPayload(visitStatsPayload);
         const visitSummary = visitStats.summary;
+        const funnelStats = normalizeAdminFunnelStatsPayload(funnelStatsPayload);
+        const funnelCards = funnelStats.cards.length
+          ? funnelStats.cards
+          : [
+              { eventName: "page_view_landing", label: "랜딩 방문", today: 0, lastDays: 0 },
+              { eventName: "cta_click_free_start", label: "무료 CTA 클릭", today: 0, lastDays: 0 },
+              { eventName: "auth_modal_open", label: "가입/로그인 화면 진입", today: 0, lastDays: 0 },
+              { eventName: "signup_success", label: "가입/로그인 성공", today: 0, lastDays: 0 },
+              { eventName: "photo_upload_success", label: "사진 업로드 성공", today: 0, lastDays: 0 },
+              { eventName: "generate_click", label: "생성 클릭", today: 0, lastDays: 0 },
+              { eventName: "generate_success", label: "생성 성공", today: 0, lastDays: 0 },
+            ];
         const payloadWarnings = [
           ...getAdminPayloadWarnings(summaryPayload),
           ...getAdminPayloadWarnings(usersPayload),
@@ -12973,6 +13021,22 @@ Important:
             </div>
             ${visitStatsLoading ? `<div class="admin-empty mt-3">방문 통계를 불러오는 중...</div>` : ""}
             ${visitStatsError ? `<div class="admin-empty mt-3">방문 통계를 불러오지 못했습니다.</div>` : ""}
+          </section>
+
+          <section class="admin-panel-card">
+            <h2 class="font-display text-[23px] leading-tight text-on-surface">퍼널 통계</h2>
+            <p class="mt-1 text-sm text-on-surface-variant">광고 유입 고객의 주요 행동 단계를 오늘/최근 ${escapeHtml(String(funnelStats.days || 7))}일 기준으로 확인합니다.</p>
+            <div class="admin-stat-grid mt-3">
+              ${funnelCards.map((card) => `
+                <div class="admin-stat-card">
+                  <p class="text-xs font-bold text-on-surface-variant">${escapeHtml(card.label || card.eventName)}</p>
+                  <p class="mt-1 text-xl font-black">${escapeHtml(String(card.today ?? 0))}</p>
+                  <p class="mt-1 text-[11px] text-on-surface-variant">최근 ${escapeHtml(String(funnelStats.days || 7))}일 ${escapeHtml(String(card.lastDays ?? 0))}</p>
+                </div>
+              `).join("")}
+            </div>
+            ${funnelStatsLoading ? `<div class="admin-empty mt-3">퍼널 통계를 불러오는 중...</div>` : ""}
+            ${funnelStatsError ? `<div class="admin-empty mt-3">퍼널 통계를 불러오지 못했습니다.</div>` : ""}
           </section>
 
           <div class="admin-dashboard-grid">
@@ -13107,6 +13171,9 @@ Important:
           visitStatsPayload: {},
           visitStatsError: null,
           visitStatsLoading: true,
+          funnelStatsPayload: {},
+          funnelStatsError: null,
+          funnelStatsLoading: true,
           errors: [],
         };
         renderAdminDashboard(initialDashboardArgs);
@@ -13148,6 +13215,11 @@ Important:
             .then((visitStatsPayload) => updateAdminDashboardSection({ visitStatsPayload, visitStatsError: null, visitStatsLoading: false }))
             .catch((error) => updateAdminDashboardSection({ visitStatsPayload: {}, visitStatsError: error, visitStatsLoading: false }, "방문 통계"));
         }, 320);
+        window.setTimeout(() => {
+          void fetchAdminFunnelStats()
+            .then((funnelStatsPayload) => updateAdminDashboardSection({ funnelStatsPayload, funnelStatsError: null, funnelStatsLoading: false }))
+            .catch((error) => updateAdminDashboardSection({ funnelStatsPayload: {}, funnelStatsError: error, funnelStatsLoading: false }, "퍼널 통계"));
+        }, 400);
       }
 
       async function refreshAdminUsersAndSummary({ deletedUserId = "", includeActivity = false } = {}) {
@@ -14723,6 +14795,10 @@ Important:
         clearMagicAiUserCacheStorage();
         applyAuthSession({ ok: false, authenticated: false, user: null });
         const failureMessage = getLoginFailureMessage(loginParams);
+        window.trackEvent?.("signup_failed", {
+          provider,
+          errorMessage: failureMessage || reason,
+        });
         showAccountMenuToast(failureMessage || `${providerLabel} 로그인에 실패했습니다. 다시 시도해 주세요.`);
         hideAuthProcessingOverlay();
         cleanLoginRedirectQuery();
@@ -15274,6 +15350,9 @@ Important:
           closeLoginModal();
           const displayName = getAuthUserName(user);
           authFlowState = authMode === "signup" ? "signup-success" : "login-success";
+          window.trackEvent?.("signup_success", {
+            provider: callbackProvider || getUserAuthProvider(user) || "",
+          });
           openAccountMenuAfterAuth();
           showAccountMenuToast(authMode === "signup"
             ? "환영합니다. Magic AI Studio 가입이 완료되었어요."
@@ -17635,6 +17714,7 @@ Important:
         appStage.classList.toggle("is-gallery-active", !isLanding && screen === "gallery");
         if (isLanding) {
           sendVisitAnalyticsOnLandingEntry();
+          window.trackEvent?.("page_view_landing");
         }
         if (screen !== "editor") {
           stopUploadTipRotator();
@@ -17673,6 +17753,7 @@ Important:
 
         if (screen === "editor") {
           syncEditorScreenUi();
+          window.trackEvent?.("editor_view");
         }
 
         if (screen === "credits") {
@@ -18531,6 +18612,10 @@ Important:
         if (options.toastMessage) {
           showAccountMenuToast(options.toastMessage);
         }
+
+        window.trackEvent?.("generate_success", {
+          styleCategory: mode,
+        });
       }
 
       async function requestGenerationRun(jobId) {
@@ -23662,6 +23747,7 @@ ${modeExample}`;
       }
 
       function handleLandingSignupStartClick(triggerButton) {
+        window.trackEvent?.("cta_click_free_start");
         if (getAuthenticatedUserId(currentUser)) {
           navigateToScreen("editor");
           return;
@@ -23709,6 +23795,7 @@ ${modeExample}`;
         rememberLoginReturnView(options.returnView || getLoginReturnViewFromScreen());
         activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
         setAuthTab(options.tab || authTab || "login", options.message || "");
+        window.trackEvent?.("auth_modal_open");
         loginModalOverlay.classList.add("is-open");
         loginModalOverlay.setAttribute("aria-hidden", "false");
 
@@ -24188,6 +24275,14 @@ ${modeExample}`;
           return;
         }
         const safeProvider = sanitizeOAuthProvider(provider);
+        const providerEventMap = {
+          google: "signup_provider_click_google",
+          kakao: "signup_provider_click_kakao",
+          naver: "signup_provider_click_naver",
+        };
+        if (safeProvider && providerEventMap[safeProvider]) {
+          window.trackEvent?.(providerEventMap[safeProvider], { provider: safeProvider });
+        }
         const hasLoggedInUser = Boolean(getAuthenticatedUserId(currentUser));
         console.info("[auth][provider-click]", {
           provider: safeProvider || provider || "",
@@ -24738,11 +24833,19 @@ ${modeExample}`;
       }
 
       generationModeInputs.forEach((input) => {
-        input.addEventListener("change", syncGenerationModeUi);
+        input.addEventListener("change", () => {
+          syncGenerationModeUi();
+          window.trackEvent?.("style_select", {
+            styleCategory: getGenerationMode(),
+          });
+        });
       });
       generationPlaceInputs.forEach((input) => {
         input.addEventListener("change", () => {
           syncSelectedLocationPreset(getGenerationMode());
+          window.trackEvent?.("style_select", {
+            styleCategory: getGenerationMode(),
+          });
         });
       });
       syncGenerationModeUi();
@@ -24987,6 +25090,7 @@ ${modeExample}`;
         }
 
         hideError();
+        window.trackEvent?.("photo_upload_start");
         const selectedFileInfo = getFileDebugInfo(selectedFile);
         logMobileDebug("selected file name", selectedFileInfo.name);
         console.log("[upload] selected file name", selectedFileInfo.name);
@@ -25013,6 +25117,7 @@ ${modeExample}`;
           sourcePreview.src = selectedImageDataUrl;
           sourceSection.classList.remove("hidden");
           syncPhotoUploadUi();
+          window.trackEvent?.("photo_upload_success");
         } catch (error) {
           selectedImageDataUrl = "";
           sourcePreview.removeAttribute("src");
@@ -25065,6 +25170,9 @@ ${modeExample}`;
         hideError();
         isGenerating = true;
         lastGenerationUsedFreeCredit = hasFreeGeneration(currentUser);
+        window.trackEvent?.("generate_click", {
+          styleCategory: getGenerationMode(),
+        });
         generateButton.disabled = true;
         activeGenerationMode = getGenerationMode();
         clearResults();
@@ -25088,6 +25196,19 @@ ${modeExample}`;
           const initialGenerationJobId = String(effectiveError.jobId || effectiveError.response?.jobId || effectiveError.response?.job_id || currentGenerationJobId || "").trim();
           if (initialGenerationErrorCode === "GENERATION_POLL_CANCELLED") {
             return;
+          }
+          if (
+            initialGenerationErrorCode !== "GENERATION_JOB_TIMEOUT"
+            && initialGenerationErrorCode !== "GENERATION_POLL_CANCELLED"
+          ) {
+            window.trackEvent?.("generate_failed", {
+              styleCategory: activeGenerationMode,
+              errorMessage: effectiveError.messageFromServer
+                || effectiveError.response?.message
+                || effectiveError.message
+                || initialGenerationErrorCode
+                || "GENERATION_FAILED",
+            });
           }
           if (initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT") {
             lastDelayedGenerationJobId = initialGenerationJobId;

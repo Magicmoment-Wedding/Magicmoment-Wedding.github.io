@@ -12811,27 +12811,46 @@ Important:
         `;
       }
 
-      function renderAdminGalleryThumb(url = "", alt = "갤러리 이미지") {
-        const displayUrl = url ? toDisplayUrl(url) : "";
+      function formatAdminGalleryUrlLabel(url = "") {
+        const value = String(url || "").trim();
+        if (!value) return "-";
+        if (isSignedImageUrl(value)) return "signed URL 있음";
+        if (/^https?:\/\//i.test(value)) return "이미지 URL 있음";
+        if (value.length > 48) return `${value.slice(0, 48)}...`;
+        return value;
+      }
+
+      function getAdminGalleryDisplayUrl(url = "") {
+        const value = String(url || "").trim();
+        if (!value) return "";
+        // Admin gallery uses backend signed URLs as-is; never append cache-busters.
+        if (isSignedImageUrl(value) || /^https?:\/\//i.test(value)) {
+          return value;
+        }
+        return toDisplayUrl(value);
+      }
+
+      function renderAdminGalleryThumb(url = "", alt = "갤러리 이미지", itemId = "") {
+        const displayUrl = getAdminGalleryDisplayUrl(url);
         if (!displayUrl) {
           return `<div class="admin-gallery-thumb" aria-label="이미지 URL 변환 필요">이미지 URL<br />변환 필요</div>`;
         }
         return `
           <div class="admin-gallery-thumb">
-            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="handleImageError(event)" />
+            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" data-admin-gallery-id="${escapeHtml(String(itemId || ""))}" onerror="handleAdminGalleryImageError(event)" />
             <div class="image-fallback" data-image-fallback hidden>이미지 불러오기 실패</div>
           </div>
         `;
       }
 
-      function renderAdminGalleryPreview(url = "", alt = "갤러리 이미지") {
-        const displayUrl = url ? toDisplayUrl(url) : "";
+      function renderAdminGalleryPreview(url = "", alt = "갤러리 이미지", itemId = "") {
+        const displayUrl = getAdminGalleryDisplayUrl(url);
         if (!displayUrl) {
           return `<div class="admin-gallery-preview">이미지 URL 변환 필요</div>`;
         }
         return `
           <div class="admin-gallery-preview">
-            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" onerror="handleImageError(event)" />
+            <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" data-admin-gallery-id="${escapeHtml(String(itemId || ""))}" onerror="handleAdminGalleryImageError(event)" />
             <div class="image-fallback" data-image-fallback hidden>이미지 불러오기 실패</div>
           </div>
         `;
@@ -12876,7 +12895,7 @@ Important:
           <details class="admin-data-row admin-list-card admin-gallery-item admin-compact-card admin-gallery-compact-card">
             <summary class="admin-compact-summary admin-gallery-compact-summary">
               <div class="admin-gallery-compact-main">
-                ${renderAdminGalleryThumb(thumbnailUrl, title)}
+                ${renderAdminGalleryThumb(thumbnailUrl, title, itemId)}
                 <div class="admin-compact-line admin-gallery-compact-line">
                   <span class="admin-compact-primary">${escapeHtml(conceptTitle)}</span>
                   <span class="admin-compact-sep">·</span>
@@ -12890,7 +12909,7 @@ Important:
               </div>
             </summary>
             <div class="admin-detail-panel admin-gallery-detail">
-              ${renderAdminGalleryPreview(fullImageUrl || thumbnailUrl, title)}
+              ${renderAdminGalleryPreview(fullImageUrl || thumbnailUrl, title, itemId)}
               ${needsDisplayUrl ? `<p class="admin-summary-subtext mt-2">이미지 경로는 저장되어 있지만 표시용 URL이 아직 생성되지 않았습니다.</p>` : ""}
               <div class="admin-meta-list">
                 <div class="admin-meta-row"><span class="admin-meta-label">회원 이메일</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(memberEmail)}</span></div>
@@ -12907,8 +12926,8 @@ Important:
                 <div class="admin-meta-row"><span class="admin-meta-label">스타일/프리셋</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(`${styleLabel} / ${presetLabel}`)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">결과 라벨</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(resultLabel)}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">회원 이름</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(memberName)}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">imageUrl</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(fullImageUrl || thumbnailUrl || "-")}</span></div>
-                <div class="admin-meta-row"><span class="admin-meta-label">imagePath</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(imagePath || rawImageUrl || "-")}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">imageUrl</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(formatAdminGalleryUrlLabel(fullImageUrl || thumbnailUrl))}</span></div>
+                <div class="admin-meta-row"><span class="admin-meta-label">imagePath</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(formatAdminGalleryUrlLabel(imagePath || rawImageUrl))}</span></div>
                 <div class="admin-meta-row"><span class="admin-meta-label">추천 여부</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(normalized.isRecommended ? "추천" : "일반")}</span></div>
                 ${deleteReason ? `<div class="admin-meta-row"><span class="admin-meta-label">${escapeHtml(visibility === "hidden" ? "숨김 사유" : "삭제 사유")}</span><span class="admin-meta-value admin-gallery-meta-value">${escapeHtml(deleteReason)}</span></div>` : ""}
               </div>
@@ -16507,8 +16526,21 @@ Important:
         }
 
         console.warn("[image][load-failed]", {
-          src: srcPreview ? srcPreview.slice(0, 120) : null,
+          src: srcPreview ? `${srcPreview.slice(0, 80)}...` : null,
+          isSignedUrl: isSignedImageUrl(srcPreview),
         });
+      }
+
+      function handleAdminGalleryImageError(event) {
+        const img = event?.currentTarget || event?.target;
+        const src = img?.getAttribute?.("src") || img?.currentSrc || "";
+        console.warn("[admin gallery image failed]", {
+          id: img?.dataset?.adminGalleryId || "",
+          hasSrc: Boolean(src),
+          isSignedUrl: isSignedImageUrl(src),
+          srcPreview: src ? `${src.slice(0, 80)}...` : "",
+        });
+        handleImageError(event);
       }
 
       function extractMyPhotoItems(payload = {}) {
@@ -17993,6 +18025,14 @@ Important:
         return values.map(normalizeBrowserImageUrlValue).find(Boolean) || "";
       }
 
+      function isSignedImageUrl(url) {
+        const value = String(url || "");
+        return value.includes("/storage/v1/object/sign/")
+          || value.includes("token=")
+          || value.includes("X-Amz-Signature")
+          || value.includes("Signature=");
+      }
+
       function toDisplayUrl(url) {
         const normalizedUrl = normalizeUrlValue(url);
         if (!normalizedUrl) return "";
@@ -18002,6 +18042,11 @@ Important:
         }
 
         const absoluteUrl = normalizedUrl.startsWith("/") ? `${FRONT_API_BASE_URL}${normalizedUrl}` : normalizedUrl;
+        // Supabase/S3 signed URLs must not be mutated; cache-busters invalidate the signature.
+        if (isSignedImageUrl(absoluteUrl)) {
+          return absoluteUrl;
+        }
+
         return `${absoluteUrl}${absoluteUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
       }
 

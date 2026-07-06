@@ -3692,42 +3692,6 @@
         display: none !important;
       }
 
-      .image-modal-gallery-reward-note {
-        display: none;
-        width: 100%;
-        max-width: 390px;
-        padding: 10px 12px;
-        border-radius: 16px;
-        background: rgba(255, 248, 246, 0.1);
-        border: 1px solid rgba(255, 214, 204, 0.22);
-        text-align: center;
-        pointer-events: none;
-      }
-
-      .image-modal-gallery-reward-note p {
-        margin: 0;
-        color: rgba(255, 248, 246, 0.88);
-        font-size: 11px;
-        line-height: 1.55;
-      }
-
-      .image-modal-gallery-reward-note p + p {
-        margin-top: 4px;
-      }
-
-      .image-modal-gallery-consent-note {
-        margin-top: 8px !important;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.62) !important;
-        font-size: 10px !important;
-      }
-
-      #imageModal.is-result-lightbox .image-modal-gallery-reward-note,
-      #imageModal.is-my-photo-lightbox .image-modal-gallery-reward-note {
-        display: block;
-      }
-
       #imageModal.is-gallery-lightbox .image-modal-gallery-reward-note {
         display: none !important;
       }
@@ -8720,10 +8684,6 @@
         </div>
         <div class="image-modal-thumbnail-strip hidden" id="imageModalThumbnailStrip" aria-label="같은 생성 결과 썸네일"></div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
-          <div class="image-modal-gallery-reward-note" id="imageModalGalleryRewardNote" role="note">
-            <p>공개 업로드가 완료되면 무료 제작 이용권 1회가 지급됩니다.</p>
-            <p class="image-modal-gallery-consent-note">선택한 결과 사진이 스타일 갤러리에 공개되는 것에 동의합니다.</p>
-          </div>
           <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
             <button class="hidden h-14 min-w-0 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalPhotoSave" type="button">
               <span class="material-symbols-outlined text-[21px]">photo_library</span>
@@ -24832,7 +24792,7 @@ ${modeExample}`;
 
       function setupLandingExamplesGalleryLink() {
         landingExamplesGalleryButton?.addEventListener("click", () => {
-          landingStylesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+          navigateToScreen("gallery");
         });
       }
 

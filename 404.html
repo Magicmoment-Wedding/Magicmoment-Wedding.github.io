@@ -8720,10 +8720,6 @@
         </div>
         <div class="image-modal-thumbnail-strip hidden" id="imageModalThumbnailStrip" aria-label="같은 생성 결과 썸네일"></div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
-          <div class="image-modal-gallery-reward-note" id="imageModalGalleryRewardNote" role="note">
-            <p>공개 업로드가 완료되면 무료 제작 이용권 1회가 지급됩니다.</p>
-            <p class="image-modal-gallery-consent-note">선택한 결과 사진이 스타일 갤러리에 공개되는 것에 동의합니다.</p>
-          </div>
           <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
             <button class="hidden h-14 min-w-0 items-center justify-center gap-2 rounded-full bg-white/90 px-5 text-center text-[16px] font-bold leading-none text-primary hover:bg-white transition-colors disabled:opacity-60 disabled:cursor-wait" id="imageModalPhotoSave" type="button">
               <span class="material-symbols-outlined text-[21px]">photo_library</span>
@@ -24832,7 +24828,7 @@ ${modeExample}`;
 
       function setupLandingExamplesGalleryLink() {
         landingExamplesGalleryButton?.addEventListener("click", () => {
-          landingStylesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+          navigateToScreen("gallery");
         });
       }
 

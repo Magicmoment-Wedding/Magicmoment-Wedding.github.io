@@ -18,6 +18,12 @@
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
       rel="stylesheet"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -3946,8 +3952,15 @@
         }
 
         .image-modal-original-thumb {
-          right: 10px;
-          bottom: 14px;
+          right: 12px;
+          bottom: 16px;
+        }
+
+        .image-modal-original-thumb img {
+          width: clamp(110px, 28vw, 160px);
+          max-width: clamp(110px, 28vw, 160px);
+          max-height: clamp(110px, 32vh, 220px);
+          object-fit: cover;
         }
 
         .image-modal-pager {
@@ -4351,14 +4364,27 @@
         animation: screenFade 260ms ease both;
       }
 
+      #landingScreen.landing-page.screen-panel {
+        animation: landingScreenFade 260ms ease both;
+        transform: none;
+      }
+
+      @keyframes landingScreenFade {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
       .landing-page {
         width: 100%;
         min-height: 100dvh;
         overflow-x: hidden;
         position: relative;
-        background:
-          radial-gradient(90% 44% at 50% 0%, rgba(244, 182, 195, 0.32), transparent 64%),
-          linear-gradient(180deg, #fff8f7 0%, #fcf1f2 48%, #fff8f7 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #fffaf7 52%, #ffffff 100%);
       }
 
       .landing-page,
@@ -4366,67 +4392,188 @@
         font-family: var(--font-sans-kr);
       }
 
-      .landing-auth-button {
+      #landingScreen {
+        --landing-fixed-top-height: 88px;
+      }
+
+      .landing-top-stack.landing-fixed-top {
         position: fixed;
-        top: calc(20px + env(safe-area-inset-top, 0px));
-        right: 24px;
-        z-index: 50;
-        min-height: 44px;
-        border-radius: 999px;
-        padding: 8px 14px;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        width: 100%;
+        background: #fff;
+      }
+
+      .landing-promo-banner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px 8px 14px;
+        background: #fce8ef;
+        color: #9d4d68;
+        border-bottom: 1px solid rgba(255, 78, 142, 0.1);
+        cursor: pointer;
+      }
+
+      .landing-promo-banner.is-hidden {
+        display: none;
+      }
+
+      .landing-promo-banner-text {
+        margin: 0;
+        flex: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        border: 1px solid rgba(154, 90, 106, 0.18);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 245, 247, 0.72));
-        color: #7b4a5a;
-        font-size: 12px;
-        line-height: 1;
+        font-size: clamp(11px, 3.1vw, 13px);
+        line-height: 1.35;
         font-weight: 600;
-        letter-spacing: 0.04em;
+        letter-spacing: -0.01em;
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      .landing-promo-banner-text .material-symbols-outlined {
+        flex: 0 0 auto;
+        font-size: 16px;
+        color: #e87898;
+        font-variation-settings: "FILL" 1, "wght" 500;
+      }
+
+      .landing-promo-banner-close {
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: transparent;
+        color: #b86b82;
+        cursor: pointer;
+        transition: background-color 0.16s ease;
+      }
+
+      .landing-promo-banner-close:hover {
+        background: rgba(255, 78, 142, 0.08);
+      }
+
+      .landing-promo-banner-close .material-symbols-outlined {
+        font-size: 18px;
+      }
+
+      .landing-top-bar {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 10px;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(30, 42, 58, 0.06);
+      }
+
+      .landing-top-logo {
+        display: block;
+        height: clamp(34px, 9vw, 44px);
+        width: auto;
+        max-width: min(50vw, 230px);
+        object-fit: contain;
+        object-position: left center;
+      }
+
+      .landing-top-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .landing-header-cta {
+        min-height: 34px;
+        border: 0;
+        border-radius: 999px;
+        padding: 7px 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        background: linear-gradient(135deg, #ff6b9d 0%, #ff2d78 100%);
+        font-size: 11px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: -0.01em;
         white-space: nowrap;
-        box-shadow:
-          0 12px 30px rgba(82, 40, 58, 0.12),
-          inset 0 1px 0 rgba(255, 255, 255, 0.82);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        box-shadow: 0 4px 14px rgba(255, 45, 120, 0.22);
+        transition: transform 0.16s ease, box-shadow 0.16s ease;
+      }
+
+      .landing-header-cta:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(255, 45, 120, 0.28);
+      }
+
+      .landing-header-cta:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .landing-header-cta:focus-visible {
+        outline: 3px solid rgba(255, 78, 142, 0.28);
+        outline-offset: 2px;
+      }
+
+      .landing-auth-button {
+        position: static;
+        width: 36px;
+        height: 36px;
+        min-height: 36px;
+        border-radius: 999px;
+        padding: 0;
+        display: inline-grid;
+        place-items: center;
+        border: 1px solid rgba(255, 78, 142, 0.16);
+        background: #ffffff;
+        color: #ff4e8e;
+        box-shadow: 0 2px 8px rgba(255, 78, 142, 0.08);
+        transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
       }
 
       .landing-auth-button .material-symbols-outlined {
-        font-size: 14px;
+        font-size: 20px;
         line-height: 1;
-        color: #914c60;
+        color: #ff4e8e;
+        font-variation-settings: "wght" 400;
       }
 
       .landing-auth-button:hover {
         transform: translateY(-1px);
-        border-color: rgba(145, 76, 96, 0.36);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 241, 239, 0.86));
-        box-shadow:
-          0 16px 36px rgba(82, 40, 58, 0.16),
-          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        border-color: rgba(255, 78, 142, 0.28);
+        background: #fff7fa;
       }
 
       .landing-auth-button:active {
         transform: translateY(0) scale(0.98);
-        background:
-          linear-gradient(180deg, rgba(255, 246, 245, 0.94), rgba(255, 235, 236, 0.86));
+        background: #fff0f5;
       }
 
       .landing-auth-button:focus-visible {
-        outline: 3px solid rgba(129, 80, 92, 0.28);
-        outline-offset: 3px;
+        outline: 3px solid rgba(255, 78, 142, 0.24);
+        outline-offset: 2px;
       }
 
       .landing-sections {
         width: 100%;
         display: flex;
         flex-direction: column;
-        padding: clamp(18px, 4vw, 36px) 18px clamp(72px, 7vw, 108px);
+        padding: var(--landing-fixed-top-height, 0px) 18px clamp(72px, 7vw, 108px);
       }
 
       .landing-section {
@@ -4445,14 +4592,14 @@
       }
 
       .landing-hero-section {
-        padding-top: clamp(34px, 6vw, 72px);
+        padding-top: clamp(12px, 2.4vw, 28px);
       }
 
       .landing-hero-section .landing-section-inner {
         width: min(920px, 100%);
         justify-items: center;
         text-align: center;
-        gap: clamp(28px, 4.2vw, 40px);
+        gap: 32px;
       }
 
       .landing-hero-copy {
@@ -4460,7 +4607,25 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
+        gap: 0;
+      }
+
+      .landing-hero-copy .landing-section-head .landing-hero-title,
+      .landing-hero-copy .landing-section-head .landing-hero-display-title,
+      .landing-hero-copy .landing-section-head .hero-title {
+        margin-top: 0;
+      }
+
+      .landing-hero-section .landing-section-head .landing-eyebrow {
+        margin-bottom: 18px;
+      }
+
+      .landing-hero-section .landing-section-head .landing-copy {
+        margin-top: 22px;
+      }
+
+      .landing-hero-copy > .landing-primary-button {
+        margin-top: 24px;
       }
 
       .landing-brand-row {
@@ -4491,27 +4656,39 @@
       }
 
       .landing-eyebrow {
-        color: var(--rose-deep);
+        color: #ff4e8e;
         font-family: Outfit, var(--font-sans-kr);
-        font-size: 12px;
-        line-height: 1;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        font-weight: 700;
+        font-size: 11px;
+        line-height: 1.3;
+        letter-spacing: 0.06em;
+        text-transform: none;
+        font-weight: 600;
       }
 
       .landing-title {
-        color: #4a323a;
+        color: #1e2a3a;
         font-family: var(--font-sans-kr);
-        font-size: clamp(38px, 7.4vw, 64px);
-        line-height: 1.12;
+        font-size: clamp(34px, 8.8vw, 64px);
+        line-height: 1.14;
         font-weight: 800;
-        letter-spacing: -0.045em;
+        letter-spacing: -0.04em;
         word-break: keep-all;
-        background: linear-gradient(135deg, #3b2a30 0%, #9a5a6a 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+      }
+
+      .landing-hero-section h1.hero-title {
+        font-family: "Noto Serif KR", serif;
+        font-size: clamp(40px, 10.5vw, 62px);
+        line-height: 1.18;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        color: #20293a;
+        text-align: center;
+        text-wrap: balance;
+        margin: 0;
+      }
+
+      .landing-hero-section h1.hero-title span {
+        display: block;
       }
 
       .landing-section-head {
@@ -4545,10 +4722,10 @@
 
       .landing-copy {
         max-width: 560px;
-        color: #6f5960;
-        font-size: 15px;
-        line-height: 1.65;
-        font-weight: 500;
+        color: #7a8494;
+        font-size: 14px;
+        line-height: 1.55;
+        font-weight: 400;
         word-break: keep-all;
       }
 
@@ -4594,22 +4771,22 @@
 
       .landing-primary-button,
       .landing-secondary-button {
-        min-height: 48px;
+        min-height: 44px;
         border-radius: 9999px;
-        padding: 0 20px;
+        padding: 0 26px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        font-size: 14px;
-        font-weight: 800;
+        gap: 6px;
+        font-size: 15px;
+        font-weight: 700;
         transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
       }
 
       .landing-primary-button {
-        color: #fff;
-        background: linear-gradient(135deg, #81505c, #9b6170);
-        box-shadow: 0 18px 42px rgba(129, 80, 92, 0.24);
+        color: #ffffff;
+        background: linear-gradient(135deg, #ff6b9d 0%, #ff2d78 100%);
+        box-shadow: 0 6px 20px rgba(255, 45, 120, 0.22);
       }
 
       .landing-secondary-button {
@@ -4647,6 +4824,847 @@
         font-weight: 700;
       }
 
+      .landing-hero-inner {
+        width: min(920px, 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(12px, 2.8vw, 24px);
+        text-align: center;
+      }
+
+      .landing-hero-compare {
+        width: min(90vw, 520px);
+      }
+
+      .landing-hscroll {
+        width: 100%;
+        display: flex;
+        gap: 14px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        padding: 4px 2px 12px;
+        margin: 0 -2px;
+        scrollbar-width: none;
+      }
+
+      .landing-hscroll::-webkit-scrollbar {
+        display: none;
+      }
+
+      .landing-example-card,
+      .landing-style-card {
+        overflow: hidden;
+      }
+
+      .landing-style-card {
+        border-radius: 24px;
+        background: #ffffff;
+        border: 1px solid rgba(255, 78, 142, 0.06);
+        box-shadow: 0 4px 18px rgba(30, 42, 58, 0.05);
+      }
+
+      .landing-example-card {
+        flex: 0 0 auto;
+        width: clamp(200px, 58vw, 260px);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .landing-example-pair {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        width: 100%;
+        aspect-ratio: 1 / 1.05;
+      }
+
+      .landing-example-pair-arrow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 2;
+        transform: translate(-50%, -50%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #ff5c96;
+        font-size: 14px;
+        line-height: 1;
+        box-shadow: 0 2px 8px rgba(20, 28, 40, 0.16);
+        pointer-events: none;
+        font-variation-settings: "FILL" 0, "wght" 500;
+      }
+
+      .landing-example-shot {
+        position: relative;
+        margin: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.06);
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .landing-example-shot::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 40%;
+        background: linear-gradient(180deg, transparent 0%, rgba(20, 28, 40, 0.58) 100%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .landing-example-style-caption {
+        position: absolute;
+        z-index: 1;
+        left: 8px;
+        bottom: 8px;
+        max-width: calc(100% - 16px);
+        color: #ffffff;
+        font-size: 10px;
+        line-height: 1.25;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.34);
+        word-break: keep-all;
+      }
+
+      .landing-example-shot img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .landing-example-label {
+        position: absolute;
+        z-index: 1;
+        top: 8px;
+        left: 8px;
+        padding: 3px 8px;
+        border-radius: 9999px;
+        background: rgba(38, 44, 56, 0.72);
+        color: #ffffff;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .landing-example-label.is-after {
+        left: auto;
+        right: 8px;
+        background: #ff4e8e;
+      }
+
+      .landing-example-desc {
+        display: none;
+      }
+
+      .landing-examples-section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: clamp(20px, 4vw, 36px) 0 clamp(16px, 3vw, 28px);
+      }
+
+      .landing-section.landing-examples-section {
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: clamp(20px, 4vw, 36px) 0 clamp(16px, 3vw, 28px);
+      }
+
+      .landing-examples-head {
+        width: 100%;
+        margin: 0 0 14px;
+        padding: 0;
+      }
+
+      .landing-examples-heading {
+        margin: 0;
+        color: #1e2a3a;
+        font-family: var(--font-sans-kr);
+        font-size: clamp(24px, 5.8vw, 34px);
+        line-height: 1.2;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        text-align: left;
+        word-break: keep-all;
+      }
+
+      .landing-examples-heading-highlight {
+        font-style: normal;
+        background: linear-gradient(transparent 58%, rgba(181, 245, 232, 0.62) 58%);
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+      }
+
+      .landing-examples-band {
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 14px 0 18px;
+        background: linear-gradient(165deg, #2f3848 0%, #3a4558 52%, #323d4e 100%);
+      }
+
+      .landing-examples-band-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-top: 20px;
+        padding: 0 18px;
+        text-align: center;
+      }
+
+      .landing-examples-band-headline {
+        margin: 0;
+        color: #ffffff;
+        font-family: var(--font-sans-kr);
+        font-size: clamp(16px, 4.4vw, 22px);
+        line-height: 1.32;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        word-break: keep-all;
+      }
+
+      .landing-examples-band-copy {
+        margin: 0;
+        color: rgba(248, 250, 252, 0.88);
+        font-size: clamp(13px, 3.6vw, 15px);
+        line-height: 1.45;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        word-break: keep-all;
+      }
+
+      .landing-examples-gallery-link {
+        min-height: 40px;
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 18px 10px 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: #ffffff;
+        background: linear-gradient(135deg, #ff6b9d 0%, #ff2d78 100%);
+        font-size: 13px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        box-shadow: 0 6px 18px rgba(255, 45, 120, 0.28);
+        transition: transform 0.16s ease, box-shadow 0.16s ease;
+      }
+
+      .landing-examples-gallery-link:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 22px rgba(255, 45, 120, 0.34);
+      }
+
+      .landing-examples-gallery-link:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .landing-examples-gallery-link:focus-visible {
+        outline: 3px solid rgba(255, 255, 255, 0.42);
+        outline-offset: 2px;
+      }
+
+      .landing-examples-marquee {
+        overflow: hidden;
+        width: 100%;
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 2%, #000 98%, transparent 100%);
+        mask-image: linear-gradient(90deg, transparent 0%, #000 2%, #000 98%, transparent 100%);
+      }
+
+      .landing-examples-track {
+        display: flex;
+        width: max-content;
+        gap: 44px;
+        will-change: transform;
+        animation: landing-examples-marquee 40s linear infinite;
+      }
+
+      .landing-examples-set {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 44px;
+        padding-left: 0;
+      }
+
+      .landing-examples-set:last-child {
+        padding-right: 0;
+      }
+
+      @keyframes landing-examples-marquee {
+        from {
+          transform: translate3d(0, 0, 0);
+        }
+
+        to {
+          transform: translate3d(-50%, 0, 0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .landing-examples-track {
+          animation: none;
+        }
+
+        .landing-examples-marquee {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          -webkit-mask-image: none;
+          mask-image: none;
+          scrollbar-width: none;
+        }
+
+        .landing-examples-marquee::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      .landing-style-card {
+        position: relative;
+        flex: 0 0 72vw;
+        max-width: 320px;
+        min-width: 260px;
+        height: 250px;
+        padding: 0;
+        scroll-snap-align: center;
+        border-radius: 22px;
+        overflow: hidden;
+      }
+
+      .landing-style-card-media {
+        position: absolute;
+        inset: 0;
+        background: #f8f4f5;
+      }
+
+      .landing-style-card-media img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .landing-style-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(20, 28, 40, 0.04) 0%, rgba(20, 28, 40, 0.72) 100%);
+        pointer-events: none;
+      }
+
+      .landing-style-card-body {
+        position: absolute;
+        inset: auto 0 0;
+        z-index: 1;
+        padding: 14px 16px;
+        text-align: left;
+      }
+
+      .landing-style-name {
+        margin: 0;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        word-break: keep-all;
+      }
+
+      .landing-style-desc {
+        margin: 4px 0 0;
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 11px;
+        line-height: 1.4;
+        font-weight: 500;
+        word-break: keep-all;
+      }
+
+      .landing-styles-section .landing-hscroll {
+        gap: 12px;
+        padding-inline: calc((100% - 72vw) / 2);
+        scroll-padding-inline: calc((100% - 72vw) / 2);
+      }
+
+      .landing-styles-section .landing-primary-button {
+        margin-top: 6px;
+        align-self: center;
+      }
+
+      .landing-styles-section .landing-section-inner,
+      .landing-bottom-section .landing-section-inner {
+        justify-items: center;
+        text-align: center;
+      }
+
+      .landing-bottom-section {
+        padding: 28px 0 20px;
+      }
+
+      .landing-bottom-inner {
+        gap: 0;
+      }
+
+      .landing-process-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        width: 100%;
+        margin: 0;
+        color: #ff4e8e;
+        font-size: clamp(14px, 3.7vw, 15px);
+        font-weight: 800;
+        letter-spacing: -0.015em;
+        white-space: nowrap;
+      }
+
+      .landing-process-eyebrow .material-symbols-outlined {
+        font-size: 15px;
+        font-variation-settings: "FILL" 1, "wght" 500;
+      }
+
+      .landing-process {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 2px;
+        width: 100%;
+        max-width: 520px;
+        margin: 14px auto 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .landing-process-step {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        text-align: center;
+      }
+
+      .landing-process-icon-wrap {
+        position: relative;
+        width: 46px;
+        height: 46px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(160deg, #fff0f6 0%, #ffffff 100%);
+        border: 1px solid rgba(255, 78, 142, 0.12);
+      }
+
+      .landing-process-num {
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        width: 17px;
+        height: 17px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: #ff4e8e;
+        color: #ffffff;
+        font-size: 9px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .landing-process-icon {
+        color: #ff4e8e;
+        font-size: 22px;
+        line-height: 1;
+        font-variation-settings: "wght" 300;
+      }
+
+      .landing-process-arrow {
+        flex: 0 0 auto;
+        margin-top: 14px;
+        color: #ffc2d6;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .landing-process-title {
+        margin: 0;
+        color: #1e2a3a;
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.2;
+        word-break: keep-all;
+      }
+
+      .landing-process-desc {
+        margin: 0;
+        color: #9aa3b0;
+        font-size: 9px;
+        line-height: 1.35;
+        font-weight: 500;
+        word-break: keep-all;
+      }
+
+      .landing-bottom-inner > .landing-process {
+        margin-bottom: 24px;
+      }
+
+      .landing-cta-banner {
+        position: relative;
+        width: min(920px, 100%);
+        margin: 0 auto;
+        padding: 20px 16px 18px;
+        border-radius: 24px;
+        overflow: hidden;
+        text-align: center;
+        background: linear-gradient(135deg, #fff2f7 0%, #ffe3ef 52%, #fff6fa 100%);
+        border: 1px solid rgba(255, 78, 142, 0.1);
+      }
+
+      .landing-cta-banner::before,
+      .landing-cta-banner::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+      }
+
+      .landing-cta-banner::before {
+        top: -18px;
+        left: -10px;
+        width: 56px;
+        height: 56px;
+        background: rgba(255, 78, 142, 0.08);
+      }
+
+      .landing-cta-banner::after {
+        right: -8px;
+        bottom: -14px;
+        width: 72px;
+        height: 72px;
+        background: rgba(255, 107, 157, 0.1);
+      }
+
+      .landing-cta-banner-text {
+        position: relative;
+        z-index: 1;
+        margin: 0 0 12px;
+        color: #1e2a3a;
+        font-size: clamp(16px, 4.4vw, 20px);
+        line-height: 1.38;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        word-break: keep-all;
+      }
+
+      .landing-cta-banner-button {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+      }
+
+      .landing-faq-block {
+        width: min(720px, 100%);
+        margin: 20px auto 0;
+        padding: 20px 22px 8px;
+        border-radius: 20px;
+        background: #fffdfb;
+        border: 1px solid rgba(30, 42, 58, 0.05);
+      }
+
+      .landing-faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .landing-faq-group {
+        margin: 0;
+        padding: 0;
+      }
+
+      .landing-faq-category {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 10px;
+        padding: 0 0 10px;
+        border-bottom: 2px solid #2f3a4a;
+        color: #1e2a3a;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.35;
+        letter-spacing: -0.02em;
+        word-break: keep-all;
+      }
+
+      .landing-faq-category .material-symbols-outlined {
+        flex: 0 0 auto;
+        font-size: 18px;
+        color: #ff4e8e;
+        font-variation-settings: "wght" 400;
+      }
+
+      .landing-faq-items {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .landing-faq-item {
+        border-bottom: 1px solid rgba(30, 42, 58, 0.1);
+      }
+
+      .landing-faq-item:last-child {
+        border-bottom: none;
+      }
+
+      .landing-faq-item summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 0;
+        cursor: pointer;
+        list-style: none;
+        color: #1e2a3a;
+        font-size: clamp(15px, 4vw, 17px);
+        font-weight: 700;
+        line-height: 1.45;
+        letter-spacing: -0.02em;
+        word-break: keep-all;
+      }
+
+      .landing-faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .landing-faq-item summary::after {
+        content: "expand_more";
+        flex: 0 0 auto;
+        font-family: "Material Symbols Outlined";
+        font-size: 22px;
+        color: #9aa3b0;
+        transition: transform 160ms ease;
+      }
+
+      .landing-faq-item[open] summary::after {
+        transform: rotate(180deg);
+      }
+
+      .landing-faq-answer {
+        margin: 0;
+        padding: 0 0 18px;
+        color: #7a8494;
+        font-size: 13px;
+        line-height: 1.65;
+        font-weight: 500;
+        word-break: keep-all;
+      }
+
+      .landing-bottom-section .landing-faq-head {
+        margin-top: 8px;
+        padding-inline: 4px;
+      }
+
+      .landing-bottom-section .landing-faq-head .landing-section-title {
+        font-size: clamp(24px, 6.2vw, 32px);
+        color: #1e2a3a;
+        font-weight: 800;
+      }
+
+      .landing-bottom-section .landing-faq-head .landing-copy {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #9aa3b0;
+        line-height: 1.5;
+      }
+
+      @media (min-width: 720px) {
+        .landing-faq-block {
+          padding: 24px 28px 12px;
+        }
+
+        .landing-faq-category {
+          font-size: 16px;
+        }
+      }
+
+      .landing-assurance-head {
+        margin-top: 24px;
+      }
+
+      .landing-assurance-head .landing-section-title {
+        font-size: clamp(22px, 5.6vw, 30px);
+        font-weight: 800;
+      }
+
+      .landing-assurance-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        width: min(920px, 100%);
+        margin: 16px auto 52px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .landing-assurance-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-height: 148px;
+        padding: 18px 14px 16px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #fff7fa 0%, #ffffff 100%);
+        border: 1px solid rgba(255, 78, 142, 0.14);
+        box-shadow: 0 4px 18px rgba(30, 42, 58, 0.05);
+        text-align: center;
+        word-break: keep-all;
+      }
+
+      .landing-assurance-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(180deg, #fff0f6 0%, #ffffff 100%);
+        border: 1px solid rgba(255, 78, 142, 0.14);
+      }
+
+      .landing-assurance-icon .material-symbols-outlined {
+        font-size: 24px;
+        color: #ff4e8e;
+        font-variation-settings: "wght" 300;
+      }
+
+      .landing-assurance-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .landing-assurance-title {
+        color: #1e2a3a;
+        font-size: clamp(13px, 3.6vw, 15px);
+        font-weight: 800;
+        line-height: 1.35;
+        letter-spacing: -0.02em;
+      }
+
+      .landing-assurance-desc {
+        color: #6b7585;
+        font-size: clamp(11px, 3.1vw, 13px);
+        font-weight: 500;
+        line-height: 1.5;
+      }
+
+      @media (min-width: 720px) {
+        .landing-assurance-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+          margin-bottom: 68px;
+        }
+
+        .landing-assurance-card {
+          min-height: 168px;
+          padding: 22px 16px 20px;
+        }
+
+        .landing-assurance-icon {
+          width: 52px;
+          height: 52px;
+        }
+
+        .landing-assurance-icon .material-symbols-outlined {
+          font-size: 26px;
+        }
+      }
+
+      @media (min-width: 640px) {
+        .landing-process-desc {
+          font-size: 10px;
+        }
+
+        .landing-process-title {
+          font-size: 12px;
+        }
+      }
+
+      @media (min-width: 720px) {
+        .landing-example-card {
+          width: 260px;
+        }
+
+        .landing-examples-band {
+          padding: 18px 0 22px;
+        }
+
+        .landing-examples-band-footer {
+          margin-top: 20px;
+          gap: 12px;
+        }
+
+        .landing-examples-track {
+          gap: 40px;
+        }
+
+        .landing-examples-set {
+          gap: 40px;
+        }
+
+        .landing-styles-section .landing-hscroll {
+          width: min(920px, 100%);
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+          overflow: visible;
+          padding-inline: 0;
+          scroll-snap-type: none;
+        }
+
+        .landing-style-card {
+          flex: none;
+          max-width: none;
+          width: 100%;
+          height: 260px;
+        }
+      }
+
       .editor-free-ticket-note {
         margin: 8px 0 0;
         text-align: center;
@@ -4660,16 +5678,14 @@
         --split: 50%;
         position: relative;
         overflow: hidden;
-        border-radius: 30px;
+        border-radius: 22px;
         width: min(90vw, 520px);
         max-width: 520px;
         aspect-ratio: 1 / 1;
         min-height: 0;
-        background:
-          linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(246, 235, 236, 0.72)),
-          #fff8f7;
-        border: 1px solid rgba(255, 255, 255, 0.86);
-        box-shadow: 0 24px 70px rgba(129, 80, 92, 0.18);
+        background: #ffffff;
+        border: 1px solid rgba(255, 78, 142, 0.08);
+        box-shadow: 0 6px 24px rgba(30, 42, 58, 0.06);
         touch-action: pan-y;
       }
 
@@ -4718,15 +5734,15 @@
         z-index: 5;
         top: 50%;
         left: var(--split);
-        width: 46px;
-        height: 46px;
+        width: 34px;
+        height: 34px;
         border-radius: 9999px;
         display: grid;
         place-items: center;
-        color: var(--rose-deep);
-        background: rgba(255, 255, 255, 0.94);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 0 16px 34px rgba(31, 26, 27, 0.2);
+        color: #ff4e8e;
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 4px 14px rgba(30, 42, 58, 0.12);
         transform: translate(-50%, -50%);
         pointer-events: none;
       }
@@ -4744,28 +5760,46 @@
       .before-after-label {
         position: absolute;
         z-index: 7;
-        bottom: 14px;
-        min-width: 72px;
+        top: 12px;
+        bottom: auto;
+        min-width: 0;
         border-radius: 9999px;
-        padding: 8px 12px;
-        color: #2f2729;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(255, 255, 255, 0.78);
+        padding: 4px 9px;
         text-align: center;
-        font-size: 11px;
+        font-size: 9px;
         font-weight: 700;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        border: 0;
       }
 
       .before-after-label.before {
-        left: 14px;
+        left: 12px;
+        color: #ffffff;
+        background: rgba(38, 44, 56, 0.72);
       }
 
       .before-after-label.after {
-        right: 14px;
+        right: 12px;
+        color: #ffffff;
+        background: #ff4e8e;
+      }
+
+      .before-after-caption {
+        position: absolute;
+        z-index: 7;
+        left: 12px;
+        bottom: 12px;
+        max-width: calc(var(--split) - 20px);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: clamp(10px, 2.6vw, 12px);
+        line-height: 1.35;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        text-align: left;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45), 0 0 10px rgba(0, 0, 0, 0.18);
+        word-break: keep-all;
+        pointer-events: none;
       }
 
       .landing-gallery-grid {
@@ -4870,7 +5904,7 @@
       .landing-compare-after {
         position: absolute;
         inset: 0;
-        animation: landingCompareReveal 5.2s ease-in-out infinite;
+        animation: none;
         clip-path: inset(0 100% 0 0);
         overflow: hidden;
         z-index: 2;
@@ -4887,7 +5921,7 @@
         box-shadow:
           0 0 0 1px rgba(129, 80, 92, 0.06),
           0 0 10px rgba(31, 26, 27, 0.14);
-        animation: landingCompareDivider 5.2s ease-in-out infinite;
+        animation: none;
         transform: translateX(-50%);
       }
 
@@ -4928,12 +5962,15 @@
       }
 
       @media (max-width: 640px) {
-        .landing-auth-button {
-          top: calc(14px + env(safe-area-inset-top, 0px));
-          right: 14px;
-          min-height: 40px;
-          padding: 9px 14px;
-          font-size: 13px;
+        .landing-top-bar {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+
+        .landing-header-cta {
+          min-height: 32px;
+          padding: 6px 12px;
+          font-size: 11px;
         }
 
         .landing-gallery-grid {
@@ -4961,23 +5998,6 @@
         object-position: center;
       }
 
-      .landing-final-cta {
-        width: min(920px, 100%);
-        margin: 0 auto;
-        border-radius: 30px;
-        padding: clamp(28px, 5vw, 48px);
-        text-align: center;
-        background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 217, 224, 0.38));
-        border: 1px solid rgba(255, 255, 255, 0.78);
-        box-shadow: 0 24px 70px rgba(129, 80, 92, 0.16);
-      }
-
-      .landing-final-cta .landing-copy {
-        margin-left: auto;
-        margin-right: auto;
-      }
-
       .landing-signup-start-button span:first-child {
         white-space: normal;
         text-align: center;
@@ -4986,8 +6006,9 @@
 
       @media (max-width: 639px) {
         .landing-signup-start-button {
-          font-size: 13px;
-          padding: 0 16px;
+          min-height: 44px;
+          font-size: 15px;
+          padding: 0 24px;
         }
       }
 
@@ -5805,6 +6826,14 @@
           word-break: keep-all;
         }
 
+        .landing-hero-section h1.hero-title {
+          font-family: "Noto Serif KR", serif;
+          font-weight: 700;
+          letter-spacing: -0.035em;
+          line-height: 1.18;
+          color: #20293a;
+        }
+
         .landing-section-head .landing-copy {
           text-align: center;
           margin-left: auto;
@@ -5823,7 +6852,7 @@
         }
 
         .landing-hero-section {
-          padding: 40px 0 36px;
+          padding: 16px 0 28px;
         }
 
         .landing-section-inner {
@@ -5844,8 +6873,8 @@
         }
 
         .before-after-compare {
-          border-radius: 18px;
-          width: 90vw;
+          border-radius: 20px;
+          width: 92vw;
           max-width: 360px;
           aspect-ratio: 1 / 1;
         }
@@ -5866,11 +6895,6 @@
 
         .landing-custom-image {
           border-radius: 22px;
-        }
-
-        .landing-final-cta {
-          border-radius: 24px;
-          padding: 24px 18px;
         }
 
         .app-stage {
@@ -5942,129 +6966,374 @@
   >
     <main class="app-shell relative z-10">
       <section class="screen-panel landing-page" id="landingScreen">
-        <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="로그인/회원가입 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
-          <span>LOGIN / JOIN</span>
-        </button>
+        <div class="landing-top-stack landing-fixed-top" id="landingTopStack">
+          <header class="landing-top-bar" id="landingTopBar">
+            <img class="landing-top-logo" src="public/branding/magic-ai-studio-logo-hero.png" alt="Magic Ai Studio" width="1211" height="442" decoding="async" />
+            <div class="landing-top-actions">
+              <button class="landing-header-cta" id="landingHeaderStartButton" type="button">
+                <span>가입하고 시작하기</span>
+              </button>
+              <button class="landing-auth-button" id="landingAuthButton" type="button" aria-label="메뉴 열기" aria-haspopup="dialog" aria-expanded="false" aria-controls="loginModalPanel">
+                <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+              </button>
+            </div>
+          </header>
+          <div class="landing-promo-banner" id="landingPromoBanner" role="region" aria-label="무료 이용권 안내">
+            <p class="landing-promo-banner-text">
+              <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+              <span>첫 가입 시 무료 제작 이용권 증정 · 클릭 한 번으로 사진을 바꿔보세요</span>
+            </p>
+            <button class="landing-promo-banner-close" id="landingPromoBannerClose" type="button" aria-label="안내 배너 닫기">
+              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </div>
+        </div>
         <div class="landing-sections" id="landingSections" aria-label="Magic Ai Studio 랜딩 소개">
           <section class="landing-section landing-hero-section" aria-label="Before After 쇼케이스">
-            <div class="landing-section-inner">
-              <div class="flex flex-col gap-5">
-                <div class="landing-brand-row">
-                  <img class="landing-hero-brand-logo" src="public/branding/magic-ai-studio-logo-hero.png" alt="Magic Ai Studio" width="1211" height="442" decoding="async" />
-                  <p class="landing-brand-tagline">Premium wedding AI atelier</p>
+            <div class="landing-section-inner landing-hero-inner">
+              <div class="landing-hero-copy">
+                <div class="landing-section-head">
+                  <p class="landing-eyebrow">AI가 완성하는 특별한 웨딩 사진</p>
+                  <h1 class="hero-title landing-hero-display-title landing-hero-title">
+                    <span>내 사진에</span>
+                    <span>감성 한 스푼</span>
+                  </h1>
+                  <p class="landing-copy">분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>
+                <button class="landing-primary-button landing-signup-start-button w-full sm:w-fit" id="landingHeroStartButton" type="button">
+                  <span>무료로 시작하기</span>
+                  <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
               </div>
-              <div class="before-after-compare" data-before-after-slider>
-                <img class="before-after-after" src="mock-images/after/after_paris_couple_01.png" alt="AI 편집 후 파리 웨딩사진" />
-                <img class="before-after-before" src="mock-images/before/before_studio_couple_01.jpg" alt="편집 전 원본 웨딩사진" />
+              <div class="before-after-compare landing-hero-compare" data-before-after-slider>
+                <img class="before-after-after" src="mock-images/after/after_paris_couple_01.png" alt="AI 편집 후 파리 웨딩사진" decoding="async" />
+                <img class="before-after-before" src="mock-images/before/before_studio_couple_01.jpg" alt="편집 전 원본 웨딩사진" decoding="async" />
                 <div class="before-after-shade"></div>
                 <div class="before-after-divider" aria-hidden="true"></div>
                 <div class="before-after-handle" aria-hidden="true">
-                  <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
+                  <span class="material-symbols-outlined text-[18px]">swap_horiz</span>
                 </div>
                 <span class="before-after-label before">Before</span>
                 <span class="before-after-label after">After</span>
+                <span class="before-after-caption">스튜디오 사진에서<br />파리스냅으로</span>
                 <input class="before-after-input" type="range" min="8" max="92" value="50" aria-label="Before After 비교 슬라이더" />
               </div>
-              <div class="landing-hero-copy">
-                <div class="landing-section-head">
-                  <p class="landing-eyebrow">BEFORE / AFTER</p>
-                <h1 class="landing-title landing-section-title"><span class="block sm:inline">클릭 한 번에</span>
-                  <span class="block sm:inline">만나는 감성사진</span></h1>
-                <p class="landing-copy">사진 한 장이면 충분해요.<br />분위기는 새롭게, 추억은 더 특별하게.</p>
+            </div>
+          </section>
+
+          <section class="landing-section landing-examples-section" aria-label="인기 배경 스타일">
+            <div class="landing-examples-head">
+              <h2 class="landing-examples-heading">핫! <span class="landing-examples-heading-highlight">인기배경 스타일</span></h2>
+            </div>
+            <div class="landing-examples-band">
+              <div class="landing-examples-marquee" id="landingExamplesMarquee" aria-label="인기 배경 스타일 변환 예시">
+                <div class="landing-examples-track">
+                  <div class="landing-examples-set">
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">이탈리아 베네치아</span>
+                          <img src="public/landing-gallery/1-2.png" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/1-1.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">디즈니-신데렐라</span>
+                          <img src="public/landing-gallery/2-1.png" alt="디즈니-신데렐라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/2-2.png" alt="디즈니-신데렐라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">파리-르부르</span>
+                          <img src="public/landing-gallery/4-1.jpg" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/4-2.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">디즈니-오로라</span>
+                          <img src="public/landing-gallery/3-1.jpg" alt="디즈니-오로라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/3-3.jpg" alt="디즈니-오로라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="landing-examples-set" aria-hidden="true">
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">이탈리아 베네치아</span>
+                          <img src="public/landing-gallery/1-2.png" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/1-1.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">디즈니-신데렐라</span>
+                          <img src="public/landing-gallery/2-1.png" alt="디즈니-신데렐라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/2-2.png" alt="디즈니-신데렐라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">파리-르부르</span>
+                          <img src="public/landing-gallery/4-1.jpg" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/4-2.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                    <article class="landing-example-card">
+                      <div class="landing-example-pair">
+                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label">BEFORE</span>
+                          <span class="landing-example-style-caption">디즈니-오로라</span>
+                          <img src="public/landing-gallery/3-1.jpg" alt="디즈니-오로라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <figure class="landing-example-shot">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/3-3.jpg" alt="디즈니-오로라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                      </div>
+                    </article>
+                  </div>
                 </div>
-                <p class="landing-free-ticket-badge" role="note">🎁 <em>처음 사용자 무료 제작 이용권 3회 증정</em></p>
-                <button class="landing-primary-button landing-signup-start-button w-full sm:w-fit" id="landingHeroStartButton" type="button">
-                  <span>무료이용권 받고 시작하기</span>
-                  <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                </button>
+              </div>
+              <div class="landing-examples-band-footer">
+                <p class="landing-examples-band-headline">내 사진에 감성적인 배경 추가하기</p>
+                <p class="landing-examples-band-copy">단 한 번의 클릭으로 사진을 감성스타일로 바꿔보세요</p>
+                <button class="landing-examples-gallery-link" id="landingExamplesGalleryButton" type="button">스타일 갤러리 바로가기 &gt;</button>
               </div>
             </div>
           </section>
 
-          <section class="landing-section landing-gallery-preview-section" aria-label="스타일 갤러리 프리뷰">
-            <div class="landing-section-inner">
-              <div class="flex flex-col gap-4">
-                <div class="landing-section-head">
-                  <p class="landing-eyebrow">STYLE GALLERY</p>
-                  <h2 class="landing-title landing-section-title"><span class="block sm:inline">스타일 갤러리를</span>
-                    <span class="block sm:inline">둘러보세요</span></h2>
-                  <p class="landing-copy">다른 사진들은 어떤 분위기로 바뀌었을까요?</p>
-                </div>
-                <button class="landing-secondary-button w-full sm:w-fit" data-screen-target="gallery" type="button">
-                  <span>갤러리 보러가기</span>
-                  <span class="material-symbols-outlined text-[19px]">collections</span>
-                </button>
+          <section class="landing-section landing-styles-section" id="landingStylesSection" aria-label="스타일 예시">
+            <div class="landing-section-inner single-column">
+              <div class="landing-section-head">
+                <h2 class="landing-title landing-section-title">이런 스타일 다 가능해요</h2>
+                <p class="landing-copy">유럽 감성부터 스튜디오 스타일까지, 사진에 어울리는 스타일을 선택해보세요.</p>
               </div>
-              <div class="landing-gallery-grid" aria-label="프리미엄 웨딩 테이블포토 샘플">
-                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
-                  <div class="landing-compare-frame">
-                    <img src="public/landing-gallery/1-1.png" alt="AI 웨딩 비포 샘플 1" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    <div class="landing-compare-after" aria-hidden="true">
-                      <img src="public/landing-gallery/1-2.png" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    </div>
-                    <span class="landing-compare-divider" aria-hidden="true"></span>
+              <div class="landing-hscroll" id="landingStyleHscroll" aria-label="스타일 예시 카드">
+                <article class="landing-style-card is-europe">
+                  <div class="landing-style-card-media">
+                    <img src="public/images/presets/europe-eiffel.jpg" alt="" width="640" height="800" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="landing-style-card-overlay" aria-hidden="true"></div>
+                  <div class="landing-style-card-body">
+                    <h3 class="landing-style-name">유럽 웨딩</h3>
+                    <p class="landing-style-desc">파리, 베네치아, 아말피 등</p>
                   </div>
                 </article>
-                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
-                  <div class="landing-compare-frame">
-                    <img src="public/landing-gallery/2-1.png" alt="AI 웨딩 비포 샘플 2" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    <div class="landing-compare-after" aria-hidden="true">
-                      <img src="public/landing-gallery/2-2.png" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    </div>
-                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                <article class="landing-style-card is-korea">
+                  <div class="landing-style-card-media">
+                    <img src="public/images/presets/korea-gyeongbokgung.png" alt="" width="640" height="800" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="landing-style-card-overlay" aria-hidden="true"></div>
+                  <div class="landing-style-card-body">
+                    <h3 class="landing-style-name">한국 웨딩</h3>
+                    <p class="landing-style-desc">서울숲, 제주, 한복 등</p>
                   </div>
                 </article>
-                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
-                  <div class="landing-compare-frame">
-                    <img src="public/landing-gallery/3-1.jpg" alt="AI 웨딩 비포 샘플 3" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    <div class="landing-compare-after" aria-hidden="true">
-                      <img src="public/landing-gallery/3-2.jpg" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    </div>
-                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                <article class="landing-style-card is-disney">
+                  <div class="landing-style-card-media">
+                    <img src="public/images/presets/disney-cinderella.jpg" alt="" width="640" height="800" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="landing-style-card-overlay" aria-hidden="true"></div>
+                  <div class="landing-style-card-body">
+                    <h3 class="landing-style-name">디즈니 실사</h3>
+                    <p class="landing-style-desc">신데렐라, 오로라, 뮬란 등</p>
                   </div>
                 </article>
-                <article class="landing-photo-card landing-compare-card" style="--landing-gallery-position: center 24%;">
-                  <div class="landing-compare-frame">
-                    <img src="public/landing-gallery/4-1.jpg" alt="AI 웨딩 비포 샘플 4" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    <div class="landing-compare-after" aria-hidden="true">
-                      <img src="public/landing-gallery/4-2.png" alt="" width="900" height="1125" loading="eager" fetchpriority="high" decoding="sync" onerror="this.hidden=true" />
-                    </div>
-                    <span class="landing-compare-divider" aria-hidden="true"></span>
+                <article class="landing-style-card is-studio">
+                  <div class="landing-style-card-media">
+                    <img src="images/studio-style/studio-petals.png" alt="" width="640" height="800" loading="lazy" decoding="async" />
+                  </div>
+                  <div class="landing-style-card-overlay" aria-hidden="true"></div>
+                  <div class="landing-style-card-body">
+                    <h3 class="landing-style-name">스튜디오 스타일</h3>
+                    <p class="landing-style-desc">흰배경, 꽃잎, 조명, 한복샷 등</p>
                   </div>
                 </article>
               </div>
-            </div>
-          </section>
-
-          <section class="landing-section" aria-label="어시스턴트 커스텀 콘셉트">
-            <div class="landing-section-inner">
-              <div class="landing-custom-image">
-                <img src="public/landing-gallery/landing-gallery-3.jpeg" alt="한옥 커스텀 웨딩 콘셉트" width="1000" height="553" loading="lazy" decoding="async" />
-              </div>
-              <div class="flex flex-col gap-5">
-                <div class="landing-section-head">
-                  <p class="landing-eyebrow">CUSTOM CONCEPT</p>
-                  <h2 class="landing-title landing-section-title"><span class="block sm:inline">어떤 장면도</span>
-                    <span class="block sm:inline">만들 수 있어요</span></h2>
-                </div>
-                <ul class="landing-custom-copy-list" aria-label="커스터마이징 서비스 안내">
-                  <li>원하는 장소, 분위기, 콘셉트가 있다면 커스텀 제작으로 더 특별하게 완성해보세요.</li>
-                  <li>포토테이블용 사진이나 식전영상용 이미지로도 활용할 수 있어요.</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <section class="landing-section" aria-label="시작하기">
-            <div class="landing-final-cta">
-              <p class="landing-eyebrow">START</p>
-              <h2 class="landing-title mt-3">우리 사진도 한번 바꿔볼까요?</h2>
-              <p class="landing-copy mt-3">사진을 올리고 원하는 분위기를 고르면 새로운 웨딩 사진이 완성돼요.</p>
-              <button class="landing-primary-button landing-signup-start-button mt-6 w-full sm:w-fit" id="landingFinalStartButton" type="button">
-                <span>무료이용권 받고 시작하기</span>
-                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+              <button class="landing-primary-button landing-signup-start-button w-full sm:w-fit" id="landingStylesStartButton" type="button">
+                <span>스타일 고르러 가기</span>
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
+            </div>
+          </section>
+
+          <section class="landing-section landing-bottom-section" aria-label="사용 방법 및 시작하기">
+            <div class="landing-section-inner landing-bottom-inner single-column">
+              <p class="landing-process-eyebrow">
+                <span class="material-symbols-outlined" aria-hidden="true">star</span>
+                딸깍, 3번이면 사진이 완성되요
+              </p>
+              <ol class="landing-process" aria-label="사용 방법 3단계">
+                <li class="landing-process-step">
+                  <div class="landing-process-icon-wrap">
+                    <span class="landing-process-num">1</span>
+                    <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">cloud_upload</span>
+                  </div>
+                  <p class="landing-process-title">사진 업로드</p>
+                  <p class="landing-process-desc">웨딩 사진 또는 일상 사진을<br />업로드해주세요.</p>
+                </li>
+                <li class="landing-process-arrow" aria-hidden="true">›</li>
+                <li class="landing-process-step">
+                  <div class="landing-process-icon-wrap">
+                    <span class="landing-process-num">2</span>
+                    <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
+                  </div>
+                  <p class="landing-process-title">스타일 선택</p>
+                  <p class="landing-process-desc">원하는 스타일을 선택하면<br />AI가 배경을 변환해요.</p>
+                </li>
+                <li class="landing-process-arrow" aria-hidden="true">›</li>
+                <li class="landing-process-step">
+                  <div class="landing-process-icon-wrap">
+                    <span class="landing-process-num">3</span>
+                    <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">photo_frame</span>
+                  </div>
+                  <p class="landing-process-title">마이포토박스 확인</p>
+                  <p class="landing-process-desc">완성된 사진은 확인 후 저장이 가능해요.<br />마이포토박스에서 언제든 확인이 가능해요.</p>
+                </li>
+              </ol>
+
+              <div class="landing-cta-banner">
+                <p class="landing-cta-banner-text">지금 바로 당신의 사진을<br />특별한 웨딩 사진으로 바꿔보세요</p>
+                <button class="landing-primary-button landing-signup-start-button landing-cta-banner-button" id="landingFinalStartButton" type="button">
+                  <span>무료로 시작하기</span>
+                  <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+              </div>
+
+              <div class="landing-section-head landing-assurance-head">
+                <h2 class="landing-title landing-section-title">안심하고 이용하세요</h2>
+              </div>
+              <ul class="landing-assurance-grid" aria-label="서비스 안내">
+                <li class="landing-assurance-card">
+                  <span class="landing-assurance-icon" aria-hidden="true"><span class="material-symbols-outlined">verified_user</span></span>
+                  <div class="landing-assurance-copy">
+                    <strong class="landing-assurance-title">안전한 사진 보호</strong>
+                    <span class="landing-assurance-desc">안전한 로그인으로 보안철저<br />사진은 생성 후 바로 삭제</span>
+                  </div>
+                </li>
+                <li class="landing-assurance-card">
+                  <span class="landing-assurance-icon" aria-hidden="true"><span class="material-symbols-outlined">schedule</span></span>
+                  <div class="landing-assurance-copy">
+                    <strong class="landing-assurance-title">딸깍, 한 번에 생성</strong>
+                    <span class="landing-assurance-desc">클릭 한 번으로 30초내에 완성됩니다</span>
+                  </div>
+                </li>
+                <li class="landing-assurance-card">
+                  <span class="landing-assurance-icon" aria-hidden="true"><span class="material-symbols-outlined">smartphone</span></span>
+                  <div class="landing-assurance-copy">
+                    <strong class="landing-assurance-title">모바일 완벽 지원</strong>
+                    <span class="landing-assurance-desc">언제 어디서나 편하게 이용하세요.</span>
+                  </div>
+                </li>
+                <li class="landing-assurance-card">
+                  <span class="landing-assurance-icon" aria-hidden="true"><span class="material-symbols-outlined">workspace_premium</span></span>
+                  <div class="landing-assurance-copy">
+                    <strong class="landing-assurance-title">안전한 사진 보관</strong>
+                    <span class="landing-assurance-desc">생성된 사진은 일주일 동안 안전하게 보관 됩니다.</span>
+                  </div>
+                </li>
+              </ul>
+
+              <div class="landing-section-head landing-faq-head">
+                <h2 class="landing-title landing-section-title">많이 묻는 질문 + 빠른 해결법</h2>
+                <p class="landing-copy">Magic AI Studio 이용 전 궁금한 점을 빠르게 확인해보세요.</p>
+              </div>
+              <div class="landing-faq-block">
+                <div class="landing-faq-list" aria-label="FAQ 안내">
+                  <section class="landing-faq-group" aria-labelledby="landingFaqGroupGen">
+                    <h3 class="landing-faq-category" id="landingFaqGroupGen">
+                      <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+                      이미지 생성 및 결과 관련 질문
+                    </h3>
+                    <div class="landing-faq-items">
+                      <details class="landing-faq-item" open>
+                        <summary>얼굴이 바뀌나요?</summary>
+                        <p class="landing-faq-answer">얼굴은 최대한 원본 그대로 유지하고, 분위기와 배경 중심으로 변환됩니다.</p>
+                      </details>
+                      <details class="landing-faq-item">
+                        <summary>어떤 사진을 올리면 좋나요?</summary>
+                        <p class="landing-faq-answer">얼굴이 잘 보이고 화질이 좋은 사진일수록 결과가 자연스럽습니다.</p>
+                      </details>
+                      <details class="landing-faq-item">
+                        <summary>결과가 마음에 들지 않으면 어떻게 하나요?</summary>
+                        <p class="landing-faq-answer">AI 결과 특성상 사진 상태와 스타일에 따라 차이가 있을 수 있습니다. 다른 사진이나 다른 스타일로 다시 시도해보세요. 이용권 복구 문의는 어시스턴트에게 문의해주세요.</p>
+                      </details>
+                    </div>
+                  </section>
+                  <section class="landing-faq-group" aria-labelledby="landingFaqGroupUse">
+                    <h3 class="landing-faq-category" id="landingFaqGroupUse">
+                      <span class="material-symbols-outlined" aria-hidden="true">shield</span>
+                      이용 및 보관 관련 질문
+                    </h3>
+                    <div class="landing-faq-items">
+                      <details class="landing-faq-item">
+                        <summary>결과는 어디서 확인하나요?</summary>
+                        <p class="landing-faq-answer">생성된 사진은 마이포토박스에서 다시 확인할 수 있습니다.</p>
+                      </details>
+                      <details class="landing-faq-item">
+                        <summary>사진은 안전하게 보관되나요?</summary>
+                        <p class="landing-faq-answer">매직 AI 스튜디오는 카카오, 네이버, 구글의 로그인 시스템을 이용하여 철저한 보안 시스템을 구축하였습니다.<br />원본사진은 생성완료 즉시 삭제되어 정보가 전혀 남지 않으며,<br />생성된 사진은 일주일내에 마이포토박스에서 24시간 다운로드가 가능하고 그 뒤에는 완전 삭제됩니다.</p>
+                      </details>
+                      <details class="landing-faq-item">
+                        <summary>모바일에서도 사용할 수 있나요?</summary>
+                        <p class="landing-faq-answer">네, 모바일에서도 사진 업로드와 결과 확인이 가능합니다.</p>
+                      </details>
+                    </div>
+                  </section>
+                </div>
+              </div>
             </div>
           </section>
           <footer class="landing-business-footer" aria-label="사업자 정보">
@@ -6597,8 +7866,8 @@
               </section>
               <div class="result-gallery-reward-card" id="resultGalleryRewardCard" role="note">
                 <p class="result-gallery-reward-card-title">마음에 드는 사진이 있나요?</p>
-                <p class="result-gallery-reward-card-copy">스타일 갤러리에 공개하면 <em>무료 제작 이용권 2회</em>를 추가로 드려요.</p>
-                <p class="result-gallery-reward-card-limit">갤러리 공유 시 추가 2회 지급됩니다.</p>
+                <p class="result-gallery-reward-card-copy">스타일 갤러리에 공개하면 <em>무료 제작 이용권 1회</em>를 추가로 드려요.</p>
+                <p class="result-gallery-reward-card-limit">4장 중 1장만 스타일 갤러리에 공개할 수 있어요.</p>
               </div>
               <div class="mt-4 hidden rounded-[22px] border border-white/70 bg-white/60 px-4 py-4 shadow-[0_14px_34px_rgba(129,80,92,0.12)]" id="resultActionButtons">
                 <div class="flex items-start gap-3">
@@ -7449,8 +8718,7 @@
         <div class="image-modal-thumbnail-strip hidden" id="imageModalThumbnailStrip" aria-label="같은 생성 결과 썸네일"></div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
           <div class="image-modal-gallery-reward-note" id="imageModalGalleryRewardNote" role="note">
-            <p>스타일 갤러리에 공개될 사진이에요.</p>
-            <p>공개 업로드가 완료되면 무료 제작 이용권 2회가 지급됩니다.</p>
+            <p>공개 업로드가 완료되면 무료 제작 이용권 1회가 지급됩니다.</p>
             <p class="image-modal-gallery-consent-note">선택한 결과 사진이 스타일 갤러리에 공개되는 것에 동의합니다.</p>
           </div>
           <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
@@ -7460,14 +8728,14 @@
             </button>
             <button class="hidden h-12 min-w-0 items-center justify-center gap-1 rounded-[16px] bg-white/20 px-3 text-xs font-bold text-white ring-1 ring-white/25 transition-colors hover:bg-white/30 disabled:opacity-60 disabled:cursor-wait sm:h-14 sm:text-sm" id="imageModalGalleryUpload" type="button" aria-label="스타일 갤러리에 공개하고 무료 제작 이용권 받기" title="스타일 갤러리에 공개">
               <span class="material-symbols-outlined text-[19px]">cloud_upload</span>
-              <span>갤러리에 올리고 2회 받기</span>
+              <span>갤러리에 올리고 1회 받기</span>
             </button>
           </div>
           <button class="hidden h-14 items-center justify-center rounded-full bg-primary px-5 text-[16px] font-bold text-on-primary shadow-[0_14px_34px_rgba(129,80,92,0.28)] transition-colors hover:bg-primary/95" id="imageModalDone" type="button">
             완료
           </button>
           <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalDoneHelp">완료 후에도 마이포토박스에서 다시 확인할 수 있어요.</p>
-          <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalGalleryPolicy">스타일 갤러리에 공개하면 무료 제작 이용권 2회를 받을 수 있어요. 갤러리 공유 시 추가 2회 지급됩니다.</p>
+          <p class="hidden text-center text-[11px] leading-5 text-white/70" id="imageModalGalleryPolicy">갤러리 업로드가 완료되면 무료 제작 이용권 1회가 지급됩니다.</p>
           <p class="image-modal-status min-h-5 text-sm text-white/80" id="imageModalStatus"></p>
           <button class="hidden mt-2 h-11 items-center justify-center rounded-full bg-white/20 px-5 text-sm font-bold text-white ring-1 ring-white/25 hover:bg-white/30" id="imageModalMyPhotoRetry" type="button">다시 시도</button>
         </div>
@@ -8443,9 +9711,20 @@ Important:
 - If the face looks like a different person, the result is a failure.`;
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
+      const landingTopStack = document.getElementById("landingTopStack");
+      const landingSections = document.getElementById("landingSections");
+      const landingTopBar = document.getElementById("landingTopBar");
+      const landingPromoBanner = document.getElementById("landingPromoBanner");
+      const landingPromoBannerClose = document.getElementById("landingPromoBannerClose");
+      const landingHeaderStartButton = document.getElementById("landingHeaderStartButton");
       const landingAuthButton = document.getElementById("landingAuthButton");
       const landingHeroStartButton = document.getElementById("landingHeroStartButton");
+      const landingStylesStartButton = document.getElementById("landingStylesStartButton");
       const landingFinalStartButton = document.getElementById("landingFinalStartButton");
+      const landingStyleHscroll = document.getElementById("landingStyleHscroll");
+      const landingExamplesMarquee = document.getElementById("landingExamplesMarquee");
+      const landingExamplesGalleryButton = document.getElementById("landingExamplesGalleryButton");
+      const landingStylesSection = document.getElementById("landingStylesSection");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
       const editorScreen = document.getElementById("editorScreen");
@@ -10690,11 +11969,12 @@ Important:
       function syncLandingAuthButtonUi() {
         if (!landingAuthButton) return;
         const hasUser = Boolean(getAuthenticatedUserId(currentUser));
-        landingAuthButton.classList.toggle("hidden", appScreen !== "landing");
+        const showLanding = appScreen === "landing";
+        landingTopBar?.classList.toggle("hidden", !showLanding);
         landingAuthButton.innerHTML = hasUser
-          ? `<span class="material-symbols-outlined" aria-hidden="true">person</span><span>내 계정</span>`
-          : `<span>LOGIN / JOIN</span>`;
-        landingAuthButton.setAttribute("aria-label", hasUser ? "내 계정 열기" : "로그인/회원가입 열기");
+          ? `<span class="material-symbols-outlined" aria-hidden="true">person</span>`
+          : `<span class="material-symbols-outlined" aria-hidden="true">menu</span>`;
+        landingAuthButton.setAttribute("aria-label", hasUser ? "내 계정 열기" : "메뉴 열기");
         landingAuthButton.setAttribute("aria-controls", hasUser ? "accountMenuPanel" : "loginModalPanel");
         landingAuthButton.setAttribute("aria-expanded", hasUser && isAccountMenuOpen() ? "true" : "false");
       }
@@ -14375,10 +15655,10 @@ Important:
 
       function getGalleryUploadSuccessMessage(payload = {}) {
         if (payload.rewardGranted === true || payload.reward_granted === true) {
-          return "스타일 갤러리에 공개됐어요. 무료 제작 이용권 2회가 지급되었습니다.";
+          return "스타일 갤러리에 공개됐어요. 무료 제작 이용권 1회가 지급되었습니다.";
         }
         if (payload.rewardLimitReached === true || payload.reward_limit_reached === true) {
-          return "스타일 갤러리에 공개됐어요. 갤러리 공유 보상은 추가 2회까지 제공됩니다.";
+          return "스타일 갤러리에 공개됐어요. 갤러리 공유 보상 한도에 도달했습니다.";
         }
         if (payload.rewardAlreadyGranted === true || payload.reward_already_granted === true) {
           return "이미 보상이 지급된 사진입니다. 스타일 갤러리 공개 상태만 업데이트되었습니다.";
@@ -21876,7 +23156,7 @@ ${modeExample}`;
           } else if (isBlockedByGenerationLimit) {
             label.textContent = "1장 등록됨";
           } else {
-            label.textContent = "갤러리에 올리고 2회 받기";
+            label.textContent = "갤러리에 올리고 1회 받기";
           }
         }
         imageModalGalleryUpload.disabled = Boolean(isBlockedByUserLimit || isBlockedByGenerationLimit);
@@ -21890,7 +23170,7 @@ ${modeExample}`;
             ? "공개 업로드 보상 가능 여부를 확인해 주세요."
             : hasGenerationUpload
               ? "이미 1장을 공개했어요 · 한 번의 생성 결과에서는 1장만 공개할 수 있어요."
-              : "4장 중 1장만 스타일 갤러리에 공개할 수 있어요. 공개 시 무료 제작 이용권 2회가 지급됩니다. 갤러리 공유 시 추가 2회 지급됩니다.";
+              : "4장 중 1장만 스타일 갤러리에 공개할 수 있어요. 공개 시 무료 제작 이용권 1회가 지급됩니다.";
         }
       }
 
@@ -23504,6 +24784,126 @@ ${modeExample}`;
         });
       }
 
+      function syncLandingFixedTopOffset() {
+        if (!landingTopStack || !landingScreen) return;
+        const height = landingTopStack.offsetHeight;
+        landingScreen.style.setProperty("--landing-fixed-top-height", `${height}px`);
+      }
+
+      function setupLandingFixedTop() {
+        syncLandingFixedTopOffset();
+        window.addEventListener("resize", syncLandingFixedTopOffset);
+        if (typeof ResizeObserver !== "undefined" && landingTopStack) {
+          const topStackObserver = new ResizeObserver(() => syncLandingFixedTopOffset());
+          topStackObserver.observe(landingTopStack);
+        }
+      }
+
+      function setupLandingPromoBanner() {
+        if (!landingPromoBanner) return;
+        const storageKey = "landing_promo_banner_dismissed";
+        try {
+          if (window.localStorage.getItem(storageKey) === "1") {
+            landingPromoBanner.classList.add("is-hidden");
+            landingPromoBanner.hidden = true;
+          }
+        } catch (error) {
+          // localStorage may be unavailable.
+        }
+        landingPromoBannerClose?.addEventListener("click", (event) => {
+          event.stopPropagation();
+          landingPromoBanner.classList.add("is-hidden");
+          landingPromoBanner.hidden = true;
+          try {
+            window.localStorage.setItem(storageKey, "1");
+          } catch (error) {
+            // localStorage may be unavailable.
+          }
+          syncLandingFixedTopOffset();
+        });
+        landingPromoBanner.addEventListener("click", () => {
+          handleLandingSignupStartClick(landingHeaderStartButton);
+        });
+        syncLandingFixedTopOffset();
+      }
+
+      function setupLandingExamplesGalleryLink() {
+        landingExamplesGalleryButton?.addEventListener("click", () => {
+          landingStylesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      function setupLandingExamplesMarquee() {
+        const marquee = landingExamplesMarquee;
+        const track = marquee?.querySelector(".landing-examples-track");
+        if (!marquee || !track) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            track.style.animationPlayState = entry.isIntersecting ? "running" : "paused";
+          });
+        }, { threshold: 0.12 });
+        observer.observe(marquee);
+      }
+
+      function setupLandingStyleAutoScroll() {
+        const scroller = landingStyleHscroll;
+        if (!scroller) return;
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        let intervalId = null;
+        let userPausedUntil = 0;
+        const pauseMs = 8000;
+        const intervalMs = 3500;
+
+        const getStep = () => {
+          const card = scroller.querySelector(".landing-style-card");
+          if (!card) return scroller.clientWidth;
+          return card.offsetWidth + 12;
+        };
+
+        const tick = () => {
+          if (Date.now() < userPausedUntil) return;
+          const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+          if (maxScroll <= 4) return;
+          const step = getStep();
+          const next = scroller.scrollLeft + step;
+          if (next >= maxScroll - 2) {
+            scroller.scrollTo({ left: 0, behavior: "smooth" });
+          } else {
+            scroller.scrollTo({ left: next, behavior: "smooth" });
+          }
+        };
+
+        const start = () => {
+          if (intervalId) return;
+          intervalId = window.setInterval(tick, intervalMs);
+        };
+
+        const stop = () => {
+          if (!intervalId) return;
+          window.clearInterval(intervalId);
+          intervalId = null;
+        };
+
+        const pauseForUser = () => {
+          userPausedUntil = Date.now() + pauseMs;
+        };
+
+        scroller.addEventListener("pointerdown", pauseForUser, { passive: true });
+        scroller.addEventListener("wheel", pauseForUser, { passive: true });
+        scroller.addEventListener("touchstart", pauseForUser, { passive: true });
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) start();
+            else stop();
+          });
+        }, { threshold: 0.2 });
+        observer.observe(scroller);
+      }
+
       document.addEventListener("submit", (event) => {
         const reviewLoginForm = event.target?.closest?.("[data-review-login-form='true']");
         if (reviewLoginForm) {
@@ -24594,7 +25994,9 @@ ${modeExample}`;
       }
 
       landingAuthButton?.addEventListener("click", handleLandingAuthButtonClick);
+      landingHeaderStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingHeaderStartButton));
       landingHeroStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingHeroStartButton));
+      landingStylesStartButton?.addEventListener("click", goToPhotoEditor);
       landingFinalStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingFinalStartButton));
 
       accountMenuClose?.addEventListener("click", () => {
@@ -24894,7 +26296,12 @@ ${modeExample}`;
         });
       });
       syncGenerationModeUi();
+      setupLandingPromoBanner();
+      setupLandingFixedTop();
+      setupLandingExamplesMarquee();
+      setupLandingExamplesGalleryLink();
       setupBeforeAfterSliders();
+      setupLandingStyleAutoScroll();
       const initialPaymentStatus = getPaymentRedirectStatus();
       const shouldRestoreResultScreen = !initialPaymentStatus && getRememberedAppScreen() === "result" && restoreResultState();
       if (initialPaymentStatus) {

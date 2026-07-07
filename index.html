@@ -4554,7 +4554,7 @@
         width: min(920px, 100%);
         justify-items: center;
         text-align: center;
-        gap: 32px;
+        gap: 30px;
       }
 
       .landing-hero-copy {
@@ -4572,15 +4572,15 @@
       }
 
       .landing-hero-section .landing-section-head .landing-eyebrow {
-        margin-bottom: 22px;
+        margin-bottom: 26px;
       }
 
       .landing-hero-section .landing-section-head .landing-copy {
-        margin-top: 20px;
+        margin-top: 0;
       }
 
       .landing-hero-copy > .landing-primary-button {
-        margin-top: 24px;
+        margin-top: 20px;
       }
 
       .landing-brand-row {
@@ -4637,13 +4637,23 @@
         justify-content: center;
       }
 
+      .landing-hero-title-image-wrap {
+        width: min(620px, 88vw);
+        aspect-ratio: 1.9 / 1;
+        overflow: hidden;
+        margin: 0 auto 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .landing-hero-title-image {
-        display: block;
         width: 100%;
-        max-width: 700px;
-        height: auto;
-        margin: 0 auto;
-        object-fit: contain;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 42%;
+        display: block;
+        transform: scale(1.07);
       }
 
       .landing-section-head {
@@ -4784,7 +4794,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: clamp(12px, 2.8vw, 24px);
+        gap: clamp(24px, 3vw, 34px);
         text-align: center;
       }
 
@@ -6789,9 +6799,28 @@
           width: 100%;
         }
 
+        .landing-hero-section .landing-section-head .landing-eyebrow {
+          margin-bottom: 20px;
+        }
+
+        .landing-hero-title-image-wrap {
+          width: calc(100% - 44px);
+          max-width: 440px;
+          aspect-ratio: 1.75 / 1;
+          margin: 0 auto 18px;
+        }
+
         .landing-hero-title-image {
-          width: calc(100% - 40px);
-          max-width: 460px;
+          transform: scale(1.05);
+          object-position: center 40%;
+        }
+
+        .landing-hero-copy > .landing-primary-button {
+          margin-top: 18px;
+        }
+
+        .landing-hero-section .landing-section-inner {
+          gap: 26px;
         }
 
         .landing-section-head .landing-copy {
@@ -6820,7 +6849,7 @@
         }
 
         .landing-hero-section .landing-section-inner {
-          gap: 28px;
+          gap: 24px;
         }
 
         .landing-hero-copy {
@@ -6955,7 +6984,9 @@
                 <div class="landing-section-head">
                   <p class="landing-eyebrow">AI가 완성하는 특별한 웨딩 사진</p>
                   <h1 class="hero-title landing-hero-display-title landing-hero-title">
-                    <img class="landing-hero-title-image" src="public/landing-category/Title.png" alt="내 사진에 감성 한 스푼" width="1448" height="1086" decoding="async" />
+                    <div class="landing-hero-title-image-wrap">
+                      <img class="landing-hero-title-image" src="public/landing-category/Title.png" alt="내 사진에 감성 한 스푼" width="1448" height="1086" decoding="async" />
+                    </div>
                   </h1>
                   <p class="landing-copy">분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>

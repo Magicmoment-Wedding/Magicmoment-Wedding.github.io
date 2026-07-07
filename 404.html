@@ -4572,11 +4572,11 @@
       }
 
       .landing-hero-section .landing-section-head .landing-eyebrow {
-        margin-bottom: 18px;
+        margin-bottom: 22px;
       }
 
       .landing-hero-section .landing-section-head .landing-copy {
-        margin-top: 22px;
+        margin-top: 20px;
       }
 
       .landing-hero-copy > .landing-primary-button {
@@ -4631,19 +4631,19 @@
       }
 
       .landing-hero-section h1.hero-title {
-        font-family: "Noto Serif KR", serif;
-        font-size: clamp(40px, 10.5vw, 62px);
-        line-height: 1.18;
-        font-weight: 700;
-        letter-spacing: -0.035em;
-        color: #20293a;
-        text-align: center;
-        text-wrap: balance;
         margin: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
       }
 
-      .landing-hero-section h1.hero-title span {
+      .landing-hero-title-image {
         display: block;
+        width: 100%;
+        max-width: 700px;
+        height: auto;
+        margin: 0 auto;
+        object-fit: contain;
       }
 
       .landing-section-head {
@@ -6786,11 +6786,12 @@
         }
 
         .landing-hero-section h1.hero-title {
-          font-family: "Noto Serif KR", serif;
-          font-weight: 700;
-          letter-spacing: -0.035em;
-          line-height: 1.18;
-          color: #20293a;
+          width: 100%;
+        }
+
+        .landing-hero-title-image {
+          width: calc(100% - 40px);
+          max-width: 460px;
         }
 
         .landing-section-head .landing-copy {
@@ -6954,8 +6955,7 @@
                 <div class="landing-section-head">
                   <p class="landing-eyebrow">AI가 완성하는 특별한 웨딩 사진</p>
                   <h1 class="hero-title landing-hero-display-title landing-hero-title">
-                    <span>내 사진에</span>
-                    <span>감성 한 스푼</span>
+                    <img class="landing-hero-title-image" src="public/landing-category/Title.png" alt="내 사진에 감성 한 스푼" width="1448" height="1086" decoding="async" />
                   </h1>
                   <p class="landing-copy">분위기는 새롭게, 추억은 더 특별하게.</p>
                 </div>

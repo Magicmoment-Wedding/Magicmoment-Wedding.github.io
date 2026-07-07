@@ -76,7 +76,7 @@ export function renderCreditsPage(state) {
         <h3 class="font-display text-[21px] leading-tight text-on-surface">프리미엄 커스텀 제작</h3>
         <div class="mt-3 space-y-3">
           <p class="text-sm text-on-surface-variant leading-6">더 높은 퀄리티와 원하는 콘셉트를 상담으로 완성해보세요.</p>
-          <p class="text-sm text-on-surface-variant leading-6">커스텀 또는 스케일업 상담</p>
+          <p class="text-sm text-on-surface-variant leading-6">커스텀 제작 및 포토테이블용 사진 10장 제공</p>
         </div>
         <div class="mt-4 flex items-center justify-between gap-4 rounded-[18px] bg-white/55 px-4 py-3">
           <div>

@@ -23,16 +23,16 @@ export const CREDIT_PACKAGES = [
   {
     id: "wedding_photo_pass_20",
     productCode: "wedding_photo_pass_20",
-    passUses: 20,
+    passUses: 24,
     servicePeriodMonths: 3,
     credits: 500,
     price: 99000,
     badge: "STANDARD",
     name: "포토테이블 준비 패스",
-    description: "스튜디오 사진이 부족하거나, 포토테이블용 사진이 필요할 때.\nAI 웨딩사진 제작 20회",
+    description: "스튜디오 사진이 부족하거나, 포토테이블용 사진이 필요할 때.\nAI 웨딩사진 제작 24회\n포토테이블용 사진 10장 제공",
     servicePeriodLabel: "구매일로부터 3개월",
     cta: "이용권 선택하기",
-    orderName: "포토테이블 준비 패스 - AI 웨딩사진 제작 이용권 20회",
+    orderName: "포토테이블 준비 패스 - AI 웨딩사진 제작 이용권 24회",
   },
 ];
 

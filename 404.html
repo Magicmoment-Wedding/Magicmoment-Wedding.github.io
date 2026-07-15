@@ -4872,14 +4872,15 @@
       .landing-example-before-inset {
         position: absolute;
         z-index: 2;
-        left: 10px;
+        right: 10px;
         bottom: 10px;
-        width: clamp(90px, 28%, 118px);
+        left: auto;
+        width: clamp(58px, 26%, 78px);
         aspect-ratio: 3 / 4;
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
-        border: 2px solid rgba(255, 255, 255, 0.94);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+        border: 1.5px solid rgba(255, 255, 255, 0.92);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.26);
         background: #1c2430;
         pointer-events: none;
       }
@@ -4904,39 +4905,17 @@
       .landing-example-style-caption {
         position: absolute;
         z-index: 1;
-        left: 6px;
-        right: 6px;
-        bottom: 6px;
+        left: 4px;
+        right: 4px;
+        bottom: 4px;
         color: #ffffff;
-        font-size: 9px;
-        line-height: 1.2;
+        font-size: 8px;
+        line-height: 1.15;
         font-weight: 600;
         letter-spacing: -0.02em;
         text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
         word-break: keep-all;
-      }
-
-      .landing-example-label {
-        position: absolute;
-        z-index: 1;
-        top: 6px;
-        left: 6px;
-        padding: 2px 7px;
-        border-radius: 9999px;
-        background: rgba(38, 44, 56, 0.78);
-        color: #ffffff;
-        font-size: 8px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-      }
-
-      .landing-example-label.is-after {
-        left: auto;
-        right: 10px;
-        top: 10px;
-        background: #ff4e8e;
-        font-size: 9px;
-        padding: 3px 8px;
+        text-align: center;
       }
 
       .landing-example-desc {
@@ -5113,9 +5092,9 @@
 
       .landing-style-card {
         position: relative;
-        flex: 0 0 62vw;
-        width: 62vw;
-        max-width: 270px;
+        flex: 0 0 66vw;
+        width: 66vw;
+        max-width: 290px;
         min-width: 0;
         height: 230px;
         padding: 0;
@@ -5599,9 +5578,10 @@
         }
 
         .landing-example-before-inset {
-          left: 12px;
+          right: 12px;
           bottom: 12px;
-          width: 108px;
+          left: auto;
+          width: 72px;
         }
 
         .landing-examples-band {
@@ -7029,11 +7009,9 @@
                     <article class="landing-example-card">
                       <div class="landing-example-compare">
                         <figure class="landing-example-after">
-                          <span class="landing-example-label is-after">AFTER</span>
                           <img src="public/landing-gallery/1-1.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
                         </figure>
                         <div class="landing-example-before-inset">
-                          <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">이탈리아 베네치아</span>
                           <img src="public/landing-gallery/1-2.png" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
                         </div>
@@ -7042,11 +7020,9 @@
                     <article class="landing-example-card">
                       <div class="landing-example-compare">
                         <figure class="landing-example-after">
-                          <span class="landing-example-label is-after">AFTER</span>
                           <img src="public/landing-gallery/4-2.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
                         </figure>
                         <div class="landing-example-before-inset">
-                          <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">파리-르부르</span>
                           <img src="public/landing-gallery/4-1.jpg" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
                         </div>
@@ -7057,11 +7033,9 @@
                     <article class="landing-example-card">
                       <div class="landing-example-compare">
                         <figure class="landing-example-after">
-                          <span class="landing-example-label is-after">AFTER</span>
                           <img src="public/landing-gallery/1-1.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
                         </figure>
                         <div class="landing-example-before-inset">
-                          <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">이탈리아 베네치아</span>
                           <img src="public/landing-gallery/1-2.png" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
                         </div>
@@ -7070,11 +7044,9 @@
                     <article class="landing-example-card">
                       <div class="landing-example-compare">
                         <figure class="landing-example-after">
-                          <span class="landing-example-label is-after">AFTER</span>
                           <img src="public/landing-gallery/4-2.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
                         </figure>
                         <div class="landing-example-before-inset">
-                          <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">파리-르부르</span>
                           <img src="public/landing-gallery/4-1.jpg" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
                         </div>
@@ -7115,7 +7087,7 @@
                   <div class="landing-style-card-overlay" aria-hidden="true"></div>
                   <div class="landing-style-card-body">
                     <h3 class="landing-style-name">한국 웨딩</h3>
-                    <p class="landing-style-desc">서울숲, 제주, 한복 등</p>
+                    <p class="landing-style-desc">경복궁, 핑크뮬리, 제주 등</p>
                   </div>
                 </article>
               </div>
@@ -7220,7 +7192,7 @@
                         <p class="landing-faq-answer">스타일마다 예쁨단계가 존재해요.<br>
 예쁨단계가 높을수록 스타일이 강해져<br>
 얼굴이 예뻐질 가능성이 높아져요.<br>
-예: 디즈니 = 예쁨단계3<br>
+예: Europe Style = 예쁨단계1<br>
 원본보존이 중요한 경우 예쁨단계가 낮은 스타일을 선택하세요 :)</p>
                       </details>
                       <details class="landing-faq-item">
@@ -7352,11 +7324,11 @@
                     </div>
                   </article>
                   <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
-                    <img src="mock-images/home/home_disney_bride_01.png" alt="디즈니 공주" class="h-40 w-full object-cover" />
+                    <img src="public/images/presets/korea-gyeongbokgung.png" alt="경복궁" class="h-40 w-full object-cover" />
                     <div class="px-5 pb-5 pt-4 text-center">
-                      <h3 class="font-display text-[25px] leading-none text-on-surface">동화 감성</h3>
-                      <p class="mt-2 text-sm text-on-surface-variant">주인공처럼, 사랑스럽게</p>
-                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="disneyLive" type="button">사진 올리고 시작하기</button>
+                      <h3 class="font-display text-[25px] leading-none text-on-surface">한국 감성</h3>
+                      <p class="mt-2 text-sm text-on-surface-variant">궁궐부터 제주까지, 담담하게</p>
+                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="korea_style" type="button">사진 올리고 시작하기</button>
                     </div>
                   </article>
                 </div>
@@ -7437,16 +7409,6 @@
                   <input class="sr-only" name="generationMode" type="radio" value="korea_style" />
                   <span class="editor-style-icon material-symbols-outlined" aria-hidden="true">forest</span>
                   <span class="editor-style-label">Korea Style</span>
-                </label>
-                <label class="editor-style-option">
-                  <input class="sr-only" name="generationMode" type="radio" value="disneyLive" />
-                  <span class="editor-style-icon material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-                  <span class="editor-style-label">Disney Style</span>
-                </label>
-                <label class="editor-style-option">
-                  <input class="sr-only" name="generationMode" type="radio" value="studio" />
-                  <span class="editor-style-icon material-symbols-outlined" aria-hidden="true">photo_camera</span>
-                  <span class="editor-style-label">Studio Style</span>
                 </label>
               </div>
             </fieldset>
@@ -7549,112 +7511,6 @@
                   <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
                   <span class="editor-option-title font-semibold preset-card-title-lines is-long"><span>제주</span><span>김녕해변</span></span>
                   <span class="editor-option-description">현무암과 해변이 어우러진 제주 감성 스냅</span>
-                </label>
-              </div>
-            </section>
-
-            <section class="mt-7 hidden" id="disneyOptions">
-              <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">4개의 Disney Style 컨셉으로 자동 변환됩니다</p>
-                <div class="beauty-stage-note">
-                  <span class="beauty-stage-badge">
-                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-                    예쁨단계 3
-                  </span>
-                  <span class="beauty-stage-copy">디즈니 동화 속 주인공처럼 확 바뀌어요</span>
-                </div>
-              </div>
-              <div class="editor-option-grid mt-3">
-                <button
-                  class="editor-option-card has-preview is-preview-toggle"
-                  style="--preset-image: url('public/images/presets/disney-cinderella.jpg'); --preset-fallback: linear-gradient(135deg, #b9cff2 0%, #f6edf8 48%, #7787b5 100%); --preset-position: center;"
-                  type="button"
-                  aria-disabled="true"
-                >
-                  <span class="editor-option-badge">자동 생성</span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>신데렐라</span></span>
-                  <span class="editor-option-description">궁전 속 주인공처럼</span>
-                </button>
-                <button
-                  class="editor-option-card has-preview is-preview-toggle"
-                  style="--preset-image: url('public/images/presets/disney-belle.jpg'); --preset-fallback: linear-gradient(135deg, #8c6c50 0%, #e5c56e 46%, #6f5845 100%); --preset-position: center;"
-                  type="button"
-                  aria-disabled="true"
-                >
-                  <span class="editor-option-badge">자동 생성</span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>벨</span></span>
-                  <span class="editor-option-description">로맨틱한 서재 속 한 장면</span>
-                </button>
-                <button
-                  class="editor-option-card has-preview is-preview-toggle"
-                  style="--preset-image: url('public/images/presets/disney-aurora.jpg'); --preset-fallback: linear-gradient(135deg, #b8d5bd 0%, #f2c9d8 50%, #8a7bb5 100%); --preset-position: center;"
-                  type="button"
-                  aria-disabled="true"
-                >
-                  <span class="editor-option-badge">자동 생성</span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>오로라</span></span>
-                  <span class="editor-option-description">핑크빛 정원 속 공주처럼</span>
-                </button>
-                <button
-                  class="editor-option-card has-preview is-preview-toggle"
-                  style="--preset-image: url('public/images/presets/disney-mulan.jpg'); --preset-fallback: linear-gradient(135deg, #496c54 0%, #d7b784 47%, #7f4c57 100%); --preset-position: center;"
-                  type="button"
-                  aria-disabled="true"
-                >
-                  <span class="editor-option-badge">자동 생성</span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>뮬란</span></span>
-                  <span class="editor-option-description">한복 감성으로 동화처럼</span>
-                </button>
-              </div>
-            </section>
-
-            <section class="mt-7 hidden" id="studioOptions">
-              <div>
-                <p class="text-[15px] font-semibold leading-6 text-on-surface">원하시는 Studio Style 샷을 선택해 주세요</p>
-                <div class="beauty-stage-note">
-                  <span class="beauty-stage-badge">
-                    <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
-                    예쁨단계 2
-                  </span>
-                  <span class="beauty-stage-copy">집구석 사진이 웨딩스튜디오 사진으로 변신</span>
-                </div>
-              </div>
-              <div class="editor-option-grid mt-3">
-                <label
-                  class="editor-option-card has-preview studio-preview is-preview-toggle"
-                  style="--preset-image: url('/images/studio-style/studio-white-bg.png'); --preset-fallback: linear-gradient(135deg, #fffaf8 0%, #f4e4e8 48%, #b9959b 100%); --preset-position: center;"
-                >
-                  <input class="sr-only" name="generationPlace" type="radio" value="studio_white_bg" />
-                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>흰배경샷</span></span>
-                  <span class="editor-option-description">화이트 배경과 정면 포즈의 대표 스튜디오 샷</span>
-                </label>
-                <label
-                  class="editor-option-card has-preview studio-preview is-preview-toggle"
-                  style="--preset-image: url('/images/studio-style/studio-sofa.png'); --preset-fallback: linear-gradient(135deg, #fff7f9 0%, #f2c2d2 48%, #b47589 100%); --preset-position: center;"
-                >
-                  <input class="sr-only" name="generationPlace" type="radio" value="studio_sofa" />
-                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>쇼파샷</span></span>
-                  <span class="editor-option-description">흰 소파와 핑크 드레스가 펼쳐지는 신부 단독샷</span>
-                </label>
-                <label
-                  class="editor-option-card has-preview studio-preview is-preview-toggle"
-                  style="--preset-image: url('/images/studio-style/studio-petals.png'); --preset-fallback: linear-gradient(135deg, #fff7f6 0%, #f1d0c9 46%, #a78b7d 100%); --preset-position: center;"
-                >
-                  <input class="sr-only" name="generationPlace" type="radio" value="studio_petals" />
-                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>꽃잎샷</span></span>
-                  <span class="editor-option-description">꽃이 가득한 웨딩 화보처럼</span>
-                </label>
-                <label
-                  class="editor-option-card has-preview studio-preview is-preview-toggle"
-                  style="--preset-image: url('/images/studio-style/studio-hanbok.png'); --preset-fallback: linear-gradient(135deg, #fffdf9 0%, #e4c9bc 45%, #785446 100%); --preset-position: center;"
-                >
-                  <input class="sr-only" name="generationPlace" type="radio" value="studio_hanbok" />
-                  <span class="editor-option-check"><span class="material-symbols-outlined text-[14px]">check</span></span>
-                  <span class="editor-option-title font-semibold preset-card-title-lines"><span>한복샷</span></span>
-                  <span class="editor-option-description">흰 배경에서 서로 바라보며 웃는 한복 스튜디오샷</span>
                 </label>
               </div>
             </section>
@@ -9715,8 +9571,6 @@ Important:
       const creditShortageButton = document.getElementById("creditShortageButton");
       const europeOptions = document.getElementById("europeOptions");
       const koreaOptions = document.getElementById("koreaOptions");
-      const disneyOptions = document.getElementById("disneyOptions");
-      const studioOptions = document.getElementById("studioOptions");
       const sourceSection = document.getElementById("sourceSection");
       const sourcePreview = document.getElementById("sourcePreview");
       const sourceZoomButton = document.getElementById("sourceZoomButton");
@@ -9997,14 +9851,14 @@ Important:
               title: "사진과 스타일 맞추기",
               paragraphs: [
                 "원하는 스타일에 어울리는 사진을 고르면 결과가 더 좋아져요.",
-                "예를 들어 소파샷은 앉아있는 사진, 꽃앞샷은 가까운 커플 사진처럼 원본 포즈와 스타일이 잘 맞을수록 자연스럽게 완성돼요.",
+                "예를 들어 배경과 어울리는 포즈의 사진일수록 결과가 더 자연스럽게 완성돼요.",
               ],
             },
             {
               title: "예쁨단계 확인",
               paragraphs: [
                 "스타일마다 예쁨단계가 있어요.",
-                "유럽배경은 1단계, 디즈니배경은 3단계처럼 콘셉트에 따라 의상, 분위기, 약간의 예쁨 보정이 들어갈 수 있어요.",
+                "Europe Style·Korea Style은 예쁨단계 1처럼 배경 변환 위주로 진행돼요.",
               ],
             },
           ],
@@ -17045,7 +16899,7 @@ Important:
       function renderSignupGuideNoStudioPhotoStep() {
         return `
           <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 없어도 괜찮아요.", "괜찮아요.")}</h2>
-          <p class="signup-guide-subtitle">집구석 사진도 스튜디오 사진처럼 바꿔주는<br />Studio Style을 이용해보세요.</p>
+          <p class="signup-guide-subtitle">집구석 사진도 원하는 배경으로<br />분위기를 바꿔볼 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
           <div class="signup-guide-image-card is-studio-style-asset">
             <img class="onboarding-studio-guide-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle}" alt="Studio Style 안내 이미지" decoding="async" />
@@ -17063,7 +16917,7 @@ Important:
       function renderSignupGuideStyleButtonsStep() {
         return `
           <h2 class="signup-guide-question">${renderSignupGuideTitle("원하는 분위기를 골라보세요", "분위기를 골라보세요")}</h2>
-          <p class="signup-guide-subtitle">유럽, 한국, 디즈니, 스튜디오 스타일 중<br />사진에 어울리는 콘셉트를 선택할 수 있어요.</p>
+          <p class="signup-guide-subtitle">유럽·한국 스타일 중<br />사진에 어울리는 콘셉트를 선택할 수 있어요.</p>
           <div class="signup-guide-divider" aria-hidden="true">♥</div>
           <div class="signup-guide-image-card is-style-category">
             <img class="onboarding-category-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.category}" alt="스타일 카테고리 선택 예시" decoding="async" />
@@ -19040,6 +18894,33 @@ Important:
         return GENERATION_MODE_ALIASES[normalizeModeToken(value)] || null;
       }
 
+      function isUiSelectableGenerationMode(mode) {
+        const normalized = resolveGenerationMode(mode);
+        return normalized === GENERATION_MODES.PARIS_SNAP || normalized === GENERATION_MODES.KOREA_STYLE;
+      }
+
+      function coerceUiSelectableGenerationMode(mode) {
+        const normalized = resolveGenerationMode(mode);
+        if (normalized === GENERATION_MODES.KOREA_STYLE) return GENERATION_MODES.KOREA_STYLE;
+        return GENERATION_MODES.PARIS_SNAP;
+      }
+
+      function ensureUiSelectableGenerationModeChecked() {
+        const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
+        const selectable = coerceUiSelectableGenerationMode(rawMode);
+        let matched = false;
+        generationModeInputs.forEach((input) => {
+          const isMatch = input.value === selectable;
+          input.checked = isMatch;
+          if (isMatch) matched = true;
+        });
+        if (!matched && generationModeInputs[0]) {
+          generationModeInputs[0].checked = true;
+          return coerceUiSelectableGenerationMode(generationModeInputs[0].value);
+        }
+        return selectable;
+      }
+
       function normalizeGenerationMode(value) {
         return resolveGenerationMode(value) || GENERATION_MODES.PARIS_SNAP;
       }
@@ -19084,8 +18965,7 @@ Important:
       }
 
       function getGenerationModeFromInput() {
-        const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
-        return resolveGenerationMode(rawMode) || GENERATION_MODES.PARIS_SNAP;
+        return ensureUiSelectableGenerationModeChecked();
       }
 
       function getSelectedLandmarkOption(mode = activeGenerationMode) {
@@ -19133,11 +19013,10 @@ Important:
       }
 
       function getGenerationMode() {
-        const rawMode = generationModeInputs.find((input) => input.checked)?.value || GENERATION_MODES.PARIS_SNAP;
-        const inputMode = resolveGenerationMode(rawMode) || GENERATION_MODES.PARIS_SNAP;
+        const inputMode = ensureUiSelectableGenerationModeChecked();
         const rawPlace = getGenerationPlaceValue(inputMode);
-        const mode = resolveGenerationMode(rawMode) || resolveGenerationMode(rawPlace) || GENERATION_MODES.PARIS_SNAP;
-
+        const placeMode = resolveGenerationMode(rawPlace);
+        const mode = isUiSelectableGenerationMode(placeMode) ? placeMode : inputMode;
         return MODE_CONFIG[mode] ? mode : GENERATION_MODES.PARIS_SNAP;
       }
 
@@ -19185,14 +19064,12 @@ Important:
       }
 
       function syncGenerationModeUi() {
-        const mode = getGenerationMode();
+        const mode = ensureUiSelectableGenerationModeChecked();
         if (isLocationMode(mode)) {
           syncSelectedLocationPreset(mode);
         }
         europeOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.PARIS_SNAP);
         koreaOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.KOREA_STYLE);
-        disneyOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.DISNEY_LIVE);
-        studioOptions?.classList.toggle("hidden", mode !== GENERATION_MODES.STUDIO_STYLE);
       }
 
       function getFeaturedLabel() {
@@ -26181,7 +26058,8 @@ ${modeExample}`;
         button.addEventListener("click", () => {
           const preset = button.dataset.preset;
           if (!preset) return;
-          const targetInput = Array.from(generationModeInputs).find((input) => input.value === preset);
+          const selectablePreset = coerceUiSelectableGenerationMode(preset);
+          const targetInput = Array.from(generationModeInputs).find((input) => input.value === selectablePreset);
           if (targetInput) {
             targetInput.checked = true;
             syncGenerationModeUi();

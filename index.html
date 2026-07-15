@@ -4834,7 +4834,7 @@
 
       .landing-example-card {
         flex: 0 0 auto;
-        width: clamp(200px, 58vw, 260px);
+        width: clamp(180px, 52vw, 236px);
         display: flex;
         flex-direction: column;
         padding: 0;
@@ -4844,73 +4844,47 @@
         border-radius: 0;
       }
 
-      .landing-example-pair {
+      .landing-example-compare {
         position: relative;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2px;
         width: 100%;
-        aspect-ratio: 1 / 1.05;
-      }
-
-      .landing-example-pair-arrow {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        z-index: 2;
-        transform: translate(-50%, -50%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px;
-        height: 22px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #ff5c96;
-        font-size: 14px;
-        line-height: 1;
-        box-shadow: 0 2px 8px rgba(20, 28, 40, 0.16);
-        pointer-events: none;
-        font-variation-settings: "FILL" 0, "wght" 500;
-      }
-
-      .landing-example-shot {
-        position: relative;
-        margin: 0;
-        border-radius: 10px;
+        aspect-ratio: 3 / 4;
+        border-radius: 14px;
         overflow: hidden;
         background: rgba(255, 255, 255, 0.06);
+      }
+
+      .landing-example-after {
+        position: relative;
+        margin: 0;
         width: 100%;
         height: 100%;
-        min-height: 0;
+        overflow: hidden;
       }
 
-      .landing-example-shot::after {
-        content: "";
+      .landing-example-after img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: center 20%;
+      }
+
+      .landing-example-before-inset {
         position: absolute;
-        inset: auto 0 0 0;
-        height: 40%;
-        background: linear-gradient(180deg, transparent 0%, rgba(20, 28, 40, 0.58) 100%);
+        z-index: 2;
+        left: 10px;
+        bottom: 10px;
+        width: clamp(90px, 28%, 118px);
+        aspect-ratio: 3 / 4;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.94);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+        background: #1c2430;
         pointer-events: none;
-        z-index: 0;
       }
 
-      .landing-example-style-caption {
-        position: absolute;
-        z-index: 1;
-        left: 8px;
-        bottom: 8px;
-        max-width: calc(100% - 16px);
-        color: #ffffff;
-        font-size: 10px;
-        line-height: 1.25;
-        font-weight: 600;
-        letter-spacing: -0.02em;
-        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.34);
-        word-break: keep-all;
-      }
-
-      .landing-example-shot img {
+      .landing-example-before-inset img {
         width: 100%;
         height: 100%;
         display: block;
@@ -4918,24 +4892,51 @@
         object-position: center;
       }
 
+      .landing-example-before-inset::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 48%;
+        background: linear-gradient(180deg, transparent 0%, rgba(20, 28, 40, 0.72) 100%);
+        pointer-events: none;
+      }
+
+      .landing-example-style-caption {
+        position: absolute;
+        z-index: 1;
+        left: 6px;
+        right: 6px;
+        bottom: 6px;
+        color: #ffffff;
+        font-size: 9px;
+        line-height: 1.2;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        word-break: keep-all;
+      }
+
       .landing-example-label {
         position: absolute;
         z-index: 1;
-        top: 8px;
-        left: 8px;
-        padding: 3px 8px;
+        top: 6px;
+        left: 6px;
+        padding: 2px 7px;
         border-radius: 9999px;
-        background: rgba(38, 44, 56, 0.72);
+        background: rgba(38, 44, 56, 0.78);
         color: #ffffff;
-        font-size: 9px;
+        font-size: 8px;
         font-weight: 700;
         letter-spacing: 0.08em;
       }
 
       .landing-example-label.is-after {
         left: auto;
-        right: 8px;
+        right: 10px;
+        top: 10px;
         background: #ff4e8e;
+        font-size: 9px;
+        padding: 3px 8px;
       }
 
       .landing-example-desc {
@@ -5068,7 +5069,7 @@
         width: max-content;
         gap: 44px;
         will-change: transform;
-        animation: landing-examples-marquee 40s linear infinite;
+        animation: landing-examples-marquee 22s linear infinite;
       }
 
       .landing-examples-set {
@@ -5112,12 +5113,13 @@
 
       .landing-style-card {
         position: relative;
-        flex: 0 0 72vw;
-        max-width: 320px;
-        min-width: 260px;
-        height: 250px;
+        flex: 0 0 62vw;
+        width: 62vw;
+        max-width: 270px;
+        min-width: 0;
+        height: 230px;
         padding: 0;
-        scroll-snap-align: center;
+        scroll-snap-align: start;
         border-radius: 22px;
         overflow: hidden;
       }
@@ -5134,10 +5136,6 @@
         display: block;
         object-fit: cover;
         object-position: center;
-      }
-
-      .landing-style-card.is-disney .landing-style-card-media img {
-        object-position: center 25%;
       }
 
       .landing-style-card-overlay {
@@ -5174,9 +5172,10 @@
       }
 
       .landing-styles-section .landing-hscroll {
-        gap: 12px;
-        padding-inline: calc((100% - 72vw) / 2);
-        scroll-padding-inline: calc((100% - 72vw) / 2);
+        gap: 14px;
+        padding-inline: 16px;
+        padding-right: 40px;
+        scroll-padding-inline: 16px;
       }
 
       .landing-styles-section .landing-primary-button {
@@ -5596,7 +5595,13 @@
 
       @media (min-width: 720px) {
         .landing-example-card {
-          width: 260px;
+          width: 236px;
+        }
+
+        .landing-example-before-inset {
+          left: 12px;
+          bottom: 12px;
+          width: 108px;
         }
 
         .landing-examples-band {
@@ -5617,19 +5622,20 @@
         }
 
         .landing-styles-section .landing-hscroll {
-          width: min(920px, 100%);
+          width: min(640px, 100%);
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 14px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
           overflow: visible;
           padding-inline: 0;
+          padding-right: 0;
           scroll-snap-type: none;
         }
 
         .landing-style-card {
           flex: none;
-          max-width: none;
           width: 100%;
+          max-width: none;
           height: 260px;
         }
       }
@@ -7021,117 +7027,57 @@
                 <div class="landing-examples-track">
                   <div class="landing-examples-set">
                     <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
+                      <div class="landing-example-compare">
+                        <figure class="landing-example-after">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/1-1.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <div class="landing-example-before-inset">
                           <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">이탈리아 베네치아</span>
-                          <img src="public/landing-gallery/1-2.png" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/1-1.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
+                          <img src="public/landing-gallery/1-2.png" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </div>
                       </div>
                     </article>
                     <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label">BEFORE</span>
-                          <span class="landing-example-style-caption">디즈니-신데렐라</span>
-                          <img src="public/landing-gallery/2-1.png" alt="디즈니-신데렐라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
+                      <div class="landing-example-compare">
+                        <figure class="landing-example-after">
                           <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/2-2.png" alt="디즈니-신데렐라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                          <img src="public/landing-gallery/4-2.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
                         </figure>
-                      </div>
-                    </article>
-                    <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
+                        <div class="landing-example-before-inset">
                           <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">파리-르부르</span>
-                          <img src="public/landing-gallery/4-1.jpg" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/4-2.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                      </div>
-                    </article>
-                    <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label">BEFORE</span>
-                          <span class="landing-example-style-caption">디즈니-오로라</span>
-                          <img src="public/landing-gallery/3-1.jpg" alt="디즈니-오로라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/3-3.jpg" alt="디즈니-오로라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
+                          <img src="public/landing-gallery/4-1.jpg" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </div>
                       </div>
                     </article>
                   </div>
                   <div class="landing-examples-set" aria-hidden="true">
                     <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
+                      <div class="landing-example-compare">
+                        <figure class="landing-example-after">
+                          <span class="landing-example-label is-after">AFTER</span>
+                          <img src="public/landing-gallery/1-1.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                        </figure>
+                        <div class="landing-example-before-inset">
                           <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">이탈리아 베네치아</span>
-                          <img src="public/landing-gallery/1-2.png" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/1-1.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
+                          <img src="public/landing-gallery/1-2.png" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </div>
                       </div>
                     </article>
                     <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label">BEFORE</span>
-                          <span class="landing-example-style-caption">디즈니-신데렐라</span>
-                          <img src="public/landing-gallery/2-1.png" alt="디즈니-신데렐라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
+                      <div class="landing-example-compare">
+                        <figure class="landing-example-after">
                           <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/2-2.png" alt="디즈니-신데렐라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
+                          <img src="public/landing-gallery/4-2.png" alt="파리-르부르 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
                         </figure>
-                      </div>
-                    </article>
-                    <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
+                        <div class="landing-example-before-inset">
                           <span class="landing-example-label">BEFORE</span>
                           <span class="landing-example-style-caption">파리-르부르</span>
-                          <img src="public/landing-gallery/4-1.jpg" alt="이탈리아 베네치아 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/4-2.png" alt="이탈리아 베네치아 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                      </div>
-                    </article>
-                    <article class="landing-example-card">
-                      <div class="landing-example-pair">
-                        <span class="landing-example-pair-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label">BEFORE</span>
-                          <span class="landing-example-style-caption">디즈니-오로라</span>
-                          <img src="public/landing-gallery/3-1.jpg" alt="디즈니-오로라 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
-                        <figure class="landing-example-shot">
-                          <span class="landing-example-label is-after">AFTER</span>
-                          <img src="public/landing-gallery/3-3.jpg" alt="디즈니-오로라 변환 후" width="900" height="1200" loading="lazy" decoding="async" />
-                        </figure>
+                          <img src="public/landing-gallery/4-1.jpg" alt="파리-르부르 변환 전" width="900" height="1200" loading="lazy" decoding="async" />
+                        </div>
                       </div>
                     </article>
                   </div>
@@ -7149,7 +7095,7 @@
             <div class="landing-section-inner single-column">
               <div class="landing-section-head">
                 <h2 class="landing-title landing-section-title">이런 스타일 다 가능해요</h2>
-                <p class="landing-copy">유럽 감성부터 스튜디오 스타일까지, 사진에 어울리는 스타일을 선택해보세요.</p>
+                <p class="landing-copy">유럽 감성부터 한국 스타일까지, 사진에 어울리는 스타일을 선택해보세요.</p>
               </div>
               <div class="landing-hscroll" id="landingStyleHscroll" aria-label="스타일 예시 카드">
                 <article class="landing-style-card is-europe">
@@ -7170,26 +7116,6 @@
                   <div class="landing-style-card-body">
                     <h3 class="landing-style-name">한국 웨딩</h3>
                     <p class="landing-style-desc">서울숲, 제주, 한복 등</p>
-                  </div>
-                </article>
-                <article class="landing-style-card is-disney">
-                  <div class="landing-style-card-media">
-                    <img src="public/landing-category/disney.png" alt="" width="640" height="800" loading="lazy" decoding="async" />
-                  </div>
-                  <div class="landing-style-card-overlay" aria-hidden="true"></div>
-                  <div class="landing-style-card-body">
-                    <h3 class="landing-style-name">디즈니 실사</h3>
-                    <p class="landing-style-desc">신데렐라, 오로라, 뮬란 등</p>
-                  </div>
-                </article>
-                <article class="landing-style-card is-studio">
-                  <div class="landing-style-card-media">
-                    <img src="images/studio-style/studio-petals.png" alt="" width="640" height="800" loading="lazy" decoding="async" />
-                  </div>
-                  <div class="landing-style-card-overlay" aria-hidden="true"></div>
-                  <div class="landing-style-card-body">
-                    <h3 class="landing-style-name">스튜디오 스타일</h3>
-                    <p class="landing-style-desc">흰배경, 꽃잎, 조명, 한복샷 등</p>
                   </div>
                 </article>
               </div>
@@ -24852,7 +24778,7 @@ ${modeExample}`;
         const getStep = () => {
           const card = scroller.querySelector(".landing-style-card");
           if (!card) return scroller.clientWidth;
-          return card.offsetWidth + 12;
+          return card.offsetWidth + 14;
         };
 
         const tick = () => {

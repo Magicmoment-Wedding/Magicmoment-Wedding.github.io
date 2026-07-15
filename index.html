@@ -3014,7 +3014,7 @@
         flex-direction: column;
         gap: 0;
         min-width: 0;
-        padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(120px + var(--app-bottom-nav-height, 88px) + env(safe-area-inset-bottom, 0px));
       }
 
       .editor-reco-flow[hidden],
@@ -3099,15 +3099,19 @@
         border-radius: 22px;
         overflow: hidden;
         background: #efe6ea;
-        aspect-ratio: 4 / 5;
+        min-height: clamp(240px, 48dvh, 420px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .reco-source-wrap img {
         width: 100%;
-        height: 100%;
+        height: auto;
+        max-height: min(68dvh, 560px);
         display: block;
-        object-fit: cover;
-        object-position: center 20%;
+        object-fit: contain;
+        object-position: center;
       }
 
       .reco-change-photo {
@@ -3380,12 +3384,55 @@
         position: fixed;
         left: 50%;
         transform: translateX(-50%);
-        bottom: 0;
+        bottom: calc(var(--app-bottom-nav-height, 88px) + env(safe-area-inset-bottom, 0px));
         z-index: 40;
         width: min(100%, 430px);
-        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        padding: 12px 16px 10px;
         background: linear-gradient(180deg, rgba(255, 247, 250, 0) 0%, rgba(255, 247, 250, 0.92) 28%, #fff7fa 100%);
         pointer-events: none;
+      }
+
+      .reco-prepare-sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        background: rgba(28, 20, 24, 0.42);
+        padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .reco-prepare-sheet[hidden] {
+        display: none !important;
+      }
+
+      .reco-prepare-panel {
+        width: min(100%, 430px);
+        border-radius: 22px;
+        background: #fffdfc;
+        padding: 22px 18px 16px;
+        box-shadow: 0 18px 40px rgba(47, 36, 48, 0.22);
+        display: grid;
+        gap: 10px;
+      }
+
+      .reco-prepare-title {
+        margin: 0;
+        color: #2f2430;
+        font-size: 18px;
+        font-weight: 750;
+        line-height: 1.35;
+        word-break: keep-all;
+      }
+
+      .reco-prepare-copy {
+        margin: 0;
+        color: #6f5964;
+        font-size: 14px;
+        line-height: 1.55;
+        word-break: keep-all;
+        white-space: pre-line;
       }
 
       .reco-cta-bar > * {
@@ -7818,7 +7865,7 @@
               </button>
             </div>
             <input accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" id="photoInput" type="file" />
-            <div id="editorLegacyFlow" class="editor-legacy-flow">
+            <div id="editorLegacyFlow" class="editor-legacy-flow" hidden aria-hidden="true">
             <label id="photoUploadBox" class="upload-drop editor-upload-card mt-5" for="photoInput">
               <span class="icon-bubble">
                 <span class="material-symbols-outlined text-[26px]">add_a_photo</span>
@@ -7987,9 +8034,7 @@
             <p class="editor-free-ticket-note" role="note">가입 후 무료 제작 이용권 3회가 지급돼요</p>
             </div>
 
-            <div id="editorRecommendationFlow" class="editor-reco-flow" hidden aria-hidden="true">
-              <p class="reco-dev-banner hidden" id="recoDevBanner" role="note">개발용 미리보기 모드입니다. 실제 생성·이용권 차감은 호출되지 않아요.</p>
-
+            <div id="editorRecommendationFlow" class="editor-reco-flow" aria-hidden="false">
               <div class="reco-panel" data-reco-panel="upload">
                 <p class="reco-step">1 / 3 사진 선택</p>
                 <h2 class="reco-title">어떤 사진을 바꿔볼까요?</h2>
@@ -8104,6 +8149,15 @@
 
               <div class="reco-cta-bar" id="recoCtaBar">
                 <button class="reco-primary-cta" id="recoPrimaryCta" type="button" disabled>사진 선택하기</button>
+              </div>
+
+              <div class="reco-prepare-sheet" id="recoPrepareSheet" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="recoPrepareTitle">
+                <div class="reco-prepare-panel">
+                  <h3 class="reco-prepare-title" id="recoPrepareTitle">사진 추천 기능을 준비하고 있어요</h3>
+                  <p class="reco-prepare-copy">사진에 잘 맞는 배경을 분석하고 추천하는 기능을 연결 중이에요.
+조금만 기다려주세요.</p>
+                  <button class="reco-primary-cta" id="recoPrepareConfirmButton" type="button">확인</button>
+                </div>
               </div>
             </div>
           </section>
@@ -9222,9 +9276,6 @@
       const PAYMENT_MODULE_UNAVAILABLE_MESSAGE = "결제 모듈을 사용할 수 없습니다. 다시 시도해 주세요.";
       let userPlan = "free"; // free | ad | paid
       const DEBUG_MODE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      // New photo recommendation flow UI skeleton. Keep false for production until analysis API is ready.
-      const PHOTO_RECOMMENDATION_FLOW_ENABLED = false;
-      const PHOTO_RECOMMENDATION_MOCK_QUERY = "photoRecommendMock";
       const GENERATION_MODES = {
         PARIS_SNAP: "parisSnap",
         KOREA_STYLE: "korea_style",
@@ -10077,8 +10128,9 @@ Important:
       const editorScreen = document.getElementById("editorScreen");
       const editorLegacyFlow = document.getElementById("editorLegacyFlow");
       const editorRecommendationFlow = document.getElementById("editorRecommendationFlow");
-      const recoDevBanner = document.getElementById("recoDevBanner");
       const recoUploadBox = document.getElementById("recoUploadBox");
+      const recoPrepareSheet = document.getElementById("recoPrepareSheet");
+      const recoPrepareConfirmButton = document.getElementById("recoPrepareConfirmButton");
       const recoSourceSection = document.getElementById("recoSourceSection");
       const recoSourcePreview = document.getElementById("recoSourcePreview");
       const recoChangePhotoButton = document.getElementById("recoChangePhotoButton");
@@ -19217,30 +19269,15 @@ Important:
       ];
 
       const photoRecoRuntime = {
-        active: false,
-        mock: "",
+        active: true,
         state: PHOTO_RECO_STATES.UPLOAD,
         selectedBackgroundKey: "",
         activeCategory: "recommend",
         recommendedKeys: [],
-        analyzeTimerIds: [],
-        analyzeStepTimerIds: [],
       };
 
-      function resolvePhotoRecommendationActivation() {
-        const params = new URLSearchParams(window.location.search);
-        const mock = String(params.get(PHOTO_RECOMMENDATION_MOCK_QUERY) || "").trim().toLowerCase();
-        if (PHOTO_RECOMMENDATION_FLOW_ENABLED) {
-          return { active: true, mock };
-        }
-        if (DEBUG_MODE && mock) {
-          return { active: true, mock };
-        }
-        return { active: false, mock: "" };
-      }
-
       function isPhotoRecommendationFlowActive() {
-        return Boolean(photoRecoRuntime.active);
+        return true;
       }
 
       function getGenerationReadyRecoBackgrounds() {
@@ -19264,33 +19301,16 @@ Important:
         return ready.filter((item) => item.category === categoryId);
       }
 
-      function clearPhotoRecoTimers() {
-        photoRecoRuntime.analyzeTimerIds.forEach((id) => window.clearTimeout(id));
-        photoRecoRuntime.analyzeStepTimerIds.forEach((id) => window.clearTimeout(id));
-        photoRecoRuntime.analyzeTimerIds = [];
-        photoRecoRuntime.analyzeStepTimerIds = [];
-      }
-
-      function resetPhotoRecommendationFlow({ keepPhoto = false } = {}) {
-        clearPhotoRecoTimers();
+      function resetPhotoRecommendationFlow() {
         photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
         photoRecoRuntime.selectedBackgroundKey = "";
         photoRecoRuntime.activeCategory = "recommend";
         photoRecoRuntime.recommendedKeys = [];
-        if (!keepPhoto) {
-          // Photo clearing remains owned by existing upload handlers.
-        }
         syncPhotoRecommendationFlowUi();
       }
 
       function setPhotoRecommendationState(nextState) {
         photoRecoRuntime.state = nextState;
-        if (
-          nextState === PHOTO_RECO_STATES.BACKGROUND_SELECTED
-          || nextState === PHOTO_RECO_STATES.READY_TO_GENERATE
-        ) {
-          // keep selected background
-        }
         if (nextState === PHOTO_RECO_STATES.RECOMMENDATION_READY) {
           photoRecoRuntime.selectedBackgroundKey = "";
         }
@@ -19377,8 +19397,20 @@ Important:
         }).join("");
       }
 
+      function openRecoPrepareSheet() {
+        if (!recoPrepareSheet) return;
+        recoPrepareSheet.hidden = false;
+        recoPrepareSheet.setAttribute("aria-hidden", "false");
+      }
+
+      function closeRecoPrepareSheet() {
+        if (!recoPrepareSheet) return;
+        recoPrepareSheet.hidden = true;
+        recoPrepareSheet.setAttribute("aria-hidden", "true");
+      }
+
       function syncPhotoRecommendationFlowUi() {
-        if (!editorRecommendationFlow || !isPhotoRecommendationFlowActive()) return;
+        if (!editorRecommendationFlow) return;
 
         const hasPhoto = Boolean(selectedImageDataUrl);
         const state = photoRecoRuntime.state;
@@ -19389,10 +19421,6 @@ Important:
           panel.hidden = !match;
         });
 
-        if (recoDevBanner) {
-          recoDevBanner.classList.toggle("hidden", !(photoRecoRuntime.mock || DEBUG_MODE));
-        }
-
         if (recoUploadBox) recoUploadBox.classList.toggle("hidden", hasPhoto && state === PHOTO_RECO_STATES.UPLOAD);
         if (recoSourceSection) recoSourceSection.classList.toggle("hidden", !(hasPhoto && state === PHOTO_RECO_STATES.UPLOAD));
         if (recoSourcePreview && hasPhoto) recoSourcePreview.src = selectedImageDataUrl;
@@ -19401,9 +19429,11 @@ Important:
         if (recoAnalyzingThumbWrap) recoAnalyzingThumbWrap.hidden = !hasPhoto;
         if (recoResultImage) {
           recoResultImage.src = selectedImageDataUrl || "";
-          recoResultImage.alt = selectedImageDataUrl ? "완성된 사진 미리보기(뼈대)" : "결과 미리보기";
+          recoResultImage.alt = selectedImageDataUrl ? "완성된 사진 미리보기" : "결과 미리보기";
         }
 
+        // Recommendation / blocked / result panels stay in DOM for future API wiring,
+        // but production flow currently stays on upload until analysis API exists.
         if (panelId === "recommend") {
           renderPhotoRecoCategoryTabs();
           renderPhotoRecoBackgroundCards();
@@ -19432,108 +19462,33 @@ Important:
       }
 
       function applyPhotoRecommendationShell() {
-        const activation = resolvePhotoRecommendationActivation();
-        photoRecoRuntime.active = activation.active;
-        photoRecoRuntime.mock = activation.mock;
+        photoRecoRuntime.active = true;
+        photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
+        photoRecoRuntime.selectedBackgroundKey = "";
+        photoRecoRuntime.activeCategory = "recommend";
+        photoRecoRuntime.recommendedKeys = [];
+        closeRecoPrepareSheet();
 
         if (editorLegacyFlow) {
-          editorLegacyFlow.hidden = photoRecoRuntime.active;
-          editorLegacyFlow.setAttribute("aria-hidden", photoRecoRuntime.active ? "true" : "false");
+          editorLegacyFlow.hidden = true;
+          editorLegacyFlow.setAttribute("aria-hidden", "true");
         }
         if (editorRecommendationFlow) {
-          editorRecommendationFlow.hidden = !photoRecoRuntime.active;
-          editorRecommendationFlow.setAttribute("aria-hidden", photoRecoRuntime.active ? "false" : "true");
-        }
-
-        if (!photoRecoRuntime.active) {
-          clearPhotoRecoTimers();
-          return;
-        }
-
-        if (photoRecoRuntime.mock === "result") {
-          photoRecoRuntime.recommendedKeys = getGenerationReadyRecoBackgrounds().slice(0, 4).map((item) => item.key);
-          photoRecoRuntime.selectedBackgroundKey = photoRecoRuntime.recommendedKeys[0] || "";
-          photoRecoRuntime.state = PHOTO_RECO_STATES.RESULT;
-        } else if (photoRecoRuntime.mock === "blocked") {
-          photoRecoRuntime.state = PHOTO_RECO_STATES.BLOCKED;
-        } else if (photoRecoRuntime.mock === "none" || photoRecoRuntime.mock === "no_safe_match") {
-          photoRecoRuntime.state = PHOTO_RECO_STATES.NO_SAFE_MATCH;
-        } else if (photoRecoRuntime.mock === "unsafe") {
-          photoRecoRuntime.state = PHOTO_RECO_STATES.UNSAFE_SELECTION;
-        } else {
-          photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
+          editorRecommendationFlow.hidden = false;
+          editorRecommendationFlow.setAttribute("aria-hidden", "false");
         }
         syncPhotoRecommendationFlowUi();
       }
 
-      function startPhotoRecommendationAnalysisMock() {
-        clearPhotoRecoTimers();
-        setPhotoRecommendationState(PHOTO_RECO_STATES.ANALYZING);
-        syncPhotoRecoAnalyzeSteps(0);
-
-        [0, 1, 2].forEach((step, index) => {
-          const id = window.setTimeout(() => syncPhotoRecoAnalyzeSteps(step), index * 700);
-          photoRecoRuntime.analyzeStepTimerIds.push(id);
-        });
-
-        const mock = photoRecoRuntime.mock || "ready";
-        const finishId = window.setTimeout(() => {
-          if (mock === "blocked") {
-            setPhotoRecommendationState(PHOTO_RECO_STATES.BLOCKED);
-            return;
-          }
-          if (mock === "none" || mock === "no_safe_match") {
-            photoRecoRuntime.recommendedKeys = [];
-            setPhotoRecommendationState(PHOTO_RECO_STATES.NO_SAFE_MATCH);
-            return;
-          }
-          if (mock === "unsafe") {
-            setPhotoRecommendationState(PHOTO_RECO_STATES.UNSAFE_SELECTION);
-            return;
-          }
-          if (mock === "error") {
-            if (recoErrorCopy) recoErrorCopy.textContent = "개발용 오류 상태를 표시했어요.";
-            setPhotoRecommendationState(PHOTO_RECO_STATES.ERROR);
-            return;
-          }
-          // ready / default mock recommendation set
-          photoRecoRuntime.recommendedKeys = getGenerationReadyRecoBackgrounds()
-            .filter((item) => ["eiffel", "venice", "jeju_gimnyeong_beach", "jeju_saebyeol_oreum"].includes(item.key))
-            .map((item) => item.key);
-          photoRecoRuntime.activeCategory = "recommend";
-          photoRecoRuntime.selectedBackgroundKey = "";
-          setPhotoRecommendationState(PHOTO_RECO_STATES.RECOMMENDATION_READY);
-        }, 2200);
-        photoRecoRuntime.analyzeTimerIds.push(finishId);
-      }
-
       function handlePhotoRecoPrimaryCta() {
-        if (!isPhotoRecommendationFlowActive()) return;
         const state = photoRecoRuntime.state;
         if (state === PHOTO_RECO_STATES.UPLOAD) {
           if (!selectedImageDataUrl) {
             photoInput?.click();
             return;
           }
-          if (!photoRecoRuntime.mock && !DEBUG_MODE && !PHOTO_RECOMMENDATION_FLOW_ENABLED) {
-            return;
-          }
-          // Analysis API is not connected yet. Only allow state transition for UI review.
-          if (!photoRecoRuntime.mock && PHOTO_RECOMMENDATION_FLOW_ENABLED && !DEBUG_MODE) {
-            setPhotoRecommendationState(PHOTO_RECO_STATES.ANALYZING);
-            syncPhotoRecoAnalyzeSteps(0);
-            if (recoErrorCopy) {
-              // stay on analyzing briefly then surface no API message via error-less toast panel
-            }
-            const id = window.setTimeout(() => {
-              if (recoErrorCopy) recoErrorCopy.textContent = "사진 분석 API가 아직 연결되지 않았어요. 개발용 mock으로 확인해 주세요.";
-              setPhotoRecommendationState(PHOTO_RECO_STATES.ERROR);
-            }, 1600);
-            photoRecoRuntime.analyzeTimerIds.push(id);
-            return;
-          }
-          if (!photoRecoRuntime.mock) photoRecoRuntime.mock = "ready";
-          startPhotoRecommendationAnalysisMock();
+          // Analysis API is not connected yet. Show prepare notice only.
+          openRecoPrepareSheet();
           return;
         }
 
@@ -19543,13 +19498,8 @@ Important:
           || state === PHOTO_RECO_STATES.READY_TO_GENERATE
         ) {
           if (!photoRecoRuntime.selectedBackgroundKey) return;
-          // Hard block: never call generation API from recommendation flow skeleton.
-          setPhotoRecommendationState(PHOTO_RECO_STATES.STARTING_GENERATION);
-          setPhotoRecommendationState(PHOTO_RECO_STATES.GENERATING);
-          const id = window.setTimeout(() => {
-            setPhotoRecommendationState(PHOTO_RECO_STATES.RESULT);
-          }, 900);
-          photoRecoRuntime.analyzeTimerIds.push(id);
+          // Generation from recommendation flow stays blocked until API wiring.
+          openRecoPrepareSheet();
         }
       }
 
@@ -19566,14 +19516,24 @@ Important:
         editorRecommendationFlow.dataset.bound = "1";
 
         recoChangePhotoButton?.addEventListener("click", () => {
-          clearPhotoRecoTimers();
           photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
+          closeRecoPrepareSheet();
           photoInput?.click();
           syncPhotoRecommendationFlowUi();
         });
 
         recoPrimaryCta?.addEventListener("click", () => {
           handlePhotoRecoPrimaryCta();
+        });
+
+        recoPrepareConfirmButton?.addEventListener("click", () => {
+          closeRecoPrepareSheet();
+        });
+
+        recoPrepareSheet?.addEventListener("click", (event) => {
+          if (event.target === recoPrepareSheet) {
+            closeRecoPrepareSheet();
+          }
         });
 
         editorRecommendationFlow.addEventListener("click", (event) => {
@@ -19598,10 +19558,10 @@ Important:
           if (!actionButton) return;
           const action = actionButton.getAttribute("data-reco-action");
           if (action === "choose-other-photo" || action === "reset-upload") {
-            clearPhotoRecoTimers();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
             photoRecoRuntime.recommendedKeys = [];
+            closeRecoPrepareSheet();
             photoInput?.click();
             syncPhotoRecommendationFlowUi();
             return;
@@ -27409,7 +27369,6 @@ ${modeExample}`;
           }
           selectedImageDataUrl = "";
           if (isPhotoRecommendationFlowActive()) {
-            clearPhotoRecoTimers();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
             photoRecoRuntime.recommendedKeys = [];
@@ -27448,7 +27407,6 @@ ${modeExample}`;
         try {
           selectedImageDataUrl = await readFileAsDataUrl(selectedFile);
           if (isPhotoRecommendationFlowActive()) {
-            clearPhotoRecoTimers();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
             photoRecoRuntime.recommendedKeys = [];

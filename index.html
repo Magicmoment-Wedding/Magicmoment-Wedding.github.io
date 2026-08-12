@@ -5366,6 +5366,97 @@
         width: auto;
       }
 
+      .landing-hero-pair-stage {
+        position: relative;
+        width: 100%;
+        padding-right: 18px;
+        isolation: isolate;
+      }
+
+      .landing-hero-pair-set {
+        width: 100%;
+        transform-origin: 72% 50%;
+        transition:
+          transform 0.72s cubic-bezier(0.22, 0.9, 0.28, 1),
+          opacity 0.55s ease,
+          filter 0.55s ease;
+        will-change: transform, opacity;
+      }
+
+      .landing-hero-pair-set.is-active {
+        position: relative;
+        z-index: 4;
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: none;
+        pointer-events: auto;
+      }
+
+      .landing-hero-pair-set.is-next {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 3;
+        opacity: 1;
+        transform: translate3d(18px, 12px, 0) scale(0.955);
+        filter: brightness(0.98);
+        pointer-events: none;
+      }
+
+      .landing-hero-pair-set.is-queued {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        opacity: 0.95;
+        transform: translate3d(30px, 20px, 0) scale(0.91);
+        filter: brightness(0.96);
+        pointer-events: none;
+      }
+
+      .landing-hero-pair-set.is-waiting {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1;
+        opacity: 0;
+        transform: translate3d(40px, 26px, 0) scale(0.88);
+        pointer-events: none;
+      }
+
+      .landing-hero-pair-set.is-leaving {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 5;
+        opacity: 0;
+        transform: translate3d(-28px, 10px, 0) scale(0.98);
+        filter: brightness(1.02);
+        pointer-events: none;
+      }
+
+      /* Idle stack peeks only the result side; whole set still switches together. */
+      .landing-hero-pair-set.is-next .landing-hero-pair-card.is-original,
+      .landing-hero-pair-set.is-next .landing-hero-pair-arrow,
+      .landing-hero-pair-set.is-queued .landing-hero-pair-card.is-original,
+      .landing-hero-pair-set.is-queued .landing-hero-pair-arrow,
+      .landing-hero-pair-set.is-waiting .landing-hero-pair-card.is-original,
+      .landing-hero-pair-set.is-waiting .landing-hero-pair-arrow {
+        opacity: 0;
+      }
+
+      .landing-hero-pair-set.is-active .landing-hero-pair-card.is-original,
+      .landing-hero-pair-set.is-active .landing-hero-pair-arrow,
+      .landing-hero-pair-set.is-leaving .landing-hero-pair-card.is-original,
+      .landing-hero-pair-set.is-leaving .landing-hero-pair-arrow {
+        opacity: 1;
+        transition: opacity 0.35s ease;
+      }
+
       .landing-hero-pair {
         position: relative;
         width: 100%;
@@ -5373,7 +5464,6 @@
         grid-template-columns: minmax(0, 0.92fr) 40px minmax(0, 1.08fr);
         align-items: center;
         gap: 0;
-        padding-right: 18px;
       }
 
       .landing-hero-pair-card {
@@ -5400,32 +5490,6 @@
 
       .landing-hero-pair-result-wrap .landing-hero-pair-card {
         width: 100%;
-      }
-
-      .landing-hero-pair-stack {
-        position: absolute;
-        top: 12px;
-        right: -14px;
-        bottom: -8px;
-        left: 18px;
-        border-radius: 18px;
-        background: #ffffff;
-        box-shadow: 0 10px 28px rgba(20, 24, 32, 0.08);
-        border: 1px solid rgba(20, 24, 32, 0.04);
-        z-index: 0;
-        pointer-events: none;
-      }
-
-      .landing-hero-pair-stack::after {
-        content: "";
-        position: absolute;
-        top: 10px;
-        right: -10px;
-        bottom: -8px;
-        left: 14px;
-        border-radius: 16px;
-        background: #f0f0f2;
-        border: 1px solid rgba(20, 24, 32, 0.03);
       }
 
       .landing-hero-pair-arrow {
@@ -5479,18 +5543,25 @@
       }
 
       .landing-hero-pair-media img {
-        position: absolute;
-        inset: 0;
+        display: block;
         width: 100%;
         height: 100%;
         object-fit: cover;
         object-position: center 22%;
-        opacity: 0;
-        transition: opacity 0.7s ease;
       }
 
-      .landing-hero-pair-media img.is-active {
-        opacity: 1;
+      @media (prefers-reduced-motion: reduce) {
+        .landing-hero-pair-set {
+          transition: none;
+        }
+
+        .landing-hero-pair-set.is-next,
+        .landing-hero-pair-set.is-queued,
+        .landing-hero-pair-set.is-waiting,
+        .landing-hero-pair-set.is-leaving {
+          opacity: 0;
+          transform: none;
+        }
       }
 
       .landing-secondary-button.is-outline {
@@ -7947,14 +8018,27 @@
         }
 
         .landing-hero-pair-wrap,
+        .landing-hero-pair-stage,
         .landing-hero-pair {
           max-width: 520px;
           margin: 0 auto;
         }
 
+        .landing-hero-pair-stage {
+          padding-right: 14px;
+        }
+
         .landing-hero-pair {
           grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.1fr);
           gap: 8px;
+        }
+
+        .landing-hero-pair-set.is-next {
+          transform: translate3d(12px, 10px, 0) scale(0.96);
+        }
+
+        .landing-hero-pair-set.is-queued {
+          transform: translate3d(22px, 16px, 0) scale(0.925);
         }
 
         .landing-hero-pair-arrow {
@@ -8147,22 +8231,7 @@
               </div>
 
               <div class="landing-hero-pair-wrap">
-                <div class="landing-hero-pair" aria-label="원본과 AI 결과 비교">
-                  <article class="landing-hero-pair-card is-original">
-                    <span class="landing-hero-pair-label">원본</span>
-                    <div class="landing-hero-pair-placeholder" aria-hidden="true"></div>
-                  </article>
-                  <div class="landing-hero-pair-arrow" aria-hidden="true">
-                    <span class="material-symbols-outlined">arrow_forward</span>
-                  </div>
-                  <div class="landing-hero-pair-result-wrap">
-                    <div class="landing-hero-pair-stack" aria-hidden="true"></div>
-                    <article class="landing-hero-pair-card is-result">
-                      <span class="landing-hero-pair-label">AI 스타일샷</span>
-                      <div class="landing-hero-pair-media" id="landingHeroResultMedia"></div>
-                    </article>
-                  </div>
-                </div>
+                <div class="landing-hero-pair-stage" id="landingHeroPairStage" aria-label="원본과 AI 결과 비교"></div>
               </div>
             </div>
           </section>
@@ -10724,7 +10793,7 @@ Important:
       const landingSamplesSection = document.getElementById("landingSamplesSection");
       const landingSampleStripSet = document.getElementById("landingSampleStripSet");
       const landingSampleStripSetClone = document.getElementById("landingSampleStripSetClone");
-      const landingHeroResultMedia = document.getElementById("landingHeroResultMedia");
+      const landingHeroPairStage = document.getElementById("landingHeroPairStage");
       const beforeAfterSliders = Array.from(document.querySelectorAll("[data-before-after-slider]"));
       const homeScreen = document.getElementById("homeScreen");
       const editorScreen = document.getElementById("editorScreen");
@@ -26643,35 +26712,126 @@ ${modeExample}`;
       }
 
       function setupLandingHeroPairRotation() {
-        if (!landingHeroResultMedia) return;
+        if (!landingHeroPairStage) return;
         const base = getSupabaseSamplesPublicBase();
-        const resultIds = [1, 2, 3, 4, 5];
-        landingHeroResultMedia.innerHTML = resultIds
+        // Each item is one original → result set that switches together.
+        const pairSets = [
+          { original: null, result: `${base}/1.jpg` },
+          { original: null, result: `${base}/2.jpg` },
+          { original: null, result: `${base}/3.jpg` },
+          { original: null, result: `${base}/4.jpg` },
+          { original: null, result: `${base}/5.jpg` },
+        ];
+
+        const renderOriginal = (original, index) => {
+          if (original) {
+            return `
+              <div class="landing-hero-pair-media">
+                <img
+                  src="${original}"
+                  alt="원본 샘플 ${index + 1}"
+                  width="600"
+                  height="800"
+                  decoding="async"
+                  ${index === 0 ? "" : 'loading="lazy"'}
+                />
+              </div>
+            `;
+          }
+          return `<div class="landing-hero-pair-placeholder" aria-hidden="true"></div>`;
+        };
+
+        landingHeroPairStage.innerHTML = pairSets
           .map(
-            (id, index) => `
-          <img
-            src="${base}/${id}.jpg"
-            alt="AI 스타일샷 샘플 ${id}"
-            class="${index === 0 ? "is-active" : ""}"
-            width="600"
-            height="800"
-            decoding="async"
-            ${index === 0 ? "" : 'loading="lazy"'}
-          />
+            (pair, index) => `
+          <div class="landing-hero-pair-set" data-pair-index="${index}">
+            <div class="landing-hero-pair">
+              <article class="landing-hero-pair-card is-original">
+                <span class="landing-hero-pair-label">원본</span>
+                ${renderOriginal(pair.original, index)}
+              </article>
+              <div class="landing-hero-pair-arrow" aria-hidden="true">
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </div>
+              <div class="landing-hero-pair-result-wrap">
+                <article class="landing-hero-pair-card is-result">
+                  <span class="landing-hero-pair-label">AI 스타일샷</span>
+                  <div class="landing-hero-pair-media">
+                    <img
+                      src="${pair.result}"
+                      alt="AI 스타일샷 샘플 ${index + 1}"
+                      width="600"
+                      height="800"
+                      decoding="async"
+                      ${index === 0 ? "" : 'loading="lazy"'}
+                    />
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
         `
           )
           .join("");
 
-        const slides = Array.from(landingHeroResultMedia.querySelectorAll("img"));
-        if (slides.length < 2) return;
-        if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+        const sets = Array.from(landingHeroPairStage.querySelectorAll(".landing-hero-pair-set"));
+        if (!sets.length) return;
+
+        const stateClasses = ["is-active", "is-next", "is-queued", "is-waiting", "is-leaving"];
+        const clearState = (el) => {
+          el.classList.remove(...stateClasses);
+        };
+
+        const applyStackState = (activeIndex) => {
+          sets.forEach((set, index) => {
+            clearState(set);
+            const offset = (index - activeIndex + sets.length) % sets.length;
+            if (offset === 0) set.classList.add("is-active");
+            else if (offset === 1) set.classList.add("is-next");
+            else if (offset === 2) set.classList.add("is-queued");
+            else set.classList.add("is-waiting");
+          });
+        };
 
         let activeIndex = 0;
-        window.setInterval(() => {
-          slides[activeIndex]?.classList.remove("is-active");
-          activeIndex = (activeIndex + 1) % slides.length;
-          slides[activeIndex]?.classList.add("is-active");
-        }, 3500);
+        let isAnimating = false;
+        applyStackState(activeIndex);
+
+        if (sets.length < 2) return;
+        if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+        const advancePairSet = () => {
+          if (isAnimating) return;
+          isAnimating = true;
+          const current = sets[activeIndex];
+          const nextIndex = (activeIndex + 1) % sets.length;
+
+          clearState(current);
+          current.classList.add("is-leaving");
+
+          activeIndex = nextIndex;
+          sets.forEach((set, index) => {
+            if (set === current) return;
+            clearState(set);
+            const offset = (index - activeIndex + sets.length) % sets.length;
+            if (offset === 0) set.classList.add("is-active");
+            else if (offset === 1) set.classList.add("is-next");
+            else if (offset === 2) set.classList.add("is-queued");
+            else set.classList.add("is-waiting");
+          });
+
+          window.setTimeout(() => {
+            clearState(current);
+            const offset = (sets.indexOf(current) - activeIndex + sets.length) % sets.length;
+            if (offset === 0) current.classList.add("is-active");
+            else if (offset === 1) current.classList.add("is-next");
+            else if (offset === 2) current.classList.add("is-queued");
+            else current.classList.add("is-waiting");
+            isAnimating = false;
+          }, 720);
+        };
+
+        window.setInterval(advancePairSet, 3500);
       }
 
       function setupBeforeAfterAutos() {

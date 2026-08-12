@@ -6107,35 +6107,14 @@
         width: 100%;
       }
 
-      .landing-samples-section .landing-samples-copy {
-        margin-left: 0;
-        margin-right: 0;
-      }
-
       .landing-samples-heading {
         margin: 0;
-        color: #1a1a1a;
+        color: #141820;
         font-family: var(--font-sans-kr);
-        font-size: clamp(26px, 5.4vw, 36px);
-        line-height: 1.28;
-        letter-spacing: -0.03em;
+        font-size: clamp(30px, 5.6vw, 48px);
+        line-height: 1.22;
+        letter-spacing: -0.045em;
         font-weight: 800;
-        word-break: keep-all;
-      }
-
-      .landing-samples-heading-highlight {
-        background: linear-gradient(transparent 58%, rgba(255, 182, 203, 0.55) 58%);
-        box-decoration-break: clone;
-        -webkit-box-decoration-break: clone;
-      }
-
-      .landing-samples-copy {
-        margin: 0;
-        max-width: 36em;
-        color: #8a929e;
-        font-size: 14px;
-        line-height: 1.65;
-        letter-spacing: 0.01em;
         word-break: keep-all;
       }
 
@@ -6237,8 +6216,9 @@
           border-radius: 14px;
         }
 
-        .landing-samples-copy {
-          font-size: 13px;
+        .landing-samples-heading {
+          font-size: clamp(28px, 7.2vw, 36px);
+          line-height: 1.24;
         }
       }
 
@@ -8236,11 +8216,13 @@
             </div>
           </section>
 
-          <section class="landing-section landing-samples-section" id="landingSamplesSection" aria-label="인기 배경 스타일 샘플">
+          <section class="landing-section landing-samples-section" id="landingSamplesSection" aria-label="프리미엄 웨딩 스타일 샘플">
             <div class="landing-section-inner single-column landing-samples-inner">
               <div class="landing-section-head landing-samples-head">
-                <h2 class="landing-samples-heading">핫! <span class="landing-samples-heading-highlight">인기배경 스타일</span></h2>
-                <p class="landing-samples-copy">이런 스타일 다 가능해요. 실제 변환 결과 샘플을 먼저 살펴보세요.</p>
+                <h2 class="landing-samples-heading">
+                  매직 AI 스튜디오가 추천하는<br />
+                  프리미엄 웨딩 스타일
+                </h2>
               </div>
               <div class="landing-samples-grid" id="landingSamplesGrid" aria-live="polite"></div>
               <button class="landing-samples-more" id="landingSamplesMoreButton" type="button" hidden>
@@ -26683,115 +26665,52 @@ ${modeExample}`;
         return `${supabaseBase}/storage/v1/object/public/samples`;
       }
 
-      // sample_metadata.category values: premium-studio | domestic | overseas
-      // Browser cannot read sample_metadata (RLS denies anon), so pools are curated from
-      // data/sample-catalog.json categoryGroup + known landing/reco sample assets.
-      function getLandingSamplePoolsByCategory() {
-        return {
-          "premium-studio": [
-            { src: "public/landing-gallery/4-1.jpg", label: "프리미엄 스튜디오" },
-            { src: "public/landing-gallery/2-1.png", label: "프리미엄 스튜디오" },
-            { src: "public/landing-gallery/3-1.jpg", label: "프리미엄 스튜디오" },
-            { src: "public/landing-gallery/3-2.jpg", label: "프리미엄 스튜디오" },
-            { src: "public/landing-gallery/2-2.png", label: "프리미엄 스튜디오" },
-            { src: "mock-images/before/before_studio_couple_01.jpg", label: "프리미엄 스튜디오" },
-          ],
-          domestic: [
-            { src: "public/landing-gallery/1-2.png", label: "국내 명소" },
-            { src: "public/landing-gallery/landing-gallery-3.jpeg", label: "국내 명소" },
-            { src: "mock-images/gallery/gallery_studio_original_01.png", label: "국내 명소" },
-          ],
-          overseas: [
-            { src: "public/landing-gallery/1-1.png", label: "해외 명소" },
-            { src: "public/landing-gallery/4-2.png", label: "해외 명소" },
-            { src: "public/images/reco-samples/eiffel-couple.jpg", label: "해외 명소" },
-            { src: "public/images/reco-samples/amalfi-couple.png", label: "해외 명소" },
-            { src: "public/landing-gallery/3-3.jpg", label: "해외 명소" },
-            { src: "public/landing-gallery/2-1.old.png", label: "해외 명소" },
-          ],
-        };
+      // Confirmed public objects in Supabase Storage `samples` bucket (118 files).
+      // Most are .jpg; a few newer uploads use .png.
+      const LANDING_SUPABASE_SAMPLE_FILES = [
+        ...Array.from({ length: 104 }, (_, index) => `${index + 1}.jpg`),
+        "105.png",
+        "106.png",
+        "107.png",
+        "108.jpg",
+        "109.png",
+        "110.png",
+        "111.png",
+        "112.jpg",
+        "113.jpg",
+        "114.png",
+        "115.png",
+        "116.png",
+        "117.png",
+        "118.png",
+      ];
+
+      function getLandingSamplePublicUrl(fileName) {
+        return `${getSupabaseSamplesPublicBase()}/${fileName}`;
       }
 
-      function buildInterleavedLandingSamples(count, categoryOrder = ["overseas", "domestic", "premium-studio"]) {
-        const pools = getLandingSamplePoolsByCategory();
-        const uniqueCategories = [...new Set(categoryOrder)];
-        const pointers = Object.fromEntries(uniqueCategories.map((category) => [category, 0]));
-        const used = new Set();
-        const samples = [];
-
-        while (samples.length < count) {
-          let added = false;
-          for (const category of uniqueCategories) {
-            if (samples.length >= count) break;
-            const pool = pools[category] || [];
-            if (!pool.length) continue;
-
-            let picked = null;
-            for (let attempt = 0; attempt < pool.length; attempt += 1) {
-              const index = (pointers[category] + attempt) % pool.length;
-              const candidate = pool[index];
-              if (!used.has(candidate.src)) {
-                picked = candidate;
-                pointers[category] = (index + 1) % pool.length;
-                break;
-              }
-            }
-
-            if (!picked) {
-              // Allow reuse only after unique pool is exhausted.
-              const index = pointers[category] % pool.length;
-              picked = pool[index];
-              pointers[category] = (index + 1) % pool.length;
-            }
-
-            used.add(picked.src);
-            samples.push({
-              category,
-              src: picked.src,
-              label: picked.label,
-            });
-            added = true;
-          }
-          if (!added) break;
+      function pickSpreadSampleFiles(count, source = LANDING_SUPABASE_SAMPLE_FILES) {
+        if (!Array.isArray(source) || !source.length) return [];
+        if (count >= source.length) return source.slice();
+        const picked = [];
+        for (let index = 0; index < count; index += 1) {
+          const sourceIndex = Math.floor((index * source.length) / count);
+          picked.push(source[sourceIndex]);
         }
-
-        return samples;
-      }
-
-      function buildLandingHeroCategorySamples() {
-        const pools = getLandingSamplePoolsByCategory();
-        // Explicit mix so hero rotation is never studio-only.
-        const plan = ["premium-studio", "overseas", "domestic", "overseas", "premium-studio"];
-        const pointers = {
-          "premium-studio": 0,
-          domestic: 0,
-          overseas: 0,
-        };
-
-        return plan.map((category) => {
-          const pool = pools[category] || [];
-          const item = pool[pointers[category] % Math.max(pool.length, 1)];
-          pointers[category] += 1;
-          return {
-            category,
-            src: item.src,
-            label: item.label,
-          };
-        });
+        return picked;
       }
 
       function setupLandingSampleStrip() {
         if (!landingSampleStripSet || !landingSampleStripSetClone) return;
-        // Mix overseas / domestic / premium-studio so the strip is not studio-only.
-        const stripSamples = buildInterleavedLandingSamples(15);
+        const stripFiles = pickSpreadSampleFiles(18);
         const renderSet = (container, withAlt) => {
-          container.innerHTML = stripSamples
+          container.innerHTML = stripFiles
             .map(
-              (sample, index) => `
-            <figure class="landing-sample-strip-item" data-sample-category="${sample.category}">
+              (fileName, index) => `
+            <figure class="landing-sample-strip-item" data-sample-file="${fileName}">
               <img
-                src="${sample.src}"
-                alt="${withAlt ? `${sample.label} 웨딩 샘플` : ""}"
+                src="${getLandingSamplePublicUrl(fileName)}"
+                alt="${withAlt ? `웨딩 샘플 ${fileName.replace(/\.[^.]+$/, "")}` : ""}"
                 width="420"
                 height="560"
                 decoding="async"
@@ -26809,12 +26728,11 @@ ${modeExample}`;
 
       function setupLandingHeroPairRotation() {
         if (!landingHeroPairStage) return;
-        const heroSamples = buildLandingHeroCategorySamples();
-        const pairSets = heroSamples.map((sample) => ({
+        const heroFiles = pickSpreadSampleFiles(5);
+        const pairSets = heroFiles.map((fileName) => ({
           original: null,
-          result: sample.src,
-          category: sample.category,
-          label: sample.label,
+          result: getLandingSamplePublicUrl(fileName),
+          fileName,
         }));
 
         const renderOriginal = (original, index) => {
@@ -26838,7 +26756,7 @@ ${modeExample}`;
         landingHeroPairStage.innerHTML = pairSets
           .map(
             (pair, index) => `
-          <div class="landing-hero-pair-set" data-pair-index="${index}" data-sample-category="${pair.category || ""}">
+          <div class="landing-hero-pair-set" data-pair-index="${index}" data-sample-file="${pair.fileName || ""}">
             <div class="landing-hero-pair">
               <article class="landing-hero-pair-card is-original">
                 <span class="landing-hero-pair-label">원본</span>
@@ -26853,7 +26771,7 @@ ${modeExample}`;
                   <div class="landing-hero-pair-media">
                     <img
                       src="${pair.result}"
-                      alt="${pair.label || "AI 스타일샷"} 샘플 ${index + 1}"
+                      alt="AI 스타일샷 샘플 ${index + 1}"
                       width="600"
                       height="800"
                       decoding="async"
@@ -26997,29 +26915,19 @@ ${modeExample}`;
       function setupLandingSamplesGrid() {
         if (!landingSamplesGrid) return;
 
-        const supabaseBase = String(PUBLIC_SUPABASE_URL || EXPECTED_SUPABASE_URL || "").replace(/\/$/, "");
-        const samplesBucket = "samples";
-        // Public objects confirmed in Supabase Storage `samples` bucket (list API is blocked for anon).
-        const sampleIds = [
-          ...Array.from({ length: 104 }, (_, index) => index + 1),
-          108,
-          112,
-          113,
-        ];
+        const sampleFiles = LANDING_SUPABASE_SAMPLE_FILES.slice();
         const pageSize = 8;
-        let visibleCount = Math.min(pageSize, sampleIds.length);
-
-        const getSampleUrl = (id) => `${supabaseBase}/storage/v1/object/public/${samplesBucket}/${id}.jpg`;
+        let visibleCount = Math.min(pageSize, sampleFiles.length);
 
         const renderCards = () => {
-          const visibleIds = sampleIds.slice(0, visibleCount);
-          landingSamplesGrid.innerHTML = visibleIds
+          const visibleFiles = sampleFiles.slice(0, visibleCount);
+          landingSamplesGrid.innerHTML = visibleFiles
             .map(
-              (id) => `
-            <figure class="landing-samples-card">
+              (fileName) => `
+            <figure class="landing-samples-card" data-sample-file="${fileName}">
               <img
-                src="${getSampleUrl(id)}"
-                alt="웨딩 배경 변환 샘플 ${id}"
+                src="${getLandingSamplePublicUrl(fileName)}"
+                alt="웨딩 배경 변환 샘플 ${fileName.replace(/\.[^.]+$/, "")}"
                 width="600"
                 height="800"
                 loading="lazy"
@@ -27031,7 +26939,7 @@ ${modeExample}`;
             )
             .join("");
 
-          const remaining = Math.max(sampleIds.length - visibleCount, 0);
+          const remaining = Math.max(sampleFiles.length - visibleCount, 0);
           if (landingSamplesMoreButton) {
             if (remaining > 0) {
               landingSamplesMoreButton.hidden = false;
@@ -27045,11 +26953,11 @@ ${modeExample}`;
         };
 
         landingSamplesMoreButton?.addEventListener("click", () => {
-          visibleCount = Math.min(visibleCount + pageSize, sampleIds.length);
+          visibleCount = Math.min(visibleCount + pageSize, sampleFiles.length);
           renderCards();
           window.trackEvent?.("landing_samples_more", {
             visibleCount,
-            totalCount: sampleIds.length,
+            totalCount: sampleFiles.length,
           });
         });
 

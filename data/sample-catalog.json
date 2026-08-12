@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "catalogMeta": {
+    "targetCount": 118,
+    "currentCount": 14,
+    "note": "실제 118장 태깅 데이터는 아직 준비되지 않았습니다. 이 파일은 저장소에 존재하는 정상 운영 자산(랜딩 갤러리 / 리코 샘플) 14장으로 만든 실데이터 시드입니다. 새 샘플은 아래 스키마 그대로 배열에 추가하면 되고, 코드 변경은 필요 없습니다. 각 필드의 의미는 docs 주석(schemaNotes) 참고.",
+    "schemaNotes": {
+      "categoryGroup": "국내야외 | 해외야외 | 프리미엄스튜디오",
+      "pose.type": "standing | sitting | walking | leaning | lying",
+      "pose.bodyDirection": "front | three_quarter | side | back",
+      "pose.headTilt": "level | tilt_left | tilt_right | look_down | look_up",
+      "pose.interaction": "none | hand_hold | embrace | bouquet | prop",
+      "angle.cameraLevel": "eye_level | high_angle | low_angle",
+      "angle.shotType": "closeup | half_body | three_quarter_body | full_body",
+      "lighting.direction": "front | left | right | backlight | flat",
+      "lighting.quality": "soft | hard | golden_hour | overcast | studio_even",
+      "lighting.colorTemp": "warm | neutral | cool",
+      "composition.orientation": "portrait | landscape | square",
+      "composition.subjectScale": "large | medium | small",
+      "embedding": "예약 필드. 지금은 항상 null. 추후 비전 임베딩 벡터로 교체되면 photo-matching.js의 similarity 계산이 자동으로 임베딩 코사인 유사도 경로를 타도록 설계되어 있음(embedding !== null 인 샘플만 해당)."
+    }
+  },
+  "samples": [
+    {
+      "id": "sample_venice_gondola_01",
+      "image": "public/landing-gallery/1-1.png",
+      "categoryGroup": "해외야외",
+      "backgroundKey": "venice",
+      "pose": { "peopleCount": 2, "type": "sitting", "bodyDirection": "three_quarter", "headTilt": "level", "interaction": "bouquet" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "three_quarter_body" },
+      "lighting": { "direction": "backlight", "quality": "golden_hour", "colorTemp": "warm" },
+      "composition": { "orientation": "landscape", "subjectScale": "medium" },
+      "tags": ["couple", "곤돌라", "노을", "부케", "웃는 표정"],
+      "embedding": null
+    },
+    {
+      "id": "sample_street_brick_01",
+      "image": "public/landing-gallery/1-2.png",
+      "categoryGroup": "국내야외",
+      "backgroundKey": null,
+      "pose": { "peopleCount": 2, "type": "sitting", "bodyDirection": "three_quarter", "headTilt": "tilt_left", "interaction": "bouquet" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "three_quarter_body" },
+      "lighting": { "direction": "flat", "quality": "overcast", "colorTemp": "cool" },
+      "composition": { "orientation": "landscape", "subjectScale": "medium" },
+      "tags": ["couple", "벽돌담", "캐주얼", "웃음"],
+      "embedding": null
+    },
+    {
+      "id": "sample_sofa_ivory_01",
+      "image": "public/landing-gallery/2-1.png",
+      "categoryGroup": "프리미엄스튜디오",
+      "backgroundKey": "studio_ivory_natural_light",
+      "pose": { "peopleCount": 2, "type": "sitting", "bodyDirection": "three_quarter", "headTilt": "level", "interaction": "hand_hold" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "three_quarter_body" },
+      "lighting": { "direction": "left", "quality": "soft", "colorTemp": "neutral" },
+      "composition": { "orientation": "landscape", "subjectScale": "medium" },
+      "tags": ["couple", "소파", "실내", "정장", "화이트드레스"],
+      "embedding": null
+    },
+    {
+      "id": "sample_sofa_flower_01",
+      "image": "public/landing-gallery/2-2.png",
+      "categoryGroup": "프리미엄스튜디오",
+      "backgroundKey": "studio_flower_gallery",
+      "pose": { "peopleCount": 2, "type": "sitting", "bodyDirection": "three_quarter", "headTilt": "level", "interaction": "hand_hold" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "three_quarter_body" },
+      "lighting": { "direction": "left", "quality": "soft", "colorTemp": "warm" },
+      "composition": { "orientation": "landscape", "subjectScale": "medium" },
+      "tags": ["couple", "소파", "실내", "블루드레스"],
+      "embedding": null
+    },
+    {
+      "id": "sample_bride_veil_closeup_01",
+      "image": "public/landing-gallery/3-1.jpg",
+      "categoryGroup": "프리미엄스튜디오",
+      "backgroundKey": "flower_white_arch",
+      "pose": { "peopleCount": 1, "type": "standing", "bodyDirection": "front", "headTilt": "look_down", "interaction": "bouquet" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "closeup" },
+      "lighting": { "direction": "front", "quality": "soft", "colorTemp": "neutral" },
+      "composition": { "orientation": "portrait", "subjectScale": "large" },
+      "tags": ["신부단독", "베일", "클로즈업", "화이트스튜디오"],
+      "embedding": null
+    },
+    {
+      "id": "sample_bride_chandelier_01",
+      "image": "public/landing-gallery/3-2.jpg",
+      "categoryGroup": "프리미엄스튜디오",
+      "backgroundKey": "studio_chandelier_classic_hall",
+      "pose": { "peopleCount": 1, "type": "sitting", "bodyDirection": "three_quarter", "headTilt": "look_down", "interaction": "bouquet" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "half_body" },
+      "lighting": { "direction": "front", "quality": "soft", "colorTemp": "cool" },
+      "composition": { "orientation": "portrait", "subjectScale": "large" },
+      "tags": ["신부단독", "샹들리에", "블루드레스", "실내"],
+      "embedding": null
+    },
+    {
+      "id": "sample_bride_fantasy_castle_01",
+      "image": "public/landing-gallery/3-3.jpg",
+      "categoryGroup": "해외야외",
+      "backgroundKey": null,
+      "pose": { "peopleCount": 1, "type": "standing", "bodyDirection": "three_quarter", "headTilt": "look_down", "interaction": "bouquet" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "half_body" },
+      "lighting": { "direction": "backlight", "quality": "golden_hour", "colorTemp": "warm" },
+      "composition": { "orientation": "portrait", "subjectScale": "large" },
+      "tags": ["신부단독", "판타지코스튬", "야외", "노을"],
+      "embedding": null
+    },
+    {
+      "id": "sample_couple_studio_white_01",
+      "image": "public/landing-gallery/4-1.jpg",
+      "categoryGroup": "프리미엄스튜디오",
+      "backgroundKey": "studio_white_minimal",
+      "pose": { "peopleCount": 2, "type": "standing", "bodyDirection": "front", "headTilt": "level", "interaction": "hand_hold" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "full_body" },
+      "lighting": { "direction": "flat", "quality": "studio_even", "colorTemp": "neutral" },
+      "composition": { "orientation": "portrait", "subjectScale": "medium" },
+      "tags": ["couple", "화이트스튜디오", "정면", "전신"],
+      "embedding": null
+    },
+    {
+      "id": "sample_couple_louvre_01",
+      "image": "public/landing-gallery/4-2.png",
+      "categoryGroup": "해외야외",
+      "backgroundKey": "louvre",
+      "pose": { "peopleCount": 2, "type": "standing", "bodyDirection": "front", "headTilt": "level", "interaction": "hand_hold" },
+      "angle": { "cameraLevel": "high_angle", "shotType": "full_body" },
+      "lighting": { "direction": "front", "quality": "soft", "colorTemp": "warm" },
+      "composition": { "orientation": "portrait", "subjectScale": "small" },
+      "tags": ["couple", "루브르", "야외", "전신", "계단"],
+      "embedding": null
+    },
+    {
+      "id": "sample_couple_snow_forest_01",
+      "image": "public/landing-gallery/landing-gallery-3.jpeg",
+      "categoryGroup": "국내야외",
+      "backgroundKey": null,
+      "pose": { "peopleCount": 2, "type": "standing", "bodyDirection": "front", "headTilt": "level", "interaction": "prop" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "full_body" },
+      "lighting": { "direction": "backlight", "quality": "overcast", "colorTemp": "cool" },
+      "composition": { "orientation": "landscape", "subjectScale": "medium" },
+      "tags": ["couple", "설경", "코스튬", "전신", "역동적포즈"],
+      "embedding": null
+    },
+    {
+      "id": "sample_couple_balloon_studio_01",
+      "image": "mock-images/before/before_studio_couple_01.jpg",
+      "categoryGroup": "프리미엄스튜디오",
+      "backgroundKey": "studio_beige_classic_wall",
+      "pose": { "peopleCount": 2, "type": "standing", "bodyDirection": "front", "headTilt": "level", "interaction": "prop" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "full_body" },
+      "lighting": { "direction": "flat", "quality": "studio_even", "colorTemp": "neutral" },
+      "composition": { "orientation": "portrait", "subjectScale": "small" },
+      "tags": ["couple", "화이트스튜디오", "소품", "블랙드레스", "생성전 원본"],
+      "embedding": null
+    },
+    {
+      "id": "sample_couple_balloon_eiffel_01",
+      "image": "public/images/reco-samples/eiffel-couple.jpg",
+      "categoryGroup": "해외야외",
+      "backgroundKey": "eiffel",
+      "pose": { "peopleCount": 2, "type": "standing", "bodyDirection": "front", "headTilt": "level", "interaction": "prop" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "full_body" },
+      "lighting": { "direction": "backlight", "quality": "golden_hour", "colorTemp": "warm" },
+      "composition": { "orientation": "portrait", "subjectScale": "medium" },
+      "tags": ["couple", "에펠탑", "소품", "블랙드레스", "생성결과 예시"],
+      "embedding": null
+    },
+    {
+      "id": "sample_couple_amalfi_01",
+      "image": "public/images/reco-samples/amalfi-couple.png",
+      "categoryGroup": "해외야외",
+      "backgroundKey": "amalfi",
+      "pose": { "peopleCount": 2, "type": "standing", "bodyDirection": "three_quarter", "headTilt": "level", "interaction": "bouquet" },
+      "angle": { "cameraLevel": "eye_level", "shotType": "three_quarter_body" },
+      "lighting": { "direction": "front", "quality": "soft", "colorTemp": "warm" },
+      "composition": { "orientation": "portrait", "subjectScale": "large" },
+      "tags": ["couple", "아말피", "해안", "포옹", "부케"],
+      "embedding": null
+    },
+    {
+      "id": "sample_bride_reclining_flowers_01",
+      "image": "mock-images/gallery/gallery_studio_original_01.png",
+      "categoryGroup": "국내야외",
+      "backgroundKey": "flower_ivory_hanging",
+      "pose": { "peopleCount": 1, "type": "lying", "bodyDirection": "three_quarter", "headTilt": "tilt_left", "interaction": "none" },
+      "angle": { "cameraLevel": "high_angle", "shotType": "half_body" },
+      "lighting": { "direction": "backlight", "quality": "soft", "colorTemp": "warm" },
+      "composition": { "orientation": "landscape", "subjectScale": "medium" },
+      "tags": ["신부단독", "누운자세", "정원", "꽃"],
+      "embedding": null
+    }
+  ]
+}

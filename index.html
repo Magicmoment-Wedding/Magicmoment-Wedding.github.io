@@ -7630,6 +7630,8 @@
     </script>
     <script src="./config.js?v=20260620-real-supabase-key"></script>
     <script src="./services/event-analytics.js?v=20260704-funnel"></script>
+    <script src="./services/photo-analysis.js?v=20260811-photo-reco"></script>
+    <script src="./services/photo-matching.js?v=20260811-photo-reco"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -19662,6 +19664,50 @@ Important:
       let temporaryRecommendationAnalyzeStepTimerIds = [];
       let recoToastHideTimerId = null;
 
+      // Photo Recommendation System: rule-based pose/angle/lighting matching.
+      // See services/photo-analysis.js, services/photo-matching.js, data/sample-catalog.json.
+      let photoRecoSampleCatalogPromise = null;
+
+      function ensurePhotoRecoSampleCatalogLoaded() {
+        if (!photoRecoSampleCatalogPromise) {
+          photoRecoSampleCatalogPromise = fetch("data/sample-catalog.json")
+            .then((response) => response.json())
+            .then((json) => (Array.isArray(json?.samples) ? json.samples : []))
+            .catch((error) => {
+              console.warn("[PhotoReco] failed to load sample catalog", error);
+              return [];
+            });
+        }
+        return photoRecoSampleCatalogPromise;
+      }
+
+      // Analyzes the uploaded photo and returns a ranked, de-duplicated list of
+      // backgroundKeys (limited to keys that exist in TEMPORARY_AVAILABLE_BACKGROUNDS).
+      // Only samples with a non-null backgroundKey participate in the ranking.
+      async function computeRecommendedBackgroundKeys(imageDataUrl) {
+        if (!imageDataUrl || !window.PhotoReco?.analysis || !window.PhotoReco?.matching) return [];
+
+        const catalog = await ensurePhotoRecoSampleCatalogLoaded();
+        const mappedSamples = catalog.filter((sample) => Boolean(sample.backgroundKey));
+        if (mappedSamples.length === 0) return [];
+
+        const features = await window.PhotoReco.analysis.analyzePhoto(imageDataUrl);
+        const ranked = window.PhotoReco.matching.recommendSamples(features, mappedSamples, {
+          min: Math.min(3, mappedSamples.length),
+          max: Math.min(8, mappedSamples.length),
+        });
+
+        const validKeys = new Set(TEMPORARY_AVAILABLE_BACKGROUNDS.map((item) => item.key));
+        const orderedUniqueKeys = [];
+        ranked.forEach((entry) => {
+          const key = entry.sample.backgroundKey;
+          if (validKeys.has(key) && !orderedUniqueKeys.includes(key)) {
+            orderedUniqueKeys.push(key);
+          }
+        });
+        return orderedUniqueKeys;
+      }
+
       function isPhotoRecommendationFlowActive() {
         return true;
       }
@@ -19892,7 +19938,10 @@ Important:
       }
 
       function showTemporaryRecommendationPreview() {
-        // TODO: Replace temporary frontend transition with photo-analysis start/status API.
+        // Photo Recommendation System: real rule-based analysis + matching now runs here
+        // (services/photo-analysis.js + services/photo-matching.js). The fixed-length step
+        // animation is kept for UX pacing; a minimum display time avoids a jarring flash
+        // when analysis finishes faster than the animation.
         if (!selectedImageDataUrl) return;
         clearTemporaryRecommendationPreviewTimer();
         closeRecoPrepareSheet();
@@ -19903,6 +19952,8 @@ Important:
         setPhotoRecommendationState(PHOTO_RECO_STATES.ANALYZING);
         syncPhotoRecoAnalyzeSteps(0);
 
+        const analyzingImageDataUrl = selectedImageDataUrl;
+
         [0, 1, 2].forEach((step, index) => {
           const id = window.setTimeout(() => {
             if (photoRecoRuntime.state === PHOTO_RECO_STATES.ANALYZING) {
@@ -19912,13 +19963,25 @@ Important:
           temporaryRecommendationAnalyzeStepTimerIds.push(id);
         });
 
-        temporaryRecommendationPreviewTimerId = window.setTimeout(() => {
-          temporaryRecommendationPreviewTimerId = null;
-          if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
-          photoRecoRuntime.activeCategory = "all";
-          photoRecoRuntime.selectedBackgroundKey = "";
-          setPhotoRecommendationState(PHOTO_RECO_STATES.RECOMMENDATION_READY);
-        }, TEMPORARY_RECOMMENDATION_PREVIEW_DELAY_MS);
+        const minDelayPromise = new Promise((resolve) => {
+          temporaryRecommendationPreviewTimerId = window.setTimeout(resolve, TEMPORARY_RECOMMENDATION_PREVIEW_DELAY_MS);
+        });
+
+        computeRecommendedBackgroundKeys(analyzingImageDataUrl)
+          .catch((error) => {
+            console.warn("[PhotoReco] recommendation analysis failed, showing full catalog instead", error);
+            return [];
+          })
+          .then((recommendedKeys) => minDelayPromise.then(() => recommendedKeys))
+          .then((recommendedKeys) => {
+            temporaryRecommendationPreviewTimerId = null;
+            if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
+            if (selectedImageDataUrl !== analyzingImageDataUrl) return; // photo changed while analyzing
+            photoRecoRuntime.recommendedKeys = recommendedKeys;
+            photoRecoRuntime.activeCategory = recommendedKeys.length > 0 ? "recommend" : "all";
+            photoRecoRuntime.selectedBackgroundKey = "";
+            setPhotoRecommendationState(PHOTO_RECO_STATES.RECOMMENDATION_READY);
+          });
       }
 
       function syncPhotoRecommendationFlowUi() {

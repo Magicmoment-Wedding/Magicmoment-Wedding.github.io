@@ -6115,13 +6115,28 @@
 
       .landing-samples-heading {
         margin: 0;
-        color: #141820;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
         font-family: var(--font-sans-kr);
+        word-break: keep-all;
+      }
+
+      .landing-samples-heading-kicker {
+        color: #8a929e;
+        font-size: clamp(15px, 2.4vw, 18px);
+        line-height: 1.4;
+        letter-spacing: -0.02em;
+        font-weight: 500;
+      }
+
+      .landing-samples-heading-main {
+        color: #141820;
         font-size: clamp(30px, 5.6vw, 48px);
-        line-height: 1.22;
+        line-height: 1.2;
         letter-spacing: -0.045em;
         font-weight: 800;
-        word-break: keep-all;
       }
 
       .landing-samples-grid {
@@ -6223,8 +6238,16 @@
         }
 
         .landing-samples-heading {
+          gap: 4px;
+        }
+
+        .landing-samples-heading-kicker {
+          font-size: clamp(14px, 3.6vw, 16px);
+        }
+
+        .landing-samples-heading-main {
           font-size: clamp(28px, 7.2vw, 36px);
-          line-height: 1.24;
+          line-height: 1.22;
         }
       }
 
@@ -8224,8 +8247,8 @@
             <div class="landing-section-inner single-column landing-samples-inner">
               <div class="landing-section-head landing-samples-head">
                 <h2 class="landing-samples-heading">
-                  매직 AI 스튜디오가 추천하는<br />
-                  프리미엄 웨딩 스타일
+                  <span class="landing-samples-heading-kicker">매직 AI 스튜디오가 추천하는</span>
+                  <span class="landing-samples-heading-main">프리미엄 웨딩 스타일</span>
                 </h2>
               </div>
               <div class="landing-samples-grid" id="landingSamplesGrid" aria-live="polite"></div>
@@ -19944,26 +19967,77 @@ Important:
         };
       }
 
-      async function requestRecommendedSamplesFromApi({ limit = RECOMMEND_SAMPLES_LIMIT } = {}) {
-        const accessToken = await getSupabaseAccessTokenForAuthRequest();
-        if (!accessToken) {
-          const error = new Error("추천을 받으려면 로그인이 필요해요.");
-          error.code = "LOGIN_REQUIRED";
-          throw error;
+      async function resolveAccessTokenForRecommendRequest() {
+        const uiLoggedIn = Boolean(getAuthenticatedUserId(currentUser));
+        let accessToken = "";
+        let refreshAttempted = false;
+        let refreshOk = false;
+
+        try {
+          accessToken = String(await getSupabaseAccessTokenForAuthRequest() || "").trim();
+        } catch (error) {
+          console.warn("[PhotoReco][auth] getSession failed", {
+            message: error?.message || String(error),
+          });
         }
+
+        // UI shows logged-in but local Supabase session token is missing/expired.
+        if (!accessToken && uiLoggedIn) {
+          const supabaseClient = getSupabaseAuthClient();
+          if (supabaseClient?.auth?.refreshSession) {
+            refreshAttempted = true;
+            try {
+              const { data, error } = await supabaseClient.auth.refreshSession();
+              refreshOk = !error && Boolean(data?.session?.access_token);
+              accessToken = String(data?.session?.access_token || "").trim();
+              console.info("[PhotoReco][auth] refreshSession", {
+                refreshOk,
+                hasAccessToken: Boolean(accessToken),
+                error: error?.message || null,
+              });
+            } catch (error) {
+              console.warn("[PhotoReco][auth] refreshSession threw", {
+                message: error?.message || String(error),
+              });
+            }
+          }
+        }
+
+        return {
+          accessToken,
+          uiLoggedIn,
+          refreshAttempted,
+          refreshOk,
+        };
+      }
+
+      async function requestRecommendedSamplesFromApi({ limit = RECOMMEND_SAMPLES_LIMIT } = {}) {
+        // Match other authenticated APIs: always send cookies (credentials: include),
+        // and attach Bearer only when a Supabase access token is available.
+        const authInfo = await resolveAccessTokenForRecommendRequest();
+        console.info("[PhotoReco][auth] prepare recommend-samples request", {
+          uiLoggedIn: authInfo.uiLoggedIn,
+          hasAccessToken: Boolean(authInfo.accessToken),
+          accessTokenLength: authInfo.accessToken ? authInfo.accessToken.length : 0,
+          refreshAttempted: authInfo.refreshAttempted,
+          refreshOk: authInfo.refreshOk,
+        });
 
         const { blob, fileName } = await buildRecommendSamplesImageBlob();
         const formData = new FormData();
         formData.append("image", blob, fileName);
         formData.append("limit", String(limit));
 
+        const headers = {};
+        if (authInfo.accessToken) {
+          headers.Authorization = `Bearer ${authInfo.accessToken}`;
+        }
+
         const response = await fetch(getAuthApiUrl("/api/recommend-samples"), {
           method: "POST",
           credentials: "include",
           cache: "no-store",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers,
           body: formData,
         });
 
@@ -19971,14 +20045,27 @@ Important:
         try {
           payload = await response.json();
         } catch (parseError) {
-          const error = new Error("추천 응답을 읽지 못했어요.");
+          const error = new Error("추천을 불러오지 못했습니다");
           error.code = "INVALID_RESPONSE";
           throw error;
         }
 
         if (!response.ok || payload?.ok === false) {
-          const error = new Error(payload?.message || "추천 요청에 실패했어요.");
-          error.code = payload?.code || `HTTP_${response.status}`;
+          const code = String(payload?.code || payload?.error || `HTTP_${response.status}`);
+          if (code === "LOGIN_REQUIRED" || response.status === 401) {
+            console.warn("[PhotoReco][auth] LOGIN_REQUIRED from recommend-samples", {
+              uiLoggedIn: authInfo.uiLoggedIn,
+              hasAccessToken: Boolean(authInfo.accessToken),
+              accessTokenLength: authInfo.accessToken ? authInfo.accessToken.length : 0,
+              refreshAttempted: authInfo.refreshAttempted,
+              refreshOk: authInfo.refreshOk,
+              status: response.status,
+              code,
+              message: payload?.message || null,
+            });
+          }
+          const error = new Error("추천을 불러오지 못했습니다");
+          error.code = code || `HTTP_${response.status}`;
           error.statusCode = response.status;
           error.response = payload;
           throw error;
@@ -20158,6 +20245,30 @@ Important:
         recoPrepareSheet.setAttribute("aria-hidden", "true");
       }
 
+      function showRecommendSamplesFailure(errorLike = {}) {
+        const code = String(errorLike?.code || "RECOMMEND_FAILED");
+        const message = "추천을 불러오지 못했습니다";
+        const uiLoggedIn = Boolean(getAuthenticatedUserId(currentUser));
+
+        console.warn("[PhotoReco] recommend failure", {
+          code,
+          uiLoggedIn,
+          hasCurrentUser: Boolean(currentUser),
+          statusCode: errorLike?.statusCode || null,
+          originalMessage: errorLike?.message || null,
+        });
+
+        photoRecoRuntime.recommendedResults = [];
+        photoRecoRuntime.selectedBackgroundKey = "";
+        photoRecoRuntime.lastErrorCode = code;
+        photoRecoRuntime.lastErrorMessage = message;
+        const errorCopy = document.getElementById("recoErrorCopy");
+        if (errorCopy) errorCopy.textContent = message;
+        showRecoToast(message);
+        // Never open account menu / login modal from recommend failure.
+        setPhotoRecommendationState(PHOTO_RECO_STATES.ERROR);
+      }
+
       function showTemporaryRecommendationPreview() {
         // Production path: POST /api/recommend-samples and show only matched samples.
         if (!selectedImageDataUrl && !(selectedFile instanceof File || selectedFile instanceof Blob)) return;
@@ -20169,10 +20280,11 @@ Important:
         photoRecoRuntime.lastErrorCode = "";
         const requestSeq = (photoRecoRuntime.requestSeq || 0) + 1;
         photoRecoRuntime.requestSeq = requestSeq;
-        setPhotoRecommendationState(PHOTO_RECO_STATES.ANALYZING);
-        syncPhotoRecoAnalyzeSteps(0);
 
         const analyzingImageDataUrl = selectedImageDataUrl;
+
+        setPhotoRecommendationState(PHOTO_RECO_STATES.ANALYZING);
+        syncPhotoRecoAnalyzeSteps(0);
 
         [0, 1, 2].forEach((step, index) => {
           const id = window.setTimeout(() => {
@@ -20187,6 +20299,8 @@ Important:
           temporaryRecommendationPreviewTimerId = window.setTimeout(resolve, RECOMMEND_SAMPLES_MIN_LOADING_MS);
         });
 
+        // Do not block on local access token — cookie/session auth is enough for this API,
+        // same as /api/generate and /api/my-photos.
         Promise.all([
           requestRecommendedSamplesFromApi({ limit: RECOMMEND_SAMPLES_LIMIT }),
           minDelayPromise,
@@ -20212,27 +20326,13 @@ Important:
             if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
             if (selectedImageDataUrl !== analyzingImageDataUrl) return;
 
-            const code = String(error?.code || "");
-            const message = String(error?.message || "추천 요청에 실패했어요.");
-            console.warn("[PhotoReco] recommend-samples failed", { code, message, error });
-
-            photoRecoRuntime.recommendedResults = [];
-            photoRecoRuntime.selectedBackgroundKey = "";
-            photoRecoRuntime.lastErrorCode = code;
-            photoRecoRuntime.lastErrorMessage = message;
-
-            if (code === "LOGIN_REQUIRED") {
-              showRecoToast(message);
-              if (typeof openLoginModal === "function") {
-                openLoginModal(recoPrimaryCta || null, { reason: "recommend-samples" });
-              }
-              setPhotoRecommendationState(PHOTO_RECO_STATES.UPLOAD);
-              return;
-            }
-
-            const errorCopy = document.getElementById("recoErrorCopy");
-            if (errorCopy) errorCopy.textContent = message;
-            setPhotoRecommendationState(PHOTO_RECO_STATES.ERROR);
+            console.warn("[PhotoReco] recommend-samples failed", {
+              code: error?.code || null,
+              message: error?.message || null,
+              statusCode: error?.statusCode || null,
+              uiLoggedIn: Boolean(getAuthenticatedUserId(currentUser)),
+            });
+            showRecommendSamplesFailure(error);
           });
       }
 
@@ -26791,9 +26891,10 @@ ${modeExample}`;
       function setupLandingSamplesGrid() {
         if (!landingSamplesGrid) return;
 
-        const sampleFiles = LANDING_SUPABASE_SAMPLE_FILES.slice();
-        const pageSize = 8;
-        let visibleCount = Math.min(pageSize, sampleFiles.length);
+        const LANDING_SAMPLES_GRID_MAX = 30;
+        const sampleFiles = LANDING_SUPABASE_SAMPLE_FILES.slice(0, LANDING_SAMPLES_GRID_MAX);
+        const pageSize = LANDING_SAMPLES_GRID_MAX;
+        let visibleCount = 0;
 
         const renderCards = () => {
           const visibleFiles = sampleFiles.slice(0, visibleCount);
@@ -27192,19 +27293,43 @@ ${modeExample}`;
         }, 2200);
       }
 
+      function isAccountMenuTriggerElement(trigger) {
+        if (!(trigger instanceof HTMLElement)) return false;
+        if (trigger === landingAuthButton || trigger === topSettingsButton) return true;
+        if (trigger.id === "topSettingsButton" || trigger.id === "landingAuthButton") return true;
+        if (trigger.getAttribute("data-action") === "account-menu") return true;
+        return false;
+      }
+
       function openLoginModal(trigger, options = {}) {
         if (!loginModalOverlay || !loginModalPanel) return;
-        if (getAuthenticatedUserId(currentUser)) {
+
+        // Account menu must only open from account/profile controls.
+        // Recommendation/editor CTAs must never be redirected into the account menu.
+        const shouldOpenAccountMenu = Boolean(getAuthenticatedUserId(currentUser))
+          && !options.forceLoginModal
+          && (
+            options.openAccountMenuIfAuthenticated === true
+            || isAccountMenuTriggerElement(trigger)
+          );
+
+        if (shouldOpenAccountMenu) {
           activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
           syncAuthUi();
           syncAccountMenuUi();
           closeLoginModal();
-          openAccountMenu(trigger || activeAccountMenuTrigger || landingAuthButton || topSettingsButton);
+          openAccountMenu(
+            isAccountMenuTriggerElement(trigger)
+              ? trigger
+              : (activeAccountMenuTrigger || landingAuthButton || topSettingsButton)
+          );
           return;
         }
 
         rememberLoginReturnView(options.returnView || getLoginReturnViewFromScreen());
-        activeLoginModalTrigger = trigger || activeAccountMenuTrigger;
+        activeLoginModalTrigger = isAccountMenuTriggerElement(trigger)
+          ? trigger
+          : (activeAccountMenuTrigger || null);
         setAuthTab(options.tab || authTab || "login", options.message || "");
         window.trackEvent?.("auth_modal_open");
         loginModalOverlay.classList.add("is-open");

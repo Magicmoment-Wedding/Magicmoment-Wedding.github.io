@@ -26683,23 +26683,119 @@ ${modeExample}`;
         return `${supabaseBase}/storage/v1/object/public/samples`;
       }
 
+      // sample_metadata.category values: premium-studio | domestic | overseas
+      // Browser cannot read sample_metadata (RLS denies anon), so pools are curated from
+      // data/sample-catalog.json categoryGroup + known landing/reco sample assets.
+      function getLandingSamplePoolsByCategory() {
+        return {
+          "premium-studio": [
+            { src: "public/landing-gallery/4-1.jpg", label: "프리미엄 스튜디오" },
+            { src: "public/landing-gallery/2-1.png", label: "프리미엄 스튜디오" },
+            { src: "public/landing-gallery/3-1.jpg", label: "프리미엄 스튜디오" },
+            { src: "public/landing-gallery/3-2.jpg", label: "프리미엄 스튜디오" },
+            { src: "public/landing-gallery/2-2.png", label: "프리미엄 스튜디오" },
+            { src: "mock-images/before/before_studio_couple_01.jpg", label: "프리미엄 스튜디오" },
+          ],
+          domestic: [
+            { src: "public/landing-gallery/1-2.png", label: "국내 명소" },
+            { src: "public/landing-gallery/landing-gallery-3.jpeg", label: "국내 명소" },
+            { src: "mock-images/gallery/gallery_studio_original_01.png", label: "국내 명소" },
+          ],
+          overseas: [
+            { src: "public/landing-gallery/1-1.png", label: "해외 명소" },
+            { src: "public/landing-gallery/4-2.png", label: "해외 명소" },
+            { src: "public/images/reco-samples/eiffel-couple.jpg", label: "해외 명소" },
+            { src: "public/images/reco-samples/amalfi-couple.png", label: "해외 명소" },
+            { src: "public/landing-gallery/3-3.jpg", label: "해외 명소" },
+            { src: "public/landing-gallery/2-1.old.png", label: "해외 명소" },
+          ],
+        };
+      }
+
+      function buildInterleavedLandingSamples(count, categoryOrder = ["overseas", "domestic", "premium-studio"]) {
+        const pools = getLandingSamplePoolsByCategory();
+        const uniqueCategories = [...new Set(categoryOrder)];
+        const pointers = Object.fromEntries(uniqueCategories.map((category) => [category, 0]));
+        const used = new Set();
+        const samples = [];
+
+        while (samples.length < count) {
+          let added = false;
+          for (const category of uniqueCategories) {
+            if (samples.length >= count) break;
+            const pool = pools[category] || [];
+            if (!pool.length) continue;
+
+            let picked = null;
+            for (let attempt = 0; attempt < pool.length; attempt += 1) {
+              const index = (pointers[category] + attempt) % pool.length;
+              const candidate = pool[index];
+              if (!used.has(candidate.src)) {
+                picked = candidate;
+                pointers[category] = (index + 1) % pool.length;
+                break;
+              }
+            }
+
+            if (!picked) {
+              // Allow reuse only after unique pool is exhausted.
+              const index = pointers[category] % pool.length;
+              picked = pool[index];
+              pointers[category] = (index + 1) % pool.length;
+            }
+
+            used.add(picked.src);
+            samples.push({
+              category,
+              src: picked.src,
+              label: picked.label,
+            });
+            added = true;
+          }
+          if (!added) break;
+        }
+
+        return samples;
+      }
+
+      function buildLandingHeroCategorySamples() {
+        const pools = getLandingSamplePoolsByCategory();
+        // Explicit mix so hero rotation is never studio-only.
+        const plan = ["premium-studio", "overseas", "domestic", "overseas", "premium-studio"];
+        const pointers = {
+          "premium-studio": 0,
+          domestic: 0,
+          overseas: 0,
+        };
+
+        return plan.map((category) => {
+          const pool = pools[category] || [];
+          const item = pool[pointers[category] % Math.max(pool.length, 1)];
+          pointers[category] += 1;
+          return {
+            category,
+            src: item.src,
+            label: item.label,
+          };
+        });
+      }
+
       function setupLandingSampleStrip() {
         if (!landingSampleStripSet || !landingSampleStripSetClone) return;
-        const base = getSupabaseSamplesPublicBase();
-        // Dense StyleRoom-like strip: first 14 public samples, duplicated for seamless loop.
-        const stripIds = Array.from({ length: 14 }, (_, index) => index + 1);
+        // Mix overseas / domestic / premium-studio so the strip is not studio-only.
+        const stripSamples = buildInterleavedLandingSamples(15);
         const renderSet = (container, withAlt) => {
-          container.innerHTML = stripIds
+          container.innerHTML = stripSamples
             .map(
-              (id) => `
-            <figure class="landing-sample-strip-item">
+              (sample, index) => `
+            <figure class="landing-sample-strip-item" data-sample-category="${sample.category}">
               <img
-                src="${base}/${id}.jpg"
-                alt="${withAlt ? `웨딩 샘플 ${id}` : ""}"
+                src="${sample.src}"
+                alt="${withAlt ? `${sample.label} 웨딩 샘플` : ""}"
                 width="420"
                 height="560"
                 decoding="async"
-                loading="${id <= 6 ? "eager" : "lazy"}"
+                loading="${index < 6 ? "eager" : "lazy"}"
                 onerror="this.closest('.landing-sample-strip-item')?.remove()"
               />
             </figure>
@@ -26713,15 +26809,13 @@ ${modeExample}`;
 
       function setupLandingHeroPairRotation() {
         if (!landingHeroPairStage) return;
-        const base = getSupabaseSamplesPublicBase();
-        // Each item is one original → result set that switches together.
-        const pairSets = [
-          { original: null, result: `${base}/1.jpg` },
-          { original: null, result: `${base}/2.jpg` },
-          { original: null, result: `${base}/3.jpg` },
-          { original: null, result: `${base}/4.jpg` },
-          { original: null, result: `${base}/5.jpg` },
-        ];
+        const heroSamples = buildLandingHeroCategorySamples();
+        const pairSets = heroSamples.map((sample) => ({
+          original: null,
+          result: sample.src,
+          category: sample.category,
+          label: sample.label,
+        }));
 
         const renderOriginal = (original, index) => {
           if (original) {
@@ -26744,7 +26838,7 @@ ${modeExample}`;
         landingHeroPairStage.innerHTML = pairSets
           .map(
             (pair, index) => `
-          <div class="landing-hero-pair-set" data-pair-index="${index}">
+          <div class="landing-hero-pair-set" data-pair-index="${index}" data-sample-category="${pair.category || ""}">
             <div class="landing-hero-pair">
               <article class="landing-hero-pair-card is-original">
                 <span class="landing-hero-pair-label">원본</span>
@@ -26759,7 +26853,7 @@ ${modeExample}`;
                   <div class="landing-hero-pair-media">
                     <img
                       src="${pair.result}"
-                      alt="AI 스타일샷 샘플 ${index + 1}"
+                      alt="${pair.label || "AI 스타일샷"} 샘플 ${index + 1}"
                       width="600"
                       height="800"
                       decoding="async"

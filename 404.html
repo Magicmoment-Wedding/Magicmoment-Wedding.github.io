@@ -3143,7 +3143,8 @@
         display: none !important;
       }
 
-      .reco-pending-badge {
+      .reco-pending-badge,
+      .reco-score-badge {
         position: absolute;
         top: 8px;
         left: 8px;
@@ -3156,6 +3157,11 @@
         font-weight: 700;
         line-height: 1.2;
         box-shadow: 0 2px 8px rgba(47, 36, 48, 0.08);
+      }
+
+      .reco-score-badge {
+        background: rgba(112, 30, 52, 0.9);
+        color: #ffffff;
       }
 
       .reco-placeholder-media {
@@ -8145,8 +8151,6 @@
     </script>
     <script src="./config.js?v=20260620-real-supabase-key"></script>
     <script src="./services/event-analytics.js?v=20260704-funnel"></script>
-    <script src="./services/photo-analysis.js?v=20260811-photo-reco"></script>
-    <script src="./services/photo-matching.js?v=20260811-photo-reco"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body
@@ -8707,8 +8711,9 @@ AI가 추천해드려요.</p>
 
               <div class="reco-panel" data-reco-panel="analyzing" hidden>
                 <p class="reco-step">2 / 3 배경 추천</p>
-                <h2 class="reco-title">이 사진에 잘 맞는 배경을 찾고 있어요</h2>
-                <p class="reco-copy">얼굴과 의상, 포즈를 유지할 수 있는 배경을 확인하고 있어요.</p>
+                <h2 class="reco-title">이 사진에 잘 맞는 스타일을 찾고 있어요</h2>
+                <p class="reco-copy">AI가 얼굴·의상·포즈를 분석하고
+어울리는 샘플만 추천하고 있어요.</p>
                 <div class="reco-analyzing-visual">
                   <div class="reco-thumb" id="recoAnalyzingThumbWrap" hidden>
                     <img id="recoAnalyzingThumb" alt="" />
@@ -8718,24 +8723,23 @@ AI가 추천해드려요.</p>
                   </div>
                   <ul class="reco-analyze-steps" id="recoAnalyzeSteps" aria-label="분석 안내">
                     <li data-analyze-step="0">사진 확인</li>
-                    <li data-analyze-step="1">얼굴과 구도 확인</li>
-                    <li data-analyze-step="2">배경 목록 준비</li>
+                    <li data-analyze-step="1">얼굴·포즈 분석</li>
+                    <li data-analyze-step="2">추천 샘플 매칭</li>
                   </ul>
                 </div>
               </div>
 
               <div class="reco-panel" data-reco-panel="recommend" hidden>
-                <p class="reco-step">3 / 3 배경 선택</p>
-                <h2 class="reco-title">이 사진에 어울리는 배경을 선택해주세요</h2>
-                <p class="reco-hint-secondary">현재 이용 가능한 배경을 먼저 보여드려요.
-사진 분석 연결 후에는 사진에 맞는 배경만 추천해드릴 예정이에요.</p>
+                <p class="reco-step">3 / 3 스타일 선택</p>
+                <h2 class="reco-title">이 사진에 어울리는 스타일을 선택해주세요</h2>
+                <p class="reco-hint-secondary">AI가 추천한 샘플만 보여드려요.
+마음에 드는 결과를 골라주세요.</p>
                 <div class="reco-thumb-row">
                   <div class="reco-thumb"><img id="recoRecommendThumb" alt="원본 사진" /></div>
                   <p class="reco-thumb-label">선택한 원본 사진</p>
                 </div>
-                <div class="reco-tabs" id="recoCategoryTabs" role="tablist" aria-label="배경 카테고리"></div>
                 <div class="reco-card-grid" id="recoBackgroundGrid"></div>
-                <p class="reco-empty-note hidden" id="recoEmptyNote">표시할 배경이 없어요.</p>
+                <p class="reco-empty-note hidden" id="recoEmptyNote">추천된 샘플이 없어요.</p>
               </div>
 
               <div class="reco-panel" data-reco-panel="blocked" hidden>
@@ -8790,7 +8794,10 @@ AI가 추천해드려요.</p>
                 <div class="reco-status-card">
                   <h2 class="reco-title">잠시 문제가 생겼어요</h2>
                   <p class="reco-copy" id="recoErrorCopy">다시 시도해 주세요.</p>
-                  <button class="reco-secondary-cta" type="button" data-reco-action="reset-upload">처음부터 다시</button>
+                  <div class="reco-actions">
+                    <button class="reco-primary-cta" type="button" data-reco-action="retry-recommend">다시 추천받기</button>
+                    <button class="reco-secondary-cta" type="button" data-reco-action="reset-upload">처음부터 다시</button>
+                  </div>
                 </div>
               </div>
 
@@ -10791,7 +10798,6 @@ Important:
       const recoAnalyzingThumb = document.getElementById("recoAnalyzingThumb");
       const recoAnalyzeSteps = document.getElementById("recoAnalyzeSteps");
       const recoRecommendThumb = document.getElementById("recoRecommendThumb");
-      const recoCategoryTabs = document.getElementById("recoCategoryTabs");
       const recoBackgroundGrid = document.getElementById("recoBackgroundGrid");
       const recoEmptyNote = document.getElementById("recoEmptyNote");
       const recoToast = document.getElementById("recoToast");
@@ -19862,305 +19868,136 @@ Important:
         UNSAFE_SELECTION: "unsafe_selection",
       };
 
-      // Temporary frontend-only backgrounds for production UI preview.
-      // Card `image` paths are finished couple-result samples (UI only), not background-only thumbnails.
-      // TODO: Replace temporary frontend transition with photo-analysis start/status API.
-      const TEMPORARY_RECOMMENDATION_PREVIEW_DELAY_MS = 1500;
-      const PHOTO_RECO_CATEGORY_BASE_DEFS = [
-        { id: "all", label: "전체" },
-        { id: "premium_studio", label: "프리미엄 스튜디오" },
-        { id: "flower_garden", label: "플라워·가든" },
-        { id: "europe_classic", label: "유럽 클래식" },
-        { id: "sea_nature", label: "바다·자연" },
-      ];
-      const TEMPORARY_AVAILABLE_BACKGROUNDS = [
-        // Premium studio
-        {
-          key: "studio_ivory_natural_light",
-          category: "premium_studio",
-          name: "아이보리 자연광 룸",
-          image: "public/landing-gallery/2-1.png",
-          imagePosition: "center 28%",
-          generationReady: false,
-        },
-        {
-          key: "studio_white_minimal",
-          category: "premium_studio",
-          name: "화이트 미니멀 갤러리",
-          image: "public/landing-gallery/4-1.jpg",
-          imagePosition: "center 18%",
-          generationReady: false,
-        },
-        {
-          key: "studio_beige_classic_wall",
-          category: "premium_studio",
-          name: "베이지 클래식 월",
-          image: "mock-images/before/before_studio_couple_01.jpg",
-          imagePosition: "center 18%",
-          generationReady: false,
-        },
-        {
-          key: "studio_dark_green_editorial",
-          category: "premium_studio",
-          name: "다크 그린 에디토리얼 월",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "studio_chandelier_classic_hall",
-          category: "premium_studio",
-          name: "샹들리에 클래식 홀",
-          image: "public/landing-gallery/3-2.jpg",
-          imagePosition: "center 22%",
-          generationReady: false,
-        },
-        {
-          key: "studio_flower_gallery",
-          category: "premium_studio",
-          name: "플라워 갤러리 스튜디오",
-          image: "public/landing-gallery/2-2.png",
-          imagePosition: "center 28%",
-          generationReady: false,
-        },
-        // Flower · garden
-        {
-          key: "flower_white_arch",
-          category: "flower_garden",
-          name: "화이트 플라워 아치",
-          image: "public/landing-gallery/3-1.jpg",
-          imagePosition: "center 20%",
-          generationReady: false,
-        },
-        {
-          key: "flower_pastel_wildflower",
-          category: "flower_garden",
-          name: "파스텔 야생화 정원",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "flower_romantic_rose",
-          category: "flower_garden",
-          name: "로맨틱 장미 정원",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "flower_green_lawn",
-          category: "flower_garden",
-          name: "푸른 잔디 정원",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "flower_forest_light",
-          category: "flower_garden",
-          name: "숲속 자연광",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "flower_ivory_hanging",
-          category: "flower_garden",
-          name: "아이보리 행잉 플라워 월",
-          image: "mock-images/gallery/gallery_studio_original_01.png",
-          imagePosition: "center 35%",
-          generationReady: false,
-        },
-        // Europe classic
-        {
-          key: "eiffel",
-          category: "europe_classic",
-          name: "에펠탑과 센강",
-          image: "public/images/reco-samples/eiffel-couple.jpg",
-          imagePosition: "center 18%",
-          generationReady: true,
-        },
-        {
-          key: "louvre",
-          category: "europe_classic",
-          name: "루브르 광장",
-          image: "public/landing-gallery/4-2.png",
-          imagePosition: "center 22%",
-          generationReady: true,
-        },
-        {
-          key: "venice",
-          category: "europe_classic",
-          name: "이탈리아 베네치아",
-          image: "public/landing-gallery/1-1.png",
-          imagePosition: "center 35%",
-          generationReady: true,
-        },
-        {
-          key: "amalfi",
-          category: "europe_classic",
-          name: "아말피 코스트",
-          image: "public/images/reco-samples/amalfi-couple.png",
-          imagePosition: "center 24%",
-          generationReady: true,
-        },
-        {
-          key: "europe_paris_cafe",
-          category: "europe_classic",
-          name: "파리 노천카페",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "europe_ivy_villa_arch",
-          category: "europe_classic",
-          name: "유럽 아이비 빌라 아치",
-          image: "public/landing-gallery/2-1.old.png",
-          imagePosition: "center 30%",
-          generationReady: false,
-        },
-        // Sea · nature
-        {
-          key: "jeju_gimnyeong_beach",
-          category: "sea_nature",
-          name: "제주 김녕해변",
-          image: "public/images/presets/korea-jeju-gimnyeong-beach.jpg",
-          imagePosition: "center 28%",
-          generationReady: true,
-        },
-        {
-          key: "jeju_saebyeol_oreum",
-          category: "sea_nature",
-          name: "제주 새별오름",
-          image: "public/images/presets/korea-jeju-saebyeol-oreum.jpg",
-          imagePosition: "center 30%",
-          generationReady: true,
-        },
-        {
-          key: "sea_clear_day_beach",
-          category: "sea_nature",
-          name: "맑은 낮의 해변",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "sea_beach_golden_hour",
-          category: "sea_nature",
-          name: "해변 골든아워",
-          image: "",
-          generationReady: false,
-        },
-        {
-          key: "jeju_basalt_coast",
-          category: "sea_nature",
-          name: "제주 현무암 해안",
-          image: "public/images/presets/korea-jeju-gimnyeong-beach-basalt.png",
-          imagePosition: "center 28%",
-          generationReady: false,
-        },
-        {
-          key: "green_meadow",
-          category: "sea_nature",
-          name: "초록 들판",
-          image: "public/images/presets/korea-jeju-saebyeol-oreum-stone-wall.png",
-          imagePosition: "center 30%",
-          generationReady: false,
-        },
-      ];
-
-      // Keep legacy alias used by earlier recommendation scaffolding.
-      const PHOTO_RECO_BACKGROUNDS = TEMPORARY_AVAILABLE_BACKGROUNDS;
-
-      const PHOTO_RECO_CATEGORY_DEFS = [
-        { id: "recommend", label: "추천", alwaysVisible: false },
-        ...PHOTO_RECO_CATEGORY_BASE_DEFS.map((item) => ({
-          ...item,
-          alwaysVisible: item.id === "all",
-        })),
-      ];
+      // Minimum analyzing UI time so the loading panel does not flash away.
+      const RECOMMEND_SAMPLES_MIN_LOADING_MS = 1200;
+      const RECOMMEND_SAMPLES_LIMIT = 6;
 
       const photoRecoRuntime = {
         active: true,
         state: PHOTO_RECO_STATES.UPLOAD,
         selectedBackgroundKey: "",
-        activeCategory: "all",
-        recommendedKeys: [],
+        recommendedResults: [],
+        lastErrorMessage: "",
+        lastErrorCode: "",
+        requestSeq: 0,
       };
 
       let temporaryRecommendationPreviewTimerId = null;
       let temporaryRecommendationAnalyzeStepTimerIds = [];
       let recoToastHideTimerId = null;
 
-      // Photo Recommendation System: rule-based pose/angle/lighting matching.
-      // See services/photo-analysis.js, services/photo-matching.js, data/sample-catalog.json.
-      let photoRecoSampleCatalogPromise = null;
-
-      function ensurePhotoRecoSampleCatalogLoaded() {
-        if (!photoRecoSampleCatalogPromise) {
-          photoRecoSampleCatalogPromise = fetch("data/sample-catalog.json")
-            .then((response) => response.json())
-            .then((json) => (Array.isArray(json?.samples) ? json.samples : []))
-            .catch((error) => {
-              console.warn("[PhotoReco] failed to load sample catalog", error);
-              return [];
-            });
-        }
-        return photoRecoSampleCatalogPromise;
-      }
-
-      // Analyzes the uploaded photo and returns a ranked, de-duplicated list of
-      // backgroundKeys (limited to keys that exist in TEMPORARY_AVAILABLE_BACKGROUNDS).
-      // Only samples with a non-null backgroundKey participate in the ranking.
-      async function computeRecommendedBackgroundKeys(imageDataUrl) {
-        if (!imageDataUrl || !window.PhotoReco?.analysis || !window.PhotoReco?.matching) return [];
-
-        const catalog = await ensurePhotoRecoSampleCatalogLoaded();
-        const mappedSamples = catalog.filter((sample) => Boolean(sample.backgroundKey));
-        if (mappedSamples.length === 0) return [];
-
-        const features = await window.PhotoReco.analysis.analyzePhoto(imageDataUrl);
-        const ranked = window.PhotoReco.matching.recommendSamples(features, mappedSamples, {
-          min: Math.min(3, mappedSamples.length),
-          max: Math.min(8, mappedSamples.length),
-        });
-
-        const validKeys = new Set(TEMPORARY_AVAILABLE_BACKGROUNDS.map((item) => item.key));
-        const orderedUniqueKeys = [];
-        ranked.forEach((entry) => {
-          const key = entry.sample.backgroundKey;
-          if (validKeys.has(key) && !orderedUniqueKeys.includes(key)) {
-            orderedUniqueKeys.push(key);
-          }
-        });
-        return orderedUniqueKeys;
-      }
-
       function isPhotoRecommendationFlowActive() {
         return true;
       }
 
-      function getGenerationReadyRecoBackgrounds() {
-        return TEMPORARY_AVAILABLE_BACKGROUNDS.filter((item) => item.generationReady);
+      function getRecommendedSampleByKey(key) {
+        const fileName = String(key || "").trim();
+        if (!fileName) return null;
+        return photoRecoRuntime.recommendedResults.find((item) => item.fileName === fileName) || null;
       }
 
-      function getRecoBackgroundByKey(key) {
-        return TEMPORARY_AVAILABLE_BACKGROUNDS.find((item) => item.key === key) || null;
+      function getRecoSamplePublicFallbackUrl(fileName) {
+        const safeName = String(fileName || "").trim().replace(/^\/+/, "");
+        if (!safeName) return "";
+        const supabaseBase = String(PUBLIC_SUPABASE_URL || EXPECTED_SUPABASE_URL || "").replace(/\/$/, "");
+        return `${supabaseBase}/storage/v1/object/public/samples/${safeName}`;
       }
 
-      function getVisibleRecoCategories() {
-        const ready = getGenerationReadyRecoBackgrounds();
-        return PHOTO_RECO_CATEGORY_DEFS.filter((category) => {
-          if (category.id === "recommend") {
-            return photoRecoRuntime.recommendedKeys.length > 0;
-          }
-          if (category.alwaysVisible) return true;
-          return ready.some((item) => item.category === category.id);
-        });
+      function getRecoSampleImageUrl(item = {}) {
+        const signed = String(item.thumbnailUrl || "").trim();
+        if (signed) return signed;
+        return getRecoSamplePublicFallbackUrl(item.fileName);
       }
 
-      function getRecoBackgroundsForCategory(categoryId = photoRecoRuntime.activeCategory) {
-        const ready = getGenerationReadyRecoBackgrounds();
-        if (categoryId === "all") return ready;
-        if (categoryId === "recommend") {
-          return ready.filter((item) => photoRecoRuntime.recommendedKeys.includes(item.key));
+      function dataUrlToBlob(dataUrl) {
+        const raw = String(dataUrl || "");
+        const commaIndex = raw.indexOf(",");
+        if (commaIndex < 0) {
+          throw new Error("INVALID_DATA_URL");
         }
-        return ready.filter((item) => item.category === categoryId);
+        const header = raw.slice(0, commaIndex);
+        const data = raw.slice(commaIndex + 1);
+        const mime = /data:(.*?);base64/i.exec(header)?.[1] || "image/jpeg";
+        const binary = atob(data);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+        return new Blob([bytes], { type: mime });
+      }
+
+      async function buildRecommendSamplesImageBlob() {
+        if (selectedFile instanceof File || selectedFile instanceof Blob) {
+          return {
+            blob: selectedFile,
+            fileName: selectedFile.name || "upload.jpg",
+          };
+        }
+        if (!selectedImageDataUrl) {
+          throw new Error("MISSING_IMAGE");
+        }
+        const blob = dataUrlToBlob(selectedImageDataUrl);
+        const extension = (blob.type.split("/")[1] || "jpeg").replace("jpeg", "jpg");
+        return {
+          blob,
+          fileName: `upload.${extension}`,
+        };
+      }
+
+      async function requestRecommendedSamplesFromApi({ limit = RECOMMEND_SAMPLES_LIMIT } = {}) {
+        const accessToken = await getSupabaseAccessTokenForAuthRequest();
+        if (!accessToken) {
+          const error = new Error("추천을 받으려면 로그인이 필요해요.");
+          error.code = "LOGIN_REQUIRED";
+          throw error;
+        }
+
+        const { blob, fileName } = await buildRecommendSamplesImageBlob();
+        const formData = new FormData();
+        formData.append("image", blob, fileName);
+        formData.append("limit", String(limit));
+
+        const response = await fetch(getAuthApiUrl("/api/recommend-samples"), {
+          method: "POST",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: formData,
+        });
+
+        let payload = null;
+        try {
+          payload = await response.json();
+        } catch (parseError) {
+          const error = new Error("추천 응답을 읽지 못했어요.");
+          error.code = "INVALID_RESPONSE";
+          throw error;
+        }
+
+        if (!response.ok || payload?.ok === false) {
+          const error = new Error(payload?.message || "추천 요청에 실패했어요.");
+          error.code = payload?.code || `HTTP_${response.status}`;
+          error.statusCode = response.status;
+          error.response = payload;
+          throw error;
+        }
+
+        const results = Array.isArray(payload?.results) ? payload.results : [];
+        return results
+          .map((item) => {
+            const resultFileName = String(item?.fileName || "").trim();
+            if (!resultFileName) return null;
+            const scoreNumber = Number(item?.score);
+            return {
+              fileName: resultFileName,
+              score: Number.isFinite(scoreNumber) ? scoreNumber : null,
+              reason: String(item?.reason || "").trim(),
+              thumbnailUrl: String(item?.thumbnailUrl || "").trim() || null,
+            };
+          })
+          .filter(Boolean);
       }
 
       function clearTemporaryRecommendationPreviewTimer() {
@@ -20176,8 +20013,9 @@ Important:
         clearTemporaryRecommendationPreviewTimer();
         photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
         photoRecoRuntime.selectedBackgroundKey = "";
-        photoRecoRuntime.activeCategory = "all";
-        photoRecoRuntime.recommendedKeys = [];
+        photoRecoRuntime.recommendedResults = [];
+        photoRecoRuntime.lastErrorMessage = "";
+        photoRecoRuntime.lastErrorCode = "";
         closeRecoPrepareSheet();
         syncPhotoRecommendationFlowUi();
       }
@@ -20186,8 +20024,9 @@ Important:
         clearTemporaryRecommendationPreviewTimer();
         photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
         photoRecoRuntime.selectedBackgroundKey = "";
-        photoRecoRuntime.activeCategory = "all";
-        photoRecoRuntime.recommendedKeys = [];
+        photoRecoRuntime.recommendedResults = [];
+        photoRecoRuntime.lastErrorMessage = "";
+        photoRecoRuntime.lastErrorCode = "";
         closeRecoPrepareSheet();
         syncPhotoRecommendationFlowUi();
       }
@@ -20243,50 +20082,43 @@ Important:
         }, 2200);
       }
 
-      function renderRecoCategoryTabsInto(container, categories, activeId) {
-        if (!container) return;
-        container.innerHTML = categories.map((category) => `
-          <button
-            class="reco-tab${category.id === activeId ? " is-active" : ""}"
-            type="button"
-            role="tab"
-            aria-selected="${category.id === activeId ? "true" : "false"}"
-            data-reco-category="${category.id}"
-          >${category.label}</button>
-        `).join("");
-      }
-
-      function renderPhotoRecoCategoryTabs() {
-        const categories = getVisibleRecoCategories();
-        if (!categories.some((item) => item.id === photoRecoRuntime.activeCategory)) {
-          photoRecoRuntime.activeCategory = categories[0]?.id || "all";
-        }
-        renderRecoCategoryTabsInto(recoCategoryTabs, categories, photoRecoRuntime.activeCategory);
+      function escapeRecoHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
       }
 
       function buildRecoBackgroundCardHtml(item, selectedKey) {
-        const ready = Boolean(item.generationReady);
-        const selected = ready && item.key === selectedKey;
-        const position = item.imagePosition || "center 24%";
-        const hasImage = Boolean(item.image);
-        const mediaHtml = hasImage
-          ? `<img src="${item.image}" alt="${item.name} 완성 예시" loading="lazy" decoding="async" style="object-position: ${position};" />`
-          : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>샘플 준비 중</span></div>`;
-        const badgeHtml = ready ? "" : `<span class="reco-pending-badge">준비 중</span>`;
+        const fileName = String(item.fileName || "").trim();
+        const selected = Boolean(fileName) && fileName === selectedKey;
+        const imageUrl = getRecoSampleImageUrl(item);
+        const displayName = fileName.replace(/\.[^.]+$/, "") || "추천 샘플";
+        const scoreText = Number.isFinite(item.score) ? `${Math.round(item.score)}점` : "";
+        const reasonText = String(item.reason || "").trim();
+        const mediaHtml = imageUrl
+          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;" />`
+          : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>이미지 없음</span></div>`;
+        const scoreHtml = scoreText ? `<span class="reco-score-badge">${escapeRecoHtml(scoreText)}</span>` : "";
+        const reasonHtml = reasonText
+          ? `<ul class="reco-bg-reasons"><li>${escapeRecoHtml(reasonText)}</li></ul>`
+          : "";
         return `
           <button
-            class="reco-bg-card${selected ? " is-selected" : ""}${ready ? "" : " is-pending"}"
+            class="reco-bg-card${selected ? " is-selected" : ""}"
             type="button"
-            data-reco-background="${item.key}"
-            data-reco-ready="${ready ? "true" : "false"}"
+            data-reco-background="${escapeRecoHtml(fileName)}"
+            data-reco-ready="true"
             aria-pressed="${selected ? "true" : "false"}"
-            ${ready ? "" : 'aria-disabled="true"'}
           >
-            ${badgeHtml}
+            ${scoreHtml}
             <span class="reco-bg-check" aria-hidden="true"><span class="material-symbols-outlined">check</span></span>
             <span class="reco-bg-card-media">${mediaHtml}</span>
             <span class="reco-bg-card-body">
-              <span class="reco-bg-card-name">${item.name}</span>
+              <span class="reco-bg-card-name">추천 스타일</span>
+              ${reasonHtml}
             </span>
           </button>
         `;
@@ -20294,10 +20126,12 @@ Important:
 
       function renderPhotoRecoBackgroundCards() {
         if (!recoBackgroundGrid) return;
-        const items = getRecoBackgroundsForCategory(photoRecoRuntime.activeCategory);
+        const items = Array.isArray(photoRecoRuntime.recommendedResults)
+          ? photoRecoRuntime.recommendedResults
+          : [];
         if (recoEmptyNote) {
           recoEmptyNote.classList.toggle("hidden", items.length > 0);
-          recoEmptyNote.textContent = items.length ? "" : "이 카테고리에 표시할 배경이 없어요.";
+          recoEmptyNote.textContent = items.length ? "" : "추천된 샘플이 없어요. 다른 사진으로 다시 시도해 주세요.";
         }
         recoBackgroundGrid.innerHTML = items
           .map((item) => buildRecoBackgroundCardHtml(item, photoRecoRuntime.selectedBackgroundKey))
@@ -20325,16 +20159,16 @@ Important:
       }
 
       function showTemporaryRecommendationPreview() {
-        // Photo Recommendation System: real rule-based analysis + matching now runs here
-        // (services/photo-analysis.js + services/photo-matching.js). The fixed-length step
-        // animation is kept for UX pacing; a minimum display time avoids a jarring flash
-        // when analysis finishes faster than the animation.
-        if (!selectedImageDataUrl) return;
+        // Production path: POST /api/recommend-samples and show only matched samples.
+        if (!selectedImageDataUrl && !(selectedFile instanceof File || selectedFile instanceof Blob)) return;
         clearTemporaryRecommendationPreviewTimer();
         closeRecoPrepareSheet();
         photoRecoRuntime.selectedBackgroundKey = "";
-        photoRecoRuntime.activeCategory = "all";
-        photoRecoRuntime.recommendedKeys = [];
+        photoRecoRuntime.recommendedResults = [];
+        photoRecoRuntime.lastErrorMessage = "";
+        photoRecoRuntime.lastErrorCode = "";
+        const requestSeq = (photoRecoRuntime.requestSeq || 0) + 1;
+        photoRecoRuntime.requestSeq = requestSeq;
         setPhotoRecommendationState(PHOTO_RECO_STATES.ANALYZING);
         syncPhotoRecoAnalyzeSteps(0);
 
@@ -20345,28 +20179,60 @@ Important:
             if (photoRecoRuntime.state === PHOTO_RECO_STATES.ANALYZING) {
               syncPhotoRecoAnalyzeSteps(step);
             }
-          }, Math.floor((TEMPORARY_RECOMMENDATION_PREVIEW_DELAY_MS / 3) * index));
+          }, Math.floor((RECOMMEND_SAMPLES_MIN_LOADING_MS / 3) * index));
           temporaryRecommendationAnalyzeStepTimerIds.push(id);
         });
 
         const minDelayPromise = new Promise((resolve) => {
-          temporaryRecommendationPreviewTimerId = window.setTimeout(resolve, TEMPORARY_RECOMMENDATION_PREVIEW_DELAY_MS);
+          temporaryRecommendationPreviewTimerId = window.setTimeout(resolve, RECOMMEND_SAMPLES_MIN_LOADING_MS);
         });
 
-        computeRecommendedBackgroundKeys(analyzingImageDataUrl)
-          .catch((error) => {
-            console.warn("[PhotoReco] recommendation analysis failed, showing full catalog instead", error);
-            return [];
-          })
-          .then((recommendedKeys) => minDelayPromise.then(() => recommendedKeys))
-          .then((recommendedKeys) => {
+        Promise.all([
+          requestRecommendedSamplesFromApi({ limit: RECOMMEND_SAMPLES_LIMIT }),
+          minDelayPromise,
+        ])
+          .then(([results]) => {
             temporaryRecommendationPreviewTimerId = null;
+            if (photoRecoRuntime.requestSeq !== requestSeq) return;
             if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
-            if (selectedImageDataUrl !== analyzingImageDataUrl) return; // photo changed while analyzing
-            photoRecoRuntime.recommendedKeys = recommendedKeys;
-            photoRecoRuntime.activeCategory = recommendedKeys.length > 0 ? "recommend" : "all";
+            if (selectedImageDataUrl !== analyzingImageDataUrl) return;
+
+            photoRecoRuntime.recommendedResults = Array.isArray(results) ? results : [];
             photoRecoRuntime.selectedBackgroundKey = "";
+
+            if (!photoRecoRuntime.recommendedResults.length) {
+              setPhotoRecommendationState(PHOTO_RECO_STATES.NO_SAFE_MATCH);
+              return;
+            }
             setPhotoRecommendationState(PHOTO_RECO_STATES.RECOMMENDATION_READY);
+          })
+          .catch((error) => {
+            temporaryRecommendationPreviewTimerId = null;
+            if (photoRecoRuntime.requestSeq !== requestSeq) return;
+            if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
+            if (selectedImageDataUrl !== analyzingImageDataUrl) return;
+
+            const code = String(error?.code || "");
+            const message = String(error?.message || "추천 요청에 실패했어요.");
+            console.warn("[PhotoReco] recommend-samples failed", { code, message, error });
+
+            photoRecoRuntime.recommendedResults = [];
+            photoRecoRuntime.selectedBackgroundKey = "";
+            photoRecoRuntime.lastErrorCode = code;
+            photoRecoRuntime.lastErrorMessage = message;
+
+            if (code === "LOGIN_REQUIRED") {
+              showRecoToast(message);
+              if (typeof openLoginModal === "function") {
+                openLoginModal(recoPrimaryCta || null, { reason: "recommend-samples" });
+              }
+              setPhotoRecommendationState(PHOTO_RECO_STATES.UPLOAD);
+              return;
+            }
+
+            const errorCopy = document.getElementById("recoErrorCopy");
+            if (errorCopy) errorCopy.textContent = message;
+            setPhotoRecommendationState(PHOTO_RECO_STATES.ERROR);
           });
       }
 
@@ -20376,8 +20242,8 @@ Important:
         const hasPhoto = Boolean(selectedImageDataUrl);
         const state = photoRecoRuntime.state;
         const panelId = getPhotoRecoPanelIdForState(state);
-        const selectedItem = getRecoBackgroundByKey(photoRecoRuntime.selectedBackgroundKey);
-        const hasReadySelection = Boolean(selectedItem?.generationReady);
+        const selectedItem = getRecommendedSampleByKey(photoRecoRuntime.selectedBackgroundKey);
+        const hasReadySelection = Boolean(selectedItem?.fileName);
 
         editorRecommendationFlow.querySelectorAll("[data-reco-panel]").forEach((panel) => {
           const match = panel.getAttribute("data-reco-panel") === panelId;
@@ -20396,8 +20262,14 @@ Important:
         }
 
         if (panelId === "recommend") {
-          renderPhotoRecoCategoryTabs();
           renderPhotoRecoBackgroundCards();
+        }
+
+        if (panelId === "error") {
+          const errorCopy = document.getElementById("recoErrorCopy");
+          if (errorCopy) {
+            errorCopy.textContent = photoRecoRuntime.lastErrorMessage || "다시 시도해 주세요.";
+          }
         }
 
         const showCta = appScreen === "editor"
@@ -20431,7 +20303,7 @@ Important:
             || state === PHOTO_RECO_STATES.BACKGROUND_SELECTED
             || state === PHOTO_RECO_STATES.READY_TO_GENERATE
           ) {
-            recoPrimaryCta.textContent = hasReadySelection ? "이 배경으로 생성하기" : "배경을 선택해주세요";
+            recoPrimaryCta.textContent = hasReadySelection ? "이 스타일로 생성하기" : "스타일을 선택해주세요";
             recoPrimaryCta.disabled = !hasReadySelection;
             recoPrimaryCta.dataset.recoCtaMode = "recommend";
           } else if (
@@ -20450,8 +20322,9 @@ Important:
         clearTemporaryRecommendationPreviewTimer();
         photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
         photoRecoRuntime.selectedBackgroundKey = "";
-        photoRecoRuntime.activeCategory = "all";
-        photoRecoRuntime.recommendedKeys = [];
+        photoRecoRuntime.recommendedResults = [];
+        photoRecoRuntime.lastErrorMessage = "";
+        photoRecoRuntime.lastErrorCode = "";
         closeRecoPrepareSheet();
 
         if (editorLegacyFlow) {
@@ -20467,8 +20340,8 @@ Important:
 
       function handlePhotoRecoPrimaryCta() {
         const state = photoRecoRuntime.state;
-        const selectedItem = getRecoBackgroundByKey(photoRecoRuntime.selectedBackgroundKey);
-        const hasReadySelection = Boolean(selectedItem?.generationReady);
+        const selectedItem = getRecommendedSampleByKey(photoRecoRuntime.selectedBackgroundKey);
+        const hasReadySelection = Boolean(selectedItem?.fileName);
 
         if (state === PHOTO_RECO_STATES.UPLOAD) {
           if (!selectedImageDataUrl) {
@@ -20488,7 +20361,7 @@ Important:
           // Do not call generation API, deduct credits, or start polling.
           openRecoPrepareSheet({
             title: "생성 기능을 연결하고 있어요",
-            copy: "선택한 배경으로 사진을 만드는 기능은\n신규 생성 API 연결 후 이용할 수 있어요.",
+            copy: "선택한 스타일로 사진을 만드는 기능은\n신규 생성 API 연결 후 이용할 수 있어요.",
           });
           return;
         }
@@ -20500,7 +20373,7 @@ Important:
           clearTemporaryRecommendationPreviewTimer();
           photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
           photoRecoRuntime.selectedBackgroundKey = "";
-          photoRecoRuntime.recommendedKeys = [];
+          photoRecoRuntime.recommendedResults = [];
           closeRecoPrepareSheet();
           photoInput?.click();
           syncPhotoRecommendationFlowUi();
@@ -20508,12 +20381,8 @@ Important:
       }
 
       function selectPhotoRecoBackground(key) {
-        const item = getRecoBackgroundByKey(key);
+        const item = getRecommendedSampleByKey(key);
         if (!item) return;
-        if (!item.generationReady) {
-          showRecoToast("이 배경은 곧 추가될 예정이에요.");
-          return;
-        }
 
         if (photoRecoRuntime.selectedBackgroundKey === key) {
           photoRecoRuntime.selectedBackgroundKey = "";
@@ -20540,7 +20409,9 @@ Important:
           clearTemporaryRecommendationPreviewTimer();
           photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
           photoRecoRuntime.selectedBackgroundKey = "";
-          photoRecoRuntime.recommendedKeys = [];
+          photoRecoRuntime.recommendedResults = [];
+          photoRecoRuntime.lastErrorMessage = "";
+          photoRecoRuntime.lastErrorCode = "";
           closeRecoPrepareSheet();
           photoInput?.click();
           syncPhotoRecommendationFlowUi();
@@ -20564,14 +20435,6 @@ Important:
           const target = event.target instanceof Element ? event.target : null;
           if (!target) return;
 
-          const categoryButton = target.closest("[data-reco-category]");
-          if (categoryButton) {
-            const nextCategory = categoryButton.getAttribute("data-reco-category") || "all";
-            photoRecoRuntime.activeCategory = nextCategory;
-            syncPhotoRecommendationFlowUi();
-            return;
-          }
-
           const backgroundButton = target.closest("[data-reco-background]");
           if (backgroundButton) {
             const key = backgroundButton.getAttribute("data-reco-background") || "";
@@ -20582,17 +20445,29 @@ Important:
           const actionButton = target.closest("[data-reco-action]");
           if (!actionButton) return;
           const action = actionButton.getAttribute("data-reco-action");
+          if (action === "retry-recommend") {
+            if (!selectedImageDataUrl && !(selectedFile instanceof File || selectedFile instanceof Blob)) {
+              photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
+              syncPhotoRecommendationFlowUi();
+              photoInput?.click();
+              return;
+            }
+            showTemporaryRecommendationPreview();
+            return;
+          }
           if (action === "choose-other-photo" || action === "reset-upload") {
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
-            photoRecoRuntime.recommendedKeys = [];
+            photoRecoRuntime.recommendedResults = [];
+            photoRecoRuntime.lastErrorMessage = "";
+            photoRecoRuntime.lastErrorCode = "";
             closeRecoPrepareSheet();
             photoInput?.click();
             syncPhotoRecommendationFlowUi();
             return;
           }
           if (action === "back-to-recommend") {
-            photoRecoRuntime.state = photoRecoRuntime.recommendedKeys.length
+            photoRecoRuntime.state = photoRecoRuntime.recommendedResults.length
               ? PHOTO_RECO_STATES.RECOMMENDATION_READY
               : PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
@@ -20613,8 +20488,9 @@ Important:
         if (typeof photoRecoRuntime !== "undefined") {
           photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
           photoRecoRuntime.selectedBackgroundKey = "";
-          photoRecoRuntime.activeCategory = "all";
-          photoRecoRuntime.recommendedKeys = [];
+          photoRecoRuntime.recommendedResults = [];
+          photoRecoRuntime.lastErrorMessage = "";
+          photoRecoRuntime.lastErrorCode = "";
         }
         if (typeof closeRecoPrepareSheet === "function") {
           closeRecoPrepareSheet();
@@ -28642,8 +28518,9 @@ ${modeExample}`;
             clearTemporaryRecommendationPreviewTimer();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
-            photoRecoRuntime.activeCategory = "all";
-            photoRecoRuntime.recommendedKeys = [];
+            photoRecoRuntime.recommendedResults = [];
+            photoRecoRuntime.lastErrorMessage = "";
+            photoRecoRuntime.lastErrorCode = "";
             syncPhotoRecommendationFlowUi();
           } else {
             syncPhotoUploadUi();
@@ -28682,8 +28559,9 @@ ${modeExample}`;
             clearTemporaryRecommendationPreviewTimer();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
             photoRecoRuntime.selectedBackgroundKey = "";
-            photoRecoRuntime.activeCategory = "all";
-            photoRecoRuntime.recommendedKeys = [];
+            photoRecoRuntime.recommendedResults = [];
+            photoRecoRuntime.lastErrorMessage = "";
+            photoRecoRuntime.lastErrorCode = "";
             syncPhotoRecommendationFlowUi();
           } else {
             sourcePreview.src = selectedImageDataUrl;

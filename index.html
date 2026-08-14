@@ -10140,6 +10140,12 @@ AI가 추천해드려요.</p>
       const IMAGE_MODAL_SWIPE_AXIS_RATIO = 1.2;
       const ONE_MB_BYTES = 1024 * 1024;
       const MOBILE_MAX_UPLOAD_IMAGE_BYTES = 50 * ONE_MB_BYTES;
+      // from-sample identity keeps original bytes unless the file exceeds the
+      // backend identity limit. Recommend-samples still uses its own 1600px
+      // JPEG shrink because that endpoint remains 4MB.
+      const FROM_SAMPLE_MAX_IDENTITY_BYTES = 15 * ONE_MB_BYTES;
+      const FROM_SAMPLE_IDENTITY_JPEG_QUALITY = 0.92;
+      const FROM_SAMPLE_IDENTITY_SHRINK_LONG_EDGES = [null, 4096, 3200, 2560];
       const SIGNED_UPLOAD_FAILED_MESSAGE = "사진 업로드 준비에 실패했습니다. 어시스턴트에게 문의하세요.";
       const SUPABASE_UPLOAD_FAILED_MESSAGE = "사진 업로드에 실패했습니다. 네트워크 상태를 확인하거나 어시스턴트에게 문의하세요.";
       const HEIC_UPLOAD_WARNING_MESSAGE = "아이폰 원본 HEIC 사진은 일부 환경에서 실패할 수 있습니다. JPG로 변환된 사진이나 스크린샷으로 다시 시도해 주세요.";
@@ -20163,21 +20169,27 @@ Important:
 
       async function buildRecommendSamplesImageBlob() {
         // Shrink before POST /api/recommend-samples to avoid 413 Payload Too Large.
+        // This compressed blob is recommend-only — from-sample identity upload
+        // still uses the original selectedFile via prepareFromSampleIdentityUpload.
         // Reuses createImageBlobWithWatermark (long-edge canvas resize + JPEG toBlob).
         let sourceUrl = "";
         let revokeUrl = "";
+        const originalFile = selectedFile instanceof Blob ? selectedFile : null;
         const originalSize =
-          selectedFile instanceof Blob
-            ? selectedFile.size
+          originalFile
+            ? originalFile.size
             : selectedImageDataUrl
               ? Math.ceil((String(selectedImageDataUrl).length * 3) / 4)
               : 0;
+        const originalPixels = originalFile
+          ? await readImagePixelSize(originalFile)
+          : { width: null, height: null };
 
         try {
           if (selectedImageDataUrl) {
             sourceUrl = selectedImageDataUrl;
-          } else if (selectedFile instanceof File || selectedFile instanceof Blob) {
-            revokeUrl = URL.createObjectURL(selectedFile);
+          } else if (originalFile) {
+            revokeUrl = URL.createObjectURL(originalFile);
             sourceUrl = revokeUrl;
           } else {
             throw new Error("MISSING_IMAGE");
@@ -20189,10 +20201,15 @@ Important:
             maxSize: RECOMMEND_SAMPLES_MAX_LONG_EDGE,
             quality: RECOMMEND_SAMPLES_JPEG_QUALITY,
           });
+          const compressedPixels = await readImagePixelSize(blob);
 
           console.info("[PhotoReco] recommend image compressed", {
             originalBytes: originalSize || null,
+            originalWidth: originalPixels.width,
+            originalHeight: originalPixels.height,
             compressedBytes: blob?.size || null,
+            uploadedWidth: compressedPixels.width,
+            uploadedHeight: compressedPixels.height,
             maxLongEdge: RECOMMEND_SAMPLES_MAX_LONG_EDGE,
             jpegQuality: RECOMMEND_SAMPLES_JPEG_QUALITY,
           });
@@ -20204,6 +20221,9 @@ Important:
         } catch (error) {
           console.warn("[PhotoReco] recommend image compress failed, using original", {
             message: error?.message || String(error),
+            originalBytes: originalSize || null,
+            originalWidth: originalPixels.width,
+            originalHeight: originalPixels.height,
           });
           if (selectedFile instanceof File || selectedFile instanceof Blob) {
             return {
@@ -23292,6 +23312,135 @@ Important:
         return warnings;
       }
 
+      async function readImagePixelSize(file) {
+        if (!(file instanceof Blob)) {
+          return { width: null, height: null };
+        }
+
+        try {
+          if (typeof createImageBitmap === "function") {
+            const bitmap = await createImageBitmap(file);
+            const size = {
+              width: Number(bitmap.width) || null,
+              height: Number(bitmap.height) || null,
+            };
+            bitmap.close?.();
+            return size;
+          }
+        } catch {
+          // Fall through to HTMLImageElement for HEIC / unsupported types.
+        }
+
+        let objectUrl = "";
+        try {
+          objectUrl = URL.createObjectURL(file);
+          const image = await new Promise((resolve, reject) => {
+            const element = new Image();
+            element.onload = () => resolve(element);
+            element.onerror = () => reject(new Error("IMAGE_SIZE_UNAVAILABLE"));
+            element.src = objectUrl;
+          });
+          return {
+            width: Number(image.naturalWidth || image.width) || null,
+            height: Number(image.naturalHeight || image.height) || null,
+          };
+        } catch {
+          return { width: null, height: null };
+        } finally {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+        }
+      }
+
+      async function reencodeImageFileAsJpeg(file, { maxLongEdge = null, quality = FROM_SAMPLE_IDENTITY_JPEG_QUALITY } = {}) {
+        let objectUrl = "";
+        try {
+          objectUrl = URL.createObjectURL(file);
+          return await createImageBlobWithWatermark({
+            imageUrl: objectUrl,
+            shouldWatermark: false,
+            maxSize: maxLongEdge,
+            quality,
+          });
+        } finally {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+        }
+      }
+
+      function toUploadJpegFile(blob, originalFile) {
+        const baseName = getUploadFileName(originalFile).replace(/\.[^.]+$/, "") || "upload";
+        const fileName = `${baseName}.jpg`;
+        try {
+          return new File([blob], fileName, {
+            type: "image/jpeg",
+            lastModified: originalFile?.lastModified || Date.now(),
+          });
+        } catch {
+          return blob;
+        }
+      }
+
+      async function prepareFromSampleIdentityUpload(file) {
+        const originalBytes = Number(file?.size) || 0;
+        const originalPixels = await readImagePixelSize(file);
+        const debug = {
+          originalBytes,
+          originalSizeMB: toSizeMB(originalBytes),
+          originalWidth: originalPixels.width,
+          originalHeight: originalPixels.height,
+          uploadedBytes: originalBytes,
+          uploadedWidth: originalPixels.width,
+          uploadedHeight: originalPixels.height,
+          compressed: false,
+          reason: "original",
+        };
+
+        if (!(file instanceof Blob) || originalBytes <= FROM_SAMPLE_MAX_IDENTITY_BYTES) {
+          console.info("[client][from-sample][identity-upload]", debug);
+          return { file, debug };
+        }
+
+        let bestBlob = null;
+        let bestReason = "over_15mb_jpeg";
+        for (const maxLongEdge of FROM_SAMPLE_IDENTITY_SHRINK_LONG_EDGES) {
+          try {
+            const blob = await reencodeImageFileAsJpeg(file, {
+              maxLongEdge,
+              quality: FROM_SAMPLE_IDENTITY_JPEG_QUALITY,
+            });
+            if (!bestBlob || blob.size < bestBlob.size) {
+              bestBlob = blob;
+              bestReason = maxLongEdge ? `over_15mb_resized_${maxLongEdge}` : "over_15mb_jpeg";
+            }
+            if (blob.size <= FROM_SAMPLE_MAX_IDENTITY_BYTES) {
+              bestBlob = blob;
+              bestReason = maxLongEdge ? `over_15mb_resized_${maxLongEdge}` : "over_15mb_jpeg";
+              break;
+            }
+          } catch (error) {
+            console.warn("[client][from-sample][identity-compress-failed]", {
+              message: error?.message || String(error),
+              maxLongEdge,
+            });
+          }
+        }
+
+        if (!bestBlob || bestBlob.size >= originalBytes) {
+          debug.reason = "original_compress_skipped";
+          console.info("[client][from-sample][identity-upload]", debug);
+          return { file, debug };
+        }
+
+        const uploadFile = toUploadJpegFile(bestBlob, file);
+        const uploadedPixels = await readImagePixelSize(uploadFile);
+        debug.uploadedBytes = uploadFile.size;
+        debug.uploadedWidth = uploadedPixels.width || debug.originalWidth;
+        debug.uploadedHeight = uploadedPixels.height || debug.originalHeight;
+        debug.compressed = true;
+        debug.reason = bestReason;
+        console.info("[client][from-sample][identity-upload]", debug);
+        return { file: uploadFile, debug };
+      }
+
       function createUploadFile(file) {
         const effectiveType = getEffectiveFileType(file);
         const uploadFileName = getUploadFileName(file);
@@ -23851,6 +24000,15 @@ ${modeExample}`;
         const generationMode = normalizeGenerationMode(mode);
         const config = getModeConfig(generationMode);
         const selectedLandmark = isLocationMode(generationMode) ? getSelectedLandmarkOption(generationMode) : null;
+        const originalPixels = await readImagePixelSize(imageFile);
+        console.info("[client][generate][identity-upload]", {
+          originalBytes: imageFile?.size || 0,
+          originalWidth: originalPixels.width,
+          originalHeight: originalPixels.height,
+          uploadedBytes: imageFile?.size || 0,
+          compressed: false,
+          reason: "original",
+        });
         const originalUpload = await uploadImageToPrivateStorage(imageFile);
         const imagePath = originalUpload.imagePath || originalUpload.path || "";
         const uploadedOriginalImageUrl = originalUpload.imageUrl || "";
@@ -24195,10 +24353,11 @@ ${modeExample}`;
           throw error;
         }
 
-        const originalUpload = await uploadImageToPrivateStorage(imageFile);
+        const identityUpload = await prepareFromSampleIdentityUpload(imageFile);
+        const originalUpload = await uploadImageToPrivateStorage(identityUpload.file);
         const imagePath = originalUpload.imagePath || originalUpload.path || "";
         const uploadedOriginalImageUrl = originalUpload.imageUrl || "";
-        const fileInfo = getFileDebugInfo(imageFile);
+        const fileInfo = getFileDebugInfo(identityUpload.file);
         const useFreeGeneration = lastGenerationUsedFreeCredit === true;
 
         const formData = new FormData();
@@ -24223,6 +24382,7 @@ ${modeExample}`;
           imagePath,
           generationType: useFreeGeneration ? "free" : "paid",
           ...fileInfo,
+          ...identityUpload.debug,
         });
 
         let response;

@@ -20983,6 +20983,9 @@ Important:
             mode: activeGenerationMode,
             toastMessage: "사진 제작이 완료되었어요. 결과를 확인해 주세요.",
           });
+          // Real compare UI is on resultScreen. Do not keep the unfinished reco
+          // RESULT placeholder ("사진이 완성됐어요") armed for later editor returns.
+          photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
         } catch (error) {
           await presentRecommendedSampleGenerationFailure(error);
         } finally {
@@ -27417,6 +27420,36 @@ ${modeExample}`;
         document.body.style.overflow = "";
       }
 
+      function resetPhotoRecommendationAfterResultExit({ keepPhoto = false } = {}) {
+        if (typeof isPhotoRecommendationFlowActive !== "function" || !isPhotoRecommendationFlowActive()) {
+          return;
+        }
+        clearTemporaryRecommendationPreviewTimer();
+        // Never leave the unfinished reco RESULT placeholder ("사진이 완성됐어요") active.
+        photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
+        if (!keepPhoto) {
+          photoRecoRuntime.selectedBackgroundKey = "";
+          photoRecoRuntime.recommendedResults = [];
+        }
+        photoRecoRuntime.lastErrorMessage = "";
+        photoRecoRuntime.lastErrorCode = "";
+        closeRecoPrepareSheet();
+      }
+
+      function shouldReturnToFromSampleCompareOnLightboxDone() {
+        if (appScreen !== "result") return false;
+        if (!isFromSampleResultView()) return false;
+        return Boolean(
+          imageUrls.length
+          || normalizeUrlValue(fromSampleEnvironmentResultUrl)
+          || normalizeUrlValue(generationMeta?.finalResultUrl)
+          || normalizeUrlValue(generationMeta?.environmentResultUrl)
+          || normalizeUrlValue(fromSampleResultImage?.currentSrc || fromSampleResultImage?.src)
+          || normalizeUrlValue(fromSampleStage1Image?.currentSrc || fromSampleStage1Image?.src)
+          || normalizeUrlValue(fromSampleOriginalImage?.currentSrc || fromSampleOriginalImage?.src),
+        );
+      }
+
       function returnToEditorKeepingUploadedPhoto() {
         closeImageModal({ useHistory: false });
         closePhotoSaveModal();
@@ -27424,6 +27457,7 @@ ${modeExample}`;
         if (generateButton) {
           generateButton.disabled = !selectedFile;
         }
+        resetPhotoRecommendationAfterResultExit({ keepPhoto: true });
         setStatus(selectedFile || selectedImageDataUrl
           ? "사진이 준비되었습니다. 다시 생성하거나 사진을 변경할 수 있어요."
           : "사진을 먼저 올려주세요.");
@@ -27451,6 +27485,7 @@ ${modeExample}`;
           photoInput.value = "";
         }
         sourcePreview?.removeAttribute("src");
+        resetPhotoRecommendationAfterResultExit({ keepPhoto: false });
         syncEditorScreenUi();
         setAppScreen("editor", { replaceHistory: true });
         setStatus("사진을 올리고 새로운 사진을 만들어 보세요.");
@@ -29889,6 +29924,7 @@ ${modeExample}`;
             generateButton.disabled = !selectedFile;
             setStatus(selectedFile ? "사진이 준비되었습니다. 다시 생성하거나 사진을 변경할 수 있어요." : "사진을 먼저 올려주세요.");
             hideError();
+            resetPhotoRecommendationAfterResultExit({ keepPhoto: Boolean(selectedFile || selectedImageDataUrl) });
           }
           setAppScreen(targetScreen, { pushHistory: false });
         }
@@ -30454,6 +30490,15 @@ ${modeExample}`;
       imageModalDone?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        // from-sample: keep original/Stage1/Stage2 URLs and return to compare screen.
+        // Do not drop into the empty reco placeholder ("사진이 완성됐어요").
+        if (shouldReturnToFromSampleCompareOnLightboxDone()) {
+          closeImageModal();
+          if (typeof renderResults === "function") {
+            renderResults();
+          }
+          return;
+        }
         void completeResultFlow();
       });
       resultScreenBackButton?.addEventListener("click", (event) => {

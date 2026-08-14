@@ -4131,6 +4131,10 @@
         gap: 14px;
       }
 
+      .from-sample-result-pair.has-stage1 {
+        gap: 14px;
+      }
+
       .from-sample-result-panel {
         margin: 0;
         min-width: 0;
@@ -4141,6 +4145,10 @@
           rgba(255, 248, 250, 0.92);
         border: 1px solid rgba(255, 255, 255, 0.74);
         box-shadow: 0 14px 34px rgba(129, 80, 92, 0.1);
+      }
+
+      .from-sample-result-panel[hidden] {
+        display: none !important;
       }
 
       .from-sample-result-panel-label {
@@ -4162,6 +4170,15 @@
         font-weight: 700;
         line-height: 1;
         padding: 7px 11px;
+      }
+
+      .from-sample-result-panel-label .from-sample-result-panel-sub {
+        border: none;
+        background: transparent;
+        color: #8a737a;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 0;
       }
 
       .from-sample-result-media {
@@ -4196,9 +4213,19 @@
           flex: 1 1 0;
         }
 
+        .from-sample-result-pair.has-stage1 .from-sample-result-media {
+          max-height: min(62svh, 640px);
+        }
+
         .from-sample-result-media {
           aspect-ratio: 3 / 4;
           max-height: min(70svh, 760px);
+        }
+      }
+
+      @media (min-width: 1100px) {
+        .from-sample-result-pair.has-stage1 .from-sample-result-media {
+          max-height: min(68svh, 700px);
         }
       }
 
@@ -8965,7 +8992,7 @@ AI가 추천해드려요.</p>
                 <p class="text-right text-xs leading-5 text-on-surface-variant" id="recommendationText">원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.</p>
               </div>
               <section class="from-sample-result-compare" id="fromSampleResultCompare" hidden aria-label="원본과 생성 결과 비교">
-                <div class="from-sample-result-pair">
+                <div class="from-sample-result-pair" id="fromSampleResultPair">
                   <figure class="from-sample-result-panel is-original">
                     <div class="from-sample-result-panel-label">
                       <span>원본</span>
@@ -8974,9 +9001,19 @@ AI가 추천해드려요.</p>
                       <img alt="업로드 원본 사진" draggable="false" id="fromSampleOriginalImage" />
                     </div>
                   </figure>
-                  <figure class="from-sample-result-panel is-result">
+                  <figure class="from-sample-result-panel is-stage1" id="fromSampleStage1Panel" hidden>
                     <div class="from-sample-result-panel-label">
-                      <span>결과</span>
+                      <span>Stage1</span>
+                      <span class="from-sample-result-panel-sub">환경 변경</span>
+                    </div>
+                    <div class="from-sample-result-media">
+                      <img alt="Stage1 환경 변경 결과" draggable="false" id="fromSampleStage1Image" />
+                    </div>
+                  </figure>
+                  <figure class="from-sample-result-panel is-result" id="fromSampleFinalPanel">
+                    <div class="from-sample-result-panel-label">
+                      <span id="fromSampleFinalLabel">결과</span>
+                      <span class="from-sample-result-panel-sub" id="fromSampleFinalSubLabel" hidden>드레스/부케 포함</span>
                     </div>
                     <div class="from-sample-result-media">
                       <img alt="AI 생성 결과" draggable="false" id="fromSampleResultImage" />
@@ -11026,7 +11063,12 @@ Important:
       const resultSectionEyebrow = document.getElementById("resultSectionEyebrow");
       const resultSectionTitle = document.getElementById("resultSectionTitle");
       const fromSampleResultCompare = document.getElementById("fromSampleResultCompare");
+      const fromSampleResultPair = document.getElementById("fromSampleResultPair");
       const fromSampleOriginalImage = document.getElementById("fromSampleOriginalImage");
+      const fromSampleStage1Panel = document.getElementById("fromSampleStage1Panel");
+      const fromSampleStage1Image = document.getElementById("fromSampleStage1Image");
+      const fromSampleFinalLabel = document.getElementById("fromSampleFinalLabel");
+      const fromSampleFinalSubLabel = document.getElementById("fromSampleFinalSubLabel");
       const fromSampleResultImage = document.getElementById("fromSampleResultImage");
       const fromSampleResultZoomButton = document.getElementById("fromSampleResultZoomButton");
       const recommendedComparisonSlider = document.getElementById("recommendedComparisonSlider");
@@ -11126,6 +11168,7 @@ Important:
       let originalImageUrl = "";
       let originalThumbnailUrl = "";
       let originalImagePath = "";
+      let fromSampleEnvironmentResultUrl = "";
       let imageUrls = [];
       let imageScores = [];
       let variantLabels = [];
@@ -21952,6 +21995,16 @@ Important:
           return null;
         }
 
+        const stageUrls = resolveFromSampleStageUrls({
+          ...result,
+          ...payload,
+          ...built,
+          results: normalizedItems,
+          savedPhotos: normalizedItems,
+          images: normalizedItems,
+          imageUrls: built.imageUrls,
+        });
+
         return {
           ...result,
           ...built,
@@ -21961,17 +22014,23 @@ Important:
           savedPhotos: normalizedItems.filter((item) => item.ok !== false),
           imageUrls: built.imageUrls,
           jobId: built.jobId || jobId,
+          environmentResultUrl: stageUrls.environmentResultUrl || "",
+          finalResultUrl: stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
           generationMeta: {
             ...(built.generationMeta || {}),
             ...(result.generationMeta || result.generation_meta || {}),
             jobId: built.jobId || jobId,
             generationId: built.generationId,
+            environmentResultUrl: stageUrls.environmentResultUrl || "",
+            finalResultUrl: stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
           },
         };
       }
 
       function getGeneratedResultImageUrl(item) {
         const candidates = [
+          item?.finalResultUrl,
+          item?.final_result_url,
           item?.imageUrl,
           item?.image_url,
           item?.publicUrl,
@@ -21984,6 +22043,59 @@ Important:
           item?.imageBase64,
         ];
         return candidates.map(normalizeUrlValue).find(Boolean) || "";
+      }
+
+      function resolveFromSampleStageUrls(payload = {}) {
+        const pickUrl = (...values) => values.map(normalizeUrlValue).find(Boolean) || "";
+        const sources = [
+          payload,
+          payload?.data,
+          payload?.result,
+          payload?.resultPayload,
+          payload?.result_payload,
+          payload?.generationMeta,
+          payload?.generation_meta,
+          ...(Array.isArray(payload?.results) ? payload.results : []),
+          ...(Array.isArray(payload?.savedPhotos) ? payload.savedPhotos : []),
+          ...(Array.isArray(payload?.images) ? payload.images : []),
+          ...(Array.isArray(payload?.imageMetadata) ? payload.imageMetadata : []),
+        ].filter((value) => value && typeof value === "object");
+
+        let environmentResultUrl = "";
+        let finalResultUrl = "";
+
+        sources.forEach((source) => {
+          if (!environmentResultUrl) {
+            environmentResultUrl = pickUrl(
+              source.environmentResultUrl,
+              source.environment_result_url,
+              source.stage1Url,
+              source.stage1_url,
+              source.environmentImageUrl,
+              source.environment_image_url,
+            );
+          }
+          if (!finalResultUrl) {
+            finalResultUrl = pickUrl(
+              source.finalResultUrl,
+              source.final_result_url,
+              source.stage2Url,
+              source.stage2_url,
+              source.imageUrl,
+              source.image_url,
+              getGeneratedResultImageUrl(source),
+            );
+          }
+        });
+
+        if (!finalResultUrl && Array.isArray(payload?.imageUrls)) {
+          finalResultUrl = pickUrl(...payload.imageUrls);
+        }
+
+        return {
+          environmentResultUrl,
+          finalResultUrl,
+        };
       }
 
       function collectGenerationResultPayloadSources(payload = {}) {
@@ -22750,6 +22862,7 @@ Important:
         originalImageUrl = "";
         originalThumbnailUrl = "";
         originalImagePath = "";
+        fromSampleEnvironmentResultUrl = "";
         imageScores = [];
         variantLabels = [];
         failedImages = [];
@@ -22765,6 +22878,7 @@ Important:
         comparisonBeforeImage.removeAttribute("src");
         comparisonAfterImage.removeAttribute("src");
         fromSampleOriginalImage?.removeAttribute("src");
+        fromSampleStage1Image?.removeAttribute("src");
         fromSampleResultImage?.removeAttribute("src");
         setComparisonSliderPosition(50);
         recommendedZoomButton.disabled = true;
@@ -22772,6 +22886,14 @@ Important:
         if (fromSampleResultZoomButton) {
           fromSampleResultZoomButton.disabled = true;
         }
+        if (fromSampleStage1Panel) {
+          fromSampleStage1Panel.hidden = true;
+        }
+        if (fromSampleResultPair) {
+          fromSampleResultPair.classList.remove("has-stage1");
+        }
+        if (fromSampleFinalLabel) fromSampleFinalLabel.textContent = "결과";
+        if (fromSampleFinalSubLabel) fromSampleFinalSubLabel.hidden = true;
         if (fromSampleResultCompare) {
           fromSampleResultCompare.hidden = true;
         }
@@ -22816,6 +22938,7 @@ Important:
             originalImageUrl,
             originalThumbnailUrl,
             originalImagePath,
+            fromSampleEnvironmentResultUrl,
             imageScores,
             variantLabels,
             failedImages,
@@ -22866,6 +22989,11 @@ Important:
         originalImageUrl = normalizeUrlValue(storedState.originalImageUrl);
         originalThumbnailUrl = firstUrlValue(storedState.originalThumbnailUrl, originalImageUrl);
         originalImagePath = normalizeUrlValue(storedState.originalImagePath);
+        fromSampleEnvironmentResultUrl = normalizeUrlValue(
+          storedState.fromSampleEnvironmentResultUrl
+          || storedState.generationMeta?.environmentResultUrl
+          || "",
+        );
         imageScores = Array.isArray(storedState.imageScores) ? storedState.imageScores : [];
         variantLabels = Array.isArray(storedState.variantLabels) ? storedState.variantLabels : [];
         failedImages = Array.isArray(storedState.failedImages) ? storedState.failedImages : [];
@@ -24141,13 +24269,6 @@ ${modeExample}`;
           .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index)
           .slice(0, 1);
 
-        if (!resultImageUrls.length) {
-          const error = new Error("GENERATION_RESULT_IMAGES_MISSING");
-          error.code = "GENERATION_RESULT_IMAGES_MISSING";
-          error.publicMessage = "생성 결과가 없습니다. 사진 제작을 다시 진행해 주세요.";
-          throw error;
-        }
-
         const generationId = resolveGenerationIdFromPayload(data) || responseJobId || createClientGenerationId();
         const metaGenerationId = resolveMetaGenerationIdFromPayload(data) || generationId;
         const jobId = String(
@@ -24167,6 +24288,21 @@ ${modeExample}`;
         const responseWatermarkStrategy = data.watermarkStrategy || data.watermark_strategy || "";
         const responseOriginalImageUrl = firstUrlValue(data.originalImageUrl, data.original_image_url, data.originalImage, uploadedOriginalImageUrl);
         const responseOriginalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, data.original_thumbnail_url, responseOriginalImageUrl);
+        const stageUrls = resolveFromSampleStageUrls({
+          ...data,
+          results: resultItems,
+          savedPhotos: successfulResults,
+          images: successfulResults,
+          imageUrls: resultImageUrls,
+          imageMetadata: successfulResults,
+        });
+        const finalResultUrl = stageUrls.finalResultUrl || resultImageUrls[0] || "";
+        if (!finalResultUrl) {
+          const error = new Error("GENERATION_RESULT_IMAGES_MISSING");
+          error.code = "GENERATION_RESULT_IMAGES_MISSING";
+          error.publicMessage = "생성 결과가 없습니다. 사진 제작을 다시 진행해 주세요.";
+          throw error;
+        }
 
         return {
           ok: true,
@@ -24176,9 +24312,11 @@ ${modeExample}`;
           originalImageUrl: responseOriginalImageUrl,
           originalThumbnailUrl: responseOriginalThumbnailUrl,
           originalImagePath: imagePath,
-          imageUrls: resultImageUrls,
+          imageUrls: [finalResultUrl],
+          environmentResultUrl: stageUrls.environmentResultUrl || "",
+          finalResultUrl,
           scores: [],
-          variantLabels: labelsFromResults,
+          variantLabels: labelsFromResults.length ? labelsFromResults.slice(0, 1) : ["최종 결과"],
           failedImages: Array.isArray(data.failedImages) && data.failedImages.length ? data.failedImages : failedResults,
           warningMessage: typeof data.warningMessage === "string" ? data.warningMessage : "",
           generationMode: data.mode || GENERATION_MODES.STUDIO_STYLE,
@@ -24197,6 +24335,8 @@ ${modeExample}`;
             watermarkStrategy: responseWatermarkStrategy,
             sampleFileName: safeSampleFileName,
             source: "from_sample",
+            environmentResultUrl: stageUrls.environmentResultUrl || "",
+            finalResultUrl,
           },
           imageMetadata: successfulResults.map((item, fallbackIndex) => ({
             ...item,
@@ -24207,6 +24347,8 @@ ${modeExample}`;
             hasWatermark: item.hasWatermark === true || item.has_watermark === true || responseHasWatermark,
             watermarkRequired: item.watermarkRequired === true || item.watermark_required === true || responseWatermarkRequired,
             watermarkStrategy: item.watermarkStrategy || item.watermark_strategy || responseWatermarkStrategy,
+            environmentResultUrl: item.environmentResultUrl || item.environment_result_url || stageUrls.environmentResultUrl || "",
+            finalResultUrl: item.finalResultUrl || item.final_result_url || finalResultUrl,
           })),
         };
       }
@@ -27105,10 +27247,29 @@ ${modeExample}`;
         syncSaveCopy();
 
         if (useFromSampleCompare) {
+          const environmentUrl = normalizeUrlValue(
+            fromSampleEnvironmentResultUrl
+            || generationMeta?.environmentResultUrl
+            || "",
+          );
+          const finalUrl = normalizeUrlValue(
+            generationMeta?.finalResultUrl
+            || comparisonEditedImage
+            || "",
+          );
+          const hasStage1 = Boolean(environmentUrl);
+
           if (resultSectionEyebrow) resultSectionEyebrow.textContent = "AI Style Result";
-          if (resultSectionTitle) resultSectionTitle.textContent = "원본과 결과 비교";
-          recommendationText.textContent = "선택한 스타일로 만든 결과예요. 원본과 결과를 비교해 보세요.";
-          if (fromSampleResultCompare) fromSampleResultCompare.hidden = !comparisonEditedImage;
+          if (resultSectionTitle) {
+            resultSectionTitle.textContent = hasStage1 ? "원본 · Stage1 · Stage2" : "원본과 결과 비교";
+          }
+          recommendationText.textContent = hasStage1
+            ? "환경 변경(Stage1)과 최종 결과(Stage2)를 원본과 함께 비교해 보세요."
+            : "선택한 스타일로 만든 결과예요. 원본과 결과를 비교해 보세요.";
+
+          if (fromSampleResultCompare) fromSampleResultCompare.hidden = !finalUrl;
+          if (fromSampleResultPair) fromSampleResultPair.classList.toggle("has-stage1", hasStage1);
+
           if (fromSampleOriginalImage) {
             if (comparisonOriginalImage) {
               fromSampleOriginalImage.src = comparisonOriginalImage;
@@ -27117,16 +27278,35 @@ ${modeExample}`;
               fromSampleOriginalImage.removeAttribute("src");
             }
           }
+
+          if (fromSampleStage1Panel && fromSampleStage1Image) {
+            if (hasStage1) {
+              fromSampleStage1Panel.hidden = false;
+              fromSampleStage1Image.src = environmentUrl;
+              fromSampleStage1Image.alt = "Stage1 환경 변경 결과";
+            } else {
+              fromSampleStage1Panel.hidden = true;
+              fromSampleStage1Image.removeAttribute("src");
+            }
+          }
+
+          if (fromSampleFinalLabel) {
+            fromSampleFinalLabel.textContent = hasStage1 ? "Stage2" : "결과";
+          }
+          if (fromSampleFinalSubLabel) {
+            fromSampleFinalSubLabel.hidden = !hasStage1;
+          }
+
           if (fromSampleResultImage) {
-            if (comparisonEditedImage) {
-              fromSampleResultImage.src = comparisonEditedImage;
-              fromSampleResultImage.alt = "AI 생성 결과";
+            if (finalUrl) {
+              fromSampleResultImage.src = finalUrl;
+              fromSampleResultImage.alt = hasStage1 ? "Stage2 최종 결과" : "AI 생성 결과";
             } else {
               fromSampleResultImage.removeAttribute("src");
             }
           }
           if (fromSampleResultZoomButton) {
-            fromSampleResultZoomButton.disabled = !comparisonEditedImage;
+            fromSampleResultZoomButton.disabled = !finalUrl;
           }
           recommendedComparisonSlider.classList.add("hidden");
           recommendedZoomButton.classList.add("hidden");
@@ -27139,7 +27319,8 @@ ${modeExample}`;
           console.log("[client][render-results][from-sample-compare]", {
             successCount: imageUrls.length,
             hasOriginal: Boolean(comparisonOriginalImage),
-            hasResult: Boolean(comparisonEditedImage),
+            hasStage1,
+            hasResult: Boolean(finalUrl),
             sampleFileName: generationMeta?.sampleFileName || "",
           });
           return;
@@ -27149,6 +27330,10 @@ ${modeExample}`;
         if (resultSectionTitle) resultSectionTitle.textContent = "추천 결과";
         if (fromSampleResultCompare) fromSampleResultCompare.hidden = true;
         if (fromSampleResultZoomButton) fromSampleResultZoomButton.disabled = true;
+        if (fromSampleStage1Panel) fromSampleStage1Panel.hidden = true;
+        if (fromSampleResultPair) fromSampleResultPair.classList.remove("has-stage1");
+        if (fromSampleFinalLabel) fromSampleFinalLabel.textContent = "결과";
+        if (fromSampleFinalSubLabel) fromSampleFinalSubLabel.hidden = true;
         if (resultScrollHint) resultScrollHint.hidden = false;
         if (resultCardsSection) resultCardsSection.hidden = false;
         if (resultGalleryRewardCard) resultGalleryRewardCard.hidden = false;
@@ -27295,7 +27480,25 @@ ${modeExample}`;
         originalImageUrl = normalizeUrlValue(data.originalImageUrl);
         originalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, originalImageUrl);
         originalImagePath = normalizeUrlValue(data.originalImagePath);
-        imageUrls = data.imageUrls.map(normalizeUrlValue).filter(Boolean);
+        const stageUrls = resolveFromSampleStageUrls(data);
+        fromSampleEnvironmentResultUrl = normalizeUrlValue(
+          data.environmentResultUrl
+          || data.generationMeta?.environmentResultUrl
+          || stageUrls.environmentResultUrl
+          || "",
+        );
+        const finalResultUrl = normalizeUrlValue(
+          data.finalResultUrl
+          || data.generationMeta?.finalResultUrl
+          || stageUrls.finalResultUrl
+          || "",
+        );
+        imageUrls = (Array.isArray(data.imageUrls) ? data.imageUrls : [])
+          .map(normalizeUrlValue)
+          .filter(Boolean);
+        if (finalResultUrl) {
+          imageUrls = [finalResultUrl, ...imageUrls.filter((url) => url !== finalResultUrl)].slice(0, 4);
+        }
         imageScores = data.scores;
         failedImages = data.failedImages;
         const resolvedJobId = String(
@@ -27314,11 +27517,26 @@ ${modeExample}`;
           data.generationMeta?.generationId ||
           createClientGenerationId();
         currentGenerationGalleryUploadIndex = null;
+        const previousMeta = generationMeta || {};
+        const resolvedSource = String(
+          data.generationMeta?.source
+          || data.source
+          || previousMeta.source
+          || (fromSampleEnvironmentResultUrl || data.environmentResultUrl || previousMeta.environmentResultUrl ? "from_sample" : "")
+          || (previousMeta.runPath === FROM_SAMPLE_GENERATION_RUN_PATH ? "from_sample" : "")
+          || "",
+        ).trim();
         generationMeta = {
+          ...previousMeta,
           ...(data.generationMeta || {}),
-          jobId: resolvedJobId || data.generationMeta?.jobId || data.generationMeta?.job_id || currentGenerationJobId || "",
+          jobId: resolvedJobId || data.generationMeta?.jobId || data.generationMeta?.job_id || currentGenerationJobId || previousMeta.jobId || "",
           generationId: resolvedMetaGenerationId || currentGenerationId,
           locationPreset: resultLocationPreset,
+          source: resolvedSource || previousMeta.source || "",
+          environmentResultUrl: fromSampleEnvironmentResultUrl || data.generationMeta?.environmentResultUrl || previousMeta.environmentResultUrl || "",
+          finalResultUrl: finalResultUrl || data.generationMeta?.finalResultUrl || imageUrls[0] || previousMeta.finalResultUrl || "",
+          runPath: data.generationMeta?.runPath || previousMeta.runPath || "",
+          sampleFileName: data.generationMeta?.sampleFileName || previousMeta.sampleFileName || "",
         };
         imageMetadata = indexImageMetadata(data.imageMetadata);
         variantLabels = normalizeVariantLabelsForMode(data.variantLabels.length
@@ -27333,6 +27551,8 @@ ${modeExample}`;
           failedCount: failedImages.length,
           initialRecommendedIndex: recommendedIndex,
           initialDisplayOrder: resultDisplayOrder,
+          hasEnvironmentResult: Boolean(fromSampleEnvironmentResultUrl),
+          hasFinalResult: Boolean(finalResultUrl || imageUrls[0]),
         });
         renderResults();
         persistResultState();
@@ -27347,6 +27567,7 @@ ${modeExample}`;
         console.log("[client][slider-inputs]", {
           originalImageUrl: originalImageUrl || "local-preview-data-url",
           recommendedImageUrl: Number.isInteger(recommendedIndex) ? imageUrls[recommendedIndex] : imageUrls[0],
+          environmentResultUrl: fromSampleEnvironmentResultUrl || "",
         });
         console.log("[client][grok-edit] generation success:", sanitizeLogValue(data));
       }

@@ -4199,6 +4199,31 @@
         background: transparent;
       }
 
+      .from-sample-result-media img[hidden] {
+        display: none !important;
+      }
+
+      .from-sample-original-fallback {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 18px;
+        text-align: center;
+        color: #8a737a;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.45;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(248, 238, 241, 0.72));
+      }
+
+      .from-sample-original-fallback[hidden] {
+        display: none !important;
+      }
+
       .from-sample-result-media .logo-watermark {
         z-index: 2;
       }
@@ -9031,6 +9056,7 @@ AI가 추천해드려요.</p>
                     </div>
                     <div class="from-sample-result-media">
                       <img alt="업로드 원본 사진" draggable="false" id="fromSampleOriginalImage" />
+                      <p class="from-sample-original-fallback" hidden>원본 미리보기를 불러오지 못했어요. 마이포토박스에서 확인할 수 있어요.</p>
                     </div>
                   </figure>
                   <figure class="from-sample-result-panel is-stage1" id="fromSampleStage1Panel" data-from-sample-stage="stage1" hidden>
@@ -11208,6 +11234,11 @@ Important:
       let originalImageUrl = "";
       let originalThumbnailUrl = "";
       let originalImagePath = "";
+      // Local preview snapshot for from-sample compare. Survives clearResults() during generation
+      // so the 원본 panel/lightbox can keep showing the uploaded photo even when the API
+      // omits a browser-displayable originalImageUrl (private storage path only).
+      let fromSampleOriginalPreviewUrl = "";
+      let fromSampleOriginalPreviewObjectUrl = "";
       let fromSampleEnvironmentResultUrl = "";
       let imageUrls = [];
       let imageScores = [];
@@ -20968,6 +20999,7 @@ Important:
           styleCategory: "from_sample",
           sampleFileName,
         });
+        captureFromSampleOriginalPreview();
         clearResults();
         setAppScreen("generating");
         setGenerationPendingStatus("사진을 만들고 있어요.");
@@ -21658,12 +21690,107 @@ Important:
         const url = normalizeUrlValue(value);
         if (!url) return "";
         if (/^(https?:|data:image\/|blob:)/i.test(url) || url.startsWith("/")) return url;
-        if (/^uploads\//i.test(url)) return "";
+        // Private storage object keys are not browser-loadable as-is.
+        if (/^uploads\//i.test(url) || /^user(?:s)?\//i.test(url) || /^generations?\//i.test(url)) return "";
         return url;
       }
 
       function firstBrowserImageUrlValue(...values) {
         return values.map(normalizeBrowserImageUrlValue).find(Boolean) || "";
+      }
+
+      function stripImageUrlCacheBuster(url) {
+        const normalized = normalizeUrlValue(url);
+        if (!normalized || normalized.startsWith("data:image/") || normalized.startsWith("blob:")) {
+          return normalized;
+        }
+        try {
+          const parsed = new URL(normalized, window.location.origin);
+          parsed.searchParams.delete("t");
+          return parsed.toString();
+        } catch (error) {
+          return normalized.replace(/([?&])t=\d+(&|$)/, "$1").replace(/[?&]$/, "");
+        }
+      }
+
+      function sameDisplayImageUrl(left, right) {
+        const a = stripImageUrlCacheBuster(left);
+        const b = stripImageUrlCacheBuster(right);
+        return Boolean(a && b && a === b);
+      }
+
+      function revokeFromSampleOriginalPreviewObjectUrl() {
+        if (!fromSampleOriginalPreviewObjectUrl) return;
+        try {
+          URL.revokeObjectURL(fromSampleOriginalPreviewObjectUrl);
+        } catch (error) {
+          // ignore revoke failures
+        }
+        if (fromSampleOriginalPreviewUrl === fromSampleOriginalPreviewObjectUrl) {
+          fromSampleOriginalPreviewUrl = "";
+        }
+        fromSampleOriginalPreviewObjectUrl = "";
+      }
+
+      function clearFromSampleOriginalPreview() {
+        revokeFromSampleOriginalPreviewObjectUrl();
+        fromSampleOriginalPreviewUrl = "";
+      }
+
+      function captureFromSampleOriginalPreview(preferredUrl = "") {
+        const preferred = firstBrowserImageUrlValue(preferredUrl);
+        if (preferred) {
+          if (preferred !== fromSampleOriginalPreviewObjectUrl) {
+            revokeFromSampleOriginalPreviewObjectUrl();
+          }
+          fromSampleOriginalPreviewUrl = preferred;
+          return fromSampleOriginalPreviewUrl;
+        }
+
+        const existing = firstBrowserImageUrlValue(
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+          originalImageUrl,
+          originalThumbnailUrl,
+        );
+        if (existing) {
+          fromSampleOriginalPreviewUrl = existing;
+          return fromSampleOriginalPreviewUrl;
+        }
+
+        if (selectedFile instanceof Blob) {
+          revokeFromSampleOriginalPreviewObjectUrl();
+          fromSampleOriginalPreviewObjectUrl = URL.createObjectURL(selectedFile);
+          fromSampleOriginalPreviewUrl = fromSampleOriginalPreviewObjectUrl;
+          return fromSampleOriginalPreviewUrl;
+        }
+
+        return "";
+      }
+
+      function resolveFromSampleOriginalDisplayUrl(extra = {}) {
+        const attrSrc = fromSampleOriginalImage?.getAttribute?.("src") || "";
+        return firstBrowserImageUrlValue(
+          extra.originalImageUrl,
+          extra.originalThumbnailUrl,
+          extra.originalImage,
+          extra.original_image_url,
+          extra.original_thumbnail_url,
+          extra.imageUrl,
+          extra.image_url,
+          originalImageUrl,
+          originalThumbnailUrl,
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+          generationMeta?.originalImageUrl,
+          generationMeta?.originalPreviewUrl,
+          generationMeta?.originalThumbnailUrl,
+          generationMeta?.original_image_url,
+          fromSampleOriginalImage?.currentSrc,
+          attrSrc,
+          // Storage object keys are not displayable, but keep absolute API paths.
+          originalImagePath?.startsWith?.("/") ? originalImagePath : "",
+        );
       }
 
       function isSignedImageUrl(url) {
@@ -22307,12 +22434,21 @@ Important:
           results: resultItems,
           generationId,
           jobId: safeJobId,
-          originalImageUrl: firstUrlValue(rawResult.originalImageUrl, rawResult.original_image_url, originalImageUrl, selectedImageDataUrl),
-          originalThumbnailUrl: firstUrlValue(
+          originalImageUrl: firstBrowserImageUrlValue(
+            rawResult.originalImageUrl,
+            rawResult.original_image_url,
+            rawResult.originalImage,
+            originalImageUrl,
+            fromSampleOriginalPreviewUrl,
+            selectedImageDataUrl,
+          ),
+          originalThumbnailUrl: firstBrowserImageUrlValue(
             rawResult.originalThumbnailUrl,
             rawResult.original_thumbnail_url,
             rawResult.originalImageUrl,
+            originalThumbnailUrl,
             originalImageUrl,
+            fromSampleOriginalPreviewUrl,
             selectedImageDataUrl,
           ),
           originalImagePath: normalizeUrlValue(rawResult.originalImagePath || rawResult.original_image_path || originalImagePath),
@@ -22347,12 +22483,54 @@ Important:
           ? { ...data, ok: data.ok !== false }
           : buildApplyPayloadFromJobResult(data, jobId);
         const stageUrls = resolveFromSampleStageUrls({ ...data, ...built });
+        const resolvedOriginalImageUrl = firstBrowserImageUrlValue(
+          built.originalImageUrl,
+          built.originalThumbnailUrl,
+          built.originalImage,
+          built.original_image_url,
+          data.originalImageUrl,
+          data.original_image_url,
+          data.originalImage,
+          data.generationMeta?.originalImageUrl,
+          data.generationMeta?.originalPreviewUrl,
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+          originalImageUrl,
+        ) || captureFromSampleOriginalPreview();
         return {
           ...built,
+          originalImageUrl: resolvedOriginalImageUrl,
+          originalThumbnailUrl: firstBrowserImageUrlValue(
+            built.originalThumbnailUrl,
+            built.original_thumbnail_url,
+            resolvedOriginalImageUrl,
+            fromSampleOriginalPreviewUrl,
+            selectedImageDataUrl,
+          ),
+          originalImagePath: normalizeUrlValue(
+            built.originalImagePath
+            || built.original_image_path
+            || data.originalImagePath
+            || data.original_image_path
+            || originalImagePath,
+          ),
           environmentResultUrl: built.environmentResultUrl || stageUrls.environmentResultUrl || "",
           finalResultUrl: built.finalResultUrl || stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
           generationMeta: {
             ...(built.generationMeta || {}),
+            originalImageUrl: resolvedOriginalImageUrl,
+            originalPreviewUrl: fromSampleOriginalPreviewUrl || resolvedOriginalImageUrl,
+            originalThumbnailUrl: firstBrowserImageUrlValue(
+              built.originalThumbnailUrl,
+              resolvedOriginalImageUrl,
+              fromSampleOriginalPreviewUrl,
+            ),
+            originalImagePath: normalizeUrlValue(
+              built.originalImagePath
+              || built.generationMeta?.originalImagePath
+              || data.originalImagePath
+              || originalImagePath,
+            ),
             environmentResultUrl: built.environmentResultUrl || built.generationMeta?.environmentResultUrl || stageUrls.environmentResultUrl || "",
             finalResultUrl: built.finalResultUrl || built.generationMeta?.finalResultUrl || stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
           },
@@ -22986,6 +23164,11 @@ Important:
         comparisonBeforeImage.removeAttribute("src");
         comparisonAfterImage.removeAttribute("src");
         fromSampleOriginalImage?.removeAttribute("src");
+        if (fromSampleOriginalImage) fromSampleOriginalImage.hidden = false;
+        const originalFallback = fromSampleOriginalImage
+          ?.closest?.(".from-sample-result-media")
+          ?.querySelector?.(".from-sample-original-fallback");
+        if (originalFallback) originalFallback.hidden = true;
         fromSampleStage1Image?.removeAttribute("src");
         fromSampleResultImage?.removeAttribute("src");
         setComparisonSliderPosition(50);
@@ -23043,10 +23226,16 @@ Important:
         try {
           window.sessionStorage.setItem(RESULT_STATE_STORAGE_KEY, JSON.stringify({
             imageUrls,
-            originalImageUrl,
+            originalImageUrl: firstBrowserImageUrlValue(originalImageUrl, fromSampleOriginalPreviewUrl) || originalImageUrl,
             originalThumbnailUrl,
             originalImagePath,
             fromSampleEnvironmentResultUrl,
+            // Prefer http(s)/relative over huge data: URLs for session restore.
+            fromSampleOriginalPreviewUrl: (() => {
+              const preview = firstBrowserImageUrlValue(fromSampleOriginalPreviewUrl, originalImageUrl);
+              if (!preview || preview.startsWith("data:image/") || preview.startsWith("blob:")) return "";
+              return preview;
+            })(),
             imageScores,
             variantLabels,
             failedImages,
@@ -23094,9 +23283,30 @@ Important:
         if (!imageUrls.length) {
           return false;
         }
-        originalImageUrl = normalizeUrlValue(storedState.originalImageUrl);
-        originalThumbnailUrl = firstUrlValue(storedState.originalThumbnailUrl, originalImageUrl);
-        originalImagePath = normalizeUrlValue(storedState.originalImagePath);
+        originalImageUrl = firstBrowserImageUrlValue(
+          storedState.originalImageUrl,
+          storedState.originalThumbnailUrl,
+          storedState.fromSampleOriginalPreviewUrl,
+          storedState.generationMeta?.originalImageUrl,
+          storedState.generationMeta?.originalPreviewUrl,
+          storedState.generationMeta?.originalThumbnailUrl,
+          selectedImageDataUrl,
+        );
+        originalThumbnailUrl = firstBrowserImageUrlValue(
+          storedState.originalThumbnailUrl,
+          originalImageUrl,
+        );
+        originalImagePath = normalizeUrlValue(
+          storedState.originalImagePath
+          || storedState.generationMeta?.originalImagePath
+          || "",
+        );
+        fromSampleOriginalPreviewUrl = firstBrowserImageUrlValue(
+          storedState.fromSampleOriginalPreviewUrl,
+          storedState.generationMeta?.originalPreviewUrl,
+          originalImageUrl,
+          selectedImageDataUrl,
+        );
         fromSampleEnvironmentResultUrl = normalizeUrlValue(
           storedState.fromSampleEnvironmentResultUrl
           || storedState.generationMeta?.environmentResultUrl
@@ -24359,7 +24569,13 @@ ${modeExample}`;
         const identityUpload = await prepareFromSampleIdentityUpload(imageFile);
         const originalUpload = await uploadImageToPrivateStorage(identityUpload.file);
         const imagePath = originalUpload.imagePath || originalUpload.path || "";
-        const uploadedOriginalImageUrl = originalUpload.imageUrl || "";
+        const uploadedOriginalImageUrl = firstBrowserImageUrlValue(
+          originalUpload.imageUrl,
+          originalUpload.publicUrl,
+          originalUpload.publicURL,
+          originalUpload.public_url,
+        );
+        captureFromSampleOriginalPreview(uploadedOriginalImageUrl || selectedImageDataUrl);
         const fileInfo = getFileDebugInfo(identityUpload.file);
         const useFreeGeneration = lastGenerationUsedFreeCredit === true;
 
@@ -24534,8 +24750,27 @@ ${modeExample}`;
         const responseHasWatermark = data.hasWatermark === true || data.has_watermark === true || responseIsFreeGeneration;
         const responseWatermarkRequired = data.watermarkRequired === true || data.watermark_required === true || responseHasWatermark;
         const responseWatermarkStrategy = data.watermarkStrategy || data.watermark_strategy || "";
-        const responseOriginalImageUrl = firstUrlValue(data.originalImageUrl, data.original_image_url, data.originalImage, uploadedOriginalImageUrl);
-        const responseOriginalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, data.original_thumbnail_url, responseOriginalImageUrl);
+        const responseOriginalImageUrl = firstBrowserImageUrlValue(
+          data.originalImageUrl,
+          data.original_image_url,
+          data.originalImage,
+          data.original_image,
+          data.inputImageUrl,
+          data.input_image_url,
+          uploadedOriginalImageUrl,
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+        ) || captureFromSampleOriginalPreview();
+        const responseOriginalThumbnailUrl = firstBrowserImageUrlValue(
+          data.originalThumbnailUrl,
+          data.original_thumbnail_url,
+          responseOriginalImageUrl,
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+        );
+        if (responseOriginalImageUrl) {
+          captureFromSampleOriginalPreview(responseOriginalImageUrl);
+        }
         const stageUrls = resolveFromSampleStageUrls({
           ...data,
           results: resultItems,
@@ -24583,6 +24818,10 @@ ${modeExample}`;
             watermarkStrategy: responseWatermarkStrategy,
             sampleFileName: safeSampleFileName,
             source: "from_sample",
+            originalImageUrl: responseOriginalImageUrl,
+            originalPreviewUrl: fromSampleOriginalPreviewUrl || responseOriginalImageUrl,
+            originalThumbnailUrl: responseOriginalThumbnailUrl,
+            originalImagePath: imagePath,
             environmentResultUrl: stageUrls.environmentResultUrl || "",
             finalResultUrl,
           },
@@ -27254,27 +27493,21 @@ ${modeExample}`;
       }
 
       function getFromSampleCompareModalItems() {
-        const originalUrl = toDisplayUrl(
-          originalImageUrl
-          || selectedImageDataUrl
-          || fromSampleOriginalImage?.currentSrc
-          || fromSampleOriginalImage?.src
-          || "",
-        );
+        const originalUrl = toDisplayUrl(resolveFromSampleOriginalDisplayUrl());
         const stage1Url = toDisplayUrl(
           fromSampleEnvironmentResultUrl
           || generationMeta?.environmentResultUrl
           || imageMetadata?.[0]?.environmentResultUrl
           || imageMetadata?.[0]?.environment_result_url
           || fromSampleStage1Image?.currentSrc
-          || fromSampleStage1Image?.src
+          || fromSampleStage1Image?.getAttribute?.("src")
           || "",
         );
         const stage2Url = toDisplayUrl(
           generationMeta?.finalResultUrl
           || imageUrls[0]
           || fromSampleResultImage?.currentSrc
-          || fromSampleResultImage?.src
+          || fromSampleResultImage?.getAttribute?.("src")
           || "",
         );
         const items = [];
@@ -27287,7 +27520,7 @@ ${modeExample}`;
             isRecommended: false,
           });
         }
-        if (stage1Url && stage1Url !== originalUrl && stage1Url !== stage2Url) {
+        if (stage1Url && !sameDisplayImageUrl(stage1Url, originalUrl) && !sameDisplayImageUrl(stage1Url, stage2Url)) {
           items.push({
             url: stage1Url,
             label: "Stage1 · 환경 변경",
@@ -27296,7 +27529,7 @@ ${modeExample}`;
             isRecommended: false,
           });
         }
-        if (stage2Url) {
+        if (stage2Url && !sameDisplayImageUrl(stage2Url, originalUrl)) {
           const hasStage1 = items.some((item) => item.fromSampleStage === "stage1");
           items.push({
             url: stage2Url,
@@ -27444,9 +27677,9 @@ ${modeExample}`;
           || normalizeUrlValue(fromSampleEnvironmentResultUrl)
           || normalizeUrlValue(generationMeta?.finalResultUrl)
           || normalizeUrlValue(generationMeta?.environmentResultUrl)
-          || normalizeUrlValue(fromSampleResultImage?.currentSrc || fromSampleResultImage?.src)
-          || normalizeUrlValue(fromSampleStage1Image?.currentSrc || fromSampleStage1Image?.src)
-          || normalizeUrlValue(fromSampleOriginalImage?.currentSrc || fromSampleOriginalImage?.src),
+          || normalizeUrlValue(resolveFromSampleOriginalDisplayUrl())
+          || normalizeUrlValue(fromSampleResultImage?.currentSrc || fromSampleResultImage?.getAttribute?.("src"))
+          || normalizeUrlValue(fromSampleStage1Image?.currentSrc || fromSampleStage1Image?.getAttribute?.("src")),
         );
       }
 
@@ -27479,6 +27712,7 @@ ${modeExample}`;
         closeImageModal({ useHistory: false });
         closePhotoSaveModal();
         clearResults();
+        clearFromSampleOriginalPreview();
         selectedFile = null;
         selectedImageDataUrl = "";
         if (photoInput) {
@@ -27600,7 +27834,8 @@ ${modeExample}`;
 
         const mainIndex = Number.isInteger(recommendedIndex) && imageUrls.length ? recommendedIndex : 0;
         const selectedUrl = imageUrls[mainIndex] || selectedImageDataUrl;
-        const comparisonOriginalImage = originalImageUrl ? toDisplayUrl(originalImageUrl) : selectedImageDataUrl;
+        const resolvedOriginalDisplayUrl = resolveFromSampleOriginalDisplayUrl();
+        const comparisonOriginalImage = resolvedOriginalDisplayUrl ? toDisplayUrl(resolvedOriginalDisplayUrl) : "";
         const comparisonEditedImage = imageUrls.length ? toDisplayUrl(selectedUrl) : "";
         const allResultImages = getAllResultImages();
         const useFromSampleCompare = isFromSampleResultView();
@@ -27644,11 +27879,26 @@ ${modeExample}`;
           if (fromSampleResultPair) fromSampleResultPair.classList.toggle("has-stage1", hasStage1);
 
           if (fromSampleOriginalImage) {
+            const originalMedia = fromSampleOriginalImage.closest(".from-sample-result-media");
+            let originalFallback = originalMedia?.querySelector?.(".from-sample-original-fallback") || null;
             if (comparisonOriginalImage) {
+              fromSampleOriginalImage.hidden = false;
               fromSampleOriginalImage.src = comparisonOriginalImage;
               fromSampleOriginalImage.alt = "업로드 원본 사진";
+              if (originalFallback) originalFallback.hidden = true;
+              if (originalImageUrl !== resolvedOriginalDisplayUrl) {
+                originalImageUrl = resolvedOriginalDisplayUrl;
+              }
             } else {
               fromSampleOriginalImage.removeAttribute("src");
+              fromSampleOriginalImage.hidden = true;
+              if (originalMedia && !originalFallback) {
+                originalFallback = document.createElement("p");
+                originalFallback.className = "from-sample-original-fallback";
+                originalFallback.textContent = "원본 미리보기를 불러오지 못했어요. 마이포토박스에서 확인할 수 있어요.";
+                originalMedia.appendChild(originalFallback);
+              }
+              if (originalFallback) originalFallback.hidden = false;
             }
           }
 
@@ -27695,6 +27945,13 @@ ${modeExample}`;
             hasStage1,
             hasResult: Boolean(finalUrl),
             sampleFileName: generationMeta?.sampleFileName || "",
+            originalSource: comparisonOriginalImage
+              ? (selectedImageDataUrl && sameDisplayImageUrl(comparisonOriginalImage, selectedImageDataUrl)
+                ? "local-preview"
+                : (fromSampleOriginalPreviewUrl && sameDisplayImageUrl(comparisonOriginalImage, fromSampleOriginalPreviewUrl)
+                  ? "preview-snapshot"
+                  : "resolved-url"))
+              : "missing",
           });
           return;
         }
@@ -27850,9 +28107,35 @@ ${modeExample}`;
         resultLocationPreset = !isDisneyMode(activeGenerationMode)
           ? (data.locationPreset || data.generationMeta?.locationPreset || selectedLocationPreset || "eiffel")
           : "eiffel";
-        originalImageUrl = normalizeUrlValue(data.originalImageUrl);
-        originalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, originalImageUrl);
-        originalImagePath = normalizeUrlValue(data.originalImagePath);
+        originalImageUrl = firstBrowserImageUrlValue(
+          data.originalImageUrl,
+          data.originalThumbnailUrl,
+          data.originalImage,
+          data.original_image_url,
+          data.original_thumbnail_url,
+          data.generationMeta?.originalImageUrl,
+          data.generationMeta?.originalPreviewUrl,
+          data.generationMeta?.originalThumbnailUrl,
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+          originalImageUrl,
+        ) || captureFromSampleOriginalPreview();
+        originalThumbnailUrl = firstBrowserImageUrlValue(
+          data.originalThumbnailUrl,
+          data.original_thumbnail_url,
+          originalImageUrl,
+          fromSampleOriginalPreviewUrl,
+          selectedImageDataUrl,
+        );
+        originalImagePath = normalizeUrlValue(
+          data.originalImagePath
+          || data.original_image_path
+          || data.generationMeta?.originalImagePath
+          || originalImagePath,
+        );
+        if (originalImageUrl) {
+          captureFromSampleOriginalPreview(originalImageUrl);
+        }
         const stageUrls = resolveFromSampleStageUrls(data);
         fromSampleEnvironmentResultUrl = normalizeUrlValue(
           data.environmentResultUrl
@@ -27906,6 +28189,10 @@ ${modeExample}`;
           generationId: resolvedMetaGenerationId || currentGenerationId,
           locationPreset: resultLocationPreset,
           source: resolvedSource || previousMeta.source || "",
+          originalImageUrl: originalImageUrl || previousMeta.originalImageUrl || "",
+          originalPreviewUrl: fromSampleOriginalPreviewUrl || originalImageUrl || previousMeta.originalPreviewUrl || "",
+          originalThumbnailUrl: originalThumbnailUrl || previousMeta.originalThumbnailUrl || "",
+          originalImagePath: originalImagePath || previousMeta.originalImagePath || "",
           environmentResultUrl: fromSampleEnvironmentResultUrl || data.generationMeta?.environmentResultUrl || previousMeta.environmentResultUrl || "",
           finalResultUrl: finalResultUrl || data.generationMeta?.finalResultUrl || imageUrls[0] || previousMeta.finalResultUrl || "",
           runPath: data.generationMeta?.runPath || previousMeta.runPath || "",
@@ -27938,9 +28225,10 @@ ${modeExample}`;
         }
         setStatus(data.warningMessage || RECOMMENDATION_DESCRIPTION);
         console.log("[client][slider-inputs]", {
-          originalImageUrl: originalImageUrl || "local-preview-data-url",
+          originalImageUrl: originalImageUrl || fromSampleOriginalPreviewUrl || "local-preview-data-url",
           recommendedImageUrl: Number.isInteger(recommendedIndex) ? imageUrls[recommendedIndex] : imageUrls[0],
           environmentResultUrl: fromSampleEnvironmentResultUrl || "",
+          hasFromSampleOriginalPreview: Boolean(fromSampleOriginalPreviewUrl),
         });
         console.log("[client][grok-edit] generation success:", sanitizeLogValue(data));
       }
@@ -29993,6 +30281,7 @@ ${modeExample}`;
             sourceSection.classList.add("hidden");
           }
           selectedImageDataUrl = "";
+          clearFromSampleOriginalPreview();
           if (isPhotoRecommendationFlowActive()) {
             clearTemporaryRecommendationPreviewTimer();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
@@ -30034,6 +30323,7 @@ ${modeExample}`;
         });
         try {
           selectedImageDataUrl = await readFileAsDataUrl(selectedFile);
+          captureFromSampleOriginalPreview(selectedImageDataUrl);
           if (isPhotoRecommendationFlowActive()) {
             clearTemporaryRecommendationPreviewTimer();
             photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
@@ -30050,6 +30340,7 @@ ${modeExample}`;
           window.trackEvent?.("photo_upload_success");
         } catch (error) {
           selectedImageDataUrl = "";
+          clearFromSampleOriginalPreview();
           if (isPhotoRecommendationFlowActive()) {
             syncPhotoRecommendationFlowUi();
           } else {

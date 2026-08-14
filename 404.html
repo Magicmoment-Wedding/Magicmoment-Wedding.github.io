@@ -22021,6 +22021,15 @@ Important:
             ...(result.generationMeta || result.generation_meta || {}),
             jobId: built.jobId || jobId,
             generationId: built.generationId,
+            source:
+              result.generationMeta?.source
+              || payload.generationMeta?.source
+              || built.generationMeta?.source
+              || generationMeta?.source
+              || (payload.sampleFileName || result.sampleFileName || built.generationMeta?.sampleFileName || stageUrls.environmentResultUrl
+                ? "from_sample"
+                : ""),
+            sampleFileName: payload.sampleFileName || result.sampleFileName || built.generationMeta?.sampleFileName || "",
             environmentResultUrl: stageUrls.environmentResultUrl || "",
             finalResultUrl: stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
           },
@@ -22047,55 +22056,71 @@ Important:
 
       function resolveFromSampleStageUrls(payload = {}) {
         const pickUrl = (...values) => values.map(normalizeUrlValue).find(Boolean) || "";
-        const sources = [
-          payload,
-          payload?.data,
-          payload?.result,
-          payload?.resultPayload,
-          payload?.result_payload,
-          payload?.generationMeta,
-          payload?.generation_meta,
-          ...(Array.isArray(payload?.results) ? payload.results : []),
-          ...(Array.isArray(payload?.savedPhotos) ? payload.savedPhotos : []),
-          ...(Array.isArray(payload?.images) ? payload.images : []),
-          ...(Array.isArray(payload?.imageMetadata) ? payload.imageMetadata : []),
-        ].filter((value) => value && typeof value === "object");
+        const seen = new Set();
+        const acc = {
+          environmentResultUrl: "",
+          finalResultUrl: "",
+        };
 
-        let environmentResultUrl = "";
-        let finalResultUrl = "";
+        const readEnvironmentUrl = (source = {}) => pickUrl(
+          source.environmentResultUrl,
+          source.environment_result_url,
+          source.stage1Url,
+          source.stage1_url,
+          source.environmentImageUrl,
+          source.environment_image_url,
+        );
+        const readFinalUrl = (source = {}) => pickUrl(
+          source.finalResultUrl,
+          source.final_result_url,
+          source.stage2Url,
+          source.stage2_url,
+        );
 
-        sources.forEach((source) => {
-          if (!environmentResultUrl) {
-            environmentResultUrl = pickUrl(
-              source.environmentResultUrl,
-              source.environment_result_url,
-              source.stage1Url,
-              source.stage1_url,
-              source.environmentImageUrl,
-              source.environment_image_url,
-            );
+        const visit = (value, depth = 0) => {
+          if (!value || depth > 6 || typeof value !== "object" || seen.has(value)) return;
+          seen.add(value);
+
+          if (Array.isArray(value)) {
+            value.forEach((item) => visit(item, depth + 1));
+            return;
           }
-          if (!finalResultUrl) {
-            finalResultUrl = pickUrl(
-              source.finalResultUrl,
-              source.final_result_url,
-              source.stage2Url,
-              source.stage2_url,
-              source.imageUrl,
-              source.image_url,
-              getGeneratedResultImageUrl(source),
-            );
-          }
-        });
 
-        if (!finalResultUrl && Array.isArray(payload?.imageUrls)) {
-          finalResultUrl = pickUrl(...payload.imageUrls);
+          if (!acc.environmentResultUrl) acc.environmentResultUrl = readEnvironmentUrl(value);
+          if (!acc.finalResultUrl) acc.finalResultUrl = readFinalUrl(value);
+
+          visit(value.data, depth + 1);
+          visit(value.result, depth + 1);
+          visit(value.resultPayload, depth + 1);
+          visit(value.result_payload, depth + 1);
+          visit(value.generationMeta, depth + 1);
+          visit(value.generation_meta, depth + 1);
+          visit(value.savedPhotos, depth + 1);
+          visit(value.images, depth + 1);
+          visit(value.results, depth + 1);
+          visit(value.photos, depth + 1);
+          visit(value.items, depth + 1);
+          visit(value.imageMetadata, depth + 1);
+        };
+
+        visit(payload);
+
+        if (!acc.finalResultUrl) {
+          acc.finalResultUrl = pickUrl(
+            ...(Array.isArray(payload?.imageUrls) ? payload.imageUrls : []),
+            payload?.imageUrl,
+            payload?.image_url,
+            getGeneratedResultImageUrl(payload),
+          );
+        }
+        if (!acc.finalResultUrl) {
+          const firstPhoto = []
+            .concat(payload?.savedPhotos, payload?.images, payload?.results, payload?.photos, payload?.items)
+            .find((item) => item && typeof item === "object");
+          if (firstPhoto) acc.finalResultUrl = getGeneratedResultImageUrl(firstPhoto);
         }
 
-        return {
-          environmentResultUrl,
-          finalResultUrl,
-        };
+        return acc;
       }
 
       function collectGenerationResultPayloadSources(payload = {}) {
@@ -22203,6 +22228,13 @@ Important:
           "",
         ).trim();
         const resultItems = normalizeGenerationResultItems(rawResult);
+        const stageUrls = resolveFromSampleStageUrls({
+          ...rawResult,
+          results: resultItems,
+          savedPhotos: resultItems,
+          images: resultItems,
+          imageMetadata: resultItems,
+        });
         const successfulResults = resultItems.filter((item) => item.ok !== false && getGeneratedResultImageUrl(item));
         const failedResults = resultItems.filter((item) => item && item.ok === false);
         const imageUrls = successfulResults
@@ -22228,6 +22260,8 @@ Important:
           ),
           originalImagePath: normalizeUrlValue(rawResult.originalImagePath || rawResult.original_image_path || originalImagePath),
           imageUrls,
+          environmentResultUrl: stageUrls.environmentResultUrl || "",
+          finalResultUrl: stageUrls.finalResultUrl || imageUrls[0] || "",
           scores: Array.isArray(rawResult.scores) ? rawResult.scores : [],
           variantLabels: Array.isArray(rawResult.variantLabels) && rawResult.variantLabels.length
             ? rawResult.variantLabels
@@ -22241,6 +22275,8 @@ Important:
             jobId: safeJobId,
             generationId: metaGenerationId,
             generationType: responseGenerationType,
+            environmentResultUrl: stageUrls.environmentResultUrl || rawResult.generationMeta?.environmentResultUrl || "",
+            finalResultUrl: stageUrls.finalResultUrl || imageUrls[0] || "",
           },
           imageMetadata: successfulResults.map((item, fallbackIndex) => ({
             ...item,
@@ -22250,10 +22286,20 @@ Important:
       }
 
       function resolveGenerationApplyPayload(data = {}, jobId = "") {
-        if (Array.isArray(data.imageUrls) && data.imageUrls.length) {
-          return { ...data, ok: data.ok !== false };
-        }
-        return buildApplyPayloadFromJobResult(data, jobId);
+        const built = Array.isArray(data.imageUrls) && data.imageUrls.length
+          ? { ...data, ok: data.ok !== false }
+          : buildApplyPayloadFromJobResult(data, jobId);
+        const stageUrls = resolveFromSampleStageUrls({ ...data, ...built });
+        return {
+          ...built,
+          environmentResultUrl: built.environmentResultUrl || stageUrls.environmentResultUrl || "",
+          finalResultUrl: built.finalResultUrl || stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
+          generationMeta: {
+            ...(built.generationMeta || {}),
+            environmentResultUrl: built.environmentResultUrl || built.generationMeta?.environmentResultUrl || stageUrls.environmentResultUrl || "",
+            finalResultUrl: built.finalResultUrl || built.generationMeta?.finalResultUrl || stageUrls.finalResultUrl || built.imageUrls?.[0] || "",
+          },
+        };
       }
 
       async function completeGenerationAndShowResult(rawResult, options = {}) {
@@ -22854,7 +22900,12 @@ Important:
 
       function isFromSampleResultView(meta = generationMeta) {
         const source = String(meta?.source || meta?.generationSource || "").trim().toLowerCase();
-        return source === "from_sample" || source === "from-sample";
+        if (source === "from_sample" || source === "from-sample") return true;
+        const runPath = String(meta?.runPath || "").trim();
+        if (runPath.includes("/generate/from-sample")) return true;
+        if (String(meta?.sampleFileName || "").trim()) return true;
+        if (normalizeUrlValue(fromSampleEnvironmentResultUrl || meta?.environmentResultUrl)) return true;
+        return false;
       }
 
       function clearResults() {
@@ -27247,12 +27298,14 @@ ${modeExample}`;
         syncSaveCopy();
 
         if (useFromSampleCompare) {
-          const environmentUrl = normalizeUrlValue(
+          const environmentUrl = toDisplayUrl(
             fromSampleEnvironmentResultUrl
             || generationMeta?.environmentResultUrl
+            || imageMetadata?.[0]?.environmentResultUrl
+            || imageMetadata?.[0]?.environment_result_url
             || "",
           );
-          const finalUrl = normalizeUrlValue(
+          const finalUrl = toDisplayUrl(
             generationMeta?.finalResultUrl
             || comparisonEditedImage
             || "",

@@ -4140,6 +4140,7 @@
         min-width: 0;
         border-radius: 24px;
         overflow: hidden;
+        cursor: pointer;
         background:
           radial-gradient(120% 80% at 50% 0%, rgba(244, 182, 195, 0.12), transparent 62%),
           rgba(255, 248, 250, 0.92);
@@ -4599,6 +4600,41 @@
 
       .image-modal-thumbnail-strip.hidden {
         display: none;
+      }
+
+      .image-modal-stage-tabs {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 0 8px;
+      }
+
+      .image-modal-stage-tabs.hidden {
+        display: none;
+      }
+
+      .image-modal-stage-tab {
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+        padding: 9px 14px;
+        cursor: pointer;
+      }
+
+      .image-modal-stage-tab.is-active {
+        background: #fff;
+        color: #81505c;
+        border-color: #fff;
+      }
+
+      .from-sample-result-panel {
+        cursor: pointer;
       }
 
       @media (max-width: 767px) {
@@ -8993,7 +9029,7 @@ AI가 추천해드려요.</p>
               </div>
               <section class="from-sample-result-compare" id="fromSampleResultCompare" hidden aria-label="원본과 생성 결과 비교">
                 <div class="from-sample-result-pair" id="fromSampleResultPair">
-                  <figure class="from-sample-result-panel is-original">
+                  <figure class="from-sample-result-panel is-original" data-from-sample-stage="original">
                     <div class="from-sample-result-panel-label">
                       <span>원본</span>
                     </div>
@@ -9001,7 +9037,7 @@ AI가 추천해드려요.</p>
                       <img alt="업로드 원본 사진" draggable="false" id="fromSampleOriginalImage" />
                     </div>
                   </figure>
-                  <figure class="from-sample-result-panel is-stage1" id="fromSampleStage1Panel" hidden>
+                  <figure class="from-sample-result-panel is-stage1" id="fromSampleStage1Panel" data-from-sample-stage="stage1" hidden>
                     <div class="from-sample-result-panel-label">
                       <span>Stage1</span>
                       <span class="from-sample-result-panel-sub">환경 변경</span>
@@ -9010,7 +9046,7 @@ AI가 추천해드려요.</p>
                       <img alt="Stage1 환경 변경 결과" draggable="false" id="fromSampleStage1Image" />
                     </div>
                   </figure>
-                  <figure class="from-sample-result-panel is-result" id="fromSampleFinalPanel">
+                  <figure class="from-sample-result-panel is-result" id="fromSampleFinalPanel" data-from-sample-stage="stage2">
                     <div class="from-sample-result-panel-label">
                       <span id="fromSampleFinalLabel">결과</span>
                       <span class="from-sample-result-panel-sub" id="fromSampleFinalSubLabel" hidden>드레스/부케 포함</span>
@@ -9957,6 +9993,7 @@ AI가 추천해드려요.</p>
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
+        <div class="image-modal-stage-tabs hidden" id="imageModalStageTabs" role="tablist" aria-label="원본과 생성 단계"></div>
         <div class="image-modal-thumbnail-strip hidden" id="imageModalThumbnailStrip" aria-label="같은 생성 결과 썸네일"></div>
         <div class="image-modal-actions flex flex-col items-center gap-2">
           <div class="grid w-full max-w-md grid-cols-[minmax(0,1fr)_120px] gap-2" id="imageModalActionsGrid">
@@ -11113,6 +11150,7 @@ Important:
       const imageModalNextMobile = document.getElementById("imageModalNextMobile");
       const imageModalCount = document.getElementById("imageModalCount");
       const imageModalThumbnailStrip = document.getElementById("imageModalThumbnailStrip");
+      const imageModalStageTabs = document.getElementById("imageModalStageTabs");
       const imageSaveModal = document.getElementById("imageSaveModal");
       const imageSaveModalImg = document.getElementById("imageSaveModalImg");
       const imageSaveModalCount = document.getElementById("imageSaveModalCount");
@@ -24767,7 +24805,9 @@ ${modeExample}`;
             aria-pressed="${index === activeIndex ? "true" : "false"}"
           >
             <img src="${escapeHtml(modalItem.url)}" alt="${escapeHtml(modalItem.label || `결과 ${index + 1}`)}" loading="lazy" decoding="async" />
-            ${modalItem.isRecommended ? `<span class="image-modal-thumbnail-recommended">AI 추천</span>` : ""}
+            ${modalItem.stageBadge
+              ? `<span class="image-modal-thumbnail-recommended">${escapeHtml(modalItem.stageBadge)}</span>`
+              : (modalItem.isRecommended ? `<span class="image-modal-thumbnail-recommended">AI 추천</span>` : "")}
           </button>
         `).join("");
 
@@ -26981,6 +27021,7 @@ ${modeExample}`;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);
         imageModalCount.textContent = `${activeImageModalIndex + 1}/${items.length}`;
         renderImageModalThumbnailStrip(items, activeImageModalIndex);
+        renderImageModalStageTabs(items, activeImageModalIndex);
         setImageModalActionsVisible(Boolean(item.url) && !isGallerySource);
         setImageModalDoneVisible(Boolean(item.url) && isFreshResultSource);
         if (imageModalGalleryUpload) {
@@ -27051,6 +27092,94 @@ ${modeExample}`;
           watermarkStrategy: result?.watermarkStrategy || result?.watermark_strategy || "",
           index: resultIndex,
         };
+      }
+
+      function getFromSampleCompareModalItems() {
+        const originalUrl = toDisplayUrl(
+          originalImageUrl
+          || selectedImageDataUrl
+          || fromSampleOriginalImage?.currentSrc
+          || fromSampleOriginalImage?.src
+          || "",
+        );
+        const stage1Url = toDisplayUrl(
+          fromSampleEnvironmentResultUrl
+          || generationMeta?.environmentResultUrl
+          || imageMetadata?.[0]?.environmentResultUrl
+          || imageMetadata?.[0]?.environment_result_url
+          || fromSampleStage1Image?.currentSrc
+          || fromSampleStage1Image?.src
+          || "",
+        );
+        const stage2Url = toDisplayUrl(
+          generationMeta?.finalResultUrl
+          || imageUrls[0]
+          || fromSampleResultImage?.currentSrc
+          || fromSampleResultImage?.src
+          || "",
+        );
+        const items = [];
+        if (originalUrl) {
+          items.push({
+            url: originalUrl,
+            label: "원본",
+            fromSampleStage: "original",
+            stageBadge: "원본",
+            isRecommended: false,
+          });
+        }
+        if (stage1Url && stage1Url !== originalUrl && stage1Url !== stage2Url) {
+          items.push({
+            url: stage1Url,
+            label: "Stage1 · 환경 변경",
+            fromSampleStage: "stage1",
+            stageBadge: "Stage1",
+            isRecommended: false,
+          });
+        }
+        if (stage2Url) {
+          const hasStage1 = items.some((item) => item.fromSampleStage === "stage1");
+          items.push({
+            url: stage2Url,
+            label: hasStage1 ? "Stage2 · 최종" : "결과",
+            fromSampleStage: "stage2",
+            stageBadge: hasStage1 ? "Stage2" : "결과",
+            isRecommended: true,
+          });
+        }
+        return items.filter((item) => item.url);
+      }
+
+      function renderImageModalStageTabs(items = getImageModalItems(), activeIndex = activeImageModalIndex) {
+        if (!imageModalStageTabs) return;
+        const safeItems = Array.isArray(items) ? items.filter((item) => item?.url) : [];
+        const showTabs = safeItems.length > 1 && safeItems.some((item) => item.fromSampleStage);
+        imageModalStageTabs.classList.toggle("hidden", !showTabs);
+        if (!showTabs) {
+          imageModalStageTabs.innerHTML = "";
+          return;
+        }
+        imageModalStageTabs.innerHTML = safeItems.map((item, index) => `
+          <button
+            class="image-modal-stage-tab${index === activeIndex ? " is-active" : ""}"
+            type="button"
+            role="tab"
+            aria-selected="${index === activeIndex ? "true" : "false"}"
+            data-image-modal-stage-index="${index}"
+          >${escapeHtml(item.stageBadge || item.label || `이미지 ${index + 1}`)}</button>
+        `).join("");
+      }
+
+      function openFromSampleCompareModal(startStage = "stage2") {
+        const items = getFromSampleCompareModalItems();
+        if (!items.length) return;
+        const requested = String(startStage || "stage2");
+        let startIndex = items.findIndex((item) => item.fromSampleStage === requested);
+        if (startIndex < 0) {
+          startIndex = items.findIndex((item) => item.fromSampleStage === "stage2");
+        }
+        if (startIndex < 0) startIndex = Math.max(0, items.length - 1);
+        openModalWithItems(items, startIndex);
       }
 
       function openSingleResultModal(result) {
@@ -27210,7 +27339,7 @@ ${modeExample}`;
 
       function isImageModalSwipeBlockedTarget(target) {
         return target instanceof Element && Boolean(target.closest(
-          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalOriginalThumb",
+          "button,a,input,textarea,select,label,[role='button'],[data-image-modal-thumb-index],[data-image-modal-stage-index],#imageModalActionsGrid,#imageModalThumbnailStrip,#imageModalStageTabs,#imageModalOriginalThumb",
         ));
       }
 
@@ -30048,13 +30177,16 @@ ${modeExample}`;
       fromSampleResultZoomButton?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        const resultUrl = imageUrls[0] || fromSampleResultImage?.currentSrc || fromSampleResultImage?.src || "";
-        if (!resultUrl) return;
-        openSingleResultModal({
-          url: toDisplayUrl(resultUrl),
-          label: "AI 생성 결과",
-          isRecommended: true,
-        });
+        openFromSampleCompareModal("stage2");
+      });
+
+      fromSampleResultCompare?.addEventListener("click", (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target || target.closest("#fromSampleResultZoomButton")) return;
+        const panel = target.closest("[data-from-sample-stage]");
+        if (!panel) return;
+        event.preventDefault();
+        openFromSampleCompareModal(panel.getAttribute("data-from-sample-stage") || "stage2");
       });
 
       resultScrollButton?.addEventListener("click", (event) => {
@@ -30136,6 +30268,18 @@ ${modeExample}`;
         if (!target) return;
 
         const index = Number.parseInt(target.dataset.imageModalThumbIndex || "", 10);
+        if (!Number.isInteger(index)) return;
+
+        activeImageModalIndex = index;
+        renderImageModal();
+      });
+      imageModalStageTabs?.addEventListener("click", (event) => {
+        const target = event.target instanceof Element
+          ? event.target.closest("[data-image-modal-stage-index]")
+          : null;
+        if (!target) return;
+
+        const index = Number.parseInt(target.getAttribute("data-image-modal-stage-index") || "", 10);
         if (!Number.isInteger(index)) return;
 
         activeImageModalIndex = index;

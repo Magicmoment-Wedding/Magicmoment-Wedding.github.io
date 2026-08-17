@@ -18,6 +18,9 @@
   const ONLINE_API_BASE_URL = "https://api.magicaistudio.co.kr";
   const ONLINE_APP_ORIGIN = "https://magicaistudio.co.kr";
   const EXPECTED_SUPABASE_URL = "https://rzlvfuyzofzqghzooqsi.supabase.co";
+  // Toss client key is preferably returned by /api/payments/toss/prepare.
+  // Optional frontend fallback for local testing only (never put Secret Key here).
+  const TOSS_CLIENT_KEY = String(window.TOSS_CLIENT_KEY || "").trim();
 
   function normalizeAppOrigin(value) {
     try {
@@ -57,6 +60,7 @@
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
     GOOGLE_LOGIN_ENABLED,
+    TOSS_CLIENT_KEY,
     IS_API_PLACEHOLDER: false,
     IS_ONLINE_API_PLACEHOLDER: false,
   };

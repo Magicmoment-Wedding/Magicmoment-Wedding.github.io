@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>결제 확인 중 | Magic AI Studio</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <link
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --wine: #81505c;
+        --wine-deep: #4f2630;
+        --muted: #6d565b;
+        --ivory: #fff8f5;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: linear-gradient(180deg, #fff8f5, #fcf0f2 50%, #fff8f5);
+        font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        color: var(--wine-deep);
+      }
+      .card {
+        width: min(480px, 100%);
+        border-radius: 24px;
+        padding: 28px 24px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        box-shadow: 0 18px 48px rgba(82, 40, 58, 0.12);
+        text-align: center;
+      }
+      h1 { margin: 0; font-size: 24px; }
+      p { margin: 12px 0 0; color: var(--muted); line-height: 1.7; font-size: 15px; white-space: pre-wrap; }
+      .spinner {
+        width: 36px; height: 36px; margin: 0 auto 16px;
+        border: 3px solid rgba(129, 80, 92, 0.18);
+        border-top-color: var(--wine);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      a {
+        display: inline-flex; margin-top: 18px; min-height: 44px; padding: 0 18px;
+        align-items: center; justify-content: center; border-radius: 999px;
+        background: var(--wine); color: #fff; font-weight: 700; text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card" id="panel">
+      <div class="spinner" id="spinner" aria-hidden="true"></div>
+      <h1 id="title">결제를 확인하고 있어요</h1>
+      <p id="message">잠시만 기다려 주세요. 이용권은 서버 승인 완료 후 지급됩니다.</p>
+      <a id="homeLink" href="/?payment=failed" hidden>이용권 화면으로 이동</a>
+    </main>
+    <script src="/config.js"></script>
+    <script>
+      (function () {
+        const titleEl = document.getElementById("title");
+        const messageEl = document.getElementById("message");
+        const spinnerEl = document.getElementById("spinner");
+        const homeLink = document.getElementById("homeLink");
+        const params = new URLSearchParams(window.location.search);
+        const paymentKey = String(params.get("paymentKey") || "").trim();
+        const orderId = String(params.get("orderId") || "").trim();
+        const amount = Number(params.get("amount") || 0);
+        const apiBase = String(window.API_BASE_URL || window.MAGIC_AI_STUDIO_CONFIG?.API_BASE_URL || "").replace(/\/+$/, "");
+
+        function fail(message) {
+          if (spinnerEl) spinnerEl.hidden = true;
+          titleEl.textContent = "결제 확인에 실패했어요";
+          messageEl.textContent = message || "결제 승인 중 문제가 발생했습니다. 다시 시도해 주세요.";
+          homeLink.hidden = false;
+          homeLink.href = "/?payment=failed";
+        }
+
+        async function confirmPayment() {
+          if (!paymentKey || !orderId || !Number.isFinite(amount) || amount <= 0) {
+            fail("결제 정보가 올바르지 않습니다.");
+            return;
+          }
+          if (!apiBase) {
+            fail("결제 서버 주소를 확인할 수 없습니다.");
+            return;
+          }
+
+          const response = await fetch(apiBase + "/api/payments/toss/confirm", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ paymentKey, orderId, amount }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || payload?.ok === false) {
+            const code = String(payload?.code || payload?.error || "").trim();
+            const msg = payload?.message || payload?.error || "결제 승인에 실패했습니다.";
+            fail(code ? (msg + "\n오류 코드: " + code) : msg);
+            return;
+          }
+
+          // Existing app handler: ?payment=success opens credits and refreshes pass balance.
+          window.location.replace("/?payment=success");
+        }
+
+        confirmPayment().catch((error) => {
+          console.error("[payment][success] confirm failed", error);
+          fail("결제 승인 요청 중 네트워크 오류가 발생했습니다.");
+        });
+      })();
+    </script>
+  </body>
+</html>

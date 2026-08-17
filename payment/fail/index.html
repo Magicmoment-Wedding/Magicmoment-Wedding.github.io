@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>결제 실패 | Magic AI Studio</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <link
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --wine: #81505c;
+        --wine-deep: #4f2630;
+        --muted: #6d565b;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: linear-gradient(180deg, #fff8f5, #fcf0f2 50%, #fff8f5);
+        font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+        color: var(--wine-deep);
+      }
+      .card {
+        width: min(480px, 100%);
+        border-radius: 24px;
+        padding: 28px 24px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(129, 80, 92, 0.14);
+        box-shadow: 0 18px 48px rgba(82, 40, 58, 0.12);
+        text-align: center;
+      }
+      h1 { margin: 0; font-size: 24px; }
+      p { margin: 12px 0 0; color: var(--muted); line-height: 1.7; font-size: 15px; white-space: pre-wrap; }
+      a {
+        display: inline-flex; margin-top: 18px; min-height: 44px; padding: 0 18px;
+        align-items: center; justify-content: center; border-radius: 999px;
+        background: var(--wine); color: #fff; font-weight: 700; text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>결제가 완료되지 않았어요</h1>
+      <p id="message">결제가 취소되었거나 처리되지 않았습니다. 이용권 화면에서 다시 시도해 주세요.</p>
+      <a href="/?payment=failed">이용권 화면으로 이동</a>
+    </main>
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const code = String(params.get("code") || "").trim();
+        const message = String(params.get("message") || "").trim();
+        const el = document.getElementById("message");
+        if (!el) return;
+        if (message || code) {
+          el.textContent = [message || "결제가 완료되지 않았습니다.", code ? ("오류 코드: " + code) : ""]
+            .filter(Boolean)
+            .join("\n");
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -27,7 +27,7 @@ export function renderCreditsPage(state) {
       ` : ""}
 
       <div class="rounded-DEFAULT bg-primary/10 border border-primary/15 p-4 text-sm text-primary leading-6">
-        <p class="font-semibold">사진 제작 1회마다 이용권 1회가 사용되며, 1회 제작 시 결과 이미지 4장이 생성됩니다.</p>
+        <p class="font-semibold">사진 제작 1회마다 이용권 1회가 사용됩니다.</p>
         <p class="mt-2 font-semibold">모든 이용권은 구매일로부터 3개월간 사용할 수 있습니다.</p>
         <p>사용기한이 지난 이용권은 사용할 수 없습니다.</p>
       </div>
@@ -84,7 +84,7 @@ export function renderCreditsPage(state) {
             <p class="text-xs text-on-surface-variant">원하는 콘셉트를 직접 상담해 완성</p>
           </div>
           <div class="text-right shrink-0">
-            <p class="font-bold text-primary text-[18px]">199,000원</p>
+            <p class="font-bold text-primary text-[18px]">가격 문의</p>
           </div>
         </div>
         <button class="mt-4 h-12 w-full rounded-full bg-primary text-on-primary text-sm font-bold shadow-[0_12px_28px_rgba(129,80,92,0.22)]" data-action="open-assistant-chat" type="button">
@@ -98,7 +98,6 @@ export function renderCreditsPage(state) {
           <div>
             <p class="mb-2">서비스 제공기간: 모든 이용권은 구매일로부터 3개월입니다.</p>
             <p class="mb-2">사용기한이 지난 이용권은 사용할 수 없습니다.</p>
-            <p>사진 제작 1회마다 결과 4장이 생성됩니다.</p>
           </div>
         </div>
       </div>

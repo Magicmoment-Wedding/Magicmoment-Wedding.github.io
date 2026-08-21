@@ -24,11 +24,9 @@ import { generateResultsWithOptions, generateStudioResults, resumeGenerationResu
 import { clearActiveGenerationJob, fetchRecentActiveGenerationJob, getStoredActiveGenerationJobId } from "./services/api-generation.js";
 import { testChargeCredits } from "./services/credits-api.js";
 import {
-  completeOnboarding,
   fetchCurrentUser,
   hasFreeGeneration,
   isAdminUser,
-  isFirstTimeOnboardingTarget,
   normalizeUser,
 } from "./services/auth.js";
 import { getPresetPromptIntent } from "./services/prompt-intents.js";
@@ -333,11 +331,6 @@ async function refreshCurrentUser() {
     const user = await fetchCurrentUser();
     applyAuthSession(user);
 
-    const state = getState();
-    if (state.pendingGenerate && isFirstTimeOnboardingTarget(user)) {
-      openFirstTimeOnboardingFlow();
-    }
-
     return user;
   } catch (error) {
     console.warn("[auth] current user fetch failed", error);
@@ -386,11 +379,6 @@ function handleCreateClick() {
     return;
   }
 
-  if (isFirstTimeOnboardingTarget(state.currentUser)) {
-    openFirstTimeOnboardingFlow();
-    return;
-  }
-
   if (hasFreeGeneration(state.currentUser)) {
     startFreeGenerationFlow();
     return;
@@ -406,36 +394,15 @@ function handleCreateClick() {
 }
 
 async function completeFirstTimeOnboarding() {
-  const state = getState();
-
-  if (state.onboardingCompleting) {
-    return;
-  }
-
-  updateState({ onboardingCompleting: true });
-
-  try {
-    await completeOnboarding();
-
-    const refreshedUser = await fetchCurrentUser();
-    if (refreshedUser) {
-      applyAuthSession(refreshedUser);
-    }
-
-    closeFirstTimeOnboardingFlow();
-    updateState({
-      pendingAfterLogin: null,
-      pendingGenerate: false,
-    });
-    navigate(ROUTES.CREATE);
-    showToast("무료 1회 제작을 시작할 수 있어요.");
-  } catch (error) {
-    console.error("[onboarding] complete failed", error);
-    updateState({
-      onboardingCompleting: false,
-      onboardingErrorMessage: "이용안내 완료 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-    });
-  }
+  // First-time onboarding retired: skip grant API and go to create flow.
+  closeFirstTimeOnboardingFlow();
+  updateState({
+    onboardingCompleting: false,
+    onboardingErrorMessage: "",
+    pendingAfterLogin: null,
+    pendingGenerate: false,
+  });
+  navigate(ROUTES.CREATE);
 }
 
 function getGalleryStyle(styleId) {

@@ -8367,10 +8367,10 @@
               </button>
             </div>
           </header>
-          <div class="landing-promo-banner" id="landingPromoBanner" role="region" aria-label="무료 이용권 안내">
+          <div class="landing-promo-banner" id="landingPromoBanner" role="region" aria-label="서비스 안내">
             <p class="landing-promo-banner-text">
               <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-              <span>첫 가입 시 무료 제작 이용권 증정 · 클릭 한 번으로 사진을 바꿔보세요</span>
+              <span>클릭 한 번으로 사진을 바꿔보세요</span>
             </p>
             <button class="landing-promo-banner-close" id="landingPromoBannerClose" type="button" aria-label="안내 배너 닫기">
               <span class="material-symbols-outlined" aria-hidden="true">close</span>
@@ -8874,7 +8874,7 @@
               <span class="font-semibold">로그인 확인 중...</span>
               <span class="text-[11px] opacity-80">잠시만 기다려 주세요.</span>
             </button>
-            <p class="editor-free-ticket-note" role="note">가입 후 무료 제작 이용권 3회가 지급돼요</p>
+            <p class="editor-free-ticket-note hidden" role="note" hidden>가입 후 무료 제작 이용권은 지급되지 않습니다.</p>
             </div>
 
             <div id="editorRecommendationFlow" class="editor-reco-flow" aria-hidden="false">
@@ -11468,9 +11468,8 @@ Important:
             "완성된 사진 중 마음에 드는 1장을 스타일 갤러리에 올릴 수 있어요.",
             "갤러리에 공개하면 무료 제작 이용권 2회를 추가로 지급해드려요.",
             "다른 예비 신랑신부가 스타일을 고르는 데 도움이 되고, 추가 제작 기회도 받을 수 있어요.",
-            "신규회원은 이용안내 완료 후 워터마크가 포함된 무료 제작 이용권 3회를 시작할 수 있어요.",
           ],
-          highlights: ["1장", "무료 제작 이용권 2회", "갤러리 공유 보상", "추가 제작 기회", "무료 3회 제작", "워터마크"],
+          highlights: ["1장", "무료 제작 이용권 2회", "갤러리 공유 보상", "추가 제작 기회"],
           icon: "cloud_upload",
           image: null,
           notes: [],
@@ -13194,15 +13193,17 @@ Important:
         const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
 
         const normalizedIsNewUser = normalizeBooleanField(isNewUserValue, false);
-        const onboardingRequired = normalizeBooleanField(onboardingRequiredValue, false);
-        onboardingCompleted = onboardingRequired
-          ? false
-          : normalizeBooleanField(onboardingValue, normalizedIsNewUser ? false : true);
+        // First-time onboarding is retired: never gate the app on incomplete onboarding.
+        onboardingCompleted = true;
         freeGenerationUsed = normalizeBooleanField(usage?.freeGenerationUsed ?? freeUsedValue, false);
-        freeGenerationEligible = normalizeBooleanField(freeEligibleValue, normalizedIsNewUser);
-        freeGenerationAvailable = normalizeBooleanField(freeAvailableValue, freeGenerationEligible === true && freeGenerationUsed !== true);
+        // Do not invent signup free-pass eligibility on the client.
+        freeGenerationEligible = normalizeBooleanField(freeEligibleValue, false);
+        freeGenerationAvailable = normalizeBooleanField(
+          freeAvailableValue,
+          false,
+        );
         openEventEligible = normalizeBooleanField(openEventValue, false);
-        isNewUser = normalizeBooleanField(isNewUserValue, !onboardingCompleted);
+        isNewUser = normalizeBooleanField(isNewUserValue, normalizedIsNewUser);
         if (user && typeof user === "object") {
           user.onboardingCompleted = onboardingCompleted;
           user.freeGenerationUsed = freeGenerationUsed;
@@ -16895,14 +16896,8 @@ Important:
         let detailText = "잠시만 기다려 주세요.";
 
         if (authChecked && !hasUser) {
-          labelText = "무료 제작 이용권 받고 시작하기";
-          detailText = "가입 후 무료 제작 이용권 3회 지급";
-        } else if (hasUser && !onboardingCompleted) {
-          labelText = "사이트 이용안내 보기";
-          detailText = "이용안내 후 무료 제작 시작";
-        } else if (hasUser && hasFreeGeneration(currentUser)) {
-          labelText = "무료 제작 이용권으로 시작";
-          detailText = "처음 사용자 3회 무료 제작";
+          labelText = "로그인하고 시작하기";
+          detailText = "로그인 후 사진 제작을 시작할 수 있어요";
         } else if (hasUser && getRemainingUses() === null) {
           labelText = "계정 정보 확인 중";
           detailText = "잠시만 기다려 주세요";
@@ -17906,21 +17901,7 @@ Important:
           nextView: shouldStayLanding ? "landing" : getScreenFromLoginReturnView(normalizedReturnTo),
         });
 
-        if (forceOnboarding || shouldShowOnboardingCards()) {
-          clearPendingAction();
-          closeLoginModal();
-          closeAccountMenu();
-          siteGuideMode = "firstOnboarding";
-          siteGuidePageIndex = 0;
-          resetSignupGuideSelections();
-          onboardingCompleted = false;
-          if (currentUser) {
-            currentUser.onboardingCompleted = false;
-          }
-          navigateToScreen("siteGuide");
-          showAccountMenuToast("이용안내를 확인하면 무료 제작 이용권 3회를 받을 수 있어요.");
-          return;
-        }
+        // Onboarding retired: never force site guide after login/signup.
 
         if (shouldStayLanding) {
           clearPendingAction();
@@ -18044,7 +18025,7 @@ Important:
             : `${displayName}님 로그인 되었습니다.`);
           handlePostLoginExperience(returnView, {
             authMode,
-            onboardingRequired: shouldRequireOnboarding || (authMode === "signup" && shouldShowOnboardingCards()),
+            onboardingRequired: false,
           });
           return user;
         } finally {
@@ -18421,11 +18402,7 @@ Important:
       }
 
       function isFirstTimeOnboardingTarget(user = currentUser) {
-        return Boolean(
-          user
-          && user.isAdmin !== true
-          && onboardingCompleted === false
-        );
+        return false;
       }
 
       function resetSignupGuideSelections() {
@@ -18743,57 +18720,27 @@ Important:
       }
 
       function renderSiteGuideScreen() {
-        const isFirstOnboardingMode = isFirstOnboardingGuideMode();
-        siteGuideScreen?.classList.toggle("is-first-onboarding", isFirstOnboardingMode);
-        siteGuideScreen?.classList.toggle("is-preview-mode", isSignupGuidePreviewMode());
-        if (isFirstOnboardingMode) {
-          renderFirstTimeOnboardingGuide();
-        } else {
-          renderGeneralSiteGuide();
+        // First-time onboarding UI must never render.
+        if (isFirstOnboardingGuideMode()) {
+          siteGuideMode = "general";
+          siteGuidePageIndex = 0;
+          isCompletingOnboarding = false;
         }
-
+        siteGuideScreen?.classList.toggle("is-first-onboarding", false);
+        siteGuideScreen?.classList.toggle("is-preview-mode", false);
+        renderGeneralSiteGuide();
         syncBottomNavUi();
       }
 
       async function completeOnboarding() {
-        const response = await fetch(getAuthApiUrl("/api/account/onboarding/complete"), {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        });
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok || payload?.ok === false) {
-          throw new Error(payload?.message || `Onboarding complete failed: ${response.status}`);
+        // Onboarding + signup free-pass grant retired: never call complete API.
+        onboardingCompleted = true;
+        if (currentUser && typeof currentUser === "object") {
+          currentUser.onboardingCompleted = true;
         }
-
-        const nextRemainingUses = normalizeCreditValue(payload?.remainingUses ?? payload?.remaining_uses);
-        if (nextRemainingUses !== null && currentUser) {
-          currentUser = {
-            ...currentUser,
-            remainingUses: nextRemainingUses,
-            remaining_uses: nextRemainingUses,
-            generationUsage: {
-              ...(currentUser.generationUsage || {}),
-              remainingGenerationUses: nextRemainingUses,
-              remaining_generation_uses: nextRemainingUses,
-            },
-          };
-          generationUsageSummary = {
-            ...(generationUsageSummary || {}),
-            remainingGenerationUses: nextRemainingUses,
-            remaining_generation_uses: nextRemainingUses,
-          };
-          generationUsageStatus = "ready";
-          syncAuthUi();
-          updateCreditUi();
-        }
-
-        applyUserEntitlements(payload, currentUser);
-        const refreshedUser = await refreshAuthState({ showError: false, force: true });
         return {
-          payload,
-          user: refreshedUser || currentUser,
+          payload: { ok: true, onboardingCompleted: true },
+          user: currentUser,
         };
       }
 
@@ -18820,61 +18767,20 @@ Important:
       }
 
       async function handleSiteGuideComplete() {
-        const isPreview = isSignupGuidePreviewMode();
-        if (isPreview) {
+        // First-time onboarding retired: never call grant API; leave guide if somehow opened.
+        if (isSignupGuidePreviewMode()) {
           exitSignupGuidePreview();
           return;
         }
-
         if (siteGuideMode !== "firstOnboarding") {
           return;
         }
-
-        if (!authChecked || !isAuthenticatedUser(currentUser)) {
-          requestLoginForGeneration();
-          return;
-        }
-
-        if (!isFirstTimeOnboardingTarget(currentUser)) {
-          clearPendingAction();
-          navigateToScreen("editor");
-          setStatus(hasFreeGeneration(currentUser)
-            ? "무료 제작 이용권 3회로 시작해 주세요."
-            : "사진 제작을 시작해 주세요.");
-          return;
-        }
-
-        isCompletingOnboarding = true;
-        renderSiteGuideScreen();
-        showAccountMenuToast("이용안내 완료 처리 중입니다. 잠시만 기다려 주세요.");
-
-        try {
-          const completion = await completeOnboarding();
-          if (!onboardingCompleted) {
-            showAccountMenuToast("이용안내 완료 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
-            return;
-          }
-          clearPendingAction();
-          syncEditorGenerationCopy();
-          const completionPayload = completion?.payload || {};
-          showAccountMenuToast(completionPayload.freePassAlreadyGranted === true || completionPayload.free_pass_already_granted === true
-            ? "이미 무료 이용권이 지급된 계정입니다."
-            : "무료 제작 이용권 3회가 지급되었습니다.");
-          navigateToScreen("editor");
-          setStatus(hasFreeGeneration(currentUser)
-            ? "무료 제작 이용권 3회로 시작해 주세요."
-            : "사진 제작을 시작해 주세요.");
-        } catch (error) {
-          if (DEBUG_MODE) {
-            console.warn("[client][onboarding] complete failed:", error);
-          }
-          showAccountMenuToast("이용안내 완료 처리에 실패했어요. 잠시 후 다시 시도해 주세요.");
-        } finally {
-          isCompletingOnboarding = false;
-          if (appScreen === "siteGuide") {
-            renderSiteGuideScreen();
-          }
-        }
+        siteGuideMode = "general";
+        siteGuidePageIndex = 0;
+        isCompletingOnboarding = false;
+        clearPendingAction();
+        navigateToScreen("editor");
+        setStatus("사진 제작을 시작해 주세요.");
       }
 
       async function handleSiteGuideSkip() {
@@ -18935,7 +18841,7 @@ Important:
       }
 
       function shouldShowOnboarding(user = currentUser) {
-        return isFirstTimeOnboardingTarget(user);
+        return false;
       }
 
       function hasFreeGeneration(user = currentUser) {
@@ -18974,15 +18880,6 @@ Important:
           return false;
         }
 
-        if (shouldShowOnboarding(currentUser)) {
-          siteGuideMode = "firstOnboarding";
-          siteGuidePageIndex = 0;
-          resetSignupGuideSelections();
-          showAccountMenuToast("먼저 이용안내를 확인하면 무료 제작 이용권 3회로 시작할 수 있어요.");
-          navigateToScreen("siteGuide");
-          return false;
-        }
-
         if (hasFreeGeneration(currentUser)) {
           return true;
         }
@@ -19012,15 +18909,6 @@ Important:
           error.code = "CONSENT_REQUIRED";
           error.publicMessage = "필수 약관에 동의해 주세요.";
           error.isConsentRequired = true;
-          throw error;
-        }
-
-        if (shouldShowOnboarding(currentUser)) {
-          const error = new Error("ONBOARDING_REQUIRED");
-          error.code = "ONBOARDING_REQUIRED";
-          error.publicMessage = "사이트 이용안내를 먼저 확인해 주세요.";
-          error.isOnboardingRequired = true;
-          error.isOnboardingEligible = true;
           throw error;
         }
 
@@ -20957,13 +20845,12 @@ Important:
         }
 
         if (isOnboardingRequiredError) {
+          // Onboarding retired: ignore backend onboarding gate and continue to editor.
           setStatus("");
-          siteGuideMode = "firstOnboarding";
-          siteGuidePageIndex = 0;
-          resetSignupGuideSelections();
-          showError("사이트 이용안내를 먼저 확인해 주세요.", { title: "이용안내" });
-          showAccountMenuToast("사이트 이용안내를 먼저 확인해 주세요.");
-          setAppScreen("siteGuide", { replaceHistory: true });
+          onboardingCompleted = true;
+          if (currentUser) currentUser.onboardingCompleted = true;
+          showAccountMenuToast("사진 제작을 계속 진행해 주세요.");
+          navigateToScreen("editor");
           return;
         }
 
@@ -24464,7 +24351,8 @@ ${modeExample}`;
             error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
             error.isLoginRequired = true;
           } else if (responseCode === "ONBOARDING_REQUIRED") {
-            error.publicMessage = "사이트 이용안내를 먼저 확인해 주세요.";
+            // Treat as non-blocking; frontend no longer forces onboarding UI.
+            error.publicMessage = "사진 제작을 계속 진행해 주세요.";
             error.isOnboardingRequired = true;
           } else if (isInsufficientCredits) {
             error.publicMessage = "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.";
@@ -24738,7 +24626,8 @@ ${modeExample}`;
             error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
             error.isLoginRequired = true;
           } else if (responseCode === "ONBOARDING_REQUIRED") {
-            error.publicMessage = "사이트 이용안내를 먼저 확인해 주세요.";
+            // Treat as non-blocking; frontend no longer forces onboarding UI.
+            error.publicMessage = "사진 제작을 계속 진행해 주세요.";
             error.isOnboardingRequired = true;
           } else if (responseCode === "CONSENT_REQUIRED") {
             error.publicMessage = "필수 약관에 동의해 주세요.";
@@ -29225,12 +29114,13 @@ ${modeExample}`;
           showAccountMenuToast("관리자 권한이 필요합니다.");
           return;
         }
+        // First-time onboarding preview retired.
         closeAccountMenu();
-        siteGuideMode = "firstOnboardingPreview";
+        siteGuideMode = "general";
         siteGuidePageIndex = 0;
-        resetSignupGuideSelections();
         isCompletingOnboarding = false;
         navigateToScreen("siteGuide");
+        showAccountMenuToast("신규 이용안내 미리보기는 더 이상 제공되지 않습니다.");
       }
 
       function handleSiteGuideClick() {
@@ -30585,13 +30475,12 @@ ${modeExample}`;
           }
 
           if (isOnboardingRequiredError) {
+            // Onboarding retired: ignore backend onboarding gate and continue to editor.
             setStatus("");
-            siteGuideMode = "firstOnboarding";
-            siteGuidePageIndex = 0;
-            resetSignupGuideSelections();
-            showError("사이트 이용안내를 먼저 확인해 주세요.", { title: "이용안내" });
-            showAccountMenuToast("사이트 이용안내를 먼저 확인해 주세요.");
-            setAppScreen("siteGuide", { replaceHistory: true });
+            onboardingCompleted = true;
+            if (currentUser) currentUser.onboardingCompleted = true;
+            showAccountMenuToast("사진 제작을 계속 진행해 주세요.");
+            navigateToScreen("editor");
             return;
           }
 

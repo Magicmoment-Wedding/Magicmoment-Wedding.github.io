@@ -148,7 +148,8 @@ export function normalizeUser(user) {
     hasRequiredConsents: isAdmin || isLegacyUser
       ? true
       : toBoolean(user.hasRequiredConsents ?? user.has_required_consents, true),
-    onboardingCompleted: toBoolean(user.onboardingCompleted ?? user.onboarding_completed, false),
+    // First-time onboarding retired: never treat users as incomplete.
+    onboardingCompleted: true,
     freeGenerationEligible: toBoolean(user.freeGenerationEligible ?? user.free_generation_eligible, false),
     freeGenerationUsed: generationUsage.freeGenerationUsed,
     freeGenerationAvailable: generationUsage.freeGenerationAvailable,
@@ -163,15 +164,7 @@ export function isAdminUser(user) {
 }
 
 export function isFirstTimeOnboardingTarget(user) {
-  if (!user) {
-    return false;
-  }
-
-  if (isAdminUser(user)) {
-    return false;
-  }
-
-  return user.onboardingCompleted === false;
+  return false;
 }
 
 export function hasFreeGeneration(user) {
@@ -225,17 +218,6 @@ export async function fetchCurrentUser() {
 }
 
 export async function completeOnboarding() {
-  const response = await fetch(getApiUrl("/api/auth/onboarding/complete"), {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok || !data?.ok) {
-    throw new Error(data?.message || "이용안내 완료 처리 실패");
-  }
-
-  return data;
+  // Onboarding + signup free-pass grant retired: never call complete API.
+  return { ok: true, onboardingCompleted: true };
 }

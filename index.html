@@ -3253,10 +3253,13 @@
       }
 
       .reco-source-wrap img {
-        width: 100%;
-        height: auto;
-        max-height: min(68dvh, 560px);
         display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: min(68dvh, 560px);
+        min-width: 0;
+        min-height: 0;
         object-fit: contain;
         object-position: center;
       }
@@ -3269,8 +3272,10 @@
       .source-preview-image {
         display: block;
         position: relative;
-        width: 100%;
+        width: auto;
         height: auto;
+        max-width: 100%;
+        min-width: 0;
         object-fit: contain;
         object-position: center;
       }

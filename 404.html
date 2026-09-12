@@ -20110,17 +20110,60 @@ Important:
         return photoRecoRuntime.recommendedResults.find((item) => item.fileName === fileName) || null;
       }
 
-      function getRecoSamplePublicFallbackUrl(fileName) {
-        const safeName = String(fileName || "").trim().replace(/^\/+/, "");
-        if (!safeName) return "";
+      function getSupabaseSamplesPublicBase() {
         const supabaseBase = String(PUBLIC_SUPABASE_URL || EXPECTED_SUPABASE_URL || "").replace(/\/$/, "");
-        return `${supabaseBase}/storage/v1/object/public/samples/${safeName}`;
+        return `${supabaseBase}/storage/v1/object/public/samples`;
+      }
+
+      function normalizeSampleFileName(fileName = "") {
+        const raw = String(fileName || "").trim().replace(/^\/+/, "");
+        if (!raw) return "";
+        const parts = raw.split("/").filter(Boolean);
+        return parts[parts.length - 1] || "";
+      }
+
+      function getSampleRootPublicUrl(fileName) {
+        const safeName = normalizeSampleFileName(fileName);
+        if (!safeName) return "";
+        return `${getSupabaseSamplesPublicBase()}/${safeName}`;
+      }
+
+      function getSampleDisplayPublicUrl(fileName) {
+        const safeName = normalizeSampleFileName(fileName);
+        if (!safeName) return "";
+        return `${getSupabaseSamplesPublicBase()}/display/${safeName}`;
+      }
+
+      function getRecoSamplePublicFallbackUrl(fileName) {
+        return getSampleRootPublicUrl(fileName);
       }
 
       function getRecoSampleImageUrl(item = {}) {
+        return getSampleDisplayPublicUrl(item.fileName) || String(item.thumbnailUrl || "").trim();
+      }
+
+      function getRecoSampleImageFallbackUrl(item = {}) {
         const signed = String(item.thumbnailUrl || "").trim();
-        if (signed) return signed;
-        return getRecoSamplePublicFallbackUrl(item.fileName);
+        const displayUrl = getSampleDisplayPublicUrl(item.fileName);
+        if (signed && signed !== displayUrl) return signed;
+        return getSampleRootPublicUrl(item.fileName);
+      }
+
+      function handleSampleDisplayImageError(img) {
+        if (!(img instanceof HTMLImageElement)) return;
+        if (img.dataset.sampleFallbackApplied === "1") {
+          const removeSelector = img.dataset.sampleRemoveOnFail || "";
+          if (removeSelector) img.closest(removeSelector)?.remove();
+          return;
+        }
+        const fallback = String(img.dataset.sampleFallbackSrc || "").trim();
+        img.dataset.sampleFallbackApplied = "1";
+        if (fallback && fallback !== img.getAttribute("src")) {
+          img.src = fallback;
+          return;
+        }
+        const removeSelector = img.dataset.sampleRemoveOnFail || "";
+        if (removeSelector) img.closest(removeSelector)?.remove();
       }
 
       function dataUrlToBlob(dataUrl) {
@@ -20440,11 +20483,15 @@ Important:
         const fileName = String(item.fileName || "").trim();
         const selected = Boolean(fileName) && fileName === selectedKey;
         const imageUrl = getRecoSampleImageUrl(item);
+        const fallbackUrl = getRecoSampleImageFallbackUrl(item);
         const displayName = fileName.replace(/\.[^.]+$/, "") || "추천 샘플";
         const scoreText = Number.isFinite(item.score) ? `${Math.round(item.score)}점` : "";
         const reasonText = String(item.reason || "").trim();
+        const fallbackAttr = fallbackUrl && fallbackUrl !== imageUrl
+          ? ` data-sample-fallback-src="${escapeRecoHtml(fallbackUrl)}"`
+          : "";
         const mediaHtml = imageUrl
-          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;" />`
+          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;"${fallbackAttr} onerror="handleSampleDisplayImageError(this)" />`
           : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>이미지 없음</span></div>`;
         const scoreHtml = scoreText ? `<span class="reco-score-badge">${escapeRecoHtml(scoreText)}</span>` : "";
         const reasonHtml = reasonText
@@ -28488,11 +28535,6 @@ ${modeExample}`;
         });
       }
 
-      function getSupabaseSamplesPublicBase() {
-        const supabaseBase = String(PUBLIC_SUPABASE_URL || EXPECTED_SUPABASE_URL || "").replace(/\/$/, "");
-        return `${supabaseBase}/storage/v1/object/public/samples`;
-      }
-
       // Confirmed public objects in Supabase Storage `samples` bucket (118 files).
       // Most are .jpg; a few newer uploads use .png.
       const LANDING_SUPABASE_SAMPLE_FILES = [
@@ -28514,7 +28556,7 @@ ${modeExample}`;
       ];
 
       function getLandingSamplePublicUrl(fileName) {
-        return `${getSupabaseSamplesPublicBase()}/${fileName}`;
+        return getSampleDisplayPublicUrl(fileName);
       }
 
       function pickSpreadSampleFiles(count, source = LANDING_SUPABASE_SAMPLE_FILES) {
@@ -28543,7 +28585,9 @@ ${modeExample}`;
                 height="560"
                 decoding="async"
                 loading="${index < 6 ? "eager" : "lazy"}"
-                onerror="this.closest('.landing-sample-strip-item')?.remove()"
+                data-sample-fallback-src="${getSampleRootPublicUrl(fileName)}"
+                data-sample-remove-on-fail=".landing-sample-strip-item"
+                onerror="handleSampleDisplayImageError(this)"
               />
             </figure>
           `
@@ -28604,6 +28648,8 @@ ${modeExample}`;
                       height="800"
                       decoding="async"
                       ${index === 0 ? "" : 'loading="lazy"'}
+                      data-sample-fallback-src="${getSampleRootPublicUrl(pair.fileName)}"
+                      onerror="handleSampleDisplayImageError(this)"
                     />
                   </div>
                 </article>
@@ -28761,7 +28807,9 @@ ${modeExample}`;
                 height="800"
                 loading="${index < LANDING_SAMPLES_GRID_INITIAL ? "eager" : "lazy"}"
                 decoding="async"
-                onerror="this.closest('.landing-samples-card')?.remove()"
+                data-sample-fallback-src="${getSampleRootPublicUrl(fileName)}"
+                data-sample-remove-on-fail=".landing-samples-card"
+                onerror="handleSampleDisplayImageError(this)"
               />
             </figure>
           `

@@ -20083,6 +20083,7 @@ Important:
       // Minimum analyzing UI time so the loading panel does not flash away.
       const RECOMMEND_SAMPLES_MIN_LOADING_MS = 1200;
       const RECOMMEND_SAMPLES_LIMIT = 6;
+      const RECOMMEND_SAMPLES_ADMIN_LIMIT = 8;
       const RECOMMEND_SAMPLES_MAX_LONG_EDGE = 1600;
       const RECOMMEND_SAMPLES_JPEG_QUALITY = 0.8;
 
@@ -20262,7 +20263,14 @@ Important:
         };
       }
 
-      async function requestRecommendedSamplesFromApi({ limit = RECOMMEND_SAMPLES_LIMIT } = {}) {
+      function getRecommendSamplesRequestLimit() {
+        if (canShowAdminEntry() || currentUser?.isAdmin === true || isAdmin === true) {
+          return RECOMMEND_SAMPLES_ADMIN_LIMIT;
+        }
+        return RECOMMEND_SAMPLES_LIMIT;
+      }
+
+      async function requestRecommendedSamplesFromApi({ limit = getRecommendSamplesRequestLimit() } = {}) {
         // Match other authenticated APIs: always send cookies (credentials: include),
         // and attach Bearer only when a Supabase access token is available.
         const authInfo = await resolveAccessTokenForRecommendRequest();
@@ -20272,6 +20280,8 @@ Important:
           accessTokenLength: authInfo.accessToken ? authInfo.accessToken.length : 0,
           refreshAttempted: authInfo.refreshAttempted,
           refreshOk: authInfo.refreshOk,
+          limit,
+          isAdminRequest: limit === RECOMMEND_SAMPLES_ADMIN_LIMIT,
         });
 
         const { blob, fileName } = await buildRecommendSamplesImageBlob();
@@ -20560,7 +20570,7 @@ Important:
         // Do not block on local access token — cookie/session auth is enough for this API,
         // same as /api/generate and /api/my-photos.
         Promise.all([
-          requestRecommendedSamplesFromApi({ limit: RECOMMEND_SAMPLES_LIMIT }),
+          requestRecommendedSamplesFromApi({ limit: getRecommendSamplesRequestLimit() }),
           minDelayPromise,
         ])
           .then(([results]) => {
@@ -20569,7 +20579,11 @@ Important:
             if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
             if (selectedImageDataUrl !== analyzingImageDataUrl) return;
 
-            photoRecoRuntime.recommendedResults = Array.isArray(results) ? results : [];
+            photoRecoRuntime.recommendedResults = Array.isArray(results) ? results.slice() : [];
+            console.info("[PhotoReco] recommend-samples results", {
+              count: photoRecoRuntime.recommendedResults.length,
+              fileNames: photoRecoRuntime.recommendedResults.map((item) => item.fileName),
+            });
             photoRecoRuntime.selectedBackgroundKey = "";
 
             if (!photoRecoRuntime.recommendedResults.length) {

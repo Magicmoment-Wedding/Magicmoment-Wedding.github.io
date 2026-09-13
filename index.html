@@ -10184,6 +10184,8 @@ AI가 추천해드려요.</p>
       // JPEG shrink because that endpoint remains 4MB.
       const FROM_SAMPLE_MAX_IDENTITY_BYTES = 15 * ONE_MB_BYTES;
       const FROM_SAMPLE_IDENTITY_JPEG_QUALITY = 0.92;
+      const HEIC_CONVERT_JPEG_QUALITY = 0.92;
+      const HEIC_CONVERT_FAILED_MESSAGE = "JPG로 저장해서 다시 올려주세요";
       const FROM_SAMPLE_IDENTITY_SHRINK_LONG_EDGES = [null, 4096, 3200, 2560];
       const FROM_SAMPLE_CROP_HEIGHT_RATIO = 0.6;
       const FROM_SAMPLE_CROP_SIDE_INSET_RATIO = 0.05;
@@ -20199,21 +20201,28 @@ Important:
         let sourceUrl = "";
         let revokeUrl = "";
         const originalFile = selectedFile instanceof Blob ? selectedFile : null;
+        let sourceFile = originalFile;
+        if (isHeicOrHeifFile(originalFile)) {
+          sourceFile = await convertHeicOrHeifFileToJpeg(originalFile);
+        }
         const originalSize =
-          originalFile
-            ? originalFile.size
+          sourceFile
+            ? sourceFile.size
             : selectedImageDataUrl
               ? Math.ceil((String(selectedImageDataUrl).length * 3) / 4)
               : 0;
-        const originalPixels = originalFile
-          ? await readImagePixelSize(originalFile)
+        const originalPixels = sourceFile
+          ? await readImagePixelSize(sourceFile)
           : { width: null, height: null };
 
         try {
-          if (selectedImageDataUrl) {
+          if (sourceFile && isHeicOrHeifFile(originalFile)) {
+            revokeUrl = URL.createObjectURL(sourceFile);
+            sourceUrl = revokeUrl;
+          } else if (selectedImageDataUrl) {
             sourceUrl = selectedImageDataUrl;
-          } else if (originalFile) {
-            revokeUrl = URL.createObjectURL(originalFile);
+          } else if (sourceFile) {
+            revokeUrl = URL.createObjectURL(sourceFile);
             sourceUrl = revokeUrl;
           } else {
             throw new Error("MISSING_IMAGE");
@@ -20236,6 +20245,7 @@ Important:
             uploadedHeight: compressedPixels.height,
             maxLongEdge: RECOMMEND_SAMPLES_MAX_LONG_EDGE,
             jpegQuality: RECOMMEND_SAMPLES_JPEG_QUALITY,
+            convertedFromHeic: Boolean(originalFile && sourceFile !== originalFile),
           });
 
           return {
@@ -20243,16 +20253,26 @@ Important:
             fileName: "recommend-upload.jpg",
           };
         } catch (error) {
+          if (error?.code === "HEIC_CONVERT_FAILED") throw error;
           console.warn("[PhotoReco] recommend image compress failed, using original", {
             message: error?.message || String(error),
             originalBytes: originalSize || null,
             originalWidth: originalPixels.width,
             originalHeight: originalPixels.height,
           });
-          if (selectedFile instanceof File || selectedFile instanceof Blob) {
+          if (isHeicOrHeifFile(sourceFile) || isHeicOrHeifFile(originalFile)) {
+            if (sourceFile && sourceFile !== originalFile) {
+              return {
+                blob: sourceFile,
+                fileName: sourceFile.name || "recommend-upload.jpg",
+              };
+            }
+            throw createHeicConvertFailedError(error);
+          }
+          if (sourceFile instanceof File || sourceFile instanceof Blob) {
             return {
-              blob: selectedFile,
-              fileName: selectedFile.name || "upload.jpg",
+              blob: sourceFile,
+              fileName: sourceFile.name || "upload.jpg",
             };
           }
           if (!selectedImageDataUrl) {
@@ -20562,7 +20582,9 @@ Important:
 
       function showRecommendSamplesFailure(errorLike = {}) {
         const code = String(errorLike?.code || "RECOMMEND_FAILED");
-        const message = "추천을 불러오지 못했습니다";
+        const message = code === "HEIC_CONVERT_FAILED"
+          ? HEIC_CONVERT_FAILED_MESSAGE
+          : "추천을 불러오지 못했습니다";
         const uiLoggedIn = Boolean(getAuthenticatedUserId(currentUser));
 
         console.warn("[PhotoReco] recommend failure", {
@@ -20955,6 +20977,13 @@ Important:
           setStatus("");
           showError(FROM_SAMPLE_CROP_RETRY_MESSAGE, { title: FROM_SAMPLE_CROP_RETRY_MESSAGE });
           showAccountMenuToast(FROM_SAMPLE_CROP_RETRY_MESSAGE);
+          return;
+        }
+
+        if (generationErrorCode === "HEIC_CONVERT_FAILED") {
+          setStatus("");
+          showError(HEIC_CONVERT_FAILED_MESSAGE, { title: HEIC_CONVERT_FAILED_MESSAGE });
+          showAccountMenuToast(HEIC_CONVERT_FAILED_MESSAGE);
           return;
         }
 
@@ -23460,6 +23489,10 @@ Important:
             title: FROM_SAMPLE_CROP_RETRY_MESSAGE,
             body: FROM_SAMPLE_CROP_RETRY_MESSAGE,
           },
+          HEIC_CONVERT_FAILED: {
+            title: HEIC_CONVERT_FAILED_MESSAGE,
+            body: HEIC_CONVERT_FAILED_MESSAGE,
+          },
           NO_REMAINING_GENERATION_USES: {
             title: "남은 제작 횟수 없음",
             body: "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.",
@@ -23643,9 +23676,52 @@ Important:
         }
       }
 
+      function createHeicConvertFailedError(cause) {
+        const error = new Error(HEIC_CONVERT_FAILED_MESSAGE);
+        error.code = "HEIC_CONVERT_FAILED";
+        error.publicMessage = HEIC_CONVERT_FAILED_MESSAGE;
+        if (cause) error.cause = cause;
+        return error;
+      }
+
+      async function convertHeicOrHeifFileToJpeg(file) {
+        if (!(file instanceof Blob)) return file;
+        if (!isHeicOrHeifFile(file)) return file;
+        try {
+          const blob = await reencodeImageFileAsJpeg(file, {
+            maxLongEdge: null,
+            quality: HEIC_CONVERT_JPEG_QUALITY,
+          });
+          if (!(blob instanceof Blob) || !blob.size) {
+            throw new Error("HEIC_CONVERT_EMPTY");
+          }
+          const jpegFile = toUploadJpegFile(blob, file);
+          console.info("[client][heic-convert]", {
+            originalName: file.name || "",
+            originalType: file.type || "",
+            originalBytes: file.size || 0,
+            convertedBytes: jpegFile.size || blob.size || 0,
+            convertedType: jpegFile.type || blob.type || "image/jpeg",
+            quality: HEIC_CONVERT_JPEG_QUALITY,
+          });
+          return jpegFile;
+        } catch (error) {
+          if (error?.code === "HEIC_CONVERT_FAILED") throw error;
+          console.warn("[client][heic-convert][failed]", {
+            message: error?.message || String(error),
+          });
+          throw createHeicConvertFailedError(error);
+        }
+      }
+
       async function prepareFromSampleIdentityUpload(file) {
-        const originalBytes = Number(file?.size) || 0;
-        const originalPixels = await readImagePixelSize(file);
+        let identityFile = file;
+        if (isHeicOrHeifFile(file)) {
+          identityFile = await convertHeicOrHeifFileToJpeg(file);
+        }
+
+        const originalBytes = Number(identityFile?.size) || 0;
+        const originalPixels = await readImagePixelSize(identityFile);
         const debug = {
           originalBytes,
           originalSizeMB: toSizeMB(originalBytes),
@@ -23654,20 +23730,21 @@ Important:
           uploadedBytes: originalBytes,
           uploadedWidth: originalPixels.width,
           uploadedHeight: originalPixels.height,
-          compressed: false,
-          reason: "original",
+          compressed: identityFile !== file,
+          convertedFromHeic: identityFile !== file,
+          reason: identityFile !== file ? "heic_jpeg" : "original",
         };
 
-        if (!(file instanceof Blob) || originalBytes <= FROM_SAMPLE_MAX_IDENTITY_BYTES) {
+        if (!(identityFile instanceof Blob) || originalBytes <= FROM_SAMPLE_MAX_IDENTITY_BYTES) {
           console.info("[client][from-sample][identity-upload]", debug);
-          return { file, debug };
+          return { file: identityFile, debug };
         }
 
         let bestBlob = null;
         let bestReason = "over_15mb_jpeg";
         for (const maxLongEdge of FROM_SAMPLE_IDENTITY_SHRINK_LONG_EDGES) {
           try {
-            const blob = await reencodeImageFileAsJpeg(file, {
+            const blob = await reencodeImageFileAsJpeg(identityFile, {
               maxLongEdge,
               quality: FROM_SAMPLE_IDENTITY_JPEG_QUALITY,
             });
@@ -23691,10 +23768,10 @@ Important:
         if (!bestBlob || bestBlob.size >= originalBytes) {
           debug.reason = "original_compress_skipped";
           console.info("[client][from-sample][identity-upload]", debug);
-          return { file, debug };
+          return { file: identityFile, debug };
         }
 
-        const uploadFile = toUploadJpegFile(bestBlob, file);
+        const uploadFile = toUploadJpegFile(bestBlob, identityFile);
         const uploadedPixels = await readImagePixelSize(uploadFile);
         debug.uploadedBytes = uploadFile.size;
         debug.uploadedWidth = uploadedPixels.width || debug.originalWidth;
@@ -24835,15 +24912,17 @@ ${modeExample}`;
           throw error;
         }
 
+        const jpegImageFile = await convertHeicOrHeifFileToJpeg(imageFile);
+
         let cropFile;
         try {
-          cropFile = await createFromSamplePixelCropFile(imageFile);
+          cropFile = await createFromSamplePixelCropFile(jpegImageFile);
         } catch (error) {
           if (isPreservedGenerationFlowError(error)) throw error;
           throw createFromSampleCropFailedError(error);
         }
 
-        const identityUpload = await prepareFromSampleIdentityUpload(imageFile);
+        const identityUpload = await prepareFromSampleIdentityUpload(jpegImageFile);
         const originalUpload = await uploadImageToPrivateStorage(identityUpload.file);
         const imagePath = originalUpload.imagePath || originalUpload.path || "";
         const uploadedOriginalImageUrl = firstBrowserImageUrlValue(

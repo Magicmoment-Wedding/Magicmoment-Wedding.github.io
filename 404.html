@@ -3249,13 +3249,33 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        aspect-ratio: auto;
       }
 
       .reco-source-wrap img {
-        width: 100%;
-        height: auto;
-        max-height: min(68dvh, 560px);
         display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: min(68dvh, 560px);
+        min-width: 0;
+        min-height: 0;
+        object-fit: contain;
+        object-position: center;
+      }
+
+      .source-preview-button {
+        aspect-ratio: auto;
+        display: block;
+      }
+
+      .source-preview-image {
+        display: block;
+        position: relative;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        min-width: 0;
         object-fit: contain;
         object-position: center;
       }
@@ -3298,8 +3318,8 @@
       .reco-thumb img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        object-position: center 20%;
+        object-fit: contain;
+        object-position: center;
         display: block;
       }
 
@@ -8736,8 +8756,8 @@
                   <span class="material-symbols-outlined text-[16px]">edit</span>
                   <span>사진 변경하기</span>
                 </button>
-                <button class="relative w-full aspect-[4/5] overflow-hidden rounded-[24px] group bg-surface-container" id="sourceZoomButton" type="button">
-                  <img alt="Uploaded preview" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" id="sourcePreview" />
+                <button class="relative w-full overflow-hidden rounded-[24px] group bg-surface-container source-preview-button" id="sourceZoomButton" type="button">
+                  <img alt="Uploaded preview" class="source-preview-image" id="sourcePreview" />
                   <span class="absolute inset-x-4 bottom-4 rounded-full bg-black/45 text-white px-3 py-2 text-center text-xs">크게 보기</span>
                 </button>
               </div>
@@ -10185,10 +10205,6 @@ AI가 추천해드려요.</p>
       const FROM_SAMPLE_MAX_IDENTITY_BYTES = 15 * ONE_MB_BYTES;
       const FROM_SAMPLE_IDENTITY_JPEG_QUALITY = 0.92;
       const FROM_SAMPLE_IDENTITY_SHRINK_LONG_EDGES = [null, 4096, 3200, 2560];
-      const FROM_SAMPLE_CROP_HEIGHT_RATIO = 0.6;
-      const FROM_SAMPLE_CROP_SIDE_INSET_RATIO = 0.05;
-      const FROM_SAMPLE_CROP_JPEG_QUALITY = 0.95;
-      const FROM_SAMPLE_CROP_RETRY_MESSAGE = "사진을 다시 올려 주세요";
       const SIGNED_UPLOAD_FAILED_MESSAGE = "사진 업로드 준비에 실패했습니다. 어시스턴트에게 문의하세요.";
       const SUPABASE_UPLOAD_FAILED_MESSAGE = "사진 업로드에 실패했습니다. 네트워크 상태를 확인하거나 어시스턴트에게 문의하세요.";
       const HEIC_UPLOAD_WARNING_MESSAGE = "아이폰 원본 HEIC 사진은 일부 환경에서 실패할 수 있습니다. JPG로 변환된 사진이나 스크린샷으로 다시 시도해 주세요.";
@@ -20195,7 +20211,7 @@ Important:
         // Shrink before POST /api/recommend-samples to avoid 413 Payload Too Large.
         // This compressed blob is recommend-only — from-sample identity upload
         // still uses the original selectedFile via prepareFromSampleIdentityUpload.
-        // Reuses createImageBlobWithWatermark (long-edge canvas resize + JPEG toBlob).
+        // Long-edge resize only; do not crop or force a new aspect ratio.
         let sourceUrl = "";
         let revokeUrl = "";
         const originalFile = selectedFile instanceof Blob ? selectedFile : null;
@@ -20948,13 +20964,6 @@ Important:
             retryJobId,
           });
           showAccountMenuToast(copy.body);
-          return;
-        }
-
-        if (generationErrorCode === "CROP_UPLOAD_FAILED") {
-          setStatus("");
-          showError(FROM_SAMPLE_CROP_RETRY_MESSAGE, { title: FROM_SAMPLE_CROP_RETRY_MESSAGE });
-          showAccountMenuToast(FROM_SAMPLE_CROP_RETRY_MESSAGE);
           return;
         }
 
@@ -23456,10 +23465,6 @@ Important:
             title: "생성 결과 저장 실패",
             body: "생성 결과 저장 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.",
           },
-          CROP_UPLOAD_FAILED: {
-            title: FROM_SAMPLE_CROP_RETRY_MESSAGE,
-            body: FROM_SAMPLE_CROP_RETRY_MESSAGE,
-          },
           NO_REMAINING_GENERATION_USES: {
             title: "남은 제작 횟수 없음",
             body: "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.",
@@ -23703,223 +23708,6 @@ Important:
         debug.reason = bestReason;
         console.info("[client][from-sample][identity-upload]", debug);
         return { file: uploadFile, debug };
-      }
-
-      function createFromSampleCropFailedError(cause) {
-        const error = new Error(FROM_SAMPLE_CROP_RETRY_MESSAGE);
-        error.code = "CROP_UPLOAD_FAILED";
-        error.publicMessage = FROM_SAMPLE_CROP_RETRY_MESSAGE;
-        error.stage = "from-sample-pixel-crop";
-        if (cause) {
-          error.cause = cause;
-        }
-        return error;
-      }
-
-      function isPreservedGenerationFlowError(error) {
-        if (!error) return false;
-        if (
-          error.isLoginRequired
-          || error.isConsentRequired
-          || error.isOnboardingRequired
-          || error.isInsufficientCredits
-        ) {
-          return true;
-        }
-        const code = String(error.code || error.response?.code || "").trim().toUpperCase();
-        return (
-          code === "LOGIN_REQUIRED"
-          || code === "AUTH_REQUIRED"
-          || code === "CONSENT_REQUIRED"
-          || code === "ONBOARDING_REQUIRED"
-          || code === "CREDITS_REQUIRED"
-          || code === "INSUFFICIENT_CREDITS"
-          || code === "NO_REMAINING_USES"
-          || code === "NO_REMAINING_GENERATION_USES"
-        );
-      }
-
-      function getFromSamplePixelCropRect(originalWidth, originalHeight) {
-        const width = Math.round(Number(originalWidth) || 0);
-        const height = Math.round(Number(originalHeight) || 0);
-        if (width < 8 || height < 8) return null;
-        const cropHeight = Math.min(height, Math.max(1, Math.round(height * FROM_SAMPLE_CROP_HEIGHT_RATIO)));
-        const maxInset = Math.max(0, Math.floor((width - 8) / 2));
-        const sideInset = Math.max(0, Math.min(maxInset, Math.round(width * FROM_SAMPLE_CROP_SIDE_INSET_RATIO)));
-        const cropWidth = Math.max(1, width - sideInset * 2);
-        const cropX = Math.max(0, Math.round((width - cropWidth) / 2));
-        if (cropWidth < 8 || cropHeight < 8) return null;
-        return {
-          cropX,
-          cropY: 0,
-          cropWidth,
-          cropHeight,
-        };
-      }
-
-      async function decodeImageSourceForPixelCrop(file) {
-        if (typeof createImageBitmap === "function") {
-          try {
-            const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-            return {
-              source: bitmap,
-              width: Number(bitmap.width) || 0,
-              height: Number(bitmap.height) || 0,
-              close() {
-                bitmap.close?.();
-              },
-            };
-          } catch {
-            try {
-              const bitmap = await createImageBitmap(file);
-              return {
-                source: bitmap,
-                width: Number(bitmap.width) || 0,
-                height: Number(bitmap.height) || 0,
-                close() {
-                  bitmap.close?.();
-                },
-              };
-            } catch {
-              // Fall through to HTMLImageElement for HEIC / unsupported types.
-            }
-          }
-        }
-
-        const objectUrl = URL.createObjectURL(file);
-        try {
-          const image = await new Promise((resolve, reject) => {
-            const element = new Image();
-            element.onload = () => resolve(element);
-            element.onerror = () => reject(new Error("IMAGE_DECODE_FAILED"));
-            element.src = objectUrl;
-          });
-          return {
-            source: image,
-            width: Number(image.naturalWidth || image.width) || 0,
-            height: Number(image.naturalHeight || image.height) || 0,
-            close() {
-              URL.revokeObjectURL(objectUrl);
-            },
-          };
-        } catch (error) {
-          URL.revokeObjectURL(objectUrl);
-          throw error;
-        }
-      }
-
-      function canvasToJpegBlob(canvas, quality) {
-        return new Promise((resolve, reject) => {
-          const finish = (blob) => {
-            if (blob && blob.size > 0) {
-              resolve(blob);
-              return;
-            }
-            try {
-              const dataUrl = canvas.toDataURL("image/jpeg", quality);
-              const comma = dataUrl.indexOf(",");
-              if (comma < 0) {
-                reject(new Error("CROP_JPEG_EMPTY"));
-                return;
-              }
-              const binary = atob(dataUrl.slice(comma + 1));
-              const bytes = new Uint8Array(binary.length);
-              for (let index = 0; index < binary.length; index += 1) {
-                bytes[index] = binary.charCodeAt(index);
-              }
-              if (!bytes.length) {
-                reject(new Error("CROP_JPEG_EMPTY"));
-                return;
-              }
-              resolve(new Blob([bytes], { type: "image/jpeg" }));
-            } catch (error) {
-              reject(error);
-            }
-          };
-
-          if (typeof canvas.toBlob === "function") {
-            canvas.toBlob(finish, "image/jpeg", quality);
-            return;
-          }
-          finish(null);
-        });
-      }
-
-      async function createFromSamplePixelCropFile(file) {
-        if (!(file instanceof Blob)) {
-          throw new Error("MISSING_IMAGE");
-        }
-
-        const decoded = await decodeImageSourceForPixelCrop(file);
-        try {
-          const originalWidth = decoded.width;
-          const originalHeight = decoded.height;
-          const rect = getFromSamplePixelCropRect(originalWidth, originalHeight);
-          if (!rect) {
-            throw new Error("CROP_RECT_UNAVAILABLE");
-          }
-
-          const canvas = document.createElement("canvas");
-          canvas.width = rect.cropWidth;
-          canvas.height = rect.cropHeight;
-          const ctx = canvas.getContext("2d", { alpha: false });
-          if (!ctx) {
-            throw new Error("CROP_CANVAS_UNAVAILABLE");
-          }
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(
-            decoded.source,
-            rect.cropX,
-            rect.cropY,
-            rect.cropWidth,
-            rect.cropHeight,
-            0,
-            0,
-            rect.cropWidth,
-            rect.cropHeight,
-          );
-
-          const blob = await canvasToJpegBlob(canvas, FROM_SAMPLE_CROP_JPEG_QUALITY);
-          console.info("[client][from-sample][pixel-crop]", {
-            originalWidth,
-            originalHeight,
-            cropWidth: rect.cropWidth,
-            cropHeight: rect.cropHeight,
-            cropBytes: blob.size,
-          });
-
-          const baseName = getUploadFileName(file).replace(/\.[^.]+$/, "") || "upload";
-          try {
-            return new File([blob], `${baseName}-face-crop.jpg`, {
-              type: "image/jpeg",
-              lastModified: file?.lastModified || Date.now(),
-            });
-          } catch {
-            return blob;
-          }
-        } finally {
-          decoded.close?.();
-        }
-      }
-
-      async function uploadFromSamplePixelCropFile(cropFile) {
-        try {
-          const cropUpload = await uploadImageToPrivateStorage(cropFile);
-          const cropImagePath = String(cropUpload.imagePath || cropUpload.path || "").trim();
-          if (!cropImagePath) {
-            throw createFromSampleCropFailedError(new Error("MISSING_CROP_PATH"));
-          }
-          return {
-            cropFile,
-            cropImagePath,
-            cropUpload,
-          };
-        } catch (error) {
-          if (error?.code === "CROP_UPLOAD_FAILED" || isPreservedGenerationFlowError(error)) {
-            throw error;
-          }
-          throw createFromSampleCropFailedError(error);
-        }
       }
 
       function createUploadFile(file) {
@@ -24835,14 +24623,6 @@ ${modeExample}`;
           throw error;
         }
 
-        let cropFile;
-        try {
-          cropFile = await createFromSamplePixelCropFile(imageFile);
-        } catch (error) {
-          if (isPreservedGenerationFlowError(error)) throw error;
-          throw createFromSampleCropFailedError(error);
-        }
-
         const identityUpload = await prepareFromSampleIdentityUpload(imageFile);
         const originalUpload = await uploadImageToPrivateStorage(identityUpload.file);
         const imagePath = originalUpload.imagePath || originalUpload.path || "";
@@ -24853,14 +24633,11 @@ ${modeExample}`;
           originalUpload.public_url,
         );
         captureFromSampleOriginalPreview(uploadedOriginalImageUrl || selectedImageDataUrl);
-        const cropUpload = await uploadFromSamplePixelCropFile(cropFile);
-        const cropImagePath = cropUpload.cropImagePath;
         const fileInfo = getFileDebugInfo(identityUpload.file);
         const useFreeGeneration = lastGenerationUsedFreeCredit === true;
 
         const formData = new FormData();
         formData.append("imagePath", imagePath);
-        formData.append("cropImagePath", cropImagePath);
         // Backend accepts sample identity via fileName (primary) with aliases for compatibility.
         formData.append("fileName", safeSampleFileName);
         formData.append("sampleFileName", safeSampleFileName);
@@ -24880,7 +24657,6 @@ ${modeExample}`;
           requestUrl,
           sampleFileName: safeSampleFileName,
           imagePath,
-          cropImagePath,
           generationType: useFreeGeneration ? "free" : "paid",
           ...fileInfo,
           ...identityUpload.debug,

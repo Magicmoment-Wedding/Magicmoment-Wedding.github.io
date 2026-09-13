@@ -20105,22 +20105,73 @@ Important:
       }
 
       function getRecommendedSampleByKey(key) {
-        const fileName = String(key || "").trim();
+        const fileName = normalizeRecommendSampleFileName(key);
         if (!fileName) return null;
         return photoRecoRuntime.recommendedResults.find((item) => item.fileName === fileName) || null;
       }
 
-      function getRecoSamplePublicFallbackUrl(fileName) {
-        const safeName = String(fileName || "").trim().replace(/^\/+/, "");
+      function normalizeRecommendSampleFileName(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        let path = raw.replace(/\\/g, "/");
+        path = path.replace(/^https?:\/\/[^/]+/i, "");
+        const marker = "/object/public/samples/";
+        const markerIndex = path.toLowerCase().indexOf(marker);
+        if (markerIndex >= 0) {
+          path = path.slice(markerIndex + marker.length);
+        }
+        path = path.replace(/^\/+/, "").replace(/^display\//i, "");
+        let fileName = (path.split("/").pop() || "").split("?")[0].split("#")[0];
+        try {
+          fileName = decodeURIComponent(fileName);
+        } catch (error) {
+          // keep the basename as-is when it is not URI-encoded
+        }
+        const numbered = fileName.match(/^(\d+)\.(jpe?g|png|webp)$/i);
+        return numbered ? `${numbered[1]}.${numbered[2].toLowerCase()}` : fileName;
+      }
+
+      function getSampleRootPublicUrl(fileName) {
+        const safeName = normalizeRecommendSampleFileName(fileName);
         if (!safeName) return "";
-        const supabaseBase = String(PUBLIC_SUPABASE_URL || EXPECTED_SUPABASE_URL || "").replace(/\/$/, "");
-        return `${supabaseBase}/storage/v1/object/public/samples/${safeName}`;
+        return `${getSupabaseSamplesPublicBase()}/${safeName}`;
+      }
+
+      function getSampleDisplayPublicUrl(fileName) {
+        const safeName = normalizeRecommendSampleFileName(fileName);
+        if (!safeName) return "";
+        return `${getSupabaseSamplesPublicBase()}/display/${safeName}`;
+      }
+
+      function getRecoSamplePublicFallbackUrl(fileName) {
+        return getSampleRootPublicUrl(fileName);
       }
 
       function getRecoSampleImageUrl(item = {}) {
-        const signed = String(item.thumbnailUrl || "").trim();
-        if (signed) return signed;
-        return getRecoSamplePublicFallbackUrl(item.fileName);
+        return getSampleDisplayPublicUrl(item.fileName)
+          || getSampleDisplayPublicUrl(item.thumbnailUrl);
+      }
+
+      function getRecoSampleImageFallbackUrl(item = {}) {
+        return getSampleRootPublicUrl(item.fileName)
+          || getSampleRootPublicUrl(item.thumbnailUrl);
+      }
+
+      function handleSampleDisplayImageError(img) {
+        if (!(img instanceof HTMLImageElement)) return;
+        if (img.dataset.sampleFallbackApplied === "1") {
+          const removeSelector = img.dataset.sampleRemoveOnFail || "";
+          if (removeSelector) img.closest(removeSelector)?.remove();
+          return;
+        }
+        const fallback = String(img.dataset.sampleFallbackSrc || "").trim();
+        img.dataset.sampleFallbackApplied = "1";
+        if (fallback && fallback !== img.getAttribute("src")) {
+          img.src = fallback;
+          return;
+        }
+        const removeSelector = img.dataset.sampleRemoveOnFail || "";
+        if (removeSelector) img.closest(removeSelector)?.remove();
       }
 
       function dataUrlToBlob(dataUrl) {
@@ -20330,9 +20381,11 @@ Important:
         }
 
         const results = Array.isArray(payload?.results) ? payload.results : [];
+        // Keep the regular recommend payload for every account, including admin.
+        // Do not replace results with a local fixture and do not slice to 3.
         return results
           .map((item) => {
-            const resultFileName = String(item?.fileName || "").trim();
+            const resultFileName = normalizeRecommendSampleFileName(item?.fileName || item?.thumbnailUrl);
             if (!resultFileName) return null;
             const scoreNumber = Number(item?.score);
             return {
@@ -20437,14 +20490,18 @@ Important:
       }
 
       function buildRecoBackgroundCardHtml(item, selectedKey) {
-        const fileName = String(item.fileName || "").trim();
+        const fileName = normalizeRecommendSampleFileName(item.fileName);
         const selected = Boolean(fileName) && fileName === selectedKey;
-        const imageUrl = getRecoSampleImageUrl(item);
+        const imageUrl = getRecoSampleImageUrl({ ...item, fileName });
+        const fallbackUrl = getRecoSampleImageFallbackUrl({ ...item, fileName });
+        const fallbackAttr = imageUrl && fallbackUrl && fallbackUrl !== imageUrl
+          ? ` data-sample-fallback-src="${escapeRecoHtml(fallbackUrl)}"`
+          : "";
         const displayName = fileName.replace(/\.[^.]+$/, "") || "추천 샘플";
         const scoreText = Number.isFinite(item.score) ? `${Math.round(item.score)}점` : "";
         const reasonText = String(item.reason || "").trim();
         const mediaHtml = imageUrl
-          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;" />`
+          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;"${fallbackAttr} onerror="handleSampleDisplayImageError(this)" />`
           : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>이미지 없음</span></div>`;
         const scoreHtml = scoreText ? `<span class="reco-score-badge">${escapeRecoHtml(scoreText)}</span>` : "";
         const reasonHtml = reasonText
@@ -20569,6 +20626,7 @@ Important:
             if (photoRecoRuntime.state !== PHOTO_RECO_STATES.ANALYZING) return;
             if (selectedImageDataUrl !== analyzingImageDataUrl) return;
 
+            // Admin and customer share this same API list. Never swap in a fixed test set.
             photoRecoRuntime.recommendedResults = Array.isArray(results) ? results : [];
             photoRecoRuntime.selectedBackgroundKey = "";
 
@@ -20797,7 +20855,7 @@ Important:
 
         if (shouldRefreshAuthBeforeLoginPrompt) {
           try {
-            const sampleFileName = String(photoRecoRuntime.selectedBackgroundKey || "").trim();
+            const sampleFileName = normalizeRecommendSampleFileName(photoRecoRuntime.selectedBackgroundKey);
             const imageFile = resolveRecommendedSampleImageFile();
             const refreshedUser = await refreshAuthState({ showError: false });
             if (refreshedUser && sampleFileName && imageFile && canStartGenerationFromCurrentState()) {
@@ -20913,7 +20971,7 @@ Important:
       }
 
       async function startRecommendedSampleGeneration(sampleItem) {
-        const sampleFileName = String(sampleItem?.fileName || "").trim();
+        const sampleFileName = normalizeRecommendSampleFileName(sampleItem?.fileName);
         if (!sampleFileName) {
           showRecoToast("추천 스타일을 선택해 주세요.");
           return;
@@ -24763,7 +24821,7 @@ ${modeExample}`;
         }
         assertCanStartGenerationFlow();
 
-        const safeSampleFileName = String(sampleFileName || "").trim();
+        const safeSampleFileName = normalizeRecommendSampleFileName(sampleFileName);
         if (!safeSampleFileName) {
           const error = new Error("SAMPLE_REQUIRED");
           error.code = "SAMPLE_REQUIRED";
@@ -28514,7 +28572,7 @@ ${modeExample}`;
       ];
 
       function getLandingSamplePublicUrl(fileName) {
-        return `${getSupabaseSamplesPublicBase()}/${fileName}`;
+        return getSampleDisplayPublicUrl(fileName);
       }
 
       function pickSpreadSampleFiles(count, source = LANDING_SUPABASE_SAMPLE_FILES) {
@@ -28543,7 +28601,9 @@ ${modeExample}`;
                 height="560"
                 decoding="async"
                 loading="${index < 6 ? "eager" : "lazy"}"
-                onerror="this.closest('.landing-sample-strip-item')?.remove()"
+                data-sample-fallback-src="${getSampleRootPublicUrl(fileName)}"
+                data-sample-remove-on-fail=".landing-sample-strip-item"
+                onerror="handleSampleDisplayImageError(this)"
               />
             </figure>
           `
@@ -28604,6 +28664,8 @@ ${modeExample}`;
                       height="800"
                       decoding="async"
                       ${index === 0 ? "" : 'loading="lazy"'}
+                      data-sample-fallback-src="${getSampleRootPublicUrl(pair.fileName)}"
+                      onerror="handleSampleDisplayImageError(this)"
                     />
                   </div>
                 </article>
@@ -28761,7 +28823,9 @@ ${modeExample}`;
                 height="800"
                 loading="${index < LANDING_SAMPLES_GRID_INITIAL ? "eager" : "lazy"}"
                 decoding="async"
-                onerror="this.closest('.landing-samples-card')?.remove()"
+                data-sample-fallback-src="${getSampleRootPublicUrl(fileName)}"
+                data-sample-remove-on-fail=".landing-samples-card"
+                onerror="handleSampleDisplayImageError(this)"
               />
             </figure>
           `

@@ -20084,7 +20084,7 @@ Important:
 
       // Minimum analyzing UI time so the loading panel does not flash away.
       const RECOMMEND_SAMPLES_MIN_LOADING_MS = 1200;
-      const RECOMMEND_SAMPLES_LIMIT = 6;
+      const RECOMMEND_SAMPLES_LIMIT = 8;
       const RECOMMEND_SAMPLES_MAX_LONG_EDGE = 1600;
       const RECOMMEND_SAMPLES_JPEG_QUALITY = 0.8;
 
@@ -20150,13 +20150,7 @@ Important:
       }
 
       function getRecoSampleImageUrl(item = {}) {
-        return getSampleDisplayPublicUrl(item.fileName)
-          || getSampleDisplayPublicUrl(item.thumbnailUrl);
-      }
-
-      function getRecoSampleImageFallbackUrl(item = {}) {
-        return getSampleRootPublicUrl(item.fileName)
-          || getSampleRootPublicUrl(item.thumbnailUrl);
+        return String(item.thumbnailUrl || "").trim();
       }
 
       function handleSampleDisplayImageError(img) {
@@ -20401,11 +20395,10 @@ Important:
         }
 
         const results = Array.isArray(payload?.results) ? payload.results : [];
-        // Keep the regular recommend payload for every account, including admin.
-        // Do not replace results with a local fixture and do not slice to 3.
+        // Render the API list as-is (request asks for up to 8). Do not slice to 3-6.
         return results
           .map((item) => {
-            const resultFileName = normalizeRecommendSampleFileName(item?.fileName || item?.thumbnailUrl);
+            const resultFileName = normalizeRecommendSampleFileName(item?.fileName);
             if (!resultFileName) return null;
             const scoreNumber = Number(item?.score);
             return {
@@ -20512,16 +20505,12 @@ Important:
       function buildRecoBackgroundCardHtml(item, selectedKey) {
         const fileName = normalizeRecommendSampleFileName(item.fileName);
         const selected = Boolean(fileName) && fileName === selectedKey;
-        const imageUrl = getRecoSampleImageUrl({ ...item, fileName });
-        const fallbackUrl = getRecoSampleImageFallbackUrl({ ...item, fileName });
-        const fallbackAttr = imageUrl && fallbackUrl && fallbackUrl !== imageUrl
-          ? ` data-sample-fallback-src="${escapeRecoHtml(fallbackUrl)}"`
-          : "";
+        const imageUrl = getRecoSampleImageUrl(item);
         const displayName = fileName.replace(/\.[^.]+$/, "") || "추천 샘플";
         const scoreText = Number.isFinite(item.score) ? `${Math.round(item.score)}점` : "";
         const reasonText = String(item.reason || "").trim();
         const mediaHtml = imageUrl
-          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;"${fallbackAttr} onerror="handleSampleDisplayImageError(this)" />`
+          ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;" />`
           : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>이미지 없음</span></div>`;
         const scoreHtml = scoreText ? `<span class="reco-score-badge">${escapeRecoHtml(scoreText)}</span>` : "";
         const reasonHtml = reasonText

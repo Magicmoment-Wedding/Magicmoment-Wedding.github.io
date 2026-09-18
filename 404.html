@@ -5768,7 +5768,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center 22%;
+        object-position: center top;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -28470,20 +28470,22 @@ ${modeExample}`;
 
       function setupLandingHeroPairRotation() {
         if (!landingHeroPairStage) return;
-        const heroFiles = pickSpreadSampleFiles(5);
-        const pairSets = heroFiles.map((fileName) => ({
-          original: null,
-          result: getLandingSamplePublicUrl(fileName),
-          fileName,
+        const pairSets = [
+          { originalPath: "original/3.jpg", resultPath: "result/3f.jpg" },
+          { originalPath: "original/4.jpg", resultPath: "result/4f.jpg" },
+          { originalPath: "original/6.jpg", resultPath: "result/6f.jpg" },
+        ].map((pair) => ({
+          original: `${getSupabaseSamplesPublicBase()}/${pair.originalPath}`,
+          result: `${getSupabaseSamplesPublicBase()}/${pair.resultPath}`,
+          originalPath: pair.originalPath,
+          resultPath: pair.resultPath,
         }));
 
-        const renderOriginal = (original, index) => {
-          if (original) {
-            return `
+        const renderPairImage = (src, alt, index) => `
               <div class="landing-hero-pair-media">
                 <img
-                  src="${original}"
-                  alt="원본 샘플 ${index + 1}"
+                  src="${src}"
+                  alt="${alt}"
                   width="600"
                   height="800"
                   decoding="async"
@@ -28491,18 +28493,15 @@ ${modeExample}`;
                 />
               </div>
             `;
-          }
-          return `<div class="landing-hero-pair-placeholder" aria-hidden="true"></div>`;
-        };
 
         landingHeroPairStage.innerHTML = pairSets
           .map(
             (pair, index) => `
-          <div class="landing-hero-pair-set" data-pair-index="${index}" data-sample-file="${pair.fileName || ""}">
+          <div class="landing-hero-pair-set" data-pair-index="${index}" data-original-file="${pair.originalPath}" data-result-file="${pair.resultPath}">
             <div class="landing-hero-pair">
               <article class="landing-hero-pair-card is-original">
                 <span class="landing-hero-pair-label">원본</span>
-                ${renderOriginal(pair.original, index)}
+                ${renderPairImage(pair.original, `원본 샘플 ${index + 1}`, index)}
               </article>
               <div class="landing-hero-pair-arrow" aria-hidden="true">
                 <span class="material-symbols-outlined">arrow_forward</span>
@@ -28510,18 +28509,7 @@ ${modeExample}`;
               <div class="landing-hero-pair-result-wrap">
                 <article class="landing-hero-pair-card is-result">
                   <span class="landing-hero-pair-label">AI 스타일샷</span>
-                  <div class="landing-hero-pair-media">
-                    <img
-                      src="${pair.result}"
-                      alt="AI 스타일샷 샘플 ${index + 1}"
-                      width="600"
-                      height="800"
-                      decoding="async"
-                      ${index === 0 ? "" : 'loading="lazy"'}
-                      data-sample-fallback-src="${getSampleRootPublicUrl(pair.fileName)}"
-                      onerror="handleSampleDisplayImageError(this)"
-                    />
-                  </div>
+                  ${renderPairImage(pair.result, `AI 스타일샷 샘플 ${index + 1}`, index)}
                 </article>
               </div>
             </div>
@@ -28587,7 +28575,7 @@ ${modeExample}`;
           }, 720);
         };
 
-        window.setInterval(advancePairSet, 3500);
+        window.setInterval(advancePairSet, 4000);
       }
 
       function setupBeforeAfterAutos() {

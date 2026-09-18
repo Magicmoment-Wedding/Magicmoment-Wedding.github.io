@@ -5766,7 +5766,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center top;
+        object-position: center 25%;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -8250,17 +8250,24 @@
           border-radius: 22px;
         }
 
-        .landing-hero-pair-card {
-          height: 240px;
-          max-height: 260px;
-        }
-
         .landing-hero-pair-set.is-next {
           transform: translate3d(10px, 8px, 0) scale(0.985);
         }
 
         .landing-hero-pair-set.is-queued {
           transform: translate3d(16px, 12px, 0) scale(0.97);
+        }
+      }
+
+      @media (max-width: 1024px) and (min-width: 769px) {
+        .landing-hero-pair {
+          height: auto;
+          aspect-ratio: 544 / 452;
+        }
+
+        .landing-hero-pair-card {
+          height: auto;
+          max-height: none;
         }
       }
 

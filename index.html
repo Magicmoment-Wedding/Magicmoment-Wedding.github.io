@@ -5590,17 +5590,17 @@
       .landing-hero-pair-stage {
         position: relative;
         width: 100%;
-        padding-right: 18px;
+        padding-right: 0;
         isolation: isolate;
+        overflow: hidden;
       }
 
       .landing-hero-pair-set {
         width: 100%;
-        transform-origin: 72% 50%;
+        transform-origin: 50% 50%;
         transition:
           transform 0.72s cubic-bezier(0.22, 0.9, 0.28, 1),
-          opacity 0.55s ease,
-          filter 0.55s ease;
+          opacity 0.55s ease;
         will-change: transform, opacity;
       }
 
@@ -5608,35 +5608,12 @@
         position: relative;
         z-index: 4;
         opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: none;
+        transform: translate3d(0, 0, 0);
         pointer-events: auto;
       }
 
-      .landing-hero-pair-set.is-next {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 3;
-        opacity: 1;
-        transform: translate3d(18px, 12px, 0) scale(0.955);
-        filter: brightness(0.98);
-        pointer-events: none;
-      }
-
-      .landing-hero-pair-set.is-queued {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 2;
-        opacity: 0.95;
-        transform: translate3d(30px, 20px, 0) scale(0.91);
-        filter: brightness(0.96);
-        pointer-events: none;
-      }
-
+      .landing-hero-pair-set.is-next,
+      .landing-hero-pair-set.is-queued,
       .landing-hero-pair-set.is-waiting {
         position: absolute;
         top: 0;
@@ -5644,7 +5621,7 @@
         right: 0;
         z-index: 1;
         opacity: 0;
-        transform: translate3d(40px, 26px, 0) scale(0.88);
+        transform: translate3d(36px, 0, 0);
         pointer-events: none;
       }
 
@@ -5655,52 +5632,39 @@
         right: 0;
         z-index: 5;
         opacity: 0;
-        transform: translate3d(-28px, 10px, 0) scale(0.98);
-        filter: brightness(1.02);
+        transform: translate3d(-36px, 0, 0);
         pointer-events: none;
-      }
-
-      /* Idle stack peeks only the result side; whole set still switches together. */
-      .landing-hero-pair-set.is-next .landing-hero-pair-card.is-original,
-      .landing-hero-pair-set.is-next .landing-hero-pair-arrow,
-      .landing-hero-pair-set.is-queued .landing-hero-pair-card.is-original,
-      .landing-hero-pair-set.is-queued .landing-hero-pair-arrow,
-      .landing-hero-pair-set.is-waiting .landing-hero-pair-card.is-original,
-      .landing-hero-pair-set.is-waiting .landing-hero-pair-arrow {
-        opacity: 0;
-      }
-
-      .landing-hero-pair-set.is-active .landing-hero-pair-card.is-original,
-      .landing-hero-pair-set.is-active .landing-hero-pair-arrow,
-      .landing-hero-pair-set.is-leaving .landing-hero-pair-card.is-original,
-      .landing-hero-pair-set.is-leaving .landing-hero-pair-arrow {
-        opacity: 1;
-        transition: opacity 0.35s ease;
       }
 
       .landing-hero-pair {
         position: relative;
         width: 100%;
         display: grid;
-        grid-template-columns: minmax(0, 0.92fr) 40px minmax(0, 1.08fr);
-        align-items: center;
-        gap: 0;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: stretch;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 30px;
+        background: linear-gradient(180deg, #f4f1ec 0%, #efeae3 100%);
+        border: 1px solid rgba(40, 32, 24, 0.06);
+        box-shadow: 0 12px 28px rgba(30, 24, 20, 0.08);
+        box-sizing: border-box;
       }
 
       .landing-hero-pair-card {
         position: relative;
-        border-radius: 20px;
+        border-radius: 18px;
         overflow: hidden;
-        background: #ffffff;
-        box-shadow: 0 14px 36px rgba(20, 24, 32, 0.1);
-        border: 1px solid rgba(20, 24, 32, 0.05);
+        background: #ddd6cc;
+        box-shadow: none;
+        border: 0;
         aspect-ratio: 3 / 4;
         min-height: 0;
         width: 100%;
       }
 
       .landing-hero-pair-card.is-result {
-        z-index: 2;
+        z-index: 1;
       }
 
       .landing-hero-pair-result-wrap {
@@ -5714,17 +5678,23 @@
       }
 
       .landing-hero-pair-arrow {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 999px;
         display: grid;
         place-items: center;
         color: #ffffff;
         background: #1e2430;
-        box-shadow: 0 8px 20px rgba(20, 24, 32, 0.2);
-        z-index: 4;
+        box-shadow: 0 6px 14px rgba(20, 24, 32, 0.16);
+        z-index: 2;
         justify-self: center;
+        align-self: center;
         position: relative;
+        flex-shrink: 0;
+      }
+
+      .landing-hero-pair-arrow .material-symbols-outlined {
+        font-size: 20px;
       }
 
       .landing-hero-pair-label {
@@ -8242,32 +8212,27 @@
         }
 
         .landing-hero-pair-wrap,
-        .landing-hero-pair-stage,
-        .landing-hero-pair {
+        .landing-hero-pair-stage {
           max-width: 520px;
           margin: 0 auto;
         }
 
         .landing-hero-pair-stage {
-          padding-right: 14px;
+          padding-right: 0;
         }
 
         .landing-hero-pair {
-          grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.1fr);
-          gap: 8px;
-        }
-
-        .landing-hero-pair-set.is-next {
-          transform: translate3d(12px, 10px, 0) scale(0.96);
-        }
-
-        .landing-hero-pair-set.is-queued {
-          transform: translate3d(22px, 16px, 0) scale(0.925);
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto auto auto;
+          gap: 10px;
+          padding: 12px;
+          border-radius: 28px;
         }
 
         .landing-hero-pair-arrow {
-          width: 34px;
-          height: 34px;
+          width: 36px;
+          height: 36px;
+          transform: rotate(90deg);
         }
       }
 

@@ -28457,44 +28457,28 @@ ${modeExample}`;
         return `${supabaseBase}/storage/v1/object/public/samples`;
       }
 
-      // Confirmed public objects in Supabase Storage `samples` bucket (118 files).
-      // Most are .jpg; a few newer uploads use .png.
-      const LANDING_SUPABASE_SAMPLE_FILES = [
-        ...Array.from({ length: 104 }, (_, index) => `${index + 1}.jpg`),
-        "105.png",
-        "106.png",
-        "107.png",
-        "108.jpg",
-        "109.png",
-        "110.png",
-        "111.png",
-        "112.jpg",
-        "113.jpg",
-        "114.png",
-        "115.png",
-        "116.png",
-        "117.png",
-        "118.png",
-      ];
+      const LANDING_DISPLAY_SAMPLE_FILES = Array.from({ length: 18 }, (_, index) => `${index + 1}.jpg`);
+
+      function shuffleLandingDisplaySampleFiles(files) {
+        const shuffled = Array.isArray(files) ? files.slice() : [];
+        for (let index = shuffled.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          const current = shuffled[index];
+          shuffled[index] = shuffled[swapIndex];
+          shuffled[swapIndex] = current;
+        }
+        return shuffled;
+      }
+
+      const LANDING_DISPLAY_SAMPLES_SHUFFLED = shuffleLandingDisplaySampleFiles(LANDING_DISPLAY_SAMPLE_FILES);
 
       function getLandingSamplePublicUrl(fileName) {
         return getSampleDisplayPublicUrl(fileName);
       }
 
-      function pickSpreadSampleFiles(count, source = LANDING_SUPABASE_SAMPLE_FILES) {
-        if (!Array.isArray(source) || !source.length) return [];
-        if (count >= source.length) return source.slice();
-        const picked = [];
-        for (let index = 0; index < count; index += 1) {
-          const sourceIndex = Math.floor((index * source.length) / count);
-          picked.push(source[sourceIndex]);
-        }
-        return picked;
-      }
-
       function setupLandingSampleStrip() {
         if (!landingSampleStripSet || !landingSampleStripSetClone) return;
-        const stripFiles = pickSpreadSampleFiles(18);
+        const stripFiles = LANDING_DISPLAY_SAMPLES_SHUFFLED.slice();
         const renderSet = (container, withAlt) => {
           container.innerHTML = stripFiles
             .map(
@@ -28507,7 +28491,6 @@ ${modeExample}`;
                 height="560"
                 decoding="async"
                 loading="${index < 6 ? "eager" : "lazy"}"
-                data-sample-fallback-src="${getSampleRootPublicUrl(fileName)}"
                 data-sample-remove-on-fail=".landing-sample-strip-item"
                 onerror="handleSampleDisplayImageError(this)"
               />
@@ -28700,8 +28683,8 @@ ${modeExample}`;
         if (!landingSamplesGrid) return;
 
         const LANDING_SAMPLES_GRID_INITIAL = 8;
-        const LANDING_SAMPLES_GRID_PAGE_SIZE = 30;
-        const sampleFiles = LANDING_SUPABASE_SAMPLE_FILES.slice();
+        const LANDING_SAMPLES_GRID_PAGE_SIZE = 10;
+        const sampleFiles = LANDING_DISPLAY_SAMPLES_SHUFFLED.slice();
         let visibleCount = Math.min(LANDING_SAMPLES_GRID_INITIAL, sampleFiles.length);
 
         const renderCards = () => {
@@ -28717,7 +28700,6 @@ ${modeExample}`;
                 height="800"
                 loading="${index < LANDING_SAMPLES_GRID_INITIAL ? "eager" : "lazy"}"
                 decoding="async"
-                data-sample-fallback-src="${getSampleRootPublicUrl(fileName)}"
                 data-sample-remove-on-fail=".landing-samples-card"
                 onerror="handleSampleDisplayImageError(this)"
               />

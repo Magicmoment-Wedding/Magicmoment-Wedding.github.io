@@ -11447,7 +11447,6 @@ Important:
       let freeGenerationUsed = false;
       let freeGenerationEligible = false;
       let freeGenerationAvailable = false;
-      let openEventEligible = false;
       let isNewUser = false;
       let siteGuidePageIndex = 0;
       let signupGuideSelections = {
@@ -13277,7 +13276,6 @@ Important:
         const freeUsedValue = pickAuthField(payload, user, ["freeGenerationUsed", "free_generation_used"]);
         const freeEligibleValue = pickAuthField(payload, user, ["freeGenerationEligible", "free_generation_eligible", "freeEligible", "free_eligible"]);
         const freeAvailableValue = usage?.freeGenerationAvailable ?? pickAuthField(payload, user, ["freeGenerationAvailable", "free_generation_available"]);
-        const openEventValue = pickAuthField(payload, user, ["openEventEligible", "open_event_eligible", "firstPurchaseEligible", "first_purchase_eligible"]);
         const isNewUserValue = pickAuthField(payload, user, ["isNewUser", "is_new_user"]);
 
         const normalizedIsNewUser = normalizeBooleanField(isNewUserValue, false);
@@ -13290,14 +13288,12 @@ Important:
           freeAvailableValue,
           false,
         );
-        openEventEligible = normalizeBooleanField(openEventValue, false);
         isNewUser = normalizeBooleanField(isNewUserValue, normalizedIsNewUser);
         if (user && typeof user === "object") {
           user.onboardingCompleted = onboardingCompleted;
           user.freeGenerationUsed = freeGenerationUsed;
           user.freeGenerationEligible = freeGenerationEligible;
           user.freeGenerationAvailable = freeGenerationAvailable;
-          user.openEventEligible = openEventEligible;
           user.isNewUser = isNewUser;
           if (usage) {
             user.generationUsage = usage;
@@ -17019,11 +17015,14 @@ Important:
 
         creditChargeButtons.forEach((button) => {
           const packageId = button.dataset.creditPackageId || "";
-          const defaultLabel = button.dataset.defaultLabel || button.textContent.trim() || "구매하기";
-          button.dataset.defaultLabel = defaultLabel;
+          if (!button.dataset.defaultLabel) {
+            const initial = button.textContent.trim();
+            button.dataset.defaultLabel = initial && !/결제 준비/.test(initial) ? initial : "이용권 선택하기";
+          }
           const isActivePayment = activePaymentPackageId === packageId;
           button.disabled = isPaymentLoading;
-          button.textContent = isActivePayment ? "결제 준비 중..." : defaultLabel;
+          button.removeAttribute("aria-disabled");
+          button.textContent = isActivePayment ? "결제 준비 중..." : button.dataset.defaultLabel;
         });
 
         syncAccountMenuUi();

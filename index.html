@@ -4272,6 +4272,39 @@
         display: none !important;
       }
 
+      #resultSection.is-from-sample-compare .result-section-heading {
+        display: block;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin: 0;
+        padding: 20px 16px;
+        text-align: center;
+      }
+
+      #resultSection.is-from-sample-compare #resultSectionEyebrow,
+      #resultSection.is-from-sample-compare #recommendationText {
+        display: none !important;
+      }
+
+      #resultSection.is-from-sample-compare #resultSectionTitle {
+        margin: 0 auto;
+        width: 100%;
+        max-width: 36rem;
+        text-align: center;
+        font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+        font-size: clamp(22px, 5.6vw, 26px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.4;
+        color: #1a1a1a;
+      }
+
+      #resultSection.is-from-sample-compare .from-sample-result-title-line {
+        display: inline-block;
+        white-space: nowrap;
+      }
+
       .result-gallery-reward-card {
         margin-top: 4px;
         padding: 14px 16px;
@@ -9051,7 +9084,7 @@ AI가 추천해드려요.</p>
               <span class="w-9"></span>
             </div>
             <section class="flex flex-col gap-4 hidden mt-3" id="resultSection">
-              <div class="flex items-end justify-between gap-4">
+              <div class="result-section-heading flex items-end justify-between gap-4">
                 <div>
                   <p class="font-label-caps text-label-caps uppercase text-primary" id="resultSectionEyebrow">AI Recommendation</p>
                   <h2 class="font-display text-[28px] leading-tight text-on-surface" id="resultSectionTitle">추천 결과</h2>
@@ -10173,6 +10206,7 @@ AI가 추천해드려요.</p>
       const SUPABASE_AUTH_FLOW_TYPE = "implicit";
       const SUPABASE_AUTH_STORAGE_KEY = "magic-ai-studio-auth";
       const USER_RECOMMENDATION_TEXT = "원본 얼굴과 구도가 가장 안정적인 결과를 추천했어요.";
+      const FROM_SAMPLE_RESULT_TITLE_HTML = '<span class="from-sample-result-title-line">선택한 스타일로 만든 결과예요.</span> <span class="from-sample-result-title-line">원본과 결과를 비교해 보세요.</span>';
       const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
       const WATERMARK_OUTPUT_LONG_EDGE = 720;
       const IMAGE_MODAL_SWIPE_THRESHOLD = 45;
@@ -27973,11 +28007,7 @@ ${modeExample}`;
           const resultUrls = imageUrls.slice(0, 2).map((url) => toDisplayUrl(url)).filter(Boolean);
           const hasAnyResult = resultUrls.length > 0;
 
-          if (resultSectionEyebrow) resultSectionEyebrow.textContent = "AI Style Result";
-          if (resultSectionTitle) {
-            resultSectionTitle.textContent = resultUrls.length > 1 ? "원본 · 결과 1 · 결과 2" : "원본과 결과";
-          }
-          recommendationText.textContent = "선택한 스타일로 만든 결과예요. 원본과 결과를 비교해 보세요.";
+          if (resultSectionTitle) resultSectionTitle.innerHTML = FROM_SAMPLE_RESULT_TITLE_HTML;
 
           if (fromSampleResultCompare) fromSampleResultCompare.hidden = !hasAnyResult;
           if (fromSampleResultPair) fromSampleResultPair.classList.toggle("has-two-results", resultUrls.length > 1);

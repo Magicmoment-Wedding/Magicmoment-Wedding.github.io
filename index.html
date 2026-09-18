@@ -20575,17 +20575,27 @@ Important:
           .replace(/'/g, "&#39;");
       }
 
+      function sanitizeRecoReasonForDisplay(value) {
+        return String(value || "")
+          .replace(/유사도\s*[:：]?\s*\d+(?:\.\d+)?\s*%?/gi, "")
+          .replace(/\bscore\s*[:：]?\s*\d+(?:\.\d+)?/gi, "")
+          .replace(/\d+(?:\.\d+)?\s*%/g, "")
+          .replace(/\d+(?:\.\d+)?\s*점/g, "")
+          .replace(/\(\s*\)/g, "")
+          .replace(/[\s,·/|]+/g, " ")
+          .replace(/^[\s,·\-–—:：]+|[\s,·\-–—:：]+$/g, "")
+          .trim();
+      }
+
       function buildRecoBackgroundCardHtml(item, selectedKey) {
         const fileName = normalizeRecommendSampleFileName(item.fileName);
         const selected = Boolean(fileName) && fileName === selectedKey;
         const imageUrl = getRecoSampleImageUrl(item);
         const displayName = fileName.replace(/\.[^.]+$/, "") || "추천 샘플";
-        const scoreText = Number.isFinite(item.score) ? `${Math.round(item.score)}점` : "";
-        const reasonText = String(item.reason || "").trim();
+        const reasonText = sanitizeRecoReasonForDisplay(item.reason);
         const mediaHtml = imageUrl
           ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;" />`
           : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>이미지 없음</span></div>`;
-        const scoreHtml = scoreText ? `<span class="reco-score-badge">${escapeRecoHtml(scoreText)}</span>` : "";
         const reasonHtml = reasonText
           ? `<ul class="reco-bg-reasons"><li>${escapeRecoHtml(reasonText)}</li></ul>`
           : "";
@@ -20597,7 +20607,6 @@ Important:
             data-reco-ready="true"
             aria-pressed="${selected ? "true" : "false"}"
           >
-            ${scoreHtml}
             <span class="reco-bg-check" aria-hidden="true"><span class="material-symbols-outlined">check</span></span>
             <span class="reco-bg-card-media">${mediaHtml}</span>
             <span class="reco-bg-card-body">

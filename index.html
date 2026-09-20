@@ -10222,6 +10222,8 @@ AI가 추천해드려요.</p>
       const LAST_PAYMENT_AMOUNT_STORAGE_KEY = "magic_last_payment_amount";
       const PENDING_ACTION_STORAGE_KEY = "magic_pending_action";
       const RETURN_TO_STORAGE_KEY = "magic_return_to";
+      const PENDING_RECOMMEND_ACTION = "retry_recommend";
+      const PENDING_RECOMMEND_IMAGE_STORAGE_KEY = "magic_pending_recommend_image";
       const OAUTH_LOGIN_PROVIDERS = new Set(["naver", "google", "kakao", "apple"]);
       const GOOGLE_LOGIN_RETURN_VIEWS = new Set(["landing", "editor", "account", "photobox", "admin"]);
       const ALLOWED_LOGIN_RETURN_VIEWS = new Set([
@@ -17990,6 +17992,21 @@ Important:
 
         // Onboarding retired: never force site guide after login/signup.
 
+        const pendingAction = getPendingAction();
+        if (pendingAction === PENDING_RECOMMEND_ACTION) {
+          restorePendingRecommendImage();
+          clearPendingAction();
+          closeLoginModal();
+          closeAccountMenu();
+          navigateToLoginReturnView("editor");
+          window.setTimeout(() => {
+            if (selectedImageDataUrl || selectedFile) {
+              showTemporaryRecommendationPreview();
+            }
+          }, 0);
+          return;
+        }
+
         if (shouldStayLanding) {
           clearPendingAction();
           navigateToScreen("landing");
@@ -17998,7 +18015,6 @@ Important:
           return;
         }
 
-        const pendingAction = getPendingAction();
         if (pendingAction === "start_generation") {
           clearPendingAction();
           navigateToLoginReturnView("editor");
@@ -20421,26 +20437,32 @@ Important:
           headers.Authorization = `Bearer ${authInfo.accessToken}`;
         }
 
-        const response = await fetch(getAuthApiUrl("/api/recommend-samples"), {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-          headers,
-          body: formData,
-        });
+        let response;
+        try {
+          response = await fetch(getAuthApiUrl("/api/recommend-samples"), {
+            method: "POST",
+            credentials: "include",
+            cache: "no-store",
+            headers,
+            body: formData,
+          });
+        } catch (networkError) {
+          const error = new Error("추천을 불러오지 못했습니다");
+          error.code = "NETWORK_ERROR";
+          error.cause = networkError;
+          throw error;
+        }
 
         let payload = null;
         try {
           payload = await response.json();
         } catch (parseError) {
-          const error = new Error("추천을 불러오지 못했습니다");
-          error.code = "INVALID_RESPONSE";
-          throw error;
+          payload = null;
         }
 
         if (!response.ok || payload?.ok === false) {
           const code = String(payload?.code || payload?.error || `HTTP_${response.status}`);
-          if (code === "LOGIN_REQUIRED" || response.status === 401) {
+          if (isRecommendLoginRequiredError({ code, statusCode: response.status })) {
             console.warn("[PhotoReco][auth] LOGIN_REQUIRED from recommend-samples", {
               uiLoggedIn: authInfo.uiLoggedIn,
               hasAccessToken: Boolean(authInfo.accessToken),
@@ -20451,6 +20473,12 @@ Important:
               code,
               message: payload?.message || null,
             });
+            const error = new Error("LOGIN_REQUIRED");
+            error.code = "LOGIN_REQUIRED";
+            error.statusCode = response.status;
+            error.isLoginRequired = true;
+            error.response = payload;
+            throw error;
           }
           if (response.status === 413 || code === "PAYLOAD_TOO_LARGE") {
             console.warn("[PhotoReco] recommend-samples payload too large", {
@@ -20650,7 +20678,101 @@ Important:
         recoPrepareSheet.setAttribute("aria-hidden", "true");
       }
 
+      function isRecommendLoginRequiredError(errorLike = {}) {
+        const status = Number(errorLike?.statusCode || errorLike?.status || 0);
+        const code = String(
+          errorLike?.code || errorLike?.response?.code || errorLike?.response?.error || "",
+        ).toUpperCase();
+        if (status === 401) return true;
+        return (
+          errorLike?.isLoginRequired === true
+          || code === "LOGIN_REQUIRED"
+          || code === "AUTH_REQUIRED"
+          || code === "UNAUTHORIZED"
+          || code === "NO_SESSION"
+          || code === "SESSION_EXPIRED"
+        );
+      }
+
+      function persistPendingRecommendImage() {
+        const dataUrl = String(selectedImageDataUrl || "").trim();
+        if (!dataUrl.startsWith("data:")) return false;
+        try {
+          window.sessionStorage.setItem(PENDING_RECOMMEND_IMAGE_STORAGE_KEY, JSON.stringify({
+            dataUrl,
+            fileName: selectedFile?.name || "upload.jpg",
+            type: selectedFile?.type || "image/jpeg",
+          }));
+          window.sessionStorage.setItem(PENDING_ACTION_STORAGE_KEY, PENDING_RECOMMEND_ACTION);
+          window.sessionStorage.setItem(RETURN_TO_STORAGE_KEY, "editor");
+          return true;
+        } catch (error) {
+          console.warn("[PhotoReco] persist pending recommend image failed", {
+            message: error?.message || String(error),
+          });
+          try {
+            window.sessionStorage.setItem(PENDING_ACTION_STORAGE_KEY, PENDING_RECOMMEND_ACTION);
+            window.sessionStorage.setItem(RETURN_TO_STORAGE_KEY, "editor");
+          } catch (storageError) {
+            // Login can continue without pending-image persistence.
+          }
+          return false;
+        }
+      }
+
+      function restorePendingRecommendImage() {
+        try {
+          const raw = window.sessionStorage.getItem(PENDING_RECOMMEND_IMAGE_STORAGE_KEY);
+          if (!raw) return false;
+          const parsed = JSON.parse(raw);
+          const dataUrl = String(parsed?.dataUrl || "").trim();
+          window.sessionStorage.removeItem(PENDING_RECOMMEND_IMAGE_STORAGE_KEY);
+          if (!dataUrl.startsWith("data:")) return false;
+          selectedImageDataUrl = dataUrl;
+          try {
+            const blob = dataUrlToBlob(dataUrl);
+            selectedFile = new File(
+              [blob],
+              parsed.fileName || "upload.jpg",
+              { type: parsed.type || blob.type || "image/jpeg" },
+            );
+          } catch (fileError) {
+            selectedFile = null;
+          }
+          captureFromSampleOriginalPreview(selectedImageDataUrl);
+          return true;
+        } catch (error) {
+          try {
+            window.sessionStorage.removeItem(PENDING_RECOMMEND_IMAGE_STORAGE_KEY);
+          } catch (storageError) {
+            // ignore
+          }
+          return false;
+        }
+      }
+
+      function promptLoginForRecommend() {
+        persistPendingRecommendImage();
+        rememberLoginReturnView("editor");
+        photoRecoRuntime.lastErrorCode = "LOGIN_REQUIRED";
+        photoRecoRuntime.lastErrorMessage = "";
+        photoRecoRuntime.recommendedResults = [];
+        photoRecoRuntime.selectedBackgroundKey = "";
+        closeRecoPrepareSheet();
+        setPhotoRecommendationState(PHOTO_RECO_STATES.UPLOAD);
+        openLoginModal(null, {
+          tab: "login",
+          returnView: "editor",
+          forceLoginModal: true,
+        });
+      }
+
       function showRecommendSamplesFailure(errorLike = {}) {
+        if (isRecommendLoginRequiredError(errorLike)) {
+          promptLoginForRecommend();
+          return;
+        }
+
         const code = String(errorLike?.code || "RECOMMEND_FAILED");
         const message = code === "HEIC_CONVERT_FAILED"
           ? HEIC_CONVERT_FAILED_MESSAGE
@@ -20672,7 +20794,6 @@ Important:
         const errorCopy = document.getElementById("recoErrorCopy");
         if (errorCopy) errorCopy.textContent = message;
         showRecoToast(message);
-        // Never open account menu / login modal from recommend failure.
         setPhotoRecommendationState(PHOTO_RECO_STATES.ERROR);
       }
 

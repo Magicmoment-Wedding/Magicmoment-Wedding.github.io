@@ -28577,7 +28577,83 @@ ${modeExample}`;
         return `${supabaseBase}/storage/v1/object/public/samples`;
       }
 
-      const LANDING_DISPLAY_SAMPLE_FILES = Array.from({ length: 18 }, (_, index) => `${index + 1}.jpg`);
+      const LANDING_DISPLAY_SAMPLE_FILES = [
+        "1.jpg",
+        "2.jpg",
+        "3.jpg",
+        "4.jpg",
+        "5.jpg",
+        "6.jpg",
+        "7.jpg",
+        "8.jpg",
+        "9.jpg",
+        "10.jpg",
+        "11.jpg",
+        "12.jpg",
+        "13.jpg",
+        "14.jpg",
+        "15.jpg",
+        "16.jpg",
+        "17.jpg",
+        "18.jpg",
+        "19.jpg",
+        "20.jpg",
+        "21.jpg",
+        "22.jpg",
+        "23.jpg",
+        "24.jpg",
+        "25.jpg",
+        "26.jpg",
+        "27.jpg",
+        "28.jpg",
+        "29.jpg",
+        "30.jpg",
+        "31.jpg",
+        "32.jpg",
+        "33.jpg",
+        "34.jpg",
+      ];
+
+      const LANDING_DISPLAY_SUBJECT_BY_FILE = {
+        "1.jpg": "solo",
+        "2.jpg": "solo",
+        "3.jpg": "solo",
+        "4.jpg": "solo",
+        "5.jpg": "couple",
+        "6.jpg": "solo",
+        "7.jpg": "couple",
+        "8.jpg": "solo",
+        "9.jpg": "solo",
+        "10.jpg": "solo",
+        "11.jpg": "solo",
+        "12.jpg": "solo",
+        "13.jpg": "couple",
+        "14.jpg": "solo",
+        "15.jpg": "solo",
+        "16.jpg": "solo",
+        "17.jpg": "solo",
+        "18.jpg": "couple",
+        "19.jpg": "solo",
+        "20.jpg": "couple",
+        "21.jpg": "couple",
+        "22.jpg": "solo",
+        "23.jpg": "couple",
+        "24.jpg": "couple",
+        "25.jpg": "solo",
+        "26.jpg": "solo",
+        "27.jpg": "couple",
+        "28.jpg": "couple",
+        "29.jpg": "couple",
+        "30.jpg": "solo",
+        "31.jpg": "couple",
+        "32.jpg": "solo",
+        "33.jpg": "couple",
+        "34.jpg": "couple",
+      };
+
+      function getLandingDisplayMainSubject(fileName) {
+        return LANDING_DISPLAY_SUBJECT_BY_FILE[fileName] === "couple" ? "couple" : "solo";
+      }
 
       function shuffleLandingDisplaySampleFiles(files) {
         const shuffled = Array.isArray(files) ? files.slice() : [];
@@ -28590,7 +28666,25 @@ ${modeExample}`;
         return shuffled;
       }
 
-      const LANDING_DISPLAY_SAMPLES_SHUFFLED = shuffleLandingDisplaySampleFiles(LANDING_DISPLAY_SAMPLE_FILES);
+      function interleaveLandingDisplayBySubject(files) {
+        const shuffled = shuffleLandingDisplaySampleFiles(files);
+        const solo = [];
+        const couple = [];
+        shuffled.forEach((fileName) => {
+          if (getLandingDisplayMainSubject(fileName) === "couple") couple.push(fileName);
+          else solo.push(fileName);
+        });
+        const interleaved = [];
+        const pairCount = Math.min(solo.length, couple.length);
+        for (let index = 0; index < pairCount; index += 1) {
+          interleaved.push(solo[index], couple[index]);
+        }
+        interleaved.push(...solo.slice(pairCount), ...couple.slice(pairCount));
+        return interleaved;
+      }
+
+      const LANDING_DISPLAY_SAMPLES_SHUFFLED = interleaveLandingDisplayBySubject(LANDING_DISPLAY_SAMPLE_FILES);
+      const LANDING_HERO_IMAGE_CACHE_BUST = "20260921";
 
       function getLandingSamplePublicUrl(fileName) {
         return getSampleDisplayPublicUrl(fileName);
@@ -28630,8 +28724,8 @@ ${modeExample}`;
           { originalPath: "original/4.jpg", resultPath: "result/4f.jpg" },
           { originalPath: "original/6.jpg", resultPath: "result/6f.jpg" },
         ].map((pair) => ({
-          original: `${getSupabaseSamplesPublicBase()}/${pair.originalPath}`,
-          result: `${getSupabaseSamplesPublicBase()}/${pair.resultPath}`,
+          original: `${getSupabaseSamplesPublicBase()}/${pair.originalPath}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`,
+          result: `${getSupabaseSamplesPublicBase()}/${pair.resultPath}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`,
           originalPath: pair.originalPath,
           resultPath: pair.resultPath,
         }));

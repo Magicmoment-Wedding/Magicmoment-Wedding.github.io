@@ -6850,7 +6850,34 @@
       }
 
       .landing-bottom-inner > .landing-process {
-        margin-bottom: 42px;
+        margin-bottom: 0;
+      }
+
+      .landing-process-guide {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        margin: 0;
+        padding: 2px 4px;
+        border: 0;
+        background: transparent;
+        color: #ff4e8e;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.3;
+        letter-spacing: -0.02em;
+        cursor: pointer;
+      }
+
+      .landing-process-guide .material-symbols-outlined {
+        font-size: 18px;
+      }
+
+      .landing-process-guide:hover,
+      .landing-process-guide:focus-visible {
+        text-decoration: underline;
+        text-underline-offset: 3px;
       }
 
       @media (max-width: 719px) {
@@ -6911,7 +6938,11 @@
         }
 
         .landing-bottom-inner > .landing-process {
-          margin-bottom: 28px;
+          margin-bottom: 0;
+        }
+
+        .landing-process-guide {
+          font-size: 13px;
         }
       }
 
@@ -8639,6 +8670,11 @@
                   <p class="landing-process-desc">마음에 드는 스타일을 선택하고 완성된 사진을 다운로드하세요.</p>
                 </li>
               </ol>
+
+              <button class="landing-process-guide" id="landingProcessGuideLink" type="button">
+                <span>사이트 이용안내</span>
+                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+              </button>
 
               <div class="landing-cta-banner">
                 <p class="landing-cta-banner-text">지금 바로 당신의 사진을<br />특별한 웨딩 사진으로 바꿔보세요</p>
@@ -11197,6 +11233,7 @@ Important:
       const landingHeroStartButton = document.getElementById("landingHeroStartButton");
       const landingHeroResultsButton = document.getElementById("landingHeroResultsButton");
       const landingFinalStartButton = document.getElementById("landingFinalStartButton");
+      const landingProcessGuideLink = document.getElementById("landingProcessGuideLink");
       const landingSamplesGrid = document.getElementById("landingSamplesGrid");
       const landingSamplesMoreButton = document.getElementById("landingSamplesMoreButton");
       const landingSamplesSection = document.getElementById("landingSamplesSection");
@@ -30198,6 +30235,7 @@ ${modeExample}`;
         landingSamplesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
       landingFinalStartButton?.addEventListener("click", handleLandingFreeStartClick);
+      landingProcessGuideLink?.addEventListener("click", handleSiteGuideClick);
 
       accountMenuClose?.addEventListener("click", () => {
         closeAccountMenu({ restoreFocus: true });

@@ -6854,30 +6854,73 @@
       }
 
       .landing-process-guide {
-        display: inline-flex;
+        display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 2px;
-        margin: 0;
-        padding: 2px 4px;
-        border: 0;
-        background: transparent;
-        color: #ff4e8e;
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.3;
-        letter-spacing: -0.02em;
+        gap: 12px;
+        width: min(920px, 100%);
+        margin: 0 0 24px;
+        padding: 16px 16px 16px 18px;
+        border: 1px solid rgba(255, 80, 135, 0.18);
+        border-radius: 18px;
+        background: linear-gradient(180deg, #fff7fa 0%, #fff3f6 100%);
+        box-shadow: 0 8px 24px rgba(40, 20, 30, 0.06);
+        color: #2f2430;
+        text-align: left;
         cursor: pointer;
-      }
-
-      .landing-process-guide .material-symbols-outlined {
-        font-size: 18px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
       }
 
       .landing-process-guide:hover,
       .landing-process-guide:focus-visible {
-        text-decoration: underline;
-        text-underline-offset: 3px;
+        transform: translateY(-2px);
+        border-color: rgba(255, 80, 135, 0.32);
+        box-shadow: 0 10px 26px rgba(40, 20, 30, 0.08);
+      }
+
+      .landing-process-guide:active {
+        transform: translateY(0);
+      }
+
+      .landing-process-guide-icon {
+        flex: 0 0 auto;
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid rgba(255, 80, 135, 0.14);
+        color: #ff4e8e;
+        font-size: 22px;
+      }
+
+      .landing-process-guide-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .landing-process-guide-title {
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.3;
+        letter-spacing: -0.02em;
+        color: #2f2430;
+      }
+
+      .landing-process-guide-desc {
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.4;
+        color: #6f5964;
+      }
+
+      .landing-process-guide-arrow {
+        flex: 0 0 auto;
+        color: #ff4e8e;
+        font-size: 22px;
       }
 
       @media (max-width: 719px) {
@@ -6942,7 +6985,16 @@
         }
 
         .landing-process-guide {
-          font-size: 13px;
+          margin-bottom: 16px;
+          padding: 20px 14px;
+        }
+
+        .landing-process-guide-title {
+          font-size: 16px;
+        }
+
+        .landing-process-guide-desc {
+          font-size: 12px;
         }
       }
 
@@ -8672,8 +8724,12 @@
               </ol>
 
               <button class="landing-process-guide" id="landingProcessGuideLink" type="button">
-                <span>사이트 이용안내</span>
-                <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                <span class="landing-process-guide-icon material-symbols-outlined" aria-hidden="true">menu_book</span>
+                <span class="landing-process-guide-copy">
+                  <span class="landing-process-guide-title">사이트 이용안내</span>
+                  <span class="landing-process-guide-desc">자세한 이용 방법을 확인해보세요.</span>
+                </span>
+                <span class="landing-process-guide-arrow material-symbols-outlined" aria-hidden="true">chevron_right</span>
               </button>
 
               <div class="landing-cta-banner">

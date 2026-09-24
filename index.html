@@ -6738,29 +6738,32 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 6px;
         width: 100%;
         margin: 0;
         color: #ff4e8e;
-        font-size: clamp(14px, 3.7vw, 15px);
+        font-size: clamp(18px, 4.4vw, 24px);
         font-weight: 800;
-        letter-spacing: -0.015em;
-        white-space: nowrap;
+        letter-spacing: -0.02em;
+        line-height: 1.35;
+        text-align: center;
+        word-break: keep-all;
+        white-space: normal;
       }
 
       .landing-process-eyebrow .material-symbols-outlined {
-        font-size: 15px;
+        font-size: clamp(18px, 4.2vw, 22px);
         font-variation-settings: "FILL" 1, "wght" 500;
       }
 
       .landing-process {
         display: flex;
-        align-items: flex-start;
+        align-items: stretch;
         justify-content: center;
-        gap: 2px;
-        width: 100%;
-        max-width: 520px;
-        margin: 14px auto 0;
+        gap: 12px;
+        width: min(920px, 100%);
+        max-width: 920px;
+        margin: 18px auto 0;
         padding: 0;
         list-style: none;
       }
@@ -6771,49 +6774,58 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 5px;
+        justify-content: flex-start;
+        gap: 12px;
+        min-height: 168px;
+        padding: 22px 16px 20px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #fff7fa 0%, #ffffff 100%);
+        border: 1px solid rgba(255, 78, 142, 0.14);
+        box-shadow: 0 4px 18px rgba(30, 42, 58, 0.05);
         text-align: center;
+        word-break: keep-all;
       }
 
       .landing-process-icon-wrap {
         position: relative;
-        width: 46px;
-        height: 46px;
-        border-radius: 999px;
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
         display: grid;
         place-items: center;
-        background: linear-gradient(160deg, #fff0f6 0%, #ffffff 100%);
-        border: 1px solid rgba(255, 78, 142, 0.12);
+        background: linear-gradient(180deg, #fff0f6 0%, #ffffff 100%);
+        border: 1px solid rgba(255, 78, 142, 0.14);
       }
 
       .landing-process-num {
         position: absolute;
-        top: -3px;
-        left: -3px;
-        width: 17px;
-        height: 17px;
+        top: -6px;
+        left: -6px;
+        width: 22px;
+        height: 22px;
         border-radius: 999px;
         display: grid;
         place-items: center;
         background: #ff4e8e;
         color: #ffffff;
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 800;
         line-height: 1;
       }
 
       .landing-process-icon {
         color: #ff4e8e;
-        font-size: 22px;
+        font-size: 26px;
         line-height: 1;
         font-variation-settings: "wght" 300;
       }
 
       .landing-process-arrow {
         flex: 0 0 auto;
-        margin-top: 14px;
-        color: #ffc2d6;
-        font-size: 15px;
+        align-self: center;
+        margin-top: 0;
+        color: #ffb0c9;
+        font-size: 22px;
         font-weight: 700;
         line-height: 1;
       }
@@ -6821,23 +6833,53 @@
       .landing-process-title {
         margin: 0;
         color: #1e2a3a;
-        font-size: 11px;
+        font-size: clamp(14px, 3.6vw, 16px);
         font-weight: 800;
-        line-height: 1.2;
+        line-height: 1.35;
+        letter-spacing: -0.02em;
         word-break: keep-all;
       }
 
       .landing-process-desc {
         margin: 0;
-        color: #9aa3b0;
-        font-size: 9px;
-        line-height: 1.35;
+        color: #6b7585;
+        font-size: clamp(12px, 3.1vw, 14px);
+        line-height: 1.5;
         font-weight: 500;
         word-break: keep-all;
       }
 
       .landing-bottom-inner > .landing-process {
-        margin-bottom: 24px;
+        margin-bottom: 28px;
+      }
+
+      @media (max-width: 719px) {
+        .landing-process {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+          width: min(100%, 420px);
+        }
+
+        .landing-process-step {
+          min-height: 0;
+          padding: 18px 16px 16px;
+        }
+
+        .landing-process-arrow {
+          transform: rotate(90deg);
+          margin: 2px auto;
+          font-size: 20px;
+        }
+
+        .landing-process-icon-wrap {
+          width: 48px;
+          height: 48px;
+        }
+
+        .landing-process-icon {
+          font-size: 24px;
+        }
       }
 
       .landing-cta-banner {
@@ -7117,16 +7159,6 @@
 
         .landing-assurance-icon .material-symbols-outlined {
           font-size: 26px;
-        }
-      }
-
-      @media (min-width: 640px) {
-        .landing-process-desc {
-          font-size: 10px;
-        }
-
-        .landing-process-title {
-          font-size: 12px;
         }
       }
 
@@ -8544,7 +8576,7 @@
             <div class="landing-section-inner landing-bottom-inner single-column">
               <p class="landing-process-eyebrow">
                 <span class="material-symbols-outlined" aria-hidden="true">star</span>
-                딸깍, 3번이면 사진이 완성되요
+                사진 한 장이면, 3단계로 완성돼요
               </p>
               <ol class="landing-process" aria-label="사용 방법 3단계">
                 <li class="landing-process-step">
@@ -8553,7 +8585,7 @@
                     <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">cloud_upload</span>
                   </div>
                   <p class="landing-process-title">사진 업로드</p>
-                  <p class="landing-process-desc">웨딩 사진 또는 일상 사진을<br />업로드해주세요.</p>
+                  <p class="landing-process-desc">웨딩사진 한 장을 올려주세요.</p>
                 </li>
                 <li class="landing-process-arrow" aria-hidden="true">›</li>
                 <li class="landing-process-step">
@@ -8561,17 +8593,17 @@
                     <span class="landing-process-num">2</span>
                     <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
                   </div>
-                  <p class="landing-process-title">스타일 선택</p>
-                  <p class="landing-process-desc">원하는 스타일을 선택하면<br />AI가 배경을 변환해요.</p>
+                  <p class="landing-process-title">AI 추천 받기</p>
+                  <p class="landing-process-desc">사진을 분석해 어울리는 스타일을 추천해드려요.</p>
                 </li>
                 <li class="landing-process-arrow" aria-hidden="true">›</li>
                 <li class="landing-process-step">
                   <div class="landing-process-icon-wrap">
                     <span class="landing-process-num">3</span>
-                    <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">photo_frame</span>
+                    <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">download</span>
                   </div>
-                  <p class="landing-process-title">마이포토박스 확인</p>
-                  <p class="landing-process-desc">완성된 사진은 확인 후<br />저장이 가능해요.<br />마이포토박스에서 언제든<br />확인이 가능해요.</p>
+                  <p class="landing-process-title">선택 후 다운로드</p>
+                  <p class="landing-process-desc">마음에 드는 스타일을 선택하고 완성된 사진을 다운로드하세요.</p>
                 </li>
               </ol>
 

@@ -13495,11 +13495,12 @@ Important:
       }
 
       function syncLandingHeroStartButtonUi() {
-        if (!landingHeroStartButton) return;
-        const label = landingHeroStartButton.querySelector("span:first-of-type");
-        if (!label) return;
         const hasUser = Boolean(getAuthenticatedUserId(currentUser));
-        label.textContent = hasUser ? "편집하러 가기" : "무료로 시작하기";
+        const labelText = hasUser ? "편집하러 가기" : "무료로 시작하기";
+        [landingHeroStartButton, landingFinalStartButton].forEach((button) => {
+          const label = button?.querySelector("span:first-of-type");
+          if (label) label.textContent = labelText;
+        });
       }
 
       function syncAuthUi() {

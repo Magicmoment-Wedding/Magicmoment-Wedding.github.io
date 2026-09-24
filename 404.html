@@ -6855,30 +6855,59 @@
 
       @media (max-width: 719px) {
         .landing-process {
-          flex-direction: column;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
           align-items: stretch;
-          gap: 10px;
-          width: min(100%, 420px);
+          gap: 4px;
+          width: 100%;
+          max-width: 100%;
+          margin-top: 12px;
         }
 
         .landing-process-step {
           min-height: 0;
-          padding: 18px 16px 16px;
-        }
-
-        .landing-process-arrow {
-          transform: rotate(90deg);
-          margin: 2px auto;
-          font-size: 20px;
+          gap: 6px;
+          padding: 10px 6px 8px;
+          border-radius: 14px;
         }
 
         .landing-process-icon-wrap {
-          width: 48px;
-          height: 48px;
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+        }
+
+        .landing-process-num {
+          top: -4px;
+          left: -4px;
+          width: 16px;
+          height: 16px;
+          font-size: 9px;
         }
 
         .landing-process-icon {
-          font-size: 24px;
+          font-size: 18px;
+        }
+
+        .landing-process-arrow {
+          transform: none;
+          align-self: center;
+          margin: 0;
+          font-size: 14px;
+        }
+
+        .landing-process-title {
+          font-size: 11px;
+          line-height: 1.25;
+        }
+
+        .landing-process-desc {
+          font-size: 10px;
+          line-height: 1.35;
+        }
+
+        .landing-bottom-inner > .landing-process {
+          margin-bottom: 16px;
         }
       }
 

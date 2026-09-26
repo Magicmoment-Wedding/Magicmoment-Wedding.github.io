@@ -20065,11 +20065,54 @@ Important:
         };
       }
 
+      function getMyPhotoListCardKey(item = {}) {
+        const images = Array.isArray(item.images) ? item.images : [];
+        if (images.length === 1) {
+          return String(images[0].id || images[0].imageUrl || images[0].thumbnailUrl || "").trim();
+        }
+        const imageKeys = images.map((image) => image.id || image.imageUrl).filter(Boolean).join("|");
+        return imageKeys || String(item.imageUrl || item.id || "").trim();
+      }
+
+      function buildMyPhotoSingleImageSource(rawItem = {}, image = {}) {
+        const next = {
+          ...rawItem,
+          images: [image],
+        };
+        delete next.representativeImageUrl;
+        delete next.representative_image_url;
+        delete next.representativeUrl;
+        delete next.representative_url;
+        delete next.thumbnailUrl;
+        delete next.thumbnail_url;
+        delete next.imageUrl;
+        delete next.image_url;
+        if (next.metadata && typeof next.metadata === "object") {
+          next.metadata = { ...next.metadata };
+          delete next.metadata.representativeImageUrl;
+          delete next.metadata.representative_image_url;
+        }
+        return next;
+      }
+
+      function expandMyPhotoListSources(groupedRawItems = []) {
+        const expanded = [];
+        groupedRawItems.forEach((rawItem) => {
+          if (!rawItem || typeof rawItem !== "object") return;
+          const images = getMyPhotoRawImages(rawItem).filter((image) => image && typeof image === "object");
+          const sources = images.length ? images : [rawItem];
+          sources.forEach((image) => {
+            expanded.push(buildMyPhotoSingleImageSource(rawItem, image));
+          });
+        });
+        return expanded;
+      }
+
       function mergeMyPhotoGenerations(items = []) {
         const grouped = new Map();
         items.forEach((item) => {
           if (!item) return;
-          const groupKey = item.generationId || item.id;
+          const groupKey = getMyPhotoListCardKey(item) || item.id;
           if (!grouped.has(groupKey)) {
             grouped.set(groupKey, { ...item, images: [...(item.images || [])] });
             return;
@@ -20144,8 +20187,8 @@ Important:
           extractMyPhotoItems(payload)
           .filter(isRecentSevenDayPhoto)
         );
-        const normalizedItems = groupedRawItems
-          .map(normalizeMyPhotoSummaryItem)
+        const normalizedItems = expandMyPhotoListSources(groupedRawItems)
+          .map((rawItem, index) => normalizeMyPhotoSummaryItem(rawItem, index))
           .filter(Boolean);
 
         const mergedItems = mergeMyPhotoGenerations(normalizedItems);

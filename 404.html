@@ -5592,10 +5592,12 @@
       .landing-hero-pair-stage {
         position: relative;
         width: 100%;
+        min-height: 280px;
         padding-right: 16px;
         padding-bottom: 16px;
         isolation: isolate;
         overflow: visible;
+        transition: min-height 0.45s ease;
       }
 
       .landing-hero-pair-set {
@@ -5665,31 +5667,51 @@
       }
 
       .landing-hero-pair {
+        --hero-pair-ratio: 1.333333;
+        --hero-pair-max-h: min(64vh, 620px);
+        --hero-pair-max-w: 100%;
         position: relative;
-        width: 100%;
-        height: 452px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        align-items: stretch;
-        gap: 8px;
-        padding: 8px;
+        width: min(var(--hero-pair-max-w), calc(var(--hero-pair-max-h) * var(--hero-pair-ratio)));
+        max-width: 100%;
+        height: auto;
+        aspect-ratio: var(--hero-pair-ratio);
+        margin-inline: auto;
+        display: block;
+        overflow: hidden;
         border-radius: 24px;
         background: linear-gradient(180deg, #f4f1ec 0%, #efeae3 100%);
         border: 1px solid rgba(40, 32, 24, 0.06);
         box-shadow: 0 10px 24px rgba(30, 24, 20, 0.1);
         box-sizing: border-box;
+        transition: width 0.45s ease, aspect-ratio 0.45s ease;
+      }
+
+      .landing-hero-pair.is-portrait {
+        --hero-pair-max-h: min(58vh, 540px);
+        --hero-pair-max-w: min(100%, 400px);
+      }
+
+      .landing-hero-pair.is-landscape {
+        --hero-pair-max-h: min(46vh, 420px);
+        --hero-pair-max-w: 100%;
+      }
+
+      .landing-hero-pair.is-square {
+        --hero-pair-max-h: min(52vh, 480px);
+        --hero-pair-max-w: min(100%, 460px);
       }
 
       .landing-hero-pair-card {
-        position: relative;
-        border-radius: 16px;
+        position: absolute;
+        inset: 0;
+        border-radius: 0;
         overflow: hidden;
         background: #ddd6cc;
         box-shadow: none;
         border: 0;
-        height: 100%;
+        height: auto;
         min-height: 0;
-        width: 100%;
+        width: auto;
       }
 
       .landing-hero-pair-card.is-result {
@@ -5697,16 +5719,26 @@
       }
 
       .landing-hero-pair-result-wrap {
-        position: relative;
+        position: absolute;
+        inset: 0;
         min-width: 0;
         min-height: 0;
-        height: 100%;
+        height: auto;
         z-index: 1;
       }
 
       .landing-hero-pair-result-wrap .landing-hero-pair-card {
-        width: 100%;
-        height: 100%;
+        width: auto;
+        height: auto;
+      }
+
+      .landing-hero-pair-card.is-original {
+        z-index: 2;
+        clip-path: inset(0 calc(50% - 0.5px) 0 0);
+      }
+
+      .landing-hero-pair-card.is-result {
+        clip-path: inset(0 0 0 calc(50% - 0.5px));
       }
 
       .landing-hero-pair-arrow {
@@ -5752,6 +5784,8 @@
       .landing-hero-pair-card.is-result .landing-hero-pair-label {
         color: #ffffff;
         background: rgba(20, 24, 32, 0.78);
+        left: auto;
+        right: 12px;
       }
 
       .landing-hero-pair-placeholder {
@@ -5770,16 +5804,8 @@
         display: block;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        object-position: center 25%;
-      }
-
-      .landing-hero-pair-set[data-original-file="original/6.jpg"] .landing-hero-pair-card.is-original .landing-hero-pair-media img {
-        object-position: 20% 50%;
-      }
-
-      .landing-hero-pair-set[data-result-file="result/6f.jpg"] .landing-hero-pair-card.is-result .landing-hero-pair-media img {
-        object-position: 20% 50%;
+        object-fit: contain;
+        object-position: center center;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -6010,9 +6036,11 @@
       .landing-hero-pair-wrap {
         position: relative;
         width: 100%;
-        max-width: 560px;
-        margin-left: auto;
+        max-width: 640px;
+        margin-inline: auto;
         overflow: visible;
+        display: flex;
+        justify-content: center;
       }
 
       .before-after-compare {
@@ -8402,9 +8430,7 @@
         }
 
         .landing-hero-pair {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           height: auto;
-          padding: 8px;
           border-radius: 22px;
         }
 
@@ -8418,13 +8444,8 @@
       }
 
       @media (max-width: 1024px) and (min-width: 769px) {
-        .landing-hero-pair {
-          height: auto;
-          aspect-ratio: 544 / 452;
-        }
-
-        .landing-hero-pair-card {
-          max-height: none;
+        .landing-hero-pair.is-portrait {
+          --hero-pair-max-w: min(100%, 380px);
         }
       }
 
@@ -8442,16 +8463,26 @@
         }
 
         .landing-hero-pair {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           height: auto;
-          gap: 8px;
-          padding: 6px;
           border-radius: 20px;
         }
 
-        .landing-hero-pair-card {
-          height: 240px;
-          max-height: 260px;
+        .landing-hero-pair.is-portrait {
+          --hero-pair-max-h: min(52vh, 460px);
+          --hero-pair-max-w: min(100%, 320px);
+        }
+
+        .landing-hero-pair.is-landscape {
+          --hero-pair-max-h: min(40vh, 300px);
+        }
+
+        .landing-hero-pair.is-square {
+          --hero-pair-max-h: min(46vh, 360px);
+          --hero-pair-max-w: min(100%, 360px);
+        }
+
+        .landing-hero-pair-card.is-result .landing-hero-pair-label {
+          right: 10px;
         }
 
         .landing-hero-pair-arrow {
@@ -28930,6 +28961,7 @@ ${modeExample}`;
 
       function setupLandingHeroPairRotation() {
         if (!landingHeroPairStage) return;
+        const HERO_PAIR_FALLBACK_RATIO = 4 / 3;
         const pairSets = [
           { originalPath: "original/3.jpg", resultPath: "result/3f.jpg" },
           { originalPath: "original/4.jpg", resultPath: "result/4f.jpg" },
@@ -28941,15 +28973,12 @@ ${modeExample}`;
           resultPath: pair.resultPath,
         }));
 
-        const renderPairImage = (src, alt, index) => `
+        const renderPairImage = (src, alt) => `
               <div class="landing-hero-pair-media">
                 <img
-                  src="${src}"
                   alt="${alt}"
-                  width="600"
-                  height="800"
+                  data-src="${src}"
                   decoding="async"
-                  ${index === 0 ? "" : 'loading="lazy"'}
                 />
               </div>
             `;
@@ -28958,10 +28987,10 @@ ${modeExample}`;
           .map(
             (pair, index) => `
           <div class="landing-hero-pair-set" data-pair-index="${index}" data-original-file="${pair.originalPath}" data-result-file="${pair.resultPath}">
-            <div class="landing-hero-pair">
+            <div class="landing-hero-pair" data-ratio-source="fallback">
               <article class="landing-hero-pair-card is-original">
                 <span class="landing-hero-pair-label">원본</span>
-                ${renderPairImage(pair.original, `원본 샘플 ${index + 1}`, index)}
+                ${renderPairImage(pair.original, `원본 샘플 ${index + 1}`)}
               </article>
               <div class="landing-hero-pair-arrow" aria-hidden="true">
                 <span class="material-symbols-outlined">arrow_forward</span>
@@ -28969,7 +28998,7 @@ ${modeExample}`;
               <div class="landing-hero-pair-result-wrap">
                 <article class="landing-hero-pair-card is-result">
                   <span class="landing-hero-pair-label">AI 스타일샷</span>
-                  ${renderPairImage(pair.result, `AI 스타일샷 샘플 ${index + 1}`, index)}
+                  ${renderPairImage(pair.result, `AI 스타일샷 샘플 ${index + 1}`)}
                 </article>
               </div>
             </div>
@@ -28981,25 +29010,115 @@ ${modeExample}`;
         const sets = Array.from(landingHeroPairStage.querySelectorAll(".landing-hero-pair-set"));
         if (!sets.length) return;
 
+        const ratioCache = new Map();
+        const stackRoles = ["is-active", "is-next", "is-queued"];
         const stateClasses = ["is-active", "is-next", "is-queued", "is-waiting", "is-leaving"];
         const clearState = (el) => {
           el.classList.remove(...stateClasses);
+        };
+
+        const stackRoleForOffset = (offset) => stackRoles[offset] || "is-waiting";
+
+        const classifyHeroPairRatio = (width, height) => {
+          const safeWidth = Number(width);
+          const safeHeight = Number(height);
+          if (!(safeWidth > 0) || !(safeHeight > 0)) {
+            return { ratio: HERO_PAIR_FALLBACK_RATIO, orientation: "landscape", source: "fallback" };
+          }
+          if (safeWidth === safeHeight) return { ratio: 1, orientation: "square", source: "natural" };
+          if (safeWidth > safeHeight) return { ratio: safeWidth / safeHeight, orientation: "landscape", source: "natural" };
+          return { ratio: safeWidth / safeHeight, orientation: "portrait", source: "natural" };
+        };
+
+        const applyHeroPairFrame = (setEl, width, height) => {
+          const pair = setEl.querySelector(".landing-hero-pair");
+          if (!pair) return;
+          const frame = classifyHeroPairRatio(width, height);
+          pair.style.setProperty("--hero-pair-ratio", String(frame.ratio));
+          pair.dataset.ratioSource = frame.source;
+          pair.dataset.orientation = frame.orientation;
+          pair.classList.remove("is-portrait", "is-landscape", "is-square");
+          pair.classList.add(`is-${frame.orientation}`);
+        };
+
+        const syncStageReserve = () => {
+          const heights = sets.map((set) => set.querySelector(".landing-hero-pair")?.offsetHeight || 0);
+          const tallest = heights.reduce((max, height) => Math.max(max, height), 0);
+          if (tallest > 0) landingHeroPairStage.style.minHeight = `${Math.ceil(tallest)}px`;
+        };
+
+        const bindPairRatio = (setEl) => {
+          const cacheKey = setEl.dataset.originalFile || "";
+          const cached = ratioCache.get(cacheKey);
+          if (cached) {
+            applyHeroPairFrame(setEl, cached.width, cached.height);
+            window.requestAnimationFrame(syncStageReserve);
+            return;
+          }
+          const originalImg = setEl.querySelector(".landing-hero-pair-card.is-original img");
+          const resultImg = setEl.querySelector(".landing-hero-pair-card.is-result img");
+          const measure = (img) => {
+            const width = img?.naturalWidth || 0;
+            const height = img?.naturalHeight || 0;
+            if (!(width > 0) || !(height > 0)) return false;
+            if (cacheKey) ratioCache.set(cacheKey, { width, height });
+            applyHeroPairFrame(setEl, width, height);
+            window.requestAnimationFrame(syncStageReserve);
+            return true;
+          };
+          const watch = (img, allowFallback) => {
+            if (!(img instanceof HTMLImageElement)) {
+              if (allowFallback) applyHeroPairFrame(setEl, 0, 0);
+              return;
+            }
+            const finish = () => {
+              if (measure(img)) return;
+              if (img === originalImg && resultImg && resultImg !== originalImg) {
+                watch(resultImg, true);
+                return;
+              }
+              if (allowFallback) applyHeroPairFrame(setEl, 0, 0);
+            };
+            if (img.complete) {
+              finish();
+              return;
+            }
+            img.addEventListener("load", finish, { once: true });
+            img.addEventListener("error", finish, { once: true });
+          };
+          watch(originalImg, true);
+        };
+
+        const ensurePairSources = (index) => {
+          const setEl = sets[index];
+          if (!setEl || setEl.dataset.sourcesReady === "1") return;
+          setEl.dataset.sourcesReady = "1";
+          setEl.querySelectorAll("img[data-src]").forEach((img) => {
+            if (!img.getAttribute("src")) img.src = img.dataset.src;
+          });
+          bindPairRatio(setEl);
+        };
+
+        const preloadAround = (activeIndex) => {
+          const visibleCount = Math.min(sets.length, stackRoles.length);
+          for (let step = 0; step < visibleCount; step += 1) {
+            ensurePairSources((activeIndex + step) % sets.length);
+          }
         };
 
         const applyStackState = (activeIndex) => {
           sets.forEach((set, index) => {
             clearState(set);
             const offset = (index - activeIndex + sets.length) % sets.length;
-            if (offset === 0) set.classList.add("is-active");
-            else if (offset === 1) set.classList.add("is-next");
-            else if (offset === 2) set.classList.add("is-queued");
-            else set.classList.add("is-waiting");
+            set.classList.add(stackRoleForOffset(offset));
           });
+          preloadAround(activeIndex);
         };
 
         let activeIndex = 0;
         let isAnimating = false;
         applyStackState(activeIndex);
+        window.addEventListener("resize", syncStageReserve);
 
         if (sets.length < 2) return;
         if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
@@ -29018,19 +29137,14 @@ ${modeExample}`;
             if (set === current) return;
             clearState(set);
             const offset = (index - activeIndex + sets.length) % sets.length;
-            if (offset === 0) set.classList.add("is-active");
-            else if (offset === 1) set.classList.add("is-next");
-            else if (offset === 2) set.classList.add("is-queued");
-            else set.classList.add("is-waiting");
+            set.classList.add(stackRoleForOffset(offset));
           });
+          preloadAround(activeIndex);
 
           window.setTimeout(() => {
             clearState(current);
             const offset = (sets.indexOf(current) - activeIndex + sets.length) % sets.length;
-            if (offset === 0) current.classList.add("is-active");
-            else if (offset === 1) current.classList.add("is-next");
-            else if (offset === 2) current.classList.add("is-queued");
-            else current.classList.add("is-waiting");
+            current.classList.add(stackRoleForOffset(offset));
             isAnimating = false;
           }, 720);
         };

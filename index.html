@@ -5611,17 +5611,20 @@
         justify-content: center;
         width: auto;
         margin: 0;
+        visibility: hidden;
         pointer-events: none;
       }
 
       .landing-hero-pair-motion {
         width: 100%;
-        transform-origin: 50% 50%;
-        transition:
-          transform 0.72s cubic-bezier(0.22, 0.9, 0.28, 1),
-          opacity 0.55s ease,
-          filter 0.55s ease;
-        will-change: transform, opacity;
+        opacity: 0;
+        transform: none;
+        transition: opacity 0.55s ease;
+      }
+
+      .landing-hero-pair-set.is-active,
+      .landing-hero-pair-set.is-leaving {
+        visibility: visible;
       }
 
       .landing-hero-pair-set.is-active {
@@ -5630,38 +5633,7 @@
 
       .landing-hero-pair-set.is-active .landing-hero-pair-motion {
         opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1);
-        filter: none;
         pointer-events: auto;
-      }
-
-      .landing-hero-pair-set.is-next {
-        z-index: 3;
-      }
-
-      .landing-hero-pair-set.is-next .landing-hero-pair-motion {
-        opacity: 1;
-        transform: translate3d(12px, 10px, 0) scale(0.985);
-        filter: brightness(0.98);
-      }
-
-      .landing-hero-pair-set.is-queued {
-        z-index: 2;
-      }
-
-      .landing-hero-pair-set.is-queued .landing-hero-pair-motion {
-        opacity: 0.96;
-        transform: translate3d(16px, 14px, 0) scale(0.97);
-        filter: brightness(0.96);
-      }
-
-      .landing-hero-pair-set.is-waiting {
-        z-index: 1;
-      }
-
-      .landing-hero-pair-set.is-waiting .landing-hero-pair-motion {
-        opacity: 0;
-        transform: translate3d(0, 0, 0) scale(0.98);
       }
 
       .landing-hero-pair-set.is-leaving {
@@ -5670,8 +5642,6 @@
 
       .landing-hero-pair-set.is-leaving .landing-hero-pair-motion {
         opacity: 0;
-        transform: translate3d(-28px, 8px, 0) scale(0.98);
-        filter: brightness(1.02);
       }
 
       .landing-hero-pair {
@@ -5705,9 +5675,9 @@
       }
 
       .landing-hero-pair.is-landscape {
-        --hero-frame-ratio: 0.5;
-        --hero-pane-max-h: min(48vh, 460px);
-        --hero-pair-max-w: 100%;
+        --hero-frame-ratio: 1;
+        --hero-pane-max-h: 270px;
+        --hero-pair-max-w: min(100%, 564px);
       }
 
       .landing-hero-pair.is-square {
@@ -5803,11 +5773,40 @@
       }
 
       .landing-hero-pair-media img {
+        position: absolute;
+        inset: 0;
         display: block;
         width: 100%;
         height: 100%;
         object-fit: contain;
         object-position: center center;
+      }
+
+      .landing-hero-pair-media .landing-hero-pair-bg {
+        display: none;
+      }
+
+      .landing-hero-pair.is-landscape .landing-hero-pair-bg {
+        display: block;
+        inset: -18%;
+        width: 136%;
+        height: 136%;
+        object-fit: cover;
+        filter: blur(26px) saturate(0.8) brightness(1.16);
+        opacity: 0.4;
+        pointer-events: none;
+      }
+
+      .landing-hero-pair.is-landscape .landing-hero-pair-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(247, 244, 239, 0.42);
+        pointer-events: none;
+      }
+
+      .landing-hero-pair-photo {
+        z-index: 1;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -8434,19 +8433,10 @@
           height: auto;
           border-radius: 22px;
         }
-
-        .landing-hero-pair-set.is-next .landing-hero-pair-motion {
-          transform: translate3d(10px, 8px, 0) scale(0.985);
-        }
-
-        .landing-hero-pair-set.is-queued .landing-hero-pair-motion {
-          transform: translate3d(14px, 10px, 0) scale(0.97);
-        }
       }
 
       @media (max-width: 1024px) and (min-width: 769px) {
-        .landing-hero-pair.is-portrait,
-        .landing-hero-pair.is-landscape {
+        .landing-hero-pair.is-portrait {
           --hero-pane-max-h: min(46vh, 420px);
         }
       }
@@ -8473,11 +8463,6 @@
           --hero-pair-max-w: 100%;
         }
 
-        .landing-hero-pair.is-landscape {
-          --hero-pane-max-h: min(42vh, 380px);
-          --hero-pair-max-w: 100%;
-        }
-
         .landing-hero-pair.is-square {
           --hero-pane-max-h: min(36vh, 280px);
           --hero-pair-max-w: 100%;
@@ -8488,13 +8473,12 @@
           height: 32px;
           transform: translate(-50%, -50%);
         }
+      }
 
-        .landing-hero-pair-set.is-next .landing-hero-pair-motion {
-          transform: translate3d(8px, 8px, 0) scale(0.985);
-        }
-
-        .landing-hero-pair-set.is-queued .landing-hero-pair-motion {
-          transform: translate3d(12px, 10px, 0) scale(0.97);
+      @media (max-width: 480px) {
+        .landing-hero-pair.is-landscape {
+          --hero-pane-max-h: 190px;
+          --hero-pair-max-w: 100%;
         }
       }
 
@@ -28974,6 +28958,14 @@ ${modeExample}`;
         const renderPairImage = (src, alt) => `
               <div class="landing-hero-pair-media">
                 <img
+                  class="landing-hero-pair-bg"
+                  alt=""
+                  aria-hidden="true"
+                  data-src="${src}"
+                  decoding="async"
+                />
+                <img
+                  class="landing-hero-pair-photo"
                   alt="${alt}"
                   data-src="${src}"
                   decoding="async"

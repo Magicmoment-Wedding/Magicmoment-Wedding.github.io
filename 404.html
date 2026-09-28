@@ -5662,9 +5662,9 @@
         padding: var(--hero-pair-pad);
         overflow: visible;
         border-radius: 24px;
-        background: linear-gradient(180deg, #f4f1ec 0%, #efeae3 100%);
-        border: 1px solid rgba(40, 32, 24, 0.06);
-        box-shadow: 0 10px 24px rgba(30, 24, 20, 0.1);
+        background: #ffffff;
+        border: 1px solid rgba(20, 24, 32, 0.08);
+        box-shadow: 0 10px 24px rgba(20, 24, 32, 0.08);
         box-sizing: border-box;
         transition: width 0.45s ease;
       }
@@ -5675,9 +5675,8 @@
       }
 
       .landing-hero-pair.is-landscape {
-        --hero-frame-ratio: 1;
-        --hero-pane-max-h: 270px;
-        --hero-pair-max-w: min(100%, 564px);
+        --hero-pane-max-h: 240px;
+        --hero-pair-max-w: min(100%, 680px);
       }
 
       .landing-hero-pair.is-square {
@@ -5694,7 +5693,7 @@
         aspect-ratio: var(--hero-frame-ratio, var(--hero-pair-ratio));
         border-radius: 16px;
         overflow: hidden;
-        background: #ddd6cc;
+        background: #ffffff;
         box-shadow: none;
         border: 0;
       }
@@ -5756,15 +5755,10 @@
         background: rgba(20, 24, 32, 0.78);
       }
 
-      .landing-hero-pair.is-landscape .landing-hero-pair-card {
-        background: #f7f4ef;
-      }
-
       .landing-hero-pair-placeholder {
         width: 100%;
         height: 100%;
-        background:
-          linear-gradient(180deg, #f4f4f6 0%, #ebebef 100%);
+        background: #ffffff;
       }
 
       .landing-hero-pair-media {
@@ -5786,25 +5780,6 @@
         display: none;
       }
 
-      .landing-hero-pair.is-landscape .landing-hero-pair-bg {
-        display: block;
-        inset: -18%;
-        width: 136%;
-        height: 136%;
-        object-fit: cover;
-        filter: blur(26px) saturate(0.8) brightness(1.16);
-        opacity: 0.4;
-        pointer-events: none;
-      }
-
-      .landing-hero-pair.is-landscape .landing-hero-pair-media::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: rgba(247, 244, 239, 0.42);
-        pointer-events: none;
-      }
-
       .landing-hero-pair-photo {
         z-index: 1;
       }
@@ -5812,9 +5787,6 @@
       .landing-hero-pair.is-landscape .landing-hero-pair-photo {
         object-fit: cover;
         object-position: center center;
-        inset: 5%;
-        width: 90%;
-        height: 90%;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -8485,7 +8457,7 @@
 
       @media (max-width: 480px) {
         .landing-hero-pair.is-landscape {
-          --hero-pane-max-h: 190px;
+          --hero-pane-max-h: 176px;
           --hero-pair-max-w: 100%;
         }
       }
@@ -29026,7 +28998,11 @@ ${modeExample}`;
             return { ratio: HERO_PAIR_FALLBACK_RATIO, orientation: "landscape", source: "fallback" };
           }
           if (safeWidth === safeHeight) return { ratio: 1, orientation: "square", source: "natural" };
-          if (safeWidth > safeHeight) return { ratio: safeWidth / safeHeight, orientation: "landscape", source: "natural" };
+          if (safeWidth > safeHeight) {
+            const natural = safeWidth / safeHeight;
+            const framed = Math.min(natural, 1.35);
+            return { ratio: framed, orientation: "landscape", source: natural > framed ? "framed" : "natural" };
+          }
           return { ratio: safeWidth / safeHeight, orientation: "portrait", source: "natural" };
         };
 

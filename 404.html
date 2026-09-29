@@ -5675,8 +5675,10 @@
       }
 
       .landing-hero-pair.is-landscape {
-        --hero-pane-max-h: 240px;
-        --hero-pair-max-w: min(100%, 680px);
+        --hero-pane-max-h: 230px;
+        --hero-pair-max-w: min(100%, 520px);
+        grid-template-columns: minmax(0, 1fr);
+        width: min(var(--hero-pair-max-w), calc(var(--hero-pane-max-h) * var(--hero-frame-ratio, var(--hero-pair-ratio)) + var(--hero-pair-pad) * 2));
       }
 
       .landing-hero-pair.is-square {
@@ -5729,6 +5731,10 @@
 
       .landing-hero-pair-arrow .material-symbols-outlined {
         font-size: 20px;
+      }
+
+      .landing-hero-pair.is-landscape .landing-hero-pair-arrow .material-symbols-outlined {
+        transform: rotate(90deg);
       }
 
       .landing-hero-pair-label {
@@ -5785,7 +5791,7 @@
       }
 
       .landing-hero-pair.is-landscape .landing-hero-pair-photo {
-        object-fit: cover;
+        object-fit: contain;
         object-position: center center;
       }
 
@@ -8457,7 +8463,7 @@
 
       @media (max-width: 480px) {
         .landing-hero-pair.is-landscape {
-          --hero-pane-max-h: 176px;
+          --hero-pane-max-h: 220px;
           --hero-pair-max-w: 100%;
         }
       }
@@ -28999,9 +29005,7 @@ ${modeExample}`;
           }
           if (safeWidth === safeHeight) return { ratio: 1, orientation: "square", source: "natural" };
           if (safeWidth > safeHeight) {
-            const natural = safeWidth / safeHeight;
-            const framed = Math.min(natural, 1.35);
-            return { ratio: framed, orientation: "landscape", source: natural > framed ? "framed" : "natural" };
+            return { ratio: safeWidth / safeHeight, orientation: "landscape", source: "natural" };
           }
           return { ratio: safeWidth / safeHeight, orientation: "portrait", source: "natural" };
         };
@@ -29040,10 +29044,13 @@ ${modeExample}`;
         };
 
         const syncStageReserve = () => {
-          const heights = sets.map((set) => set.querySelector(".landing-hero-pair")?.offsetHeight || 0);
-          const tallest = heights.reduce((max, height) => Math.max(max, height), 0);
-          if (tallest > 0) {
-            const nextHeight = `${Math.ceil(tallest)}px`;
+          const visibleSets = sets.filter((set) => set.classList.contains("is-active") || set.classList.contains("is-leaving"));
+          const measuredSets = visibleSets.length ? visibleSets : sets;
+          const next = measuredSets
+            .map((set) => set.querySelector(".landing-hero-pair")?.offsetHeight || 0)
+            .reduce((max, height) => Math.max(max, height), 0);
+          if (next > 0) {
+            const nextHeight = `${Math.ceil(next)}px`;
             if (landingHeroPairStage.style.minHeight !== nextHeight) {
               landingHeroPairStage.style.minHeight = nextHeight;
             }
@@ -29152,13 +29159,13 @@ ${modeExample}`;
             set.classList.add(stackRoleForOffset(offset));
           });
           preloadAround(activeIndex);
-          syncStackClip();
+          syncStageReserve();
 
           window.setTimeout(() => {
             clearState(current);
             const offset = (sets.indexOf(current) - activeIndex + sets.length) % sets.length;
             current.classList.add(stackRoleForOffset(offset));
-            syncStackClip();
+            syncStageReserve();
             isAnimating = false;
           }, 720);
         };

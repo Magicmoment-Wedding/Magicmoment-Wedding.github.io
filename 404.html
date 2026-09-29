@@ -5675,10 +5675,11 @@
       }
 
       .landing-hero-pair.is-landscape {
-        --hero-pane-max-h: 230px;
-        --hero-pair-max-w: min(100%, 520px);
+        --hero-pane-max-h: 210px;
+        --hero-pair-max-w: min(100%, 460px);
         grid-template-columns: minmax(0, 1fr);
         width: min(var(--hero-pair-max-w), calc(var(--hero-pane-max-h) * var(--hero-frame-ratio, var(--hero-pair-ratio)) + var(--hero-pair-pad) * 2));
+        margin-inline: auto;
       }
 
       .landing-hero-pair.is-square {
@@ -8464,7 +8465,7 @@
       @media (max-width: 480px) {
         .landing-hero-pair.is-landscape {
           --hero-pane-max-h: 220px;
-          --hero-pair-max-w: 100%;
+          --hero-pair-max-w: 87%;
         }
       }
 

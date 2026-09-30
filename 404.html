@@ -5591,13 +5591,17 @@
 
       .landing-hero-pair-stage {
         --hero-stack-pad: 16px;
+        --hero-land-pane-max: 210px;
+        --hero-land-width: min(calc(100cqw - var(--hero-stack-pad)), calc(var(--hero-land-pane-max) * 16 / 9 + 16px), 460px);
+        --hero-sample-stage-height: calc((var(--hero-land-width) - 16px) * 9 / 8 + 24px + var(--hero-stack-pad));
         position: relative;
         width: 100%;
-        min-height: 280px;
+        height: var(--hero-sample-stage-height);
+        min-height: var(--hero-sample-stage-height);
         padding: 0 var(--hero-stack-pad) var(--hero-stack-pad) 0;
         isolation: isolate;
         overflow: visible;
-        transition: min-height 0.45s ease;
+        transition: none;
       }
 
       .landing-hero-pair-set {
@@ -6029,6 +6033,7 @@
         overflow: visible;
         display: flex;
         justify-content: center;
+        container-type: inline-size;
       }
 
       .before-after-compare {
@@ -8466,6 +8471,11 @@
         .landing-hero-pair.is-landscape {
           --hero-pane-max-h: 220px;
           --hero-pair-max-w: 87%;
+        }
+
+        .landing-hero-pair-stage {
+          --hero-land-pane-max: 220px;
+          --hero-land-width: min(calc((100cqw - var(--hero-stack-pad)) * 0.87), calc(var(--hero-land-pane-max) * 16 / 9 + 16px));
         }
       }
 
@@ -29045,17 +29055,6 @@ ${modeExample}`;
         };
 
         const syncStageReserve = () => {
-          const visibleSets = sets.filter((set) => set.classList.contains("is-active") || set.classList.contains("is-leaving"));
-          const measuredSets = visibleSets.length ? visibleSets : sets;
-          const next = measuredSets
-            .map((set) => set.querySelector(".landing-hero-pair")?.offsetHeight || 0)
-            .reduce((max, height) => Math.max(max, height), 0);
-          if (next > 0) {
-            const nextHeight = `${Math.ceil(next)}px`;
-            if (landingHeroPairStage.style.minHeight !== nextHeight) {
-              landingHeroPairStage.style.minHeight = nextHeight;
-            }
-          }
           syncStackClip();
         };
 

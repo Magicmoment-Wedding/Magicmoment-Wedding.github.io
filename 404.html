@@ -6782,8 +6782,8 @@
         align-items: stretch;
         justify-content: center;
         gap: 12px;
-        width: min(920px, 100%);
-        max-width: 920px;
+        width: min(820px, calc(100% - 16px));
+        max-width: 820px;
         margin: 18px auto 0;
         padding: 0;
         list-style: none;
@@ -6796,9 +6796,9 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        gap: 12px;
-        min-height: 168px;
-        padding: 22px 16px 20px;
+        gap: 10px;
+        min-height: 176px;
+        padding: 20px 14px 18px;
         border-radius: 20px;
         background: linear-gradient(180deg, #fff7fa 0%, #ffffff 100%);
         border: 1px solid rgba(255, 78, 142, 0.14);
@@ -6809,8 +6809,8 @@
 
       .landing-process-icon-wrap {
         position: relative;
-        width: 52px;
-        height: 52px;
+        width: 62px;
+        height: 62px;
         border-radius: 16px;
         display: grid;
         place-items: center;
@@ -6822,21 +6822,21 @@
         position: absolute;
         top: -6px;
         left: -6px;
-        width: 22px;
-        height: 22px;
+        width: 26px;
+        height: 26px;
         border-radius: 999px;
         display: grid;
         place-items: center;
         background: #ff4e8e;
         color: #ffffff;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 800;
         line-height: 1;
       }
 
       .landing-process-icon {
         color: #ff4e8e;
-        font-size: 26px;
+        font-size: 32px;
         line-height: 1;
         font-variation-settings: "wght" 300;
       }
@@ -6854,7 +6854,7 @@
       .landing-process-title {
         margin: 0;
         color: #1e2a3a;
-        font-size: clamp(14px, 3.6vw, 16px);
+        font-size: 18px;
         font-weight: 800;
         line-height: 1.35;
         letter-spacing: -0.02em;
@@ -6864,7 +6864,7 @@
       .landing-process-desc {
         margin: 0;
         color: #6b7585;
-        font-size: clamp(12px, 3.1vw, 14px);
+        font-size: 15px;
         line-height: 1.5;
         font-weight: 500;
         word-break: keep-all;
@@ -6930,9 +6930,11 @@
           grid-template-columns: minmax(0, 1fr) 14px minmax(0, 1fr) 14px minmax(0, 1fr);
           align-items: stretch;
           gap: 4px;
-          width: 100%;
-          max-width: 100%;
+          width: calc(100% - 12px);
+          max-width: calc(100% - 12px);
           margin-top: 12px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
         .landing-process-step {
@@ -6944,21 +6946,21 @@
         }
 
         .landing-process-icon-wrap {
-          width: 36px;
-          height: 36px;
+          width: 44px;
+          height: 44px;
           border-radius: 12px;
         }
 
         .landing-process-num {
-          top: -4px;
-          left: -4px;
-          width: 16px;
-          height: 16px;
-          font-size: 9px;
+          top: -5px;
+          left: -5px;
+          width: 18px;
+          height: 18px;
+          font-size: 11px;
         }
 
         .landing-process-icon {
-          font-size: 18px;
+          font-size: 22px;
         }
 
         .landing-process-arrow {
@@ -6972,13 +6974,13 @@
         }
 
         .landing-process-title {
-          font-size: 11px;
+          font-size: 13px;
           line-height: 1.25;
         }
 
         .landing-process-desc {
-          font-size: 10px;
-          line-height: 1.35;
+          font-size: 11.5px;
+          line-height: 1.4;
         }
 
         .landing-section.landing-bottom-section {
@@ -8703,7 +8705,7 @@
                     <span class="landing-process-icon material-symbols-outlined" aria-hidden="true">auto_fix_high</span>
                   </div>
                   <p class="landing-process-title">AI 추천 받기</p>
-                  <p class="landing-process-desc">사진을 분석해 어울리는 스타일을 추천해드려요.</p>
+                  <p class="landing-process-desc">AI가 업로드한 사진과 어울리는 스타일을 추천해 드려요</p>
                 </li>
                 <li class="landing-process-arrow" aria-hidden="true">›</li>
                 <li class="landing-process-step">

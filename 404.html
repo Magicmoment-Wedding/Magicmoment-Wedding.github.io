@@ -7736,6 +7736,23 @@
         line-height: 0;
       }
 
+      .style-gallery-viewport {
+        position: relative;
+        display: inline-block;
+        max-width: min(920px, 100cqw);
+        max-height: 100cqh;
+        overflow: hidden;
+        line-height: 0;
+        vertical-align: top;
+        touch-action: pan-y;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .style-gallery-viewport.is-dragging {
+        cursor: grabbing;
+      }
+
       .style-gallery-main {
         display: block;
         width: auto;
@@ -7744,6 +7761,37 @@
         max-height: 100cqh;
         object-fit: contain;
         background: #fff;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .style-gallery-track {
+        position: absolute;
+        inset: 0;
+        transform: translate3d(0, 0, 0);
+      }
+
+      .style-gallery-slide {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #fff;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .style-gallery-slide[data-style-gallery-slot="prev"] {
+        left: -100%;
+      }
+
+      .style-gallery-slide[data-style-gallery-slot="current"] {
+        left: 0;
+      }
+
+      .style-gallery-slide[data-style-gallery-slot="next"] {
+        left: 100%;
       }
 
       .style-gallery-nav {
@@ -7751,20 +7799,33 @@
         top: 50%;
         z-index: 2;
         transform: translateY(-50%);
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         padding: 0;
         border: 0;
         border-radius: 999px;
-        background: rgba(0, 0, 0, 0.46);
+        background: transparent;
         color: #fff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
       }
 
+      .style-gallery-nav::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.46);
+        transform: translate(-50%, -50%);
+      }
+
       .style-gallery-nav .material-symbols-outlined {
-        font-size: 22px;
+        position: relative;
+        font-size: 18px;
       }
 
       .style-gallery-nav:focus-visible {
@@ -7781,8 +7842,8 @@
       }
 
       .style-gallery-before {
-        --before-max-w: 104px;
-        --before-max-h: 116px;
+        --before-max-w: min(46vw, 188px);
+        --before-max-h: 236px;
         position: absolute;
         right: 8px;
         bottom: 8px;
@@ -7904,15 +7965,15 @@
 
       @media (min-width: 768px) {
         .style-gallery-before {
-          --before-max-w: 132px;
-          --before-max-h: 132px;
+          --before-max-w: 200px;
+          --before-max-h: 248px;
         }
       }
 
       @media (min-width: 1100px) {
         .style-gallery-before {
-          --before-max-w: 166px;
-          --before-max-h: 158px;
+          --before-max-w: 210px;
+          --before-max-h: 260px;
         }
       }
 
@@ -27826,6 +27887,9 @@ ${modeExample}`;
       let styleGalleryRequest = null;
       let styleGalleryPeek = false;
       let styleGalleryKeysBound = false;
+      let styleGalleryDrag = null;
+      let styleGalleryAnimating = false;
+      let styleGallerySlideToken = 0;
       const styleGalleryDropped = new Set();
       const styleGalleryPreloaded = new Set();
 
@@ -27923,9 +27987,20 @@ ${modeExample}`;
         renderStyleGalleryReady();
       }
 
+      function styleGalleryItemAt(offset) {
+        const count = styleGalleryItems.length;
+        if (!count) return null;
+        const index = ((styleGalleryIndex + offset) % count + count) % count;
+        return styleGalleryItems[index];
+      }
+
+      function styleGalleryMotionMs() {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 240;
+      }
+
       function preloadStyleGalleryNeighbors() {
         [-1, 0, 1].forEach((offset) => {
-          const item = styleGalleryItems[styleGalleryIndex + offset];
+          const item = styleGalleryItemAt(offset);
           if (!item) return;
           [item.resultUrl, item.originalUrl].forEach((url) => {
             const token = `${item.pairKey}|${url}`;
@@ -27951,38 +28026,61 @@ ${modeExample}`;
         });
       }
 
-      function selectStyleGalleryIndex(index) {
+      function commitStyleGalleryIndex(index) {
         const count = styleGalleryItems.length;
-        if (!count || !Number.isFinite(index)) return;
         styleGalleryIndex = ((Math.trunc(index) % count) + count) % count;
         styleGalleryPeek = false;
         updateStyleGallerySelection();
+      }
+
+      function selectStyleGalleryIndex(index, motion) {
+        const count = styleGalleryItems.length;
+        if (!count || !Number.isFinite(index) || styleGalleryAnimating) return;
+        const next = ((Math.trunc(index) % count) + count) % count;
+        if (next === styleGalleryIndex) return;
+        const forward = (next - styleGalleryIndex + count) % count;
+        const backward = (styleGalleryIndex - next + count) % count;
+        const direction = motion === "next" || (motion === "auto" && forward === 1)
+          ? 1
+          : motion === "prev" || (motion === "auto" && backward === 1)
+            ? -1
+            : 0;
+        const viewport = galleryContent?.querySelector(".style-gallery-viewport");
+        const width = viewport?.getBoundingClientRect().width || 0;
+        if (!direction || count < 2 || !width) {
+          commitStyleGalleryIndex(next);
+          return;
+        }
+        animateStyleGalleryTrack(-direction * width, () => commitStyleGalleryIndex(next));
+      }
+
+      function setStyleGalleryImageSource(image, item, src) {
+        if (!image || !item || !src) return;
+        bindStyleGalleryImage(image, item.pairKey);
+        if (image.getAttribute("src") !== src) {
+          delete image.dataset.styleGalleryFailed;
+          image.src = src;
+        }
       }
 
       function updateStyleGallerySelection() {
         const item = styleGalleryItems[styleGalleryIndex];
         const viewer = galleryContent?.querySelector(".style-gallery-viewer");
         if (!item || !viewer) return;
-        const main = viewer.querySelector(".style-gallery-main");
-        const before = viewer.querySelector(".style-gallery-before img");
-        const counter = viewer.querySelector(".style-gallery-counter");
         const showingOriginal = styleGalleryPeek;
-        if (main) {
-          bindStyleGalleryImage(main, item.pairKey);
-          const nextSrc = showingOriginal ? item.originalUrl : item.resultUrl;
-          if (main.getAttribute("src") !== nextSrc) {
-            delete main.dataset.styleGalleryFailed;
-            main.src = nextSrc;
-          }
-          main.alt = showingOriginal ? "원본 사진" : "스타일 적용 사진";
-        }
-        if (before) {
-          bindStyleGalleryImage(before, item.pairKey);
-          if (before.getAttribute("src") !== item.originalUrl) {
-            delete before.dataset.styleGalleryFailed;
-            before.src = item.originalUrl;
-          }
-        }
+        const currentSrc = showingOriginal ? item.originalUrl : item.resultUrl;
+        const main = viewer.querySelector(".style-gallery-main");
+        const current = viewer.querySelector('[data-style-gallery-slot="current"]');
+        setStyleGalleryImageSource(main, item, currentSrc);
+        setStyleGalleryImageSource(current, item, currentSrc);
+        if (current) current.alt = showingOriginal ? "원본 사진" : "스타일 적용 사진";
+        const prevItem = styleGalleryItemAt(-1);
+        const nextItem = styleGalleryItemAt(1);
+        setStyleGalleryImageSource(viewer.querySelector('[data-style-gallery-slot="prev"]'), prevItem, prevItem?.resultUrl);
+        setStyleGalleryImageSource(viewer.querySelector('[data-style-gallery-slot="next"]'), nextItem, nextItem?.resultUrl);
+        const before = viewer.querySelector(".style-gallery-before img");
+        setStyleGalleryImageSource(before, item, item.originalUrl);
+        const counter = viewer.querySelector(".style-gallery-counter");
         if (counter) counter.textContent = `${styleGalleryIndex + 1} / ${styleGalleryItems.length}`;
         viewer.querySelectorAll(".style-gallery-thumb").forEach((thumb) => {
           const selected = Number(thumb.dataset.styleGalleryIndex) === styleGalleryIndex;
@@ -27990,7 +28088,11 @@ ${modeExample}`;
           thumb.setAttribute("aria-current", selected ? "true" : "false");
           if (selected && Number(viewer.dataset.scrolledIndex) !== styleGalleryIndex) {
             viewer.dataset.scrolledIndex = String(styleGalleryIndex);
-            thumb.scrollIntoView({ inline: "center", block: "nearest" });
+            thumb.scrollIntoView({
+              behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+              inline: "center",
+              block: "nearest",
+            });
           }
         });
         preloadStyleGalleryNeighbors();
@@ -28000,7 +28102,7 @@ ${modeExample}`;
       function scheduleStyleGalleryNextArrow() {
         window.requestAnimationFrame(placeStyleGalleryNextArrow);
         const viewer = galleryContent?.querySelector(".style-gallery-viewer");
-        viewer?.querySelectorAll(".style-gallery-main, .style-gallery-before img").forEach((image) => {
+        viewer?.querySelectorAll(".style-gallery-main, .style-gallery-slide, .style-gallery-before img").forEach((image) => {
           if (!(image instanceof HTMLImageElement) || image.complete) return;
           image.addEventListener("load", () => window.requestAnimationFrame(placeStyleGalleryNextArrow), { once: true });
         });
@@ -28012,16 +28114,175 @@ ${modeExample}`;
         const next = viewer?.querySelector(".style-gallery-nav-next");
         const before = viewer?.querySelector(".style-gallery-before");
         if (!photo || !next || !before) return;
+        fitStyleGalleryBefore(photo, before);
         next.style.top = "";
+        next.style.right = "";
         next.style.transform = "";
         const photoBox = photo.getBoundingClientRect();
         const beforeBox = before.getBoundingClientRect();
         const arrowBox = next.getBoundingClientRect();
-        const overlaps = arrowBox.right > beforeBox.left && arrowBox.left < beforeBox.right && arrowBox.bottom > beforeBox.top && arrowBox.top < beforeBox.bottom;
-        if (!overlaps) return;
+        const overlaps = (arrow, card) => arrow.right > card.left && arrow.left < card.right && arrow.bottom > card.top && arrow.top < card.bottom;
+        if (!overlaps(arrowBox, beforeBox)) return;
         const nextTop = beforeBox.top - photoBox.top - arrowBox.height - 8;
-        next.style.top = `${Math.max(8, nextTop)}px`;
-        next.style.transform = "none";
+        if (nextTop >= 8) {
+          next.style.top = `${nextTop}px`;
+          next.style.transform = "none";
+          return;
+        }
+        const shifted = photoBox.right - beforeBox.left + 8;
+        next.style.right = `${Math.max(8, shifted)}px`;
+      }
+
+      function fitStyleGalleryBefore(photo, before) {
+        const img = before.querySelector("img");
+        if (!img?.naturalWidth || !img.naturalHeight) return;
+        const photoBox = photo.getBoundingClientRect();
+        if (photoBox.width < 40 || photoBox.height < 40) return;
+        img.style.maxWidth = "";
+        img.style.maxHeight = "";
+        before.style.maxWidth = "";
+        before.style.maxHeight = "";
+        const fitted = getComputedStyle(img);
+        const maxW = parseFloat(fitted.maxWidth);
+        const maxH = parseFloat(fitted.maxHeight);
+        if (!Number.isFinite(maxW) || !Number.isFinite(maxH)) return;
+        const ratio = img.naturalWidth / img.naturalHeight;
+        let width = maxW;
+        let height = width / ratio;
+        if (height > maxH) {
+          height = maxH;
+          width = height * ratio;
+        }
+        const limitW = Math.max(72, photoBox.width - 16);
+        const limitH = Math.max(72, photoBox.height - 16);
+        let clamped = false;
+        if (height + 4 > limitH) {
+          height = limitH - 4;
+          width = height * ratio;
+          clamped = true;
+        }
+        if (width + 4 > limitW) {
+          width = limitW - 4;
+          height = width / ratio;
+          clamped = true;
+        }
+        if (!clamped) {
+          img.style.maxWidth = "";
+          img.style.maxHeight = "";
+          before.style.maxWidth = "";
+          before.style.maxHeight = "";
+          return;
+        }
+        img.style.maxWidth = `${width}px`;
+        img.style.maxHeight = `${height}px`;
+        before.style.maxWidth = `${width + 4}px`;
+        before.style.maxHeight = `${height + 4}px`;
+      }
+
+      function animateStyleGalleryTrack(x, done) {
+        const track = galleryContent?.querySelector(".style-gallery-track");
+        const token = ++styleGallerySlideToken;
+        if (!track) {
+          done?.();
+          return;
+        }
+        const ms = styleGalleryMotionMs();
+        let settled = false;
+        styleGalleryAnimating = true;
+        const finish = () => {
+          if (settled || token !== styleGallerySlideToken) return;
+          settled = true;
+          track.style.transition = "none";
+          track.style.transform = "translate3d(0, 0, 0)";
+          styleGalleryAnimating = false;
+          done?.();
+        };
+        if (!ms) {
+          finish();
+          return;
+        }
+        track.style.transition = `transform ${ms}ms ease`;
+        track.style.transform = `translate3d(${x}px, 0, 0)`;
+        const onEnd = (event) => {
+          if (event.target !== track || event.propertyName !== "transform") return;
+          track.removeEventListener("transitionend", onEnd);
+          finish();
+        };
+        track.addEventListener("transitionend", onEnd);
+        window.setTimeout(finish, ms + 80);
+      }
+
+      function bindStyleGallerySwipe(viewport) {
+        if (!viewport || viewport.dataset.styleGallerySwipe === "1") return;
+        viewport.dataset.styleGallerySwipe = "1";
+        const track = () => viewport.querySelector(".style-gallery-track");
+        const clearDrag = () => {
+          styleGalleryDrag = null;
+          viewport.classList.remove("is-dragging");
+        };
+        viewport.addEventListener("dragstart", (event) => event.preventDefault());
+        viewport.addEventListener("pointerdown", (event) => {
+          if (event.button > 0 || styleGalleryItems.length < 2 || styleGalleryAnimating) return;
+          if (event.target?.closest?.(".style-gallery-before, .style-gallery-nav")) return;
+          styleGalleryDrag = {
+            id: event.pointerId,
+            x: event.clientX,
+            y: event.clientY,
+            lastX: event.clientX,
+            lastT: performance.now(),
+            vx: 0,
+            dx: 0,
+            lock: "",
+          };
+          try { viewport.setPointerCapture(event.pointerId); } catch (error) {}
+        });
+        viewport.addEventListener("pointermove", (event) => {
+          const drag = styleGalleryDrag;
+          if (!drag || event.pointerId !== drag.id) return;
+          const dx = event.clientX - drag.x;
+          const dy = event.clientY - drag.y;
+          if (!drag.lock) {
+            if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+            drag.lock = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+            if (drag.lock === "y") {
+              clearDrag();
+              return;
+            }
+          }
+          if (drag.lock !== "x") return;
+          event.preventDefault();
+          const now = performance.now();
+          drag.vx = (event.clientX - drag.lastX) / Math.max(1, now - drag.lastT);
+          drag.lastX = event.clientX;
+          drag.lastT = now;
+          drag.dx = dx;
+          viewport.classList.add("is-dragging");
+          const rail = track();
+          if (!rail) return;
+          rail.style.transition = "none";
+          rail.style.transform = `translate3d(${dx}px, 0, 0)`;
+        }, { passive: false });
+        const endDrag = (event) => {
+          const drag = styleGalleryDrag;
+          if (!drag || event.pointerId !== drag.id) return;
+          clearDrag();
+          if (drag.lock !== "x") return;
+          const width = viewport.getBoundingClientRect().width || 1;
+          const threshold = Math.max(56, width * 0.18);
+          const flickNext = drag.vx < -0.55 && drag.dx < -24;
+          const flickPrev = drag.vx > 0.55 && drag.dx > 24;
+          const next = drag.dx < 0;
+          const commit = next ? Math.abs(drag.dx) >= threshold || flickNext : Math.abs(drag.dx) >= threshold || flickPrev;
+          if (!commit) {
+            animateStyleGalleryTrack(0);
+            return;
+          }
+          animateStyleGalleryTrack(next ? -width : width, () => {
+            commitStyleGalleryIndex(styleGalleryIndex + (next ? 1 : -1));
+          });
+        };
+        viewport.addEventListener("pointerup", endDrag);
+        viewport.addEventListener("pointercancel", endDrag);
       }
 
       function renderStyleGalleryReady() {
@@ -28038,10 +28299,17 @@ ${modeExample}`;
             </button>
             <div class="style-gallery-stage">
               <div class="style-gallery-photo">
+                <div class="style-gallery-viewport">
+                  <img class="style-gallery-main" alt="" aria-hidden="true" draggable="false" />
+                  <div class="style-gallery-track">
+                    <img class="style-gallery-slide" data-style-gallery-slot="prev" alt="" aria-hidden="true" draggable="false" />
+                    <img class="style-gallery-slide" data-style-gallery-slot="current" alt="스타일 적용 사진" draggable="false" />
+                    <img class="style-gallery-slide" data-style-gallery-slot="next" alt="" aria-hidden="true" draggable="false" />
+                  </div>
+                </div>
                 <button class="style-gallery-nav style-gallery-nav-prev" type="button" data-style-gallery-step="-1" aria-label="이전 사진">
                   <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                 </button>
-                <img class="style-gallery-main" alt="스타일 적용 사진" draggable="false" />
                 <button class="style-gallery-nav style-gallery-nav-next" type="button" data-style-gallery-step="1" aria-label="다음 사진">
                   <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                 </button>
@@ -28072,7 +28340,7 @@ ${modeExample}`;
         };
         beforeButton?.addEventListener("pointerdown", (event) => {
           event.preventDefault();
-          beforeButton.setPointerCapture?.(event.pointerId);
+          try { beforeButton.setPointerCapture(event.pointerId); } catch (error) {}
           setPeek(true);
         });
         const endPeek = () => setPeek(false);
@@ -28081,14 +28349,16 @@ ${modeExample}`;
         beforeButton?.addEventListener("lostpointercapture", endPeek);
         viewer.querySelectorAll("[data-style-gallery-step]").forEach((button) => {
           button.addEventListener("click", () => {
-            selectStyleGalleryIndex(styleGalleryIndex + Number(button.dataset.styleGalleryStep));
+            const step = Number(button.dataset.styleGalleryStep);
+            selectStyleGalleryIndex(styleGalleryIndex + step, step > 0 ? "next" : "prev");
           });
         });
         viewer.querySelector(".style-gallery-thumbs")?.addEventListener("click", (event) => {
           const thumb = event.target.closest?.("[data-style-gallery-index]");
           if (!thumb) return;
-          selectStyleGalleryIndex(Number(thumb.dataset.styleGalleryIndex));
+          selectStyleGalleryIndex(Number(thumb.dataset.styleGalleryIndex), "auto");
         });
+        bindStyleGallerySwipe(viewer.querySelector(".style-gallery-viewport"));
         if (!styleGalleryKeysBound) {
           styleGalleryKeysBound = true;
           document.addEventListener("keydown", (event) => {
@@ -28097,7 +28367,8 @@ ${modeExample}`;
             if (target instanceof HTMLElement && target.closest("input, textarea, select, [contenteditable='true']")) return;
             if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
             event.preventDefault();
-            selectStyleGalleryIndex(styleGalleryIndex + (event.key === "ArrowLeft" ? -1 : 1));
+            const step = event.key === "ArrowLeft" ? -1 : 1;
+            selectStyleGalleryIndex(styleGalleryIndex + step, step > 0 ? "next" : "prev");
           });
           window.addEventListener("resize", () => {
             if (appScreen !== "gallery") return;

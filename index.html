@@ -7733,26 +7733,67 @@
         background: #000;
       }
 
+      .style-gallery-nav {
+        position: absolute;
+        top: 50%;
+        z-index: 2;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.46);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .style-gallery-nav .material-symbols-outlined {
+        font-size: 22px;
+      }
+
+      .style-gallery-nav:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+
+      .style-gallery-nav-prev {
+        left: 8px;
+      }
+
+      .style-gallery-nav-next {
+        right: 8px;
+      }
+
       .style-gallery-before {
         position: absolute;
-        right: 10px;
-        bottom: 10px;
-        width: 92px;
+        right: 8px;
+        bottom: 8px;
+        z-index: 3;
+        width: max-content;
+        max-width: 108px;
+        height: auto;
+        max-height: 120px;
         padding: 0;
         border: 2px solid #fff;
         border-radius: 14px;
         overflow: hidden;
-        background: #111;
+        background: transparent;
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
         color: #fff;
+        line-height: 0;
         touch-action: none;
       }
 
       .style-gallery-before img {
         display: block;
-        width: 100%;
-        height: 118px;
-        object-fit: cover;
+        width: auto;
+        height: auto;
+        max-width: 104px;
+        max-height: 116px;
+        object-fit: contain;
       }
 
       .style-gallery-before span {
@@ -7838,14 +7879,6 @@
       }
 
       @media (max-width: 430px) {
-        .style-gallery-before {
-          width: 78px;
-        }
-
-        .style-gallery-before img {
-          height: 100px;
-        }
-
         .style-gallery-thumb {
           width: 56px;
           height: 74px;
@@ -27760,6 +27793,7 @@ ${modeExample}`;
       let styleGalleryIndex = 0;
       let styleGalleryRequest = null;
       let styleGalleryPeek = false;
+      let styleGalleryKeysBound = false;
       const styleGalleryDropped = new Set();
       const styleGalleryPreloaded = new Set();
 
@@ -27885,6 +27919,14 @@ ${modeExample}`;
         });
       }
 
+      function selectStyleGalleryIndex(index) {
+        const count = styleGalleryItems.length;
+        if (!count || !Number.isFinite(index)) return;
+        styleGalleryIndex = ((Math.trunc(index) % count) + count) % count;
+        styleGalleryPeek = false;
+        updateStyleGallerySelection();
+      }
+
       function updateStyleGallerySelection() {
         const item = styleGalleryItems[styleGalleryIndex];
         const viewer = galleryContent?.querySelector(".style-gallery-viewer");
@@ -27936,7 +27978,13 @@ ${modeExample}`;
             </button>
             <div class="style-gallery-stage">
               <div class="style-gallery-photo">
+                <button class="style-gallery-nav style-gallery-nav-prev" type="button" data-style-gallery-step="-1" aria-label="이전 사진">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+                </button>
                 <img class="style-gallery-main" alt="스타일 적용 사진" draggable="false" />
+                <button class="style-gallery-nav style-gallery-nav-next" type="button" data-style-gallery-step="1" aria-label="다음 사진">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                </button>
                 <button class="style-gallery-before" type="button" aria-label="원본 크게 보기">
                   <img alt="" draggable="false" />
                   <span>원본</span>
@@ -27971,15 +28019,27 @@ ${modeExample}`;
         beforeButton?.addEventListener("pointerup", endPeek);
         beforeButton?.addEventListener("pointercancel", endPeek);
         beforeButton?.addEventListener("lostpointercapture", endPeek);
+        viewer.querySelectorAll("[data-style-gallery-step]").forEach((button) => {
+          button.addEventListener("click", () => {
+            selectStyleGalleryIndex(styleGalleryIndex + Number(button.dataset.styleGalleryStep));
+          });
+        });
         viewer.querySelector(".style-gallery-thumbs")?.addEventListener("click", (event) => {
           const thumb = event.target.closest?.("[data-style-gallery-index]");
           if (!thumb) return;
-          const index = Number(thumb.dataset.styleGalleryIndex);
-          if (!Number.isInteger(index) || !styleGalleryItems[index]) return;
-          styleGalleryIndex = index;
-          styleGalleryPeek = false;
-          updateStyleGallerySelection();
+          selectStyleGalleryIndex(Number(thumb.dataset.styleGalleryIndex));
         });
+        if (!styleGalleryKeysBound) {
+          styleGalleryKeysBound = true;
+          document.addEventListener("keydown", (event) => {
+            if (appScreen !== "gallery" || !styleGalleryItems.length) return;
+            const target = event.target;
+            if (target instanceof HTMLElement && target.closest("input, textarea, select, [contenteditable='true']")) return;
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+            event.preventDefault();
+            selectStyleGalleryIndex(styleGalleryIndex + (event.key === "ArrowLeft" ? -1 : 1));
+          });
+        }
         viewer.querySelectorAll(".style-gallery-thumb img").forEach((image, index) => {
           bindStyleGalleryImage(image, styleGalleryItems[index]?.pairKey);
         });

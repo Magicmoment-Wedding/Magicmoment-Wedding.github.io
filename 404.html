@@ -7558,6 +7558,10 @@
         line-height: 1.35;
       }
 
+      .landing-cta-banner-button span:first-child {
+        white-space: nowrap;
+      }
+
       @media (max-width: 639px) {
         .landing-signup-start-button {
           min-height: 44px;
@@ -8727,8 +8731,8 @@
 
               <div class="landing-cta-banner">
                 <p class="landing-cta-banner-text">지금 바로 당신의 사진을<br />특별한 웨딩 사진으로 바꿔보세요</p>
-                <button class="landing-primary-button landing-signup-start-button landing-cta-banner-button" id="landingFinalStartButton" type="button">
-                  <span>무료로 시작하기</span>
+                <button class="landing-primary-button landing-signup-start-button landing-cta-banner-button" id="landingFinalStartButton" type="button" data-screen-target="gallery">
+                  <span>다른 커플 사진 구경하기</span>
                   <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
               </div>
@@ -11281,7 +11285,6 @@ Important:
       const landingAuthButton = document.getElementById("landingAuthButton");
       const landingHeroStartButton = document.getElementById("landingHeroStartButton");
       const landingHeroResultsButton = document.getElementById("landingHeroResultsButton");
-      const landingFinalStartButton = document.getElementById("landingFinalStartButton");
       const landingProcessGuideLink = document.getElementById("landingProcessGuideLink");
       const landingSamplesGrid = document.getElementById("landingSamplesGrid");
       const landingSamplesMoreButton = document.getElementById("landingSamplesMoreButton");
@@ -13587,10 +13590,8 @@ Important:
       function syncLandingHeroStartButtonUi() {
         const hasUser = Boolean(getAuthenticatedUserId(currentUser));
         const labelText = hasUser ? "편집하러 가기" : "무료로 시작하기";
-        [landingHeroStartButton, landingFinalStartButton].forEach((button) => {
-          const label = button?.querySelector("span:first-of-type");
-          if (label) label.textContent = labelText;
-        });
+        const label = landingHeroStartButton?.querySelector("span:first-of-type");
+        if (label) label.textContent = labelText;
       }
 
       function syncAuthUi() {
@@ -30506,7 +30507,6 @@ ${modeExample}`;
       landingHeroResultsButton?.addEventListener("click", () => {
         landingSamplesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
-      landingFinalStartButton?.addEventListener("click", handleLandingFreeStartClick);
       landingProcessGuideLink?.addEventListener("click", handleSiteGuideClick);
 
       accountMenuClose?.addEventListener("click", () => {

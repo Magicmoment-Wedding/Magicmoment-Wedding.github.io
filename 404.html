@@ -9457,7 +9457,7 @@
                 <p class="reco-step">1 / 3 사진 선택</p>
                 <h2 class="reco-title">사진을 올리면 AI가 분석해줘요</h2>
                 <p class="reco-copy">사진을 올리면 AI가 얼굴 방향과 포즈를 분석해
-가장 어울리는 스타일 샘플 8장을 추천해드려요.</p>
+가장 어울리는 스타일 샘플을 추천해드려요.</p>
                 <label class="reco-upload-card" id="recoUploadBox" for="photoInput">
                   <span class="material-symbols-outlined" aria-hidden="true">add_a_photo</span>
                   <span>여기에 사진을 올려주세요</span>
@@ -9512,7 +9512,7 @@
                   <p class="reco-thumb-label">선택한 원본 사진</p>
                 </div>
                 <div class="reco-card-grid" id="recoBackgroundGrid"></div>
-                <p class="reco-empty-note hidden" id="recoEmptyNote">추천된 샘플이 없어요.</p>
+                <p class="reco-empty-note hidden" id="recoEmptyNote">현재 사진과 구도가 잘 맞는 추천 스타일을 찾지 못했어요.<br />다른 구도의 사진을 올리면 더 많은 스타일을 추천받을 수 있어요.</p>
               </div>
 
               <div class="reco-panel" data-reco-panel="blocked" hidden>
@@ -20718,7 +20718,6 @@ Important:
 
       // Minimum analyzing UI time so the loading panel does not flash away.
       const RECOMMEND_SAMPLES_MIN_LOADING_MS = 1200;
-      const RECOMMEND_SAMPLES_LIMIT = 8;
       const RECOMMEND_SAMPLES_MAX_LONG_EDGE = 1600;
       const RECOMMEND_SAMPLES_JPEG_QUALITY = 0.8;
 
@@ -20961,7 +20960,7 @@ Important:
         };
       }
 
-      async function requestRecommendedSamplesFromApi({ limit = RECOMMEND_SAMPLES_LIMIT } = {}) {
+      async function requestRecommendedSamplesFromApi() {
         // Match other authenticated APIs: always send cookies (credentials: include),
         // and attach Bearer only when a Supabase access token is available.
         const authInfo = await resolveAccessTokenForRecommendRequest();
@@ -20976,7 +20975,6 @@ Important:
         const { blob, fileName } = await buildRecommendSamplesImageBlob();
         const formData = new FormData();
         formData.append("image", blob, fileName);
-        formData.append("limit", String(limit));
 
         const headers = {};
         if (authInfo.accessToken) {
@@ -21041,7 +21039,7 @@ Important:
         }
 
         const results = Array.isArray(payload?.results) ? payload.results : [];
-        // Render the API list as-is (request asks for up to 8). Do not slice to 3-6.
+        // Render every safe match the API returns. Do not cap or slice the list.
         return results
           .map((item) => {
             const resultFileName = normalizeRecommendSampleFileName(item?.fileName);
@@ -21197,7 +21195,9 @@ Important:
           : [];
         if (recoEmptyNote) {
           recoEmptyNote.classList.toggle("hidden", items.length > 0);
-          recoEmptyNote.textContent = items.length ? "" : "추천된 샘플이 없어요. 다른 사진으로 다시 시도해 주세요.";
+          if (!items.length) {
+            recoEmptyNote.innerHTML = "현재 사진과 구도가 잘 맞는 추천 스타일을 찾지 못했어요.<br />다른 구도의 사진을 올리면 더 많은 스타일을 추천받을 수 있어요.";
+          }
         }
         recoBackgroundGrid.innerHTML = items
           .map((item) => buildRecoBackgroundCardHtml(item, photoRecoRuntime.selectedBackgroundKey))
@@ -21376,7 +21376,7 @@ Important:
         // Do not block on local access token — cookie/session auth is enough for this API,
         // same as /api/generate and /api/my-photos.
         Promise.all([
-          requestRecommendedSamplesFromApi({ limit: RECOMMEND_SAMPLES_LIMIT }),
+          requestRecommendedSamplesFromApi(),
           minDelayPromise,
         ])
           .then(([results]) => {
@@ -21388,11 +21388,6 @@ Important:
             // Admin and customer share this same API list. Never swap in a fixed test set.
             photoRecoRuntime.recommendedResults = Array.isArray(results) ? results : [];
             photoRecoRuntime.selectedBackgroundKey = "";
-
-            if (!photoRecoRuntime.recommendedResults.length) {
-              setPhotoRecommendationState(PHOTO_RECO_STATES.NO_SAFE_MATCH);
-              return;
-            }
             setPhotoRecommendationState(PHOTO_RECO_STATES.RECOMMENDATION_READY);
           })
           .catch((error) => {
@@ -21478,9 +21473,15 @@ Important:
             || state === PHOTO_RECO_STATES.BACKGROUND_SELECTED
             || state === PHOTO_RECO_STATES.READY_TO_GENERATE
           ) {
-            recoPrimaryCta.textContent = hasReadySelection ? "이 스타일로 생성하기" : "스타일을 선택해주세요";
-            recoPrimaryCta.disabled = !hasReadySelection;
-            recoPrimaryCta.dataset.recoCtaMode = "recommend";
+            if (!photoRecoRuntime.recommendedResults.length) {
+              recoPrimaryCta.textContent = "다른 사진 선택하기";
+              recoPrimaryCta.disabled = false;
+              recoPrimaryCta.dataset.recoCtaMode = "choose-other-photo";
+            } else {
+              recoPrimaryCta.textContent = hasReadySelection ? "이 스타일로 생성하기" : "스타일을 선택해주세요";
+              recoPrimaryCta.disabled = !hasReadySelection;
+              recoPrimaryCta.dataset.recoCtaMode = "recommend";
+            }
           } else if (
             state === PHOTO_RECO_STATES.BLOCKED
             || state === PHOTO_RECO_STATES.NO_SAFE_MATCH
@@ -21532,6 +21533,16 @@ Important:
           || state === PHOTO_RECO_STATES.BACKGROUND_SELECTED
           || state === PHOTO_RECO_STATES.READY_TO_GENERATE
         ) {
+          if (!photoRecoRuntime.recommendedResults.length) {
+            clearTemporaryRecommendationPreviewTimer();
+            photoRecoRuntime.state = PHOTO_RECO_STATES.UPLOAD;
+            photoRecoRuntime.selectedBackgroundKey = "";
+            photoRecoRuntime.recommendedResults = [];
+            closeRecoPrepareSheet();
+            photoInput?.click();
+            syncPhotoRecommendationFlowUi();
+            return;
+          }
           if (!hasReadySelection) return;
           void startRecommendedSampleGeneration(selectedItem);
           return;

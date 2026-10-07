@@ -29672,11 +29672,37 @@ ${modeExample}`;
       let landingShowcaseState = null;
       let landingShowcaseRequest = null;
 
-      function landingStripRenderCount() {
+      // Previous viewport cap (390→6, 768→8, 1280+→10). No longer limits the
+      // strip source. Kept only so the scroll speed matches that shorter track.
+      const LANDING_STRIP_BASE_DURATION_S = 24.445;
+
+      function landingStripLegacyCountForSpeed() {
         const width = Math.max(window.innerWidth || 0, 320);
         const itemWidth = Math.min(210, Math.max(160, width * 0.18));
         const visible = Math.ceil(width / (itemWidth + 2));
         return Math.max(4, visible + 3);
+      }
+
+      function syncLandingStripSpeed() {
+        const track = document.getElementById("landingSampleStripTrack");
+        const set = landingSampleStripSet;
+        if (!track || !set) return;
+        const item = set.querySelector(".landing-sample-strip-item");
+        if (!item) return;
+        const setStyles = getComputedStyle(set);
+        const trackStyles = getComputedStyle(track);
+        const gap = parseFloat(setStyles.columnGap || setStyles.gap) || 0;
+        const trackGap = parseFloat(trackStyles.columnGap || trackStyles.gap) || 0;
+        const itemWidth = item.getBoundingClientRect().width;
+        const legacyCount = landingStripLegacyCountForSpeed();
+        const legacySetWidth = legacyCount * itemWidth + Math.max(0, legacyCount - 1) * gap;
+        const legacyDistance = legacySetWidth + trackGap / 2;
+        const pxPerSec = legacyDistance / LANDING_STRIP_BASE_DURATION_S;
+        if (!(pxPerSec > 0)) return;
+        const nextDistance = set.getBoundingClientRect().width + trackGap / 2;
+        const duration = nextDistance / pxPerSec;
+        if (!Number.isFinite(duration) || duration <= 0) return;
+        track.style.animationDuration = `${duration}s`;
       }
 
       function isSafeShowcaseDisplayUrl(value) {
@@ -29769,6 +29795,7 @@ ${modeExample}`;
         img.dataset.landingHidden = "1";
         const removeSelector = img.dataset.sampleRemoveOnFail || "figure";
         img.closest(removeSelector)?.remove();
+        if (removeSelector === ".landing-sample-strip-item") syncLandingStripSpeed();
       }
 
       function rememberShowcaseItems(items) {
@@ -29789,11 +29816,11 @@ ${modeExample}`;
 
       function renderTopStrip() {
         if (!landingSampleStripSet || !landingSampleStripSetClone || !landingShowcaseState) return;
-        const ordered = landingShowcaseState.payload.topStrip;
-        const count = Math.min(landingStripRenderCount(), ordered.length);
-        const visible = rememberShowcaseItems(ordered.slice(0, count));
+        const source = landingShowcaseState.payload.topStrip;
+        // Keep the old seen-set size so the premium grid does not gain or lose cards.
+        rememberShowcaseItems(source.slice(0, Math.min(landingStripLegacyCountForSpeed(), source.length)));
         const renderSet = (container, withAlt, eagerLimit) => {
-          container.innerHTML = visible
+          container.innerHTML = source
             .map((item, index) => renderLandingShowcaseFigure(item, {
               figureClass: "landing-sample-strip-item",
               alt: withAlt ? `웨딩 샘플 ${item.sampleKey}` : "",
@@ -29806,7 +29833,10 @@ ${modeExample}`;
         };
         renderSet(landingSampleStripSet, true, 4);
         renderSet(landingSampleStripSetClone, false, 0);
+        syncLandingStripSpeed();
       }
+
+      window.addEventListener("resize", syncLandingStripSpeed);
 
       function updatePremiumMoreButton() {
         if (!landingSamplesMoreButton) return;
@@ -29845,7 +29875,7 @@ ${modeExample}`;
       function renderPremiumInitial() {
         if (!landingSamplesGrid || !landingShowcaseState) return;
         const stripKeys = landingShowcaseState.payload.topStrip
-          .slice(0, Math.min(landingStripRenderCount(), landingShowcaseState.payload.topStrip.length));
+          .slice(0, Math.min(landingStripLegacyCountForSpeed(), landingShowcaseState.payload.topStrip.length));
         warnShowcaseOverlap(stripKeys, landingShowcaseState.payload.premiumGrid);
         appendPremiumCards(rememberShowcaseItems(landingShowcaseState.payload.premiumGrid));
         updatePremiumMoreButton();

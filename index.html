@@ -9006,7 +9006,7 @@
                   </button>
                   <button class="landing-secondary-button is-outline" id="landingHeroResultsButton" type="button">
                     <span>샘플 보러가기</span>
-                    <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                   </button>
                 </div>
               </div>
@@ -31431,7 +31431,8 @@ ${modeExample}`;
       landingHeaderStartButton?.addEventListener("click", () => handleLandingSignupStartClick(landingHeaderStartButton));
       landingHeroStartButton?.addEventListener("click", handleLandingFreeStartClick);
       landingHeroResultsButton?.addEventListener("click", () => {
-        landingSamplesSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Open the actual Style Gallery instead of scrolling to premium samples.
+        navigateToScreen("gallery");
       });
       landingProcessGuideLink?.addEventListener("click", handleSiteGuideClick);
 

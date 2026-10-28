@@ -4264,6 +4264,29 @@
         }
       }
 
+      /* Original on its own row; both results side by side below it.
+         Keep object-fit:contain for portrait and landscape without cropping. */
+      .from-sample-result-pair,
+      .from-sample-result-pair.has-two-results {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        gap: 12px;
+      }
+      .from-sample-result-pair > .from-sample-result-panel.is-original {
+        grid-column: 1 / -1;
+      }
+      .from-sample-result-pair > .is-original .from-sample-result-media {
+        aspect-ratio: auto;
+        height: clamp(220px, 42svh, 460px);
+        max-height: none;
+      }
+      .from-sample-result-pair > .is-result .from-sample-result-media,
+      .from-sample-result-pair.has-two-results > .is-result .from-sample-result-media {
+        aspect-ratio: 3 / 4;
+        max-height: none;
+      }
+
       #resultSection.is-from-sample-compare #recommendedComparisonSlider,
       #resultSection.is-from-sample-compare #recommendedZoomButton,
       #resultSection.is-from-sample-compare #mainVariantLabel,
@@ -8252,7 +8275,7 @@
       }
 
       .generating-status-copy::first-line {
-        font-size: clamp(22px, 5.2vw, 26px);
+        font-size: 16px;
         font-weight: 650;
         line-height: 1.3;
         color: #4a323a;
@@ -8328,7 +8351,7 @@
         }
 
         .generating-status-copy::first-line {
-          font-size: clamp(22px, 6vw, 24px);
+          font-size: 15px;
           font-weight: 600;
           line-height: 1.28;
         }
@@ -9592,12 +9615,12 @@
                   <div class="flex items-center justify-between gap-3 px-1">
                     <div class="text-left">
                       <p class="font-label-caps text-label-caps uppercase text-primary/80">Gallery Preview</p>
-                      <p class="mt-1 text-sm font-semibold text-on-surface">기다리는 동안 스타일 갤러리를 둘러보세요.</p>
+                      <p class="mt-1 text-sm font-semibold text-on-surface">기다리는 동안 AI 웨딩 완성 샘플을 둘러보세요.</p>
                     </div>
                     <span class="material-symbols-outlined text-[20px] text-primary/70" aria-hidden="true">photo_library</span>
                   </div>
                   <div class="generating-gallery-slider mt-3" id="generatingGallerySlider"></div>
-                  <p class="mt-2 text-[11px] leading-5 text-on-surface-variant">곧 4장의 결과가 완성됩니다.</p>
+                  <p class="mt-2 text-[11px] leading-5 text-on-surface-variant">완성되면 결과 화면에서 확인할 수 있어요.</p>
                 </section>
               </div>
             </div>
@@ -22923,6 +22946,7 @@ Important:
         const exactMap = {
           "제작 가능 횟수를 확인하고 있습니다.": "제작 가능 횟수 확인 중",
           "생성 결과 이미지를 불러오고 있습니다.": "결과 이미지 불러오는 중",
+          "생성 결과 이미지를 저장하고 있습니다.": "결과 사진 저장 중",
         };
         if (exactMap[text]) return exactMap[text];
         if (/제작\s*가능\s*횟수/.test(text) && /확인/.test(text)) return "제작 가능 횟수 확인 중";
@@ -27760,26 +27784,37 @@ ${modeExample}`;
         hideGeneratingGalleryPreview();
         if (appScreen !== "generating") return;
 
+        // Only use curated public result/ photos, not the old customer gallery.
+        // /api/generation-preview automatically includes new result/ uploads.
+        const fallbackPaths = ["result/3f.jpg", "result/4f.jpg", "result/6f.jpg"];
+        const fallbackItems = fallbackPaths.map((path) => ({
+          imageUrl: `${getSupabaseSamplesPublicBase()}/${path}`,
+          label: "AI 웨딩 완성 샘플",
+        }));
+        let items = fallbackItems;
         try {
           ensureApiBaseUrlConfigured();
-          const response = await fetch(getGalleryPreviewUrl(10), {
+          const response = await fetch(`${FRONT_API_BASE_URL}/api/generation-preview`, {
             method: "GET",
-            headers: {
-              "X-Anonymous-Id": getAnonymousId(),
-            },
+            cache: "no-store",
           });
-
-          if (!response.ok) return;
           if (appScreen !== "generating") return;
-
-          const payload = await response.json().catch(() => ({}));
-          if (appScreen !== "generating") return;
-
-          const items = normalizeGalleryItems(payload);
-          startGeneratingGallerySlideshow(items);
+          if (response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            if (Array.isArray(payload.items) && payload.items.length) {
+              items = payload.items;
+            }
+          }
         } catch (error) {
-          hideGeneratingGalleryPreview();
+          // Display the known public result/ examples even during API outages.
         }
+        if (appScreen !== "generating") return;
+        const shuffled = items.slice();
+        for (let i = shuffled.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        startGeneratingGallerySlideshow(shuffled);
       }
 
       function getGalleryAppendSkeletonCount() {

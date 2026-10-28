@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>카카오 계정 연결 | Magic AI Studio</title>
+<style>
+*{box-sizing:border-box} :root{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#27202b}
+body{margin:0;min-height:100svh;background:linear-gradient(140deg,#fff4f8,#f8f8fb);display:grid;place-items:center;padding:22px}
+main{width:min(100%,460px);background:#fff;border:1px solid #f2e7eb;border-radius:25px;padding:38px 25px;box-shadow:0 14px 48px #6b475b12}
+.brand{color:#fa3780;font-size:16px;font-weight:800;text-align:center}
+h1{text-align:center;font-size:23px;margin:21px 0 16px;letter-spacing:-.04em}
+p{font-size:14px;line-height:1.85;color:#6e6672;margin:0}
+.info{padding:16px;border-radius:14px;background:#fff6f9;color:#765965;margin:22px 0;line-height:1.8;font-size:13px}
+button,a{display:block;border:0;border-radius:13px;padding:15px;text-align:center;width:100%;font:inherit;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}
+button{background:#fa3980;color:#fff}button:disabled{background:#dea3ba;cursor:wait}
+a{margin-top:9px;border:1px solid #ebdfe5;color:#715463;background:#fff}
+#status{margin:16px 0 0;text-align:center;min-height:24px;font-size:13px;line-height:1.7}
+#status.error{color:#b42341}#status.ok{color:#486650}
+</style>
+</head>
+<body><main>
+<div class="brand">Magic AI Studio</div>
+<h1>기존 회원에 카카오 계정 연결</h1>
+<p>이미 로그인되어 있는 회원정보에 현재 카카오 계정을 연결합니다. 연결 후에는 Mac에서도 카카오 로그인으로 같은 회원정보를 사용할 수 있습니다.</p>
+<div class="info"><strong>기존 이용권과 사진은 그대로 유지됩니다.</strong><br>
+기존 회원으로 로그인한 상태에서 진행해 주세요. 카카오 인증 화면에서는 연결할 카카오 계정을 직접 확인할 수 있습니다. 다른 회원 계정으로 자동 통합하지 않습니다.</div>
+<button type="button" id="connect" disabled>로그인 상태 확인 중…</button>
+<a href="/">홈페이지로 돌아가기</a>
+<div id="status" aria-live="polite"></div>
+</main>
+<script>
+"use strict";
+const btn=document.getElementById("connect");
+const statusNode=document.getElementById("status");
+const API="https://api.magicaistudio.co.kr";
+function report(message,kind=""){statusNode.className=kind;statusNode.textContent=message;}
+async function apiRequest(path,opts={}){
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),25000);
+ try {
+  const response=await fetch(API+path,{credentials:"include",cache:"no-store",signal:controller.signal,...opts});
+  const body=await response.json().catch(()=>null);
+  return {response,body};
+ } finally {clearTimeout(timeout);}
+}
+async function check(){
+ try{
+  const {response,body}=await apiRequest("/api/auth/me");
+  if(!response.ok||body?.authenticated===false||!body?.user){
+   btn.textContent="기존 회원 로그인이 필요합니다";
+   report("현재 브라우저에 로그인 정보가 없습니다. 먼저 기존 계정으로 로그인한 뒤 이 화면에 다시 방문해 주세요.","error");
+   return;
+  }
+  btn.disabled=false;
+  btn.textContent="카카오 계정 연결 시작";
+  report("기존 회원 로그인 상태가 확인됐습니다.","ok");
+ } catch {
+  btn.textContent="로그인 상태 다시 확인";
+  btn.disabled=false;
+  btn.dataset.retry="1";
+  report("로그인 상태 확인에 실패했어요. 새로고침하거나 다시 확인해 주세요.","error");
+ }
+}
+btn.addEventListener("click",async()=>{
+ if(btn.dataset.retry==="1"){delete btn.dataset.retry;btn.disabled=true;btn.textContent="로그인 상태 확인 중…";await check();return;}
+ btn.disabled=true;btn.textContent="카카오 연결을 준비하고 있어요…";
+ try {
+  const {response,body}=await apiRequest("/api/auth/link-provider",{
+    method:"POST",
+    headers:{"content-type":"application/json"},
+    body:JSON.stringify({provider:"kakao",returnTo:"account"})
+  });
+  if(!response.ok||body?.ok!==true||!body?.authUrl)throw new Error(response.status===401?"기존 회원 로그인이 만료됐습니다. 다시 로그인해 주세요.":body?.message||"카카오 연결을 시작하지 못했습니다.");
+  const u=new URL(body.authUrl);
+  if(u.protocol!=="https:" || (u.hostname!=="kauth.kakao.com" && !u.hostname.endsWith(".kakao.com")))throw new Error("유효하지 않은 카카오 인증 주소입니다.");
+  window.location.assign(u.toString());
+ }catch(e){report(e?.message||"연결을 시작하지 못했습니다.","error");btn.disabled=false;btn.textContent="다시 연결 시도";}
+});
+check();
+</script>
+</body></html>

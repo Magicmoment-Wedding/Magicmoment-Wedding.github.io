@@ -28657,7 +28657,7 @@ ${modeExample}`;
 
             if (policyCode.includes("GALLERY_UPLOAD_LIMIT")) {
               galleryUploadLimitReached = true;
-              setImageModalStatus("스타일 갤러리 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+              setImageModalStatus(errorData.message || "스타일 갤러리 공개 가능 수량을 초과했습니다.");
               syncGalleryUploadButtonState(item);
               return;
             }
@@ -28796,7 +28796,16 @@ ${modeExample}`;
             return;
           }
 
-          setImageModalStatus("스타일 갤러리 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          const serverMessage = typeof error?.data?.message === "string" ? error.data.message.trim() : "";
+          const errorCode = typeof error?.code === "string" ? error.code : "";
+          const errorStatus = Number(error?.status) || 0;
+          const isNetworkError = error instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(String(error?.message || ""));
+          const reason = serverMessage || (isNetworkError
+            ? "서버에 연결하지 못했습니다. 네트워크 연결을 확인해 주세요."
+            : errorStatus
+              ? `서버 응답 오류 (${errorStatus}${errorCode ? ` / ${errorCode}` : ""})`
+              : "요청 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+          setImageModalStatus(reason);
         } finally {
           isGalleryUploading = false;
           imageModalGalleryUpload.disabled = false;

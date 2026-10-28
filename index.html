@@ -3064,6 +3064,16 @@
         word-break: keep-all;
       }
 
+      /* Keep recommendation progress headings on one line within the mobile card. */
+      .reco-panel[data-reco-panel="analyzing"] .reco-title,
+      .reco-panel[data-reco-panel="recommend"] .reco-title {
+        font-size: clamp(11px, 3.2vw, 13px);
+        font-weight: 750;
+        letter-spacing: -0.06em;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+
       .reco-copy {
         margin: 0;
         color: #6f5964;
@@ -8320,7 +8330,7 @@
         display: block;
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         object-position: center;
       }
 

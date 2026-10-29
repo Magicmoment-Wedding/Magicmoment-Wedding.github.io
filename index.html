@@ -7759,6 +7759,15 @@
         pointer-events: none;
       }
 
+      .generating-gallery-preview-copy {
+        margin-top: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+
       .generating-gallery-slider {
         position: relative;
         aspect-ratio: 4 / 5;
@@ -7841,6 +7850,12 @@
         .generating-gallery-preview {
           width: min(100%, 258px);
           padding: 10px;
+        }
+
+        .generating-gallery-preview-copy {
+          font-size: 12px;
+          letter-spacing: -0.03em;
+          line-height: 1.2;
         }
 
         .generating-gallery-slider {
@@ -9046,7 +9061,7 @@ AI가 추천해드려요.</p>
                   <div class="flex items-center justify-between gap-3 px-1">
                     <div class="text-left">
                       <p class="font-label-caps text-label-caps uppercase text-primary/80">Gallery Preview</p>
-                      <p class="mt-1 text-sm font-semibold text-on-surface">기다리는 동안 스타일 갤러리를 둘러보세요.</p>
+                      <p class="generating-gallery-preview-copy text-on-surface">다른 커플들은 어떤 사진을 올렸을까요?</p>
                     </div>
                     <span class="material-symbols-outlined text-[20px] text-primary/70" aria-hidden="true">photo_library</span>
                   </div>

@@ -1,0 +1,37 @@
+name: Verify FULL recommendation UI
+on:
+  push:
+    branches: [fix/visible-full-recommend-20261106]
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate inline JS and FULL labels
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const assert=require('node:assert/strict');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+          let checked=0;
+          for(const match of scripts){
+            const attrs=match[1];
+            const code=match[2];
+            if(/\bsrc\s*=/.test(attrs)||/\btype\s*=\s*["'](?:application\/json|module)/i.test(attrs)||!code.trim()) continue;
+            new vm.Script(code,{filename:'index.html inline script '+checked});
+            checked++;
+          }
+          assert.ok(checked>0,'No inline browser scripts checked');
+          assert.match(html,/recommendationMode:\s*item\?\.recommendationMode === "full"/);
+          assert.match(html,/const isFull = item\.recommendationMode === "full"/);
+          assert.match(html,/reco-bg-card-type/);
+          assert.match(html,/FULL 스타일/);
+          console.log('Browser JS syntax checked: '+checked+' scripts, FULL labels present');
+          NODE

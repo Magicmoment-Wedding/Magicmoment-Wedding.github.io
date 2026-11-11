@@ -3460,31 +3460,6 @@
         gap: 6px;
       }
 
-      .reco-bg-card-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 6px;
-      }
-
-      .reco-bg-card-type {
-        display: inline-flex;
-        align-items: center;
-        flex-shrink: 0;
-        padding: 3px 7px;
-        border-radius: 999px;
-        font-size: 10px;
-        line-height: 1.2;
-        font-weight: 700;
-        color: #785c68;
-        background: #f4edf0;
-      }
-
-      .reco-bg-card-type.is-full {
-        color: #743b20;
-        background: #fff1e7;
-      }
-
       .reco-bg-card-name {
         margin: 0;
         color: #2f2430;
@@ -21223,7 +21198,6 @@ Important:
         const imageUrl = getRecoSampleImageUrl(item);
         const displayName = fileName.replace(/\.[^.]+$/, "") || "추천 샘플";
         const reasonText = sanitizeRecoReasonForDisplay(item.reason);
-        const isFull = item.recommendationMode === "full";
         const mediaHtml = imageUrl
           ? `<img src="${escapeRecoHtml(imageUrl)}" alt="${escapeRecoHtml(displayName)} 추천 샘플" loading="lazy" decoding="async" style="object-position: center 22%;" />`
           : `<div class="reco-placeholder-media" aria-hidden="true"><span class="material-symbols-outlined">image</span><span>이미지 없음</span></div>`;
@@ -21241,10 +21215,7 @@ Important:
             <span class="reco-bg-check" aria-hidden="true"><span class="material-symbols-outlined">check</span></span>
             <span class="reco-bg-card-media">${mediaHtml}</span>
             <span class="reco-bg-card-body">
-              <span class="reco-bg-card-heading">
-                <span class="reco-bg-card-name">${isFull ? "FULL 스타일" : "정밀 추천"}</span>
-                <span class="reco-bg-card-type${isFull ? " is-full" : ""}">${isFull ? "FULL" : "기본"}</span>
-              </span>
+              <span class="reco-bg-card-name">추천 스타일</span>
               ${reasonHtml}
             </span>
           </button>

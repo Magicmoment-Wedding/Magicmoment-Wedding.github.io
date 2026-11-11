@@ -7,6 +7,10 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <base href="/" />
+    <!-- Start the first hero photos before the large inline app script executes. -->
+    <link rel="preconnect" href="https://rzlvfuyzofzqghzooqsi.supabase.co" crossorigin />
+    <link rel="preload" as="image" fetchpriority="high" href="https://rzlvfuyzofzqghzooqsi.supabase.co/storage/v1/render/image/public/samples/original/1.jpg?width=960&amp;quality=75&amp;resize=contain&amp;v=20261111-perf" />
+    <link rel="preload" as="image" fetchpriority="high" href="https://rzlvfuyzofzqghzooqsi.supabase.co/storage/v1/render/image/public/samples/result/1f.jpg?width=960&amp;quality=75&amp;resize=contain&amp;v=20261111-perf" />
     <title>Magic AI Studio | 클릭 한 번에 만나는 감성사진</title>
     <meta name="description" content="사진 한 장으로 완성하는 AI 웨딩 이미지. 유럽, 한국, 동화, 스튜디오 감성까지 원하는 무드로 바꿔보세요." />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -29718,7 +29722,7 @@ ${modeExample}`;
         return `${supabaseBase}/storage/v1/object/public/samples`;
       }
 
-      const LANDING_HERO_IMAGE_CACHE_BUST = "20261111";
+      const LANDING_HERO_IMAGE_CACHE_BUST = "20261111-perf";
       const SAMPLE_SHOWCASE_URL = "https://api.magicaistudio.co.kr/api/sample-showcase";
       const SAMPLE_SHOWCASE_CACHE_KEY = "magicSampleShowcaseLastGood";
       const SAMPLE_SHOWCASE_CACHE_VERSION = 1;
@@ -30006,6 +30010,11 @@ ${modeExample}`;
         const HERO_PAIR_FALLBACK_RATIO = 4 / 3;
         // 7 original-to-result pairs in the public samples bucket.
         // Keep the established 3 pairs and add the four uploaded on 2026-11-11.
+        // The hero only needs screen-sized previews (original files remain untouched).
+        const heroImageBase = getSupabaseSamplesPublicBase();
+        const heroOptimizedBase = heroImageBase.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/");
+        const heroDisplayUrl = (path) => `${heroOptimizedBase}/${path}?width=960&quality=75&resize=contain&v=${LANDING_HERO_IMAGE_CACHE_BUST}`;
+        const heroOriginalUrl = (path) => `${heroImageBase}/${path}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`;
         const pairSets = [
           { originalPath: "original/1.jpg", resultPath: "result/1f.jpg" },
           { originalPath: "original/2.jpg", resultPath: "result/2f.jpg" },
@@ -30015,25 +30024,21 @@ ${modeExample}`;
           { originalPath: "original/6.jpg", resultPath: "result/6f.jpg" },
           { originalPath: "original/7.jpg", resultPath: "result/7f.jpg" },
         ].map((pair) => ({
-          original: `${getSupabaseSamplesPublicBase()}/${pair.originalPath}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`,
-          result: `${getSupabaseSamplesPublicBase()}/${pair.resultPath}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`,
+          original: heroDisplayUrl(pair.originalPath),
+          result: heroDisplayUrl(pair.resultPath),
+          originalFallback: heroOriginalUrl(pair.originalPath),
+          resultFallback: heroOriginalUrl(pair.resultPath),
           originalPath: pair.originalPath,
           resultPath: pair.resultPath,
         }));
 
-        const renderPairImage = (src, alt) => `
+        const renderPairImage = (src, alt, fallbackSrc) => `
               <div class="landing-hero-pair-media">
-                <img
-                  class="landing-hero-pair-bg"
-                  alt=""
-                  aria-hidden="true"
-                  data-src="${src}"
-                  decoding="async"
-                />
                 <img
                   class="landing-hero-pair-photo"
                   alt="${alt}"
                   data-src="${src}"
+                  data-fallback-src="${fallbackSrc}"
                   decoding="async"
                 />
               </div>
@@ -30047,7 +30052,7 @@ ${modeExample}`;
             <div class="landing-hero-pair" data-ratio-source="fallback">
               <article class="landing-hero-pair-card is-original">
                 <span class="landing-hero-pair-label">원본</span>
-                ${renderPairImage(pair.original, `원본 샘플 ${index + 1}`)}
+                ${renderPairImage(pair.original, `원본 샘플 ${index + 1}`, pair.originalFallback)}
               </article>
               <div class="landing-hero-pair-arrow" aria-hidden="true">
                 <span class="material-symbols-outlined">arrow_forward</span>
@@ -30055,7 +30060,7 @@ ${modeExample}`;
               <div class="landing-hero-pair-result-wrap">
                 <article class="landing-hero-pair-card is-result">
                   <span class="landing-hero-pair-label">AI 스타일샷</span>
-                  ${renderPairImage(pair.result, `AI 스타일샷 샘플 ${index + 1}`)}
+                  ${renderPairImage(pair.result, `AI 스타일샷 샘플 ${index + 1}`, pair.resultFallback)}
                 </article>
               </div>
             </div>
@@ -30169,20 +30174,33 @@ ${modeExample}`;
           watch(originalImg, true);
         };
 
-        const ensurePairSources = (index) => {
+        const ensurePairSources = (index, highPriority = false) => {
           const setEl = sets[index];
           if (!setEl || setEl.dataset.sourcesReady === "1") return;
           setEl.dataset.sourcesReady = "1";
           setEl.querySelectorAll("img[data-src]").forEach((img) => {
+            img.loading = "eager";
+            img.fetchPriority = highPriority ? "high" : "low";
+            img.addEventListener("error", () => {
+              // Keep the hero usable even if Storage transformations are disabled.
+              if (img.dataset.fallbackSrc && img.dataset.fallbackAttempted !== "1") {
+                img.dataset.fallbackAttempted = "1";
+                img.src = img.dataset.fallbackSrc;
+              }
+            }, { once: true });
             if (!img.getAttribute("src")) img.src = img.dataset.src;
           });
           bindPairRatio(setEl);
         };
 
         const preloadAround = (activeIndex) => {
-          const visibleCount = Math.min(sets.length, stackRoles.length);
-          for (let step = 0; step < visibleCount; step += 1) {
-            ensurePairSources((activeIndex + step) % sets.length);
+          // Start with only the visible pair, not three pairs of 10MB originals.
+          ensurePairSources(activeIndex, true);
+          // Warm up the next pair once the active request has already started.
+          if (sets.length > 1) {
+            window.setTimeout(() => {
+              ensurePairSources((activeIndex + 1) % sets.length);
+            }, 850);
           }
         };
 

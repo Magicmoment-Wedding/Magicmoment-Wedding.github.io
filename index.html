@@ -29747,7 +29747,7 @@ ${modeExample}`;
         return `${supabaseBase}/storage/v1/object/public/samples`;
       }
 
-      const LANDING_HERO_IMAGE_CACHE_BUST = "20260921";
+      const LANDING_HERO_IMAGE_CACHE_BUST = "20261111";
       const SAMPLE_SHOWCASE_URL = "https://api.magicaistudio.co.kr/api/sample-showcase";
       const SAMPLE_SHOWCASE_CACHE_KEY = "magicSampleShowcaseLastGood";
       const SAMPLE_SHOWCASE_CACHE_VERSION = 1;
@@ -30033,10 +30033,16 @@ ${modeExample}`;
       function setupLandingHeroPairRotation() {
         if (!landingHeroPairStage) return;
         const HERO_PAIR_FALLBACK_RATIO = 4 / 3;
+        // 7 original-to-result pairs in the public samples bucket.
+        // Keep the established 3 pairs and add the four uploaded on 2026-11-11.
         const pairSets = [
+          { originalPath: "original/1.jpg", resultPath: "result/1f.jpg" },
+          { originalPath: "original/2.jpg", resultPath: "result/2f.jpg" },
           { originalPath: "original/3.jpg", resultPath: "result/3f.jpg" },
           { originalPath: "original/4.jpg", resultPath: "result/4f.jpg" },
+          { originalPath: "original/5.jpg", resultPath: "result/5f.jpg" },
           { originalPath: "original/6.jpg", resultPath: "result/6f.jpg" },
+          { originalPath: "original/7.jpg", resultPath: "result/7f.jpg" },
         ].map((pair) => ({
           original: `${getSupabaseSamplesPublicBase()}/${pair.originalPath}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`,
           result: `${getSupabaseSamplesPublicBase()}/${pair.resultPath}?v=${LANDING_HERO_IMAGE_CACHE_BUST}`,

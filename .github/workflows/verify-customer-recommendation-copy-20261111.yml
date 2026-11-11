@@ -1,0 +1,31 @@
+name: Verify customer recommendation copy
+on:
+  push:
+    branches: [fix/hide-internal-recommendation-modes-20261111]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify safe copy and JavaScript syntax
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+          let count=0;
+          for (const [,attrs,source] of scripts) {
+            if (/\bsrc\s*=/.test(attrs)||/\btype\s*=\s*["'](?:application\/json|module)/i.test(attrs)||!source.trim()) continue;
+            new vm.Script(source,{filename:'inline '+count++});
+          }
+          assert.ok(count>0);
+          assert.match(html, /<span class="reco-bg-card-name">추천 스타일<\/span>/);
+          assert.doesNotMatch(html,/FULL 스타일|reco-bg-card-type/);
+          assert.match(html,/recommendationMode: item\?\.recommendationMode === "full"/);
+          console.log('Customer copy and inline JS OK');
+          NODE

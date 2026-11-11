@@ -1,0 +1,53 @@
+name: Verify seven landing comparison pairs
+on:
+  push:
+    branches: [feat/landing-hero-seven-pairs-20261111]
+permissions:
+  contents: read
+jobs:
+  check-pairs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Validate paired paths and inline JavaScript
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const assert = require('node:assert/strict');
+          for (const path of ['index.html','404.html']) {
+            const html = fs.readFileSync(path,'utf8');
+            const block = html.match(/const pairSets = \[([\s\S]*?)\]\.map\(\(pair\) => \(\{/);
+            assert.ok(block,'Missing pairs in '+path);
+            const pairs = [...block[1].matchAll(/originalPath: "original\/(\d+)\.jpg", resultPath: "result\/(\d+)f\.jpg"/g)];
+            assert.equal(pairs.length,7,path+' pair count');
+            pairs.forEach((p,index)=>{assert.equal(Number(p[1]),index+1);assert.equal(p[1],p[2]);});
+            assert.match(html,/const LANDING_HERO_IMAGE_CACHE_BUST = "20261111";/);
+            assert.match(html,/window\.setInterval\(advancePairSet, 4000\)/);
+            const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+            let parsed=0;
+            for (const match of scripts) {
+              const attrs=match[1];const source=match[2];
+              if (/\bsrc\s*=/.test(attrs) || /\btype\s*=\s*["'](?:application\/json|module)/i.test(attrs) || !source.trim()) continue;
+              new vm.Script(source,{filename:path+' inline '+parsed});
+              parsed++;
+            }
+            assert.ok(parsed>0,'No inline JS parsed');
+            console.log(path,':',pairs.length,'pairs,',parsed,'script blocks syntax OK');
+          }
+          NODE
+      - name: Verify public Supabase images are reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://rzlvfuyzofzqghzooqsi.supabase.co/storage/v1/object/public/samples"
+          for id in 1 2 3 4 5 6 7; do
+            for asset in "original/${id}.jpg" "result/${id}f.jpg"; do
+              status="$(curl --silent --show-error --location --head --max-time 15 --retry 2 --output /dev/null --write-out '%{http_code}' "$base/$asset")"
+              echo "$asset $status"
+              test "$status" = "200"
+            done
+          done

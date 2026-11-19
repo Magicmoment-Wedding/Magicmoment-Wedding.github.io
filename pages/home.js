@@ -7,8 +7,8 @@ export function renderHomePage() {
 
   return `
     <section class="pt-1">
-      <h1 class="font-display text-[28px] leading-tight text-on-surface"><span>얼굴은 그대로,</span><br /><span>웨딩사진은 새롭게!</span></h1>
-      <p class="mt-2 text-sm leading-6 text-on-surface-variant">스튜디오 촬영본 한 장으로 파리 스냅부터 새로운 웨딩 콘셉트까지.</p>
+      <h1 class="font-display text-[28px] leading-tight text-on-surface"><span>클릭 한 번에</span><br /><span>만나는 감성사진</span></h1>
+      <p class="mt-2 text-sm leading-6 text-on-surface-variant">사진 한 장이면 충분해요. 분위기는 새롭게, 추억은 더 특별하게.</p>
       <div class="mt-5">
         ${renderBeforeAfterSlider({
           beforeSrc: "mock-images/before/before_studio_couple_01.jpg",

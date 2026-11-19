@@ -80,8 +80,8 @@ async function saveImageForDevice(imageUrl, filename = "magic-ai-studio-result.j
         window.alert("저장 창이 열렸습니다. 사진 앱 저장을 선택해 주세요.");
         await navigator.share({
           files: [file],
-          title: "Magic Touch AI 결과 이미지",
-          text: "Magic Touch AI에서 만든 웨딩사진입니다.",
+          title: "Magic Ai Studio 결과 이미지",
+          text: "Magic Ai Studio에서 만든 웨딩사진입니다.",
         });
         return;
       }

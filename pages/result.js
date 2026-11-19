@@ -95,7 +95,7 @@ export function renderResultPage(state) {
   return `
     ${shouldShowFreeNotice ? `
       <section class="w-full rounded-DEFAULT bg-primary-container/25 border border-primary-container/40 px-4 py-3 text-sm font-semibold text-primary">
-        무료 제작 결과에는 Magic AI Studio 워터마크가 표시됩니다.
+        무료 제작 결과에는 Magic Touch AI 워터마크가 표시됩니다.
       </section>
     ` : ""}
 

@@ -4494,6 +4494,40 @@
         object-position: center;
       }
 
+      /* In landscape gallery photos, keep the original preview OUTSIDE the result image. */
+      .image-modal-image-frame.is-gallery-landscape {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-height: 100%;
+      }
+
+      .image-modal-image-frame.is-gallery-landscape #imageModalImg {
+        min-height: 0;
+        max-height: calc(100% - 110px);
+        flex-shrink: 1;
+      }
+
+      .image-modal-image-frame.is-gallery-landscape .image-modal-original-thumb {
+        position: static;
+        display: block;
+        align-self: flex-end;
+        flex: 0 0 auto;
+        margin: 10px 8px 0 0;
+        max-width: min(26vw, 120px);
+        max-height: 96px;
+        border-radius: 12px;
+      }
+
+      .image-modal-image-frame.is-gallery-landscape .image-modal-original-thumb img {
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: min(26vw, 120px);
+        max-height: 92px;
+        object-fit: contain;
+      }
+
       .image-modal-gallery-info {
         position: absolute;
         top: 12px;
@@ -26364,6 +26398,17 @@ ${modeExample}`;
         imageModalOriginalThumb.classList.remove("hidden");
       }
 
+      function syncGalleryLandscapeOriginalPlacement(item) {
+        const isLandscapeGalleryPhoto = Boolean(
+          item?.gallerySource
+          && imageModalOriginalThumb
+          && !imageModalOriginalThumb.classList.contains("hidden")
+          && imageModalImg?.naturalWidth > 0
+          && imageModalImg.naturalWidth > imageModalImg.naturalHeight
+        );
+        imageModalImageFrame?.classList.toggle("is-gallery-landscape", isLandscapeGalleryPhoto);
+      }
+
       function getSavePlatform() {
         const userAgent = navigator.userAgent || "";
         if (/KAKAOTALK/i.test(userAgent)) return "kakao";
@@ -28841,6 +28886,8 @@ ${modeExample}`;
         const isFreshResultSource = Boolean(!item.gallerySource && !item.myPhotoSource);
         const shouldShowLogoWatermark = shouldShowWatermarkForModalItem(item);
         logMyPhotoWatermarkDebug(item, shouldShowLogoWatermark);
+        imageModalImageFrame?.classList.remove("is-gallery-landscape");
+        imageModalImg.onload = () => syncGalleryLandscapeOriginalPlacement(item);
         imageModalImg.onerror = isGallerySource
           ? () => removeBrokenGalleryLightboxItem(item, "main-image-load-error")
           : null;
@@ -28853,6 +28900,7 @@ ${modeExample}`;
         imageModal.classList.toggle("is-my-photo-lightbox", isMyPhotoSource);
         syncImageModalGalleryInfo(item);
         syncImageModalOriginalThumbnail(item);
+        syncGalleryLandscapeOriginalPlacement(item);
         imageModalLabel.textContent = item.label;
         imageModalBadge.textContent = FEATURED_BADGE_TEXT;
         imageModalBadge.classList.toggle("hidden", !item.isRecommended);

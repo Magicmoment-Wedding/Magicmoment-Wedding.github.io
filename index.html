@@ -7300,6 +7300,12 @@
         line-height: 1.5;
       }
 
+      /* Keep the original-photo safety message balanced on exactly two lines. */
+      .landing-assurance-card:first-child .landing-assurance-desc {
+        font-size: clamp(10px, 2.85vw, 12px);
+        white-space: nowrap;
+      }
+
       @media (min-width: 720px) {
         .landing-assurance-grid {
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -9104,7 +9110,7 @@
                   <span class="landing-assurance-icon" aria-hidden="true"><span class="material-symbols-outlined">verified_user</span></span>
                   <div class="landing-assurance-copy">
                     <strong class="landing-assurance-title">원본사진 안전보호</strong>
-                    <span class="landing-assurance-desc">보안로그인으로 원본사진 보호<br />사진은 생성 후 바로 삭제</span>
+                    <span class="landing-assurance-desc">보안 로그인으로 보호<br />원본은 생성 후 삭제</span>
                   </div>
                 </li>
                 <li class="landing-assurance-card">

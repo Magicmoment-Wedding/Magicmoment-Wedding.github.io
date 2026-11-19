@@ -1,6 +1,6 @@
 import { escapeHtml } from "../services/format.js";
 
-export const WATERMARK_LOGO_SRC = "/images/brand/magic-ai-studio-watermark-white.png";
+export const WATERMARK_LOGO_SRC = "/images/brand/magic-touch-ai-watermark-white.svg";
 
 function normalizeWatermarkStrategy(value) {
   return String(value || "").trim().toLowerCase();

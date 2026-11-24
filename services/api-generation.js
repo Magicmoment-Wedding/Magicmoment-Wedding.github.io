@@ -347,7 +347,7 @@ export async function waitForGenerationResult(jobId, { startRun = true, onStatus
 export async function generateImages(prompt, options = {}) {
   const {
     sourceImageUrl,
-    count = 4,
+    count = 2,
     presetKey = "default",
     useFreeGeneration = false,
     onStatus,
@@ -506,7 +506,7 @@ export async function generateImages(prompt, options = {}) {
   return normalizedResults;
 }
 
-export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetKey = "paris_eiffel", analyzedMeta, ratioOption, customText, count = 4, useFreeGeneration = false, onStatus }) {
+export async function generateParisEiffelImage({ sourceImageUrl, prompt, presetKey = "paris_eiffel", analyzedMeta, ratioOption, customText, count = 2, useFreeGeneration = false, onStatus }) {
   console.log("[generation] api request start", {
     presetKey,
     ratioOption,

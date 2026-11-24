@@ -8,7 +8,7 @@ import { canUseApiGenerationForPreset, isOnlineApiPlaceholder } from "./config.j
 import { generateParisEiffelImage, waitForGenerationResult } from "./api-generation.js";
 import { getPresetPromptIntent } from "./prompt-intents.js";
 
-const DEFAULT_GENERATION_COUNT = 4;
+const DEFAULT_GENERATION_COUNT = 2;
 const RECOMMENDATION_DESCRIPTION = "가장 자연스러운 이미지입니다.";
 
 function hasFreeGeneration(user) {

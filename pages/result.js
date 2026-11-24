@@ -72,7 +72,7 @@ export function renderResultPage(state) {
     totalCredits: 25,
     upscaleIncluded: false,
     sourceTitle: sourceImage.title,
-    generatedCount: state.results.length || 4,
+    generatedCount: state.results.length || 2,
     billedCredits: 0,
     regularCredits: 25,
     usedFreeGeneration: false,

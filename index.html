@@ -9304,24 +9304,7 @@
                 <h2 class="mt-2 text-[17px] font-semibold text-on-surface"><span class="block sm:inline">스타일 갤러리를</span>
                   <span class="block sm:inline">둘러보세요</span></h2>
                 <p class="mt-2 text-sm leading-6 text-on-surface-variant">다른 사진들은 어떤 분위기로 바뀌었을까요?</p>
-                <div class="mt-4 space-y-4">
-                  <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
-                    <img src="mock-images/home/home_paris_couple_01.png" alt="파리 에펠탑" class="h-40 w-full object-cover" />
-                    <div class="px-5 pb-5 pt-4 text-center">
-                      <h3 class="font-display text-[25px] leading-none text-on-surface">유럽 감성</h3>
-                      <p class="mt-2 text-sm text-on-surface-variant">파리, 베네치아, 아말피처럼</p>
-                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="parisSnap" type="button">사진 올리고 시작하기</button>
-                    </div>
-                  </article>
-                  <article class="overflow-hidden rounded-[18px] bg-white shadow-[0_14px_38px_rgba(129,80,92,0.10)] border border-white/85">
-                    <img src="public/images/presets/korea-gyeongbokgung.png" alt="경복궁" class="h-40 w-full object-cover" />
-                    <div class="px-5 pb-5 pt-4 text-center">
-                      <h3 class="font-display text-[25px] leading-none text-on-surface">한국 감성</h3>
-                      <p class="mt-2 text-sm text-on-surface-variant">궁궐부터 제주까지, 담담하게</p>
-                      <button class="mt-4 h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-preset="korea_style" type="button">사진 올리고 시작하기</button>
-                    </div>
-                  </article>
-                </div>
+                <div class="mt-4"><button class="h-11 w-full rounded-full bg-[#701e34] text-white text-sm font-semibold shadow-[0_10px_24px_rgba(112,30,52,0.18)]" data-screen-target="editor" type="button">사진 올리고 맞춤 샘플 추천받기</button></div>
               </section>
 
               <section class="mt-7 pb-6">
@@ -9360,7 +9343,7 @@
               </button>
             </div>
             <input accept="image/png,image/jpeg,image/webp,image/heic,image/heif,.heic,.heif" class="sr-only" id="photoInput" type="file" />
-            <div id="editorLegacyFlow" class="editor-legacy-flow" hidden aria-hidden="true">
+            <div id="editorLegacyFlow" class="editor-legacy-flow" hidden inert aria-hidden="true">
             <label id="photoUploadBox" class="upload-drop editor-upload-card mt-5" for="photoInput">
               <span class="icon-bubble">
                 <span class="material-symbols-outlined text-[26px]">add_a_photo</span>
@@ -9580,8 +9563,8 @@
               </div>
 
               <div class="reco-panel" data-reco-panel="recommend" hidden>
-                <p class="reco-step">3 / 3 스타일 선택</p>
-                <h2 class="reco-title">이 사진에 어울리는 스타일을 선택해주세요</h2>
+                <p class="reco-step">3 / 3 추천 샘플 선택</p>
+                <h2 class="reco-title">AI가 추천한 샘플 중 마음에 드는 사진을 선택해주세요</h2>
                 <p class="reco-hint-secondary">AI가 추천한 샘플만 보여드려요.
 마음에 드는 결과를 골라주세요.</p>
                 <div class="reco-thumb-row">
@@ -10918,33 +10901,7 @@
             "Eiffel Tower promenade",
             "Eiffel Tower terrace",
           ],
-          basePrompt: `Edit this photo into a natural Paris Eiffel Tower snap.
-
-Keep the original people exactly the same.
-
-Priority:
-1. Preserve the original faces and identities exactly.
-2. Preserve eye shape, facial expression, hairstyle, hair color, skin tone, and overall facial impression.
-3. Preserve the original pose, hand position, body position, camera angle, framing, and composition.
-4. Preserve visible clothing and all visible props exactly.
-5. Preserve occlusions. Do not invent hidden hands, hidden fingers, hidden eyes, hidden shoes, or hidden facial parts.
-
-Background rule:
-- Replace only the background with a realistic Eiffel Tower setting.
-- Keep the background change natural and moderate.
-- Allow only slight variation in Eiffel Tower distance, terrace angle, surrounding scenery, and lighting.
-- Do not restyle the people.
-- Do not regenerate the people.
-- Do not beautify them into different-looking people.
-
-Blending:
-- Match lighting, shadows, perspective, and color tone naturally.
-- Keep the result realistic and photo-natural.
-
-Important:
-- Face preservation is more important than background accuracy.
-- If there is any conflict, reduce the background transformation strength.
-- Keep the final result subtle, natural, and realistic.`,
+          basePrompt: "", // Retired preset generation; metadata retained for historical results.
         },
         [GENERATION_MODES.KOREA_STYLE]: {
           presetKey: "korea_style",
@@ -10954,33 +10911,7 @@ Important:
             "제주 새별오름 스냅",
             "제주 김녕해변 노을 스냅",
           ],
-          basePrompt: `Edit this photo into a natural Korea Style wedding travel snap.
-
-Keep the original people exactly the same.
-
-Priority:
-1. Preserve the original faces and identities exactly.
-2. Preserve eye shape, facial expression, hairstyle, hair color, skin tone, and overall facial impression.
-3. Preserve the original pose, hand position, body position, camera angle, framing, and composition.
-4. Preserve visible clothing and all visible props exactly.
-5. Preserve occlusions. Do not invent hidden hands, hidden fingers, hidden eyes, hidden shoes, or hidden facial parts.
-
-Background rule:
-- Replace only the background with the selected Korea Style setting.
-- Keep the background change natural and moderate.
-- Allow only slight variation in park depth, flower field detail, forest depth, beach light, surrounding scenery, weather, and atmosphere.
-- Do not restyle the people.
-- Do not regenerate the people.
-- Do not beautify them into different-looking people.
-
-Blending:
-- Match lighting, shadows, perspective, and color tone naturally.
-- Keep the result realistic and photo-natural.
-
-Important:
-- Face preservation is more important than background accuracy.
-- If there is any conflict, reduce the background transformation strength.
-- Keep the final result subtle, natural, and realistic.`,
+          basePrompt: "", // Retired preset generation; metadata retained for historical results.
         },
         [GENERATION_MODES.DISNEY_LIVE]: {
           presetKey: "fairytale_royal_wedding",
@@ -10990,113 +10921,7 @@ Important:
             "오로라 인챈티드",
             "뮬란 한복",
           ],
-          basePrompt: `Edit the uploaded photo into a subtle Disney-inspired live-action wedding styling while keeping the original subject(s), face, pose, expression, and composition intact.
-
-Shared common base rules for all four Disney slots:
-- Apply exactly the same generation quality standard to Cinderella, Belle, Aurora, and Mulan.
-- Use the same face identity preservation strength for all four slots.
-- Use the same pose, hand position, body angle, camera viewpoint, framing, and composition preservation strength for all four slots.
-- Use the same photorealistic quality, sharpness, face-detail, and detail-preservation standard for all four slots.
-- Preserve original face identity, face proportions, eyes, nose, mouth, smile, skin tone, hairline, and facial texture detail.
-- Preserve skin texture and facial detail; avoid blurred faces, smeared features, low-resolution face detail, waxy skin, and detail loss.
-- Do not redesign the face.
-- Keep the original face exactly unchanged.
-- Do not beautify the face.
-- Do not make the person look younger, prettier, slimmer, or more doll-like.
-- Do not alter facial identity.
-- Do not change face shape, eye size, nose shape, mouth shape, jawline, cheekbones, or smile.
-- Preserve the original facial expression exactly.
-- Preserve the original skin tone naturally.
-- Keep the original face identity exactly.
-- Preserve eyes, nose, mouth, facial proportions, and expression.
-- Keep the original hairstyle and hair color unless explicitly required otherwise.
-- Do not invent new facial structure.
-- Do not make the face more cartoonish.
-- Keep the original scene's basic spatial feeling, realistic lighting, and wedding-photo realism.
-- Concept differences should come from wardrobe, color palette, background mood, props, decor, accessories, and atmosphere only.
-- Keep the original face even closer to the source photo than the current styling strength.
-- Apply the Disney-inspired concept mainly to wardrobe, background, props, accessories, lighting, color mood, and set dressing.
-- Minimize changes to facial identity, face shape, eyes, nose, mouth, smile, and expression.
-- Do not beautify, refine, slim, soften, or standardize the face beyond the original photo.
-- If the styling starts to change the person's identity, reduce Disney styling strength and preserve the face.
-
-Highest priority:
-- First priority: preserve the original face as much as possible.
-- Second priority: keep pose, hand position, body angle, framing, camera angle, composition, and body placement unchanged.
-- Third priority: preserve hair, body impression, age impression, skin tone, hairline, and the natural real-person mood.
-- Fourth priority: apply gentle character-specific Disney live-action styling through wardrobe details, color palette, background mood, props, accessories, lighting, and atmosphere.
-- Fifth priority: communicate the character concept subtly.
-- Preserve the original identity extremely strongly for every visible person.
-- For a couple photo, preserve the male face and female face separately; each person must look like their own original self.
-- Keep the subject(s) clearly recognizable as the same real people.
-- Maintain each person's original facial structure, face shape, eye shape, nose shape, mouth shape, smile, expression impression, gender-specific impression, natural age impression, hairstyle, hair color, and overall likeness.
-- Preserve occluded parts naturally. Do not invent hidden fingers, hidden facial parts, or hidden body parts.
-
-Allowed flattering refinement:
-- Allow only extremely weak skin cleanup and extremely weak natural editorial polish.
-- Do not over-beautify, glamorize, or change the subject(s) into someone else.
-- Avoid excessive eye enlargement, jaw slimming, face reshaping, exaggerated beauty filters, cartoon-like facial rendering, character-face transformation, or AI-doll face.
-- Do not reinterpret the nose, mouth, jaw, cheeks, eye size, or face proportions.
-
-Transformation strength:
-- Use subtle-to-moderate concept expression for wardrobe, background mood, color, accessories, and lighting while keeping face, expression, pose, and composition stable.
-- Make the Disney transformation happen only through wardrobe color/detail changes, character-specific background mood, props, accessories, hair ornaments, lighting, and cinematic atmosphere.
-- Do not use face alteration as the main way to communicate the concept.
-- Keep the face natural and extremely close to the source photo.
-- Keep facial styling strength slightly more conservative than the wardrobe, background, props, and lighting styling strength.
-- If identity preservation and Disney mood compete, weaken face-facing styling first while keeping wardrobe/background concept cues visible.
-- If there is a tradeoff, reduce Disney transformation rather than changing the face.
-- The final image should still clearly be the original wedding photo with gentle Disney-inspired styling.
-- Avoid full scene replacement or a newly generated photo look.
-- If the result looks like a different person, different pose, or different location structure, it is a failed result.
-
-Transformation priority:
-1. Face, pose, and composition preservation
-2. Original expression, eyes, nose, mouth, facial proportions, hairstyle, and hair color preservation
-3. Gentle character-specific concept differentiation
-4. Subtle-to-moderate costume adaptation
-5. Lighting, color, and mood
-6. Background mood, small props, hair ornaments, and character accents
-
-Styling:
-- Apply subtle-to-moderate costume adaptation.
-- Keep the original wedding dress, tuxedo, suit, or outfit silhouette and overall impression as much as possible.
-- Add character-inspired color, fabric detail, embroidery, soft sparkle, or accessory accents without turning it into a full cosplay costume.
-- Keep the body pose, hand position, and outfit fit consistent with the source photo.
-
-Background rule:
-- Keep the original background structure while adding a gentle Disney-inspired background mood for the locked character concept.
-- Avoid full scene replacement.
-- Preserve the basic space type and layout: sofa stays sofa, window stays window, indoor stays indoor, outdoor stays outdoor.
-- Add character-specific atmosphere through practical-set style decor, color grading, lighting, flowers, fabric, books, chandeliers, garden details, architectural hints, or traditional accents as appropriate for the slot.
-- The background should remain a believable photorealistic wedding photo setting, not a cartoon, not an illustration, not a painted animation background.
-- Use practical-set realism, natural depth of field, real architecture, real plants, real texture, and movie still lighting only where it fits the original scene.
-- Avoid over-saturated colors, flat illustrated scenery, toy-like props, CGI-cartoon backgrounds, and animation-style castles.
-- Do not rebuild the scene so strongly that it feels like a newly generated fantasy image.
-- Do not make all four backgrounds or moods look the same.
-
-Accessories and hair styling:
-- Add subtle but visible princess-like accessories.
-- Examples: floral hair accents, elegant earrings, delicate necklace details, soft royal styling elements.
-- Accessories should support the concept, not overpower the face.
-
-Lighting and mood:
-- Use cinematic soft lighting with fairy-tale atmosphere.
-- Add warm glow, gentle bloom, graceful highlights, romantic softness, and a premium live-action fantasy mood.
-- Keep the result photorealistic, elegant, and not cartoonish.
-- Keep every result live-action, cinematic, photo-real, and grounded in a natural environment.
-
-Important balance:
-- The desired result is the original wedding photo with clearly differentiated Disney-inspired wardrobe, accessories, color, light, and background mood naturally applied.
-- The goal is the original subject(s) wearing Disney-inspired styling, not different people generated in a Disney concept.
-- Face identity is more important than concept strength.
-- If there is any conflict, prioritize face preservation over costume/background styling.
-- Express the Disney-inspired concept through wardrobe, set design, props, lighting, and color mood.
-- Original pose, hand position, composition, camera angle, and background structure are more important than concept strength.
-- Costume and background mood changes should be visible, character-specific, photorealistic, and natural.
-- If any visible face looks like a different person, it is also a failed result.
-- If preserving the face conflicts with a character concept, preserve the face and weaken the character concept.
-- Generate four clearly different Disney-inspired concepts, but keep all four recognizable as edits of the original wedding photo.`,
+          basePrompt: "", // Retired preset generation; metadata retained for historical results.
         },
         [GENERATION_MODES.STUDIO_STYLE]: {
           presetKey: "studio_style",
@@ -11106,34 +10931,7 @@ Important balance:
             "꽃잎샷",
             "한복샷",
           ],
-          basePrompt: `Edit this photo into a natural Studio Style wedding portrait.
-
-Studio Style purpose:
-- Provide representative wedding studio shots for couples who did not take formal studio photos.
-- Prioritize classic studio pose, composition, lighting, wardrobe direction, and clean portrait mood over dramatic background replacement.
-- Keep the result realistic, organized, bright, and suitable for wedding photo table use.
-
-Keep the original people recognizable.
-
-Priority:
-1. Preserve the original faces and identities extremely strongly.
-2. Preserve eye shape, facial expression impression, hairstyle, hair color, skin tone, and natural age impression.
-3. Preserve facial details and avoid waxy skin, doll-like faces, blurred eyes, or a different person look.
-4. Apply the selected Studio Style shot direction through pose, wardrobe, clean studio lighting, and simple background only.
-5. Keep the result photorealistic and elegant, not fantasy, cartoon, or heavily stylized.
-
-Studio rules:
-- Use clean wedding studio lighting.
-- Keep the scene simple and refined.
-- Avoid excessive decorations, busy backgrounds, or dramatic fantasy elements.
-- Full body or half/full body framing should feel natural for the selected shot.
-- If any requested pose or wardrobe direction conflicts with face identity, prioritize face identity and reduce transformation strength.
-- Do not over-beautify, reshape, slim, age-change, or redesign the people.
-- Keep hands, limbs, and body placement plausible and stable.
-
-Important:
-- Face preservation is more important than pose or wardrobe transformation.
-- The selected studio shot direction should be visible, but the people must still feel like the original couple or subject.`,
+          basePrompt: "", // Retired preset generation; metadata retained for historical results.
         },
       };
       const DISNEY_DISPLAY_LABELS = [
@@ -11619,60 +11417,7 @@ Important:
           },
         ],
       };
-      const FIXED_GENERATION_POLICY = `4-result generation policy:
-- Generate 4 results in the same direction with only weak differences.
-- Prioritize stability over diversity.
-- Keep faces, pose, composition, and framing as identical as possible.
-- Only vary background distance, tone, lighting mood, detail strength, or accessory amount very subtly.`;
-      const DISNEY_GENERATION_POLICY = `4-result generation policy for disneyLive:
-- Generate exactly four fixed concept slots, one image per slot, with no duplicate concepts.
-- Slot 1 is Cinderella Royal — Cinderella: pastel blue/silver/white wardrobe and mood accents; subtle crystal sparkle; clean live-action royal interior mood; Cinderella-inspired blue dress styling adapted to the original outfit silhouette.
-- Slot 2 is Belle Romantic — Beauty and the Beast: gold/warm yellow/amber/bronze wardrobe and mood accents; warm romantic glow; classic live-action interior hints such as books, chandelier, candlelight, or golden room mood. Avoid Cinderella blue/silver.
-- Slot 3 is Aurora Enchanted — Sleeping Beauty: pink/rose/lavender/soft gold wardrobe and mood accents; dreamy sunlight; flowers, blossoms, garden, or gentle natural-light mood. Keep original hair color; avoid Cinderella blue/silver and Belle gold-library mood.
-- Slot 4 is Mulan Oriental Hanbok — Mulan: deep red/jade green/rose pink/traditional gold wardrobe and mood accents; East Asian garden, tiled roof, wooden architecture, pond, blossoms, traditional decor, or oriental courtyard mood; the woman's outfit must be clearly luxury Korean hanbok-based, not Chinese clothing. Avoid all European princess visual language.
-- The four results must be visually distinct in wardrobe color, background mood, props/decor, lighting, and character atmosphere.
-- Color palettes must not bleed across slots: Cinderella is blue/silver, Belle is gold/amber, Aurora is pink/lavender/floral, Mulan is red/green/East Asian hanbok.
-- Do not generate four near-identical images.
-- Do not omit Mulan.
-- All four slots must follow the same face-preservation, pose-preservation, sharpness, facial-detail, photorealism, and quality standard.
-- Do not let one slot become high quality but face-drifted while another slot is identity-preserved but blurry.
-- Reject outcomes with blurry eyes, smeared nose or mouth detail, waxy skin, low-resolution facial detail, or detail loss.
-- Face change strength must be near zero.
-- Preserve the original face as much as possible.
-- Preserve each visible face extremely strongly so every subject looks like the original person first.
-- For couple photos, preserve both faces separately; the man and woman must each remain individually recognizable.
-- Do not redesign the face.
-- Keep the original face exactly unchanged.
-- Do not beautify the face.
-- Do not make the person look younger, prettier, slimmer, or more doll-like.
-- Do not alter facial identity.
-- Do not change face shape, eye size, nose shape, mouth shape, jawline, cheekbones, or smile.
-- Preserve the original facial expression exactly.
-- Preserve the original skin tone naturally.
-- Keep the original face identity exactly.
-- Preserve eyes, nose, mouth, facial proportions, and expression.
-- Keep the original hairstyle and hair color unless explicitly required otherwise.
-- Do not invent new facial structure.
-- Do not make the face more cartoonish.
-- Keep the original face even closer to the source photo, with Disney styling directed mainly to wardrobe, background, props, accessories, lighting, and color mood.
-- Minimize changes to facial identity, face shape, eyes, nose, mouth, smile, and expression.
-- Do not beautify or refine the face beyond the original. If the concept starts changing identity, reduce the styling strength.
-- Allow only extremely weak skin cleanup and natural editorial polish.
-- Do not enlarge eyes, slim the jaw, reshape the face, reinterpret nose or mouth, over-smooth skin, or standardize the person into an AI handsome/beautiful face.
-- Keep pose, hand position, body angle, and composition unchanged.
-- Keep the original background structure and add gentle character-specific background mood through set design, props, lighting, and color mood.
-- Apply subtle-to-moderate costume adaptation while keeping the original body silhouette and wedding-photo realism.
-- Communicate character concept through wardrobe details first, color and background mood second, props/accessories third, lighting fourth, and face never.
-- For the Mulan concept, communicate Mulan through hanbok styling, calm oriental mood, blossoms/garden/traditional accents, and subtle accessories; do not use qipao, hanfu, Chinese armor, or Chinese imperial costume.
-- Backgrounds must remain photorealistic wedding photo spaces with natural texture and depth; avoid cartoon, illustration, painted animation, fantasy game art, plastic CGI, or overly saturated scenery.
-- Avoid full scene replacement. Add only enough background mood to support the concept while preserving the original space.
-- Photorealistic wedding photo style.
-- Balanced Disney mood overlay: concept variation must not change identity, expression, pose, camera angle, or composition.
-- If there is any conflict, prioritize face preservation over costume/background styling.
-- Express the Disney-inspired concept through wardrobe, set design, props, lighting, and color mood.
-- If the concept pushes the face away from the source likeness, reduce the concept strength and preserve the face.
-- Do not move the subject, change the camera angle, or replace the original location structure.
-- If the face looks like a different person, the result is a failure.`;
+      // Preset generation policies retired; new jobs use the recommended sample endpoint.
       const appStage = document.getElementById("appStage");
       const landingScreen = document.getElementById("landingScreen");
       const landingTopStack = document.getElementById("landingTopStack");
@@ -24881,28 +24626,6 @@ Important:
         setComparisonSliderPosition(comparisonSliderPosition);
       }
 
-      function buildGenerationPrompt(mode) {
-        const config = getModeConfig(mode);
-        const landmark = isLocationMode(mode) ? getSelectedLandmarkOption(mode) : null;
-        const locationCategory = getLocationCategoryForMode(mode);
-        const landmarkCategoryLabel = locationCategory === "korea"
-          ? "Korea Style"
-          : locationCategory === "studio"
-            ? "Studio Style"
-            : "Europe Style";
-        const selectedOptionInstruction = locationCategory === "studio"
-          ? "Use this selected studio shot as the intended pose, wardrobe, lighting, and composition direction while preserving the original people and face identity."
-          : "Use this selected landmark as the intended background direction while preserving the original people, pose, crop, and camera angle.";
-
-        return [
-          config.basePrompt,
-          landmark
-            ? `Selected ${landmarkCategoryLabel} option: ${landmark.label} (${landmark.prompt}). ${selectedOptionInstruction}`
-            : "",
-          isDisneyMode(mode) ? DISNEY_GENERATION_POLICY : FIXED_GENERATION_POLICY,
-        ].filter(Boolean).join("\n\n");
-      }
-
       function buildSelectionPrompt(mode, imageCount = 4) {
         const candidateCount = Number.isInteger(imageCount) && imageCount > 0 ? Math.min(imageCount, 2) : 2;
         const locationExampleCopies = getLocationResultCopies(
@@ -25149,345 +24872,8 @@ ${modeExample}`;
         return allResultImages;
       }
 
-      async function generateGrokResults({ mode, imageFile }) {
-        if (authChecked !== true || !getAuthenticatedUserId(currentUser)) {
-          throw createLoginRequiredGenerationError();
-        }
-        assertCanStartGenerationFlow();
-
-        const generationMode = normalizeGenerationMode(mode);
-        const config = getModeConfig(generationMode);
-        const selectedLandmark = isLocationMode(generationMode) ? getSelectedLandmarkOption(generationMode) : null;
-        const originalPixels = await readImagePixelSize(imageFile);
-        console.info("[client][generate][identity-upload]", {
-          originalBytes: imageFile?.size || 0,
-          originalWidth: originalPixels.width,
-          originalHeight: originalPixels.height,
-          uploadedBytes: imageFile?.size || 0,
-          compressed: false,
-          reason: "original",
-        });
-        const originalUpload = await uploadImageToPrivateStorage(imageFile);
-        const imagePath = originalUpload.imagePath || originalUpload.path || "";
-        const uploadedOriginalImageUrl = originalUpload.imageUrl || "";
-        const fileInfo = getFileDebugInfo(imageFile);
-        const formData = new FormData();
-        formData.append("imagePath", imagePath);
-        formData.append("mode", generationMode);
-        formData.append("presetKey", config.presetKey);
-        formData.append("prompt", buildGenerationPrompt(generationMode));
-        formData.append("count", "2");
-        const useFreeGeneration = lastGenerationUsedFreeCredit === true;
-        formData.append("generationType", useFreeGeneration ? "free" : "paid");
-        if (useFreeGeneration) {
-          formData.append("useFreeGeneration", "true");
-          formData.append("watermarkRequired", "true");
-        }
-        if (selectedLandmark) {
-          formData.append("category", getLocationCategoryForMode(generationMode));
-          formData.append("locationPreset", selectedLandmark.value);
-          formData.append("generationPlace", selectedLandmark.value);
-          formData.append("generationPlaceLabel", selectedLandmark.label);
-        }
-        console.log("[generate] mode =", generationMode);
-        if (selectedLandmark) {
-          console.log("[generate] locationPreset =", selectedLandmark.value);
-        }
-        console.log("[generate] sending imagePath", {
-          imagePath,
-        });
-        const requestUrl = `${FRONT_API_BASE_URL}/api/generate`;
-        console.log("[client][generate][request]", {
-          API_BASE_URL: FRONT_API_BASE_URL,
-          requestUrl,
-          requestedMode: mode,
-          generationMode,
-          presetKey: config.presetKey,
-          category: getLocationCategoryForMode(generationMode),
-          locationPreset: selectedLandmark?.value || "",
-          generationPlace: selectedLandmark?.value || "",
-          generationPlaceLabel: selectedLandmark?.label || "",
-          hasImage: Boolean(imageFile),
-          generationType: useFreeGeneration ? "free" : "paid",
-          fileName: imageFile?.name,
-          fileType: imageFile?.type,
-          fileSize: imageFile?.size,
-          imagePath,
-        });
-
-        ensureApiBaseUrlConfigured();
-        const anonymousId = getAnonymousId();
-        logMobileDebug("generate request start", {
-          requestUrl,
-          requestedMode: mode,
-          generationMode,
-          presetKey: config.presetKey,
-          category: getLocationCategoryForMode(generationMode),
-          locationPreset: selectedLandmark?.value || "",
-          generationPlace: selectedLandmark?.value || "",
-          generationPlaceLabel: selectedLandmark?.label || "",
-          imagePath,
-          generationType: useFreeGeneration ? "free" : "paid",
-          useFreeGeneration,
-          hasAnonymousId: Boolean(anonymousId),
-          ...fileInfo,
-        });
-        console.log("[generate] request start", {
-          requestUrl,
-          requestedMode: mode,
-          generationMode,
-          presetKey: config.presetKey,
-          category: getLocationCategoryForMode(generationMode),
-          locationPreset: selectedLandmark?.value || "",
-          generationPlace: selectedLandmark?.value || "",
-          generationPlaceLabel: selectedLandmark?.label || "",
-          hasAnonymousId: Boolean(anonymousId),
-          imagePath,
-          generationType: useFreeGeneration ? "free" : "paid",
-          useFreeGeneration,
-          ...fileInfo,
-        });
-        console.log("[generate] anonymous id", {
-          hasAnonymousId: Boolean(anonymousId),
-        });
-        let response;
-        try {
-          response = await fetch(requestUrl, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "X-Anonymous-Id": anonymousId,
-            },
-            body: formData,
-          });
-        } catch (error) {
-          logMobileDebug("generate response status", {
-            status: "network-error",
-            requestUrl,
-            message: error?.message || String(error),
-          }, "error");
-          const generateError = new Error("이미지 생성 요청에 실패했습니다.");
-          generateError.publicMessage = GENERAL_GENERATION_FAILURE_MESSAGE;
-          generateError.cause = error;
-          throw generateError;
-        }
-        logMobileDebug("generate response status", {
-          status: response.status,
-          ok: response.ok,
-          requestUrl,
-        }, response.ok ? "log" : "error");
-        console.log("[generate] response status", {
-          status: response.status,
-          ok: response.ok,
-          requestUrl,
-        });
-        console.log("[client][generate][response]", {
-          API_BASE_URL: FRONT_API_BASE_URL,
-          requestUrl,
-          status: response.status,
-        });
-        const parsed = await parseJsonResponseBody(response);
-        let data = parsed.data || {};
-        logMobileDebug("generate response body", data, response.ok ? "log" : "error");
-        console.log("[generate] response body or message", sanitizeLogValue(data));
-
-        const responseJobId = resolveGenerationJobId(data);
-        const hasImmediateResults = normalizeGenerationResultItems(data).length > 0 ||
-          Array.isArray(data.results) ||
-          Array.isArray(data.savedPhotos) ||
-          Array.isArray(data.photos) ||
-          Array.isArray(data.items) ||
-          Array.isArray(data.imageUrls) ||
-          Array.isArray(data.image_urls) ||
-          Array.isArray(data.images);
-          if (response.ok && parsed.parseOk && responseJobId && !hasImmediateResults) {
-            currentGenerationJobId = responseJobId;
-            currentGenerationId = responseJobId;
-            saveActiveGenerationJob(responseJobId);
-            generationMeta = {
-            ...(generationMeta || {}),
-            jobId: responseJobId,
-            generationId: responseJobId,
-            usedFreeGeneration: useFreeGeneration,
-            hasWatermark: useFreeGeneration,
-            generationType: useFreeGeneration ? "free" : "paid",
-          };
-          console.log("[client][generate][job-created]", {
-            jobId: responseJobId,
-            generationType: useFreeGeneration ? "free" : "paid",
-          });
-          data = await pollGenerationJobStatus(responseJobId);
-        }
-
-        if (!response.ok || !parsed.parseOk || (!data?.ok && !normalizeGenerationResultItems(data).some((item) => item.ok !== false))) {
-          const responseCode = String(response.status === 504 ? "GENERATION_JOB_TIMEOUT" : (data?.code || data?.error || (!parsed.parseOk ? "INVALID_SERVER_RESPONSE" : "GENERATION_FAILED"))).toUpperCase();
-          const responseStage = String(data.stage || data.step || data.phase || "").trim();
-          const responseMessage = data?.message || data?.errorMessage || data?.error || parsed.message || "";
-          const isInsufficientCredits =
-            response.status === 402 ||
-            data.status === 402 ||
-            responseCode === "INSUFFICIENT_CREDITS" ||
-            responseCode === "CREDITS_REQUIRED" ||
-            responseCode === "NO_REMAINING_USES" ||
-            responseCode === "NO_REMAINING_GENERATION_USES";
-          console[responseCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"](responseCode === "GENERATION_JOB_TIMEOUT" ? "[client][generate][delayed]" : "[client][generate][failed]", {
-            API_BASE_URL: FRONT_API_BASE_URL,
-            requestUrl,
-            jobId: responseJobId || "",
-            status: response.status,
-            code: responseCode,
-            stage: responseStage,
-            message: responseMessage,
-            rawPreview: parsed.rawText?.slice(0, 300),
-            requestedMode: mode,
-            generationMode,
-            presetKey: config.presetKey,
-            category: getLocationCategoryForMode(generationMode),
-            locationPreset: selectedLandmark?.value || "",
-            generationPlace: selectedLandmark?.value || "",
-            generationPlaceLabel: selectedLandmark?.label || "",
-            hasImage: Boolean(imageFile),
-            generationType: useFreeGeneration ? "free" : "paid",
-            useFreeGeneration,
-            data: sanitizeLogValue(data),
-            errorBody: sanitizeLogValue(parsed.rawText),
-            response: sanitizeLogValue(data),
-          });
-          const error = new Error(response.status === 504 ? "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요." : (responseMessage || "이미지 생성 실패"));
-          error.status = response.status;
-          error.statusCode = data.status || response.status;
-          error.code = responseCode || (isInsufficientCredits ? "INSUFFICIENT_CREDITS" : "");
-          error.stage = responseStage;
-          error.jobId = responseJobId || "";
-          error.messageFromServer = responseMessage;
-          error.response = data;
-          error.rawPreview = parsed.rawText?.slice(0, 300);
-          if (responseCode === "GENERATION_JOB_TIMEOUT") {
-            error.publicMessage = "생성이 예상보다 오래 걸리고 있어요. 잠시 후 마이포토박스에서 확인해 주세요.";
-          } else if (responseCode === "LOGIN_REQUIRED" || responseCode === "AUTH_REQUIRED") {
-            error.publicMessage = "로그인이 필요합니다. 먼저 로그인해 주세요.";
-            error.isLoginRequired = true;
-          } else if (responseCode === "ONBOARDING_REQUIRED") {
-            // Treat as non-blocking; frontend no longer forces onboarding UI.
-            error.publicMessage = "사진 제작을 계속 진행해 주세요.";
-            error.isOnboardingRequired = true;
-          } else if (isInsufficientCredits) {
-            error.publicMessage = "남은 제작 횟수가 없습니다. 이용권을 구매해 주세요.";
-            error.isInsufficientCredits = true;
-            error.requiredCredits = data.requiredCredits;
-            error.currentCredits = data.currentCredits;
-          } else if (responseCode === "FREE_GENERATION_NOT_AVAILABLE") {
-            error.publicMessage = "무료 제작을 사용할 수 없습니다. 계정 상태를 다시 확인해 주세요.";
-          } else if (responseCode === "WATERMARK_FAILED" || responseCode === "WATERMARK_LOGO_NOT_FOUND") {
-            error.publicMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
-            error.isWatermarkFailed = true;
-          } else if (responseCode === "INVALID_SERVER_RESPONSE") {
-            error.publicMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-          } else if (responseCode === "GENERATION_JOB_FAILED" || responseCode === "GENERATION_FAILED") {
-            error.publicMessage = "생성 중 문제가 발생했습니다. 이용권은 사용 처리되지 않았습니다.";
-          } else if (responseMessage) {
-            error.publicMessage = responseMessage;
-          } else {
-            error.publicMessage = GENERAL_GENERATION_FAILURE_MESSAGE;
-          }
-          throw error;
-        }
-
-        let resultItems = normalizeGenerationResultItems(data);
-        if (!resultItems.length) {
-          resultItems = Array.isArray(data.results)
-            ? data.results
-            : (Array.isArray(data.savedPhotos)
-              ? data.savedPhotos
-              : (Array.isArray(data.images)
-                ? data.images
-                : (Array.isArray(data.imageUrls || data.image_urls)
-                  ? (data.imageUrls || data.image_urls).map((url, index) => ({ ok: true, imageUrl: url, index }))
-                  : [])));
-        }
-        const successfulResults = resultItems.filter((item) => item?.ok !== false && getGeneratedResultImageUrl(item));
-        const failedResults = resultItems.filter((item) => item && item.ok === false);
-        const imageUrlsFromResults = successfulResults.map(getGeneratedResultImageUrl);
-        const labelsFromResults = successfulResults.map((item) => item.label || `결과 ${item.index + 1}`);
-        const imageUrls = imageUrlsFromResults
-          .filter((url, index, urls) => typeof url === "string" && url && urls.indexOf(url) === index)
-          .slice(0, 2);
-
-        if (!Array.isArray(imageUrls)) {
-          throw new Error("서버 응답에 imageUrls 배열이 없습니다.");
-        }
-
-        console.log("[client][generate][response-counts]", {
-          resultArrayLength: resultItems.length,
-          successResultCount: successfulResults.length,
-          mergedSuccessImageCount: imageUrls.length,
-          failedResultCount: failedResults.length,
-        });
-
-        const generationId = resolveGenerationIdFromPayload(data) || createClientGenerationId();
-        const metaGenerationId = resolveMetaGenerationIdFromPayload(data) || generationId;
-        const jobId = String(
-          data.jobId ||
-          data.id ||
-          data.generationJobId ||
-          data.generation_job_id ||
-          responseJobId ||
-          currentGenerationJobId ||
-          generationId ||
-          "",
-        ).trim();
-        const responseGenerationType = data.generationType || data.generation_type || (useFreeGeneration ? "free" : "paid");
-        const responseIsFreeGeneration = data.isFreeGeneration === true || data.is_free_generation === true || responseGenerationType === "free";
-        const responseHasWatermark = data.hasWatermark === true || data.has_watermark === true || responseIsFreeGeneration;
-        const responseWatermarkRequired = data.watermarkRequired === true || data.watermark_required === true || responseHasWatermark;
-        const responseWatermarkStrategy = data.watermarkStrategy || data.watermark_strategy || "";
-
-        const responseOriginalImageUrl = firstUrlValue(data.originalImageUrl, data.original_image_url, data.originalImage, uploadedOriginalImageUrl);
-        const responseOriginalThumbnailUrl = firstUrlValue(data.originalThumbnailUrl, data.original_thumbnail_url, responseOriginalImageUrl);
-
-        return {
-          ok: true,
-          results: resultItems,
-          generationId,
-          jobId,
-          originalImageUrl: responseOriginalImageUrl,
-          originalThumbnailUrl: responseOriginalThumbnailUrl,
-          originalImagePath: imagePath,
-          imageUrls,
-          scores: [],
-          variantLabels: labelsFromResults,
-          failedImages: Array.isArray(data.failedImages) && data.failedImages.length ? data.failedImages : failedResults,
-          warningMessage: typeof data.warningMessage === "string" ? data.warningMessage : "",
-          generationMode: data.mode || generationMode,
-          locationPreset: selectedLandmark?.value || "",
-          generationPlaceLabel: selectedLandmark?.label || "",
-          generationMeta: {
-            ...(data.generationMeta || {}),
-            jobId,
-            generationId: metaGenerationId,
-            usedFreeGeneration: useFreeGeneration,
-            freeGenerationNumber: useFreeGeneration ? 1 : null,
-            generationType: responseGenerationType,
-            isFreeGeneration: responseIsFreeGeneration,
-            hasWatermark: responseHasWatermark,
-            watermarkRequired: responseWatermarkRequired,
-            watermarkStrategy: responseWatermarkStrategy,
-            locationPreset: selectedLandmark?.value || "",
-            category: getLocationCategoryForMode(generationMode),
-            generationPlace: selectedLandmark?.value || "",
-            generationPlaceLabel: selectedLandmark?.label || "",
-          },
-          imageMetadata: successfulResults.map((item, fallbackIndex) => ({
-            ...item,
-            index: Number.isInteger(item.index) ? item.index : fallbackIndex,
-            imagePath: item.imagePath || item.image_path || item.path || item.storagePath || item.storage_path || "",
-            generationType: item.generationType || item.generation_type || responseGenerationType,
-            isFreeGeneration: item.isFreeGeneration === true || item.is_free_generation === true || responseIsFreeGeneration,
-            hasWatermark: item.hasWatermark === true || item.has_watermark === true || responseHasWatermark,
-            watermarkRequired: item.watermarkRequired === true || item.watermark_required === true || responseWatermarkRequired,
-            watermarkStrategy: item.watermarkStrategy || item.watermark_strategy || responseWatermarkStrategy,
-          })),
-        };
+      async function generateGrokResults() {
+        throw Object.assign(new Error("AI 추천 샘플을 선택해 주세요."), { code: "LEGACY_STYLE_RETIRED" });
       }
 
       async function generateFromRecommendedSample({ sampleFileName, imageFile }) {
@@ -30560,7 +29946,6 @@ ${modeExample}`;
       const ASSISTANT_CHAT_URL = "https://pf.kakao.com/_xeNSts/chat";
       const ASSISTANT_RETURN_HINT_KEY = "magic_assistant_return_hint";
       const MAGIC_RETURN_STATE_KEY = "magic_return_state";
-      const presetJumpButtons = Array.from(document.querySelectorAll("[data-preset]"));
       let activeAccountMenuTrigger = null;
       let activeLoginModalTrigger = null;
       let accountMenuToastTimerId = null;
@@ -31794,20 +31179,6 @@ ${modeExample}`;
         }
       });
 
-      presetJumpButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const preset = button.dataset.preset;
-          if (!preset) return;
-          const selectablePreset = coerceUiSelectableGenerationMode(preset);
-          const targetInput = Array.from(generationModeInputs).find((input) => input.value === selectablePreset);
-          if (targetInput) {
-            targetInput.checked = true;
-            syncGenerationModeUi();
-          }
-          navigateToScreen("editor");
-        });
-      });
-
       if (bottomAssistantButton) {
         bottomAssistantButton.addEventListener("click", () => {
           syncBottomNavUi("assistant");
@@ -32175,253 +31546,10 @@ ${modeExample}`;
         });
       });
 
-      generateButton.addEventListener("click", async (event) => {
+      generateButton.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (isPhotoRecommendationFlowActive()) {
-          // Recommendation UI skeleton must never start the legacy generation pipeline.
-          return;
-        }
-        console.log("생성 시 selectedFile:", selectedFile);
-
-        if (!selectedFile) {
-          showError("이미지 파일이 없습니다.");
-          setStatus("사진을 먼저 올려주세요.");
-          return;
-        }
-
-        if (isOversizedUploadImage(selectedFile)) {
-          showError(OVERSIZED_IMAGE_MESSAGE, { title: "업로드 안내" });
-          setStatus("사진 용량을 확인해 주세요.");
-          return;
-        }
-
-        if (!canStartGenerationFromCurrentState()) {
-          return;
-        }
-
-        hideError();
-        isGenerating = true;
-        lastGenerationUsedFreeCredit = hasFreeGeneration(currentUser);
-        window.trackEvent?.("generate_click", {
-          styleCategory: getGenerationMode(),
-        });
-        generateButton.disabled = true;
-        activeGenerationMode = getGenerationMode();
-        clearResults();
-          sourceSection.classList.add("hidden");
-          setAppScreen("generating");
-          setGenerationPendingStatus("사진을 만들고 있어요.");
-
-        try {
-          const data = await runGrokPipeline({
-            imageFile: selectedFile,
-            originalImage: selectedImageDataUrl,
-            mode: activeGenerationMode,
-          });
-          await completeGenerationAndShowResult(data, {
-            mode: activeGenerationMode,
-            toastMessage: "사진 제작이 완료되었어요. 결과를 확인해 주세요.",
-          });
-        } catch (error) {
-          let effectiveError = error;
-          const initialGenerationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
-          const initialGenerationJobId = String(effectiveError.jobId || effectiveError.response?.jobId || effectiveError.response?.job_id || currentGenerationJobId || "").trim();
-          if (initialGenerationErrorCode === "GENERATION_POLL_CANCELLED") {
-            return;
-          }
-          if (
-            initialGenerationErrorCode !== "GENERATION_JOB_TIMEOUT"
-            && initialGenerationErrorCode !== "GENERATION_POLL_CANCELLED"
-          ) {
-            window.trackEvent?.("generate_failed", {
-              styleCategory: activeGenerationMode,
-              errorMessage: effectiveError.messageFromServer
-                || effectiveError.response?.message
-                || effectiveError.message
-                || initialGenerationErrorCode
-                || "GENERATION_FAILED",
-            });
-          }
-          if (initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT") {
-            lastDelayedGenerationJobId = initialGenerationJobId;
-            console.warn("[client][generate][delayed]", {
-              jobId: initialGenerationJobId,
-              code: "GENERATION_JOB_TIMEOUT",
-            });
-          } else {
-            console.error("[client][grok-edit] generation failed:", effectiveError);
-          }
-          console[initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"]("[client][grok-edit] generation details:", {
-            status: effectiveError.status || effectiveError.statusCode,
-            code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
-            stage: effectiveError.stage || effectiveError.response?.stage,
-            message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
-            rawPreview: effectiveError.rawPreview,
-            data: sanitizeLogValue(effectiveError.response || null),
-          });
-          if (initialGenerationErrorCode !== "GENERATION_JOB_TIMEOUT") {
-            console.error("[client][generate][failed]", {
-              status: effectiveError.status || effectiveError.statusCode,
-              code: effectiveError.code || effectiveError.response?.code || effectiveError.response?.error,
-              stage: effectiveError.stage || effectiveError.response?.stage,
-              message: effectiveError.messageFromServer || effectiveError.response?.message || effectiveError.message,
-              rawPreview: effectiveError.rawPreview,
-            });
-          }
-          if (effectiveError.response) {
-            console[initialGenerationErrorCode === "GENERATION_JOB_TIMEOUT" ? "warn" : "error"]("[client][grok-edit] server details:", sanitizeLogValue(effectiveError.response));
-          }
-          const shouldRefreshAuthBeforeLoginPrompt = authChecked && isAuthenticatedUser() && (
-            effectiveError.isLoginRequired ||
-            initialGenerationErrorCode === "LOGIN_REQUIRED" ||
-            initialGenerationErrorCode === "AUTH_REQUIRED"
-          );
-
-          if (shouldRefreshAuthBeforeLoginPrompt) {
-            try {
-              const recovered = await recoverAuthenticatedLoginRequiredGeneration({
-                imageFile: selectedFile,
-                originalImage: selectedImageDataUrl,
-                mode: activeGenerationMode,
-              });
-              if (recovered) {
-                return;
-              }
-            } catch (retryError) {
-              effectiveError = retryError;
-              console.error("[client][grok-edit] generation retry failed:", retryError);
-            }
-          }
-
-          if (!imageUrls.length) {
-            clearResults();
-            setAppScreen("editor", { replaceHistory: true });
-          }
-          try {
-            await refreshAuthState({ showError: false });
-            syncEditorGenerationCopy();
-          } catch (authRefreshError) {
-            console.warn("[client][generate] auth refresh after failure failed:", authRefreshError);
-          }
-          const generationErrorCode = String(effectiveError.code || effectiveError.response?.code || effectiveError.response?.error || "").toUpperCase();
-          const isLoginRequiredError = effectiveError.isLoginRequired || generationErrorCode === "LOGIN_REQUIRED" || generationErrorCode === "AUTH_REQUIRED";
-          const isOnboardingRequiredError = effectiveError.isOnboardingRequired || generationErrorCode === "ONBOARDING_REQUIRED";
-          const isConsentRequiredError = effectiveError.isConsentRequired || generationErrorCode === "CONSENT_REQUIRED";
-          const isCreditsRequiredError = effectiveError.isInsufficientCredits
-            || generationErrorCode === "CREDITS_REQUIRED"
-            || generationErrorCode === "INSUFFICIENT_CREDITS"
-            || generationErrorCode === "NO_REMAINING_GENERATION_USES";
-          const isWatermarkError = effectiveError.isWatermarkFailed || generationErrorCode === "WATERMARK_FAILED" || generationErrorCode === "WATERMARK_LOGO_NOT_FOUND";
-          const isInvalidServerResponseError = generationErrorCode === "INVALID_SERVER_RESPONSE";
-          const isGenerationFailedError = generationErrorCode === "GENERATION_FAILED";
-
-          if (isLoginRequiredError) {
-            setStatus("");
-            if (effectiveError.loginPromptShown) {
-              return;
-            }
-            if (authChecked && isAuthenticatedUser()) {
-              const refreshedUser = await refreshAuthState({ showError: false });
-              if (refreshedUser) {
-                if (!canStartGenerationFromCurrentState()) {
-                  return;
-                }
-                showError("로그인 상태를 확인했지만 생성 요청 인증에 실패했습니다. 잠시 후 다시 시도해 주세요.", { title: "생성 실패" });
-                showAccountMenuToast("생성 요청 인증에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-                return;
-              }
-            }
-            requestLoginForGeneration();
-            return;
-          }
-
-          if (isConsentRequiredError) {
-            setStatus("");
-            showError("필수 약관에 동의해 주세요.", { title: "약관 동의 필요" });
-            showRequiredConsentPrompt();
-            return;
-          }
-
-          if (isOnboardingRequiredError) {
-            // Onboarding retired: ignore backend onboarding gate and continue to editor.
-            setStatus("");
-            onboardingCompleted = true;
-            if (currentUser) currentUser.onboardingCompleted = true;
-            showAccountMenuToast("사진 제작을 계속 진행해 주세요.");
-            navigateToScreen("editor");
-            return;
-          }
-
-          if (isCreditsRequiredError) {
-            const copy = getGenerationErrorCopy({ ...effectiveError, code: "NO_REMAINING_GENERATION_USES" });
-            setStatus(copy.body);
-            showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, {
-              title: copy.title,
-              showCreditButton: true,
-            });
-            showAccountMenuToast(copy.body);
-            setAppScreen("credits", { replaceHistory: true });
-            return;
-          }
-
-          if (generationErrorCode === "GENERATION_JOB_TIMEOUT"
-            || generationErrorCode === "STORAGE_UPLOAD_FAILED"
-            || generationErrorCode === "FREE_GENERATION_ALREADY_USED"
-            || generationErrorCode === "GENERATION_USAGE_UNAVAILABLE") {
-            const copy = getGenerationErrorCopy(effectiveError);
-            const retryJobId = String(effectiveError.jobId || lastDelayedGenerationJobId || "").trim();
-            if (generationErrorCode === "GENERATION_JOB_TIMEOUT") {
-              lastDelayedGenerationJobId = retryJobId;
-            }
-            setStatus("");
-            showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, {
-              title: copy.title,
-              showCreditButton: copy.showCreditButton === true,
-              showDelayedActions: copy.showDelayedActions === true,
-              retryJobId,
-            });
-            showAccountMenuToast(copy.body);
-            return;
-          }
-
-          if (isWatermarkError) {
-            setStatus("");
-            const watermarkFailedMessage = "무료 제작 워터마크 처리 중 문제가 발생했습니다. 무료 제작은 사용 처리되지 않았으니 잠시 후 다시 시도해 주세요.";
-            showError(`${watermarkFailedMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
-            showAccountMenuToast(watermarkFailedMessage);
-            void refreshAuthState({ showError: false }).then(() => {
-              syncEditorGenerationCopy();
-            });
-            return;
-          }
-
-          if (isInvalidServerResponseError) {
-            setStatus("");
-            const invalidResponseMessage = "서버 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-            showError(`${invalidResponseMessage}${getGenerationErrorDebugText(effectiveError)}`, { showCreditButton: false });
-            showAccountMenuToast(invalidResponseMessage);
-            return;
-          }
-
-          if (isGenerationFailedError) {
-            setStatus("");
-            const copy = getGenerationErrorCopy(effectiveError);
-            showError(`${copy.body}${getGenerationErrorDebugText(effectiveError)}`, { title: copy.title, showCreditButton: false });
-            showAccountMenuToast(copy.body);
-            return;
-          }
-
-          setStatus("");
-          const fallbackCopy = getGenerationErrorCopy(effectiveError);
-          showError(
-            `${fallbackCopy.body}${getGenerationErrorDebugText(effectiveError)}`,
-            { title: fallbackCopy.title, showCreditButton: false },
-          );
-        } finally {
-          isGenerating = false;
-          generateButton.disabled = false;
-        }
+        if (!isPhotoRecommendationFlowActive()) applyPhotoRecommendationShell();
       });
 
       thumbnailList.addEventListener("click", (event) => {

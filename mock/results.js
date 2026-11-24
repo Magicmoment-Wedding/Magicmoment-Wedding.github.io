@@ -24,7 +24,7 @@ export function buildMockResults(state) {
   const ratioLabel = getRatioDisplay(state.selectedRatio, state.customRatio);
   const resultVariants = getResultVariants(source.id, preset.id);
   const results = Array.isArray(resultVariants) && resultVariants.length > 0
-    ? resultVariants.slice(0, 4).map((variant, index) => ({
+    ? resultVariants.slice(0, 2).map((variant, index) => ({
       id: `${variant.id}-${preset.id}`,
       afterUrl: variant.afterImage || source.url,
       beforeUrl: variant.beforeImage || source.url,
@@ -58,7 +58,7 @@ export function buildStudioMockResults(state) {
   const beforeSource = getSourceImage("source-studio");
   const resultVariants = getResultVariants(beforeSource.id, "drama");
   const results = Array.isArray(resultVariants) && resultVariants.length > 0
-    ? resultVariants.map((variant, index) => ({
+    ? resultVariants.slice(0, 2).map((variant, index) => ({
       id: `studio-${variant.id}`,
       afterUrl: variant.afterImage || beforeSource.url,
       beforeUrl: variant.beforeImage || beforeSource.url,

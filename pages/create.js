@@ -67,9 +67,8 @@ export function renderCreatePage(state) {
       <div class="space-y-2 text-sm text-on-surface">
         <p>1. 이미지 업로드</p>
         <p>2. AI 분석</p>
-        <p>3. 1차 생성 2장</p>
-        <p>4. 실패 시 2차 생성 2장</p>
-        <p>5. 총 4장 중 대표 결과 선택</p>
+        <p>3. 결과 이미지 2장 생성</p>
+        <p>4. 마음에 드는 결과 선택</p>
       </div>
     </section>
 

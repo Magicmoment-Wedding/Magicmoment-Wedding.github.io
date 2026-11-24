@@ -301,7 +301,7 @@ function getGenerationErrorCopy(error = {}) {
     },
     FREE_GENERATION_ALREADY_USED: {
       title: "무료 제작 사용 완료",
-      description: "무료 제작은 계정당 1회만 이용할 수 있습니다.",
+      description: "사용 가능한 무료 제작 이용권이 있는지 확인해 주세요.",
     },
   };
   return copies[code] || {

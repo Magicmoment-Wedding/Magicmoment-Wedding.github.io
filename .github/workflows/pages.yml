@@ -33,6 +33,9 @@ jobs:
         with:
           path: .
 
+      - name: Allow GitHub Pages artifact metadata to become available
+        run: sleep 20
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

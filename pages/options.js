@@ -13,7 +13,7 @@ export function renderOptionsPage(state, credits) {
     : "AI 사진 제작하기";
   const nextFlowDescription = isCustomPreset
     ? "원하는 스타일과 추가 요청을 남기면 매니저가 직접 배경 제작을 진행합니다."
-    : `사진 제작 1회마다 이용권 1회가 사용되며, 결과 이미지 4장이 생성됩니다.`;
+    : `사진 제작 1회마다 이용권 1회가 사용되며, 결과 이미지 2장이 생성됩니다.`;
   const ctaLabel = isCustomPreset
     ? "전문가에게 맡기기"
     : "AI 사진 제작하기";

@@ -28,7 +28,7 @@ export function renderCreditsPage(state) {
 
       <div class="rounded-DEFAULT bg-primary/10 border border-primary/15 p-4 text-sm text-primary leading-6">
         <p class="font-semibold">사진 제작 1회마다 이용권 1회가 사용됩니다.</p>
-        <p class="mt-2 font-semibold">모든 이용권은 구매일로부터 3개월간 사용할 수 있습니다.</p>
+        <p class="mt-2 font-semibold">첫 설렘 패스는 구매일로부터 1개월, 그 외 유료 이용권은 3개월간 사용할 수 있습니다.</p>
         <p>사용기한이 지난 이용권은 사용할 수 없습니다.</p>
       </div>
 
@@ -96,7 +96,7 @@ export function renderCreditsPage(state) {
         <div class="flex items-start gap-2">
           <span class="material-symbols-outlined text-primary text-[18px] mt-0.5" style="font-variation-settings: 'FILL' 0;">info</span>
           <div>
-            <p class="mb-2">서비스 제공기간: 모든 이용권은 구매일로부터 3개월입니다.</p>
+            <p class="mb-2">서비스 제공기간: 첫 설렘 패스 1개월, 그 외 유료 이용권 3개월 (구매일 기준)입니다.</p>
             <p class="mb-2">사용기한이 지난 이용권은 사용할 수 없습니다.</p>
           </div>
         </div>

@@ -25,7 +25,7 @@ Request body (compatible with previous nice prepare fields):
   "productName": "첫 설렘 패스",
   "orderName": "첫 설렘 패스 - AI 웨딩사진 제작 이용권 10회",
   "passUses": 10,
-  "servicePeriodMonths": 3,
+  "servicePeriodMonths": 1,
   "amount": 9900,
   "successUrl": "https://magicaistudio.co.kr/payment/success",
   "failUrl": "https://magicaistudio.co.kr/payment/fail",

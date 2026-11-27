@@ -586,30 +586,8 @@
         color: rgba(129, 80, 92, 0.72);
       }
 
-      .signup-guide-preview-banner {
-        display: grid;
-        gap: 4px;
-        padding: 10px 14px;
-        margin-bottom: 10px;
-        border-radius: 16px;
-        background: rgba(129, 80, 92, 0.08);
-        border: 1px dashed rgba(129, 80, 92, 0.24);
-      }
 
-      .signup-guide-preview-badge {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: #81505c;
-      }
 
-      .signup-guide-preview-note {
-        margin: 0;
-        font-size: 12px;
-        line-height: 1.5;
-        color: #6b5659;
-      }
 
       .account-user-avatar {
         width: 40px;
@@ -1364,526 +1342,6 @@
         overscroll-behavior: contain;
       }
 
-      #siteGuideScreen.is-first-onboarding .site-guide-general-only {
-        display: none;
-      }
-
-      #siteGuideScreen.is-first-onboarding .site-guide-scroll {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        padding-bottom: 0;
-      }
-
-      #siteGuideScreen.is-first-onboarding .site-guide-hero,
-      #siteGuideScreen.is-first-onboarding .site-guide-steps-section > h2 {
-        display: none;
-      }
-
-      #siteGuideScreen.is-first-onboarding .site-guide-steps-section {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-      }
-
-      #siteGuideScreen.is-first-onboarding .site-guide-steps {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        padding-bottom: 0;
-      }
-
-      #siteGuideScreen.is-first-onboarding > .app-topbar {
-        display: none;
-      }
-
-      .signup-guide-flow {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        background: linear-gradient(180deg, #fff8f6 0%, #fff3ef 100%);
-        border-radius: 24px;
-        overflow: hidden;
-      }
-
-      .signup-guide-header {
-        display: grid;
-        grid-template-columns: 40px 1fr 56px;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 4px 12px;
-        flex-shrink: 0;
-      }
-
-      .signup-guide-header-button {
-        width: 40px;
-        height: 40px;
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #6f5558;
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid rgba(129, 80, 92, 0.08);
-      }
-
-      .signup-guide-header-button:disabled {
-        opacity: 0.35;
-        cursor: default;
-      }
-
-      .signup-guide-skip-button {
-        justify-self: end;
-        width: auto;
-        min-width: 56px;
-        padding: 0 8px;
-        font-size: 13px;
-        font-weight: 700;
-        color: #8d7477;
-        background: transparent;
-        border: none;
-      }
-
-      .signup-guide-progress {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 0;
-      }
-
-      .signup-guide-progress-segment {
-        flex: 1;
-        height: 4px;
-        border-radius: 9999px;
-        background: rgba(129, 80, 92, 0.12);
-      }
-
-      .signup-guide-progress-segment.is-complete,
-      .signup-guide-progress-segment.is-current {
-        background: #d4776a;
-      }
-
-      .signup-guide-progress-badge {
-        flex-shrink: 0;
-        width: 22px;
-        height: 22px;
-        border-radius: 9999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #d4776a;
-        color: #fff;
-        font-size: 11px;
-        font-weight: 800;
-      }
-
-      .signup-guide-body {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding: 0 2px calc(var(--mobile-safe-bottom) + 120px);
-        overscroll-behavior: contain;
-      }
-
-      .signup-guide-flow-title {
-        margin: 0 0 10px;
-        font-family: var(--font-display, inherit);
-        font-size: clamp(15px, 4vw, 17px);
-        line-height: 1.45;
-        font-weight: 700;
-        color: #81505c;
-        text-align: center;
-        letter-spacing: -0.01em;
-        word-break: keep-all;
-      }
-
-      .signup-guide-question {
-        margin: 0;
-        font-family: var(--font-display, inherit);
-        font-size: clamp(24px, 6vw, 30px);
-        line-height: 1.28;
-        font-weight: 700;
-        color: #4a3736;
-        text-align: center;
-        word-break: keep-all;
-      }
-
-      .signup-guide-title-accent {
-        color: #d4776a;
-        font-style: italic;
-        font-weight: 700;
-      }
-
-      .signup-guide-question.is-compact-title {
-        max-width: 17.5rem;
-        margin: 0 auto;
-        font-size: clamp(19px, 4.8vw, 23px);
-        line-height: 1.34;
-      }
-
-      .signup-guide-subtitle {
-        margin: 10px auto 0;
-        max-width: 28rem;
-        text-align: center;
-        font-size: 14px;
-        line-height: 1.65;
-        color: #7a6467;
-        word-break: keep-all;
-      }
-
-      .signup-guide-divider {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        margin: 16px 0 18px;
-        color: rgba(212, 119, 106, 0.55);
-        font-size: 12px;
-      }
-
-      .signup-guide-divider::before,
-      .signup-guide-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: rgba(129, 80, 92, 0.12);
-      }
-
-      .signup-guide-choice-list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .signup-guide-choice-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .signup-guide-choice-card {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        min-height: 64px;
-        padding: 14px 16px;
-        border-radius: 18px;
-        border: 1.5px solid rgba(212, 119, 106, 0.18);
-        background: rgba(255, 255, 255, 0.82);
-        text-align: left;
-        transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-      }
-
-      .signup-guide-choice-card.is-grid {
-        flex-direction: column;
-        align-items: flex-start;
-        min-height: 118px;
-        padding: 14px;
-      }
-
-      .signup-guide-choice-card.is-selected {
-        border-color: #d4776a;
-        background: rgba(255, 236, 232, 0.92);
-        box-shadow: 0 8px 24px rgba(212, 119, 106, 0.12);
-      }
-
-      .signup-guide-choice-icon {
-        flex-shrink: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(212, 119, 106, 0.1);
-        font-size: 22px;
-        line-height: 1;
-      }
-
-      .signup-guide-choice-card.is-grid .signup-guide-choice-icon {
-        width: 44px;
-        height: 44px;
-      }
-
-      .signup-guide-choice-copy {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .signup-guide-choice-label {
-        display: block;
-        font-size: 15px;
-        font-weight: 800;
-        color: #4a3736;
-        word-break: keep-all;
-      }
-
-      .signup-guide-choice-description {
-        display: block;
-        margin-top: 4px;
-        font-size: 12px;
-        line-height: 1.5;
-        color: #7a6467;
-        word-break: keep-all;
-      }
-
-      .signup-guide-choice-check {
-        flex-shrink: 0;
-        width: 22px;
-        height: 22px;
-        border-radius: 9999px;
-        border: 1.5px solid rgba(129, 80, 92, 0.18);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: transparent;
-        background: rgba(255, 255, 255, 0.9);
-      }
-
-      .signup-guide-choice-card.is-selected .signup-guide-choice-check {
-        border-color: #d4776a;
-        background: #d4776a;
-        color: #fff;
-      }
-
-      .signup-guide-image-card {
-        margin-top: 14px;
-        padding: 10px;
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(212, 119, 106, 0.12);
-        box-shadow: 0 14px 36px rgba(129, 80, 92, 0.08);
-        overflow: hidden;
-        width: 100%;
-      }
-
-      .signup-guide-image-card img {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        max-height: clamp(240px, 44dvh, 400px);
-        margin: 0 auto;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
-      }
-
-      .signup-guide-image-card:has(.signup-guide-studio-compare),
-      .signup-guide-image-card.is-studio-style-asset,
-      .signup-guide-image-card.is-style-category,
-      .signup-guide-image-card.is-myphotobox {
-        padding: 0;
-        background: transparent;
-        border: none;
-        box-shadow: none;
-      }
-
-      .signup-guide-studio-compare {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        width: 100%;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-studio-style-asset),
-      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-style-category),
-      #siteGuideScreen.is-first-onboarding .signup-guide-divider:has(+ .signup-guide-image-card.is-myphotobox) {
-        margin-bottom: 24px;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-studio-style-asset {
-        width: 100%;
-        padding: 0;
-        margin-top: 6px;
-        margin-bottom: 6px;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-style-category {
-        width: 100%;
-        padding: 0;
-        margin-top: 16px;
-        margin-bottom: 6px;
-        overflow: visible;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-category-image {
-        display: block;
-        width: 100%;
-        max-width: none;
-        max-height: none;
-        height: auto;
-        margin: 0;
-        padding: 0;
-        transform: none;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox {
-        width: 100%;
-        padding: 0;
-        margin-top: 16px;
-        margin-bottom: 18px;
-        overflow: visible;
-        border-radius: 0;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-studio-guide-image {
-        display: block;
-        width: 100%;
-        max-width: none;
-        max-height: none;
-        height: auto;
-        margin: 0;
-        padding: 0;
-        transform: none;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-frame {
-        width: 100%;
-        max-width: none;
-        padding: 0;
-        margin: 0;
-        overflow: visible;
-        line-height: normal;
-        border-radius: 0;
-        background: transparent;
-        border: none;
-        box-shadow: none;
-      }
-
-      #siteGuideScreen.is-first-onboarding .onboarding-photobox-preview-image {
-        display: block;
-        width: 100%;
-        max-width: none;
-        max-height: none;
-        height: auto;
-        margin: 0;
-        padding: 0;
-        transform: none;
-        object-fit: contain;
-        object-position: center;
-        border-radius: 16px;
-      }
-
-      #siteGuideScreen.is-first-onboarding .signup-guide-image-card.is-myphotobox + .signup-guide-info-card {
-        margin-top: 4px;
-      }
-
-      .signup-guide-subcopy {
-        margin: 10px auto 0;
-        max-width: 28rem;
-        text-align: center;
-        font-size: 13px;
-        line-height: 1.65;
-        color: #7a6467;
-        word-break: keep-all;
-      }
-
-      .signup-guide-copy-block {
-        margin-top: 14px;
-        text-align: center;
-      }
-
-      .signup-guide-copy-block p {
-        margin: 0;
-        font-size: 14px;
-        line-height: 1.65;
-        color: #5f4d50;
-        word-break: keep-all;
-      }
-
-      .signup-guide-copy-block p + p {
-        margin-top: 6px;
-      }
-
-      .signup-guide-info-card {
-        padding: 16px;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.82);
-        border: 1px solid rgba(212, 119, 106, 0.14);
-      }
-
-      .signup-guide-info-card + .signup-guide-info-card {
-        margin-top: 10px;
-      }
-
-      .signup-guide-info-card p {
-        margin: 0;
-        font-size: 14px;
-        line-height: 1.65;
-        color: #5f4d50;
-        word-break: keep-all;
-      }
-
-      .signup-guide-info-card p + p {
-        margin-top: 8px;
-      }
-
-      .signup-guide-info-card.is-highlight {
-        background: rgba(255, 236, 232, 0.88);
-        border-color: rgba(212, 119, 106, 0.22);
-      }
-
-      .signup-guide-info-card.is-highlight p:first-child {
-        font-weight: 800;
-        color: #4a3736;
-      }
-
-      .signup-guide-footer {
-        position: sticky;
-        bottom: 0;
-        z-index: 60;
-        flex-shrink: 0;
-        padding: 12px 2px calc(var(--mobile-safe-bottom) + 12px);
-        background: linear-gradient(to top, rgba(255, 248, 246, 0.98), rgba(255, 248, 246, 0.82));
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      }
-
-      .signup-guide-continue-button {
-        width: 100%;
-        min-height: 54px;
-        border-radius: 9999px;
-        padding: 0 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        color: #fff;
-        background: #d4776a;
-        font-size: 15px;
-        font-weight: 800;
-        box-shadow: 0 12px 28px rgba(212, 119, 106, 0.24);
-      }
-
-      .signup-guide-continue-button:disabled {
-        opacity: 0.68;
-        cursor: wait;
-      }
-
-      .signup-guide-footer-note {
-        margin: 8px 0 0;
-        text-align: center;
-        font-size: 11px;
-        line-height: 1.45;
-        color: #9a8487;
-      }
-
-      @media (max-width: 360px) {
-        .signup-guide-choice-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
       .onboarding-page {
         position: relative;
         display: flex;
@@ -1891,13 +1349,6 @@
         gap: 14px;
       }
 
-      .onboarding-page.is-first-onboarding {
-        flex: 1;
-        min-height: 0;
-        height: 100%;
-        overflow: hidden;
-        gap: 0;
-      }
 
       .onboarding-cards-grid {
         display: grid;
@@ -9476,7 +8927,7 @@
               <span class="font-semibold">로그인 확인 중...</span>
               <span class="text-[11px] opacity-80">잠시만 기다려 주세요.</span>
             </button>
-            <p class="editor-free-ticket-note hidden" role="note" hidden>가입 후 무료 제작 이용권은 지급되지 않습니다.</p>
+            <p class="editor-free-ticket-note hidden" role="note" hidden>신규 가입 무료 제작 이용권 3회는 지급일로부터 1개월간 사용할 수 있습니다.</p>
             </div>
 
             <div id="editorRecommendationFlow" class="editor-reco-flow" aria-hidden="false">
@@ -10291,13 +9742,6 @@
                   <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">admin_panel_settings</span>
                   <span>관리자</span>
                 </button>
-                <button class="account-menu-item account-menu-item-admin-tool hidden" data-account-menu-action="signup-guide-preview" id="accountMenuSignupGuidePreviewItem" type="button">
-                  <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">preview</span>
-                  <span>
-                    <span>신규가입 안내 미리보기</span>
-                    <span class="account-menu-item-admin-label">관리자 전용</span>
-                  </span>
-                </button>
                 <button class="account-menu-item" data-account-menu-action="contact" type="button">
                   <span class="material-symbols-outlined account-menu-item-icon" aria-hidden="true">support_agent</span>
                   <span>문의하기</span>
@@ -10411,7 +9855,7 @@
 
           <div class="auth-tab-panel hidden" id="authSignupPanel" data-auth-panel="signup" role="tabpanel" aria-labelledby="authSignupTab">
             <h3 class="auth-tab-title">회원가입</h3>
-            <p class="auth-tab-lead">Magic Touch AI 이용을 위해 필수 약관에 동의해 주세요.</p>
+            <p class="auth-tab-lead">Magic Touch AI 이용을 위해 필수 약관에 동의해 주세요. 신규 가입 시 무료 제작 이용권 3회(지급일로부터 1개월)가 제공됩니다.</p>
             <div class="login-consent-box" aria-label="필수 약관 전체동의">
               <label class="login-consent-row is-all-required">
                 <input id="signupAllRequiredConsents" type="checkbox" />
@@ -11464,7 +10908,6 @@
       const policyTargetButtons = Array.from(document.querySelectorAll("[data-policy-target]"));
       const policyBackButtons = Array.from(document.querySelectorAll("[data-policy-back]"));
       const accountMenuAdminItem = document.getElementById("accountMenuAdminItem");
-      const accountMenuSignupGuidePreviewItem = document.getElementById("accountMenuSignupGuidePreviewItem");
       const accountMenuUserLinkedProviders = document.getElementById("accountMenuUserLinkedProviders");
       const generatingGalleryPreview = document.getElementById("generatingGalleryPreview");
       const generatingGallerySlider = document.getElementById("generatingGallerySlider");
@@ -11684,7 +11127,6 @@
       let authChecked = false;
       let authTab = "login";
       let allRequiredConsentsChecked = false;
-      let siteGuideMode = "general";
       let isMyPhotoBoxLoggedIn = false;
       let currentUser = null;
       let authState = {
@@ -11729,20 +11171,6 @@
       let freeGenerationEligible = false;
       let freeGenerationAvailable = false;
       let isNewUser = false;
-      let siteGuidePageIndex = 0;
-      let signupGuideSelections = {
-        studioPhoto: null,
-        concept: null,
-      };
-      const SIGNUP_GUIDE_STEP_COUNT = 5;
-      const SIGNUP_GUIDE_ONBOARDING_IMAGES = {
-        whiteBackground: "public/images/onboarding/white-background.png",
-        studioStyle: "public/images/onboarding/studio-style.png",
-        category: "public/images/onboarding/category.png",
-        styleGallery: "public/images/onboarding/style-gallery.png",
-        myPhotoBox: "public/images/onboarding/my-photobox.png",
-      };
-      let isCompletingOnboarding = false;
       let lastGenerationUsedFreeCredit = false;
       let lastDelayedGenerationJobId = "";
       const ADMIN_LIST_PAGE_SIZE = 5;
@@ -13668,7 +13096,6 @@
         accountMenuUserCard?.classList.toggle("hidden", !hasUser);
         accountMenuCustomerInfoButton?.classList.toggle("hidden", !hasUser);
         accountMenuAdminItem?.classList.toggle("hidden", !(hasUser && canShowAdminEntry()));
-        accountMenuSignupGuidePreviewItem?.classList.toggle("hidden", !(hasUser && canShowAdminEntry()));
 
         if (!hasUser) return;
 
@@ -18270,7 +17697,6 @@
 
       function handlePostLoginExperience(returnView, options = {}) {
         if (!currentUser) return;
-        const forceOnboarding = options.onboardingRequired === true;
         const rawReturnTo = String(returnView || "").trim();
         const normalizedReturnTo = normalizeLoginReturnView(returnView);
         const currentViewBefore = appScreen;
@@ -18365,10 +17791,6 @@
 
       async function handleAuthSuccessRedirect(loginParams = new URLSearchParams(window.location.search), returnView = getLoginRedirectReturnView(), options = {}) {
         const authMode = getAuthModeFromParams(loginParams);
-        const onboardingRequiredByQuery = String(loginParams.get("onboarding") || loginParams.get("onboardingRequired") || loginParams.get("onboarding_required") || "").trim().toLowerCase();
-        const shouldRequireOnboarding = onboardingRequiredByQuery === "required"
-          || onboardingRequiredByQuery === "true"
-          || onboardingRequiredByQuery === "1";
         const callbackProvider = sanitizeOAuthProvider(loginParams.get("provider"));
         expectedAuthCallbackProvider = callbackProvider || "";
         if (callbackProvider) {
@@ -18748,40 +18170,7 @@
         return "";
       }
 
-      function isFirstOnboardingOpen() {
-        return appScreen === "siteGuide" && (siteGuideMode === "firstOnboarding" || siteGuideMode === "firstOnboardingPreview");
-      }
-
-      function isSignupGuidePreviewMode() {
-        return siteGuideMode === "firstOnboardingPreview";
-      }
-
-      function isFirstOnboardingGuideMode() {
-        return siteGuideMode === "firstOnboarding" || siteGuideMode === "firstOnboardingPreview";
-      }
-
-      function exitSignupGuidePreview(options = {}) {
-        if (!isSignupGuidePreviewMode()) return;
-        siteGuideMode = "general";
-        siteGuidePageIndex = 0;
-        resetSignupGuideSelections();
-        isCompletingOnboarding = false;
-        const returnScreen = options.returnScreen || "editor";
-        if (appScreen === returnScreen) {
-          renderSiteGuideScreen();
-          if (options.showToast !== false) {
-            showAccountMenuToast("미리보기를 종료했습니다.");
-          }
-          return;
-        }
-        navigateToScreen(returnScreen);
-        if (options.showToast !== false) {
-          showAccountMenuToast("미리보기를 종료했습니다.");
-        }
-      }
-
       function syncBottomNavUi(activeKey = getBottomNavKeyForScreen(appScreen)) {
-        appBottomNav?.classList.toggle("is-guide-hidden", isFirstOnboardingOpen());
         bottomNavItems.forEach((item) => {
           const isActive = item.dataset.bottomNav === activeKey;
           item.classList.toggle("is-active", isActive);
@@ -18794,171 +18183,6 @@
             button.setAttribute("aria-current", isActive ? "page" : "false");
           }
         });
-      }
-
-      function isFirstTimeOnboardingTarget(user = currentUser) {
-        return false;
-      }
-
-      function resetSignupGuideSelections() {
-        signupGuideSelections = {
-          studioPhoto: null,
-          concept: null,
-        };
-      }
-
-      function getSignupGuideStepCount() {
-        return SIGNUP_GUIDE_STEP_COUNT;
-      }
-
-      function renderSignupGuideTitle(title, accent = "") {
-        const value = String(title || "");
-        const highlight = String(accent || "").trim();
-        if (!highlight || !value.includes(highlight)) {
-          return escapeHtml(value);
-        }
-        const index = value.indexOf(highlight);
-        return `${escapeHtml(value.slice(0, index))}<em class="signup-guide-title-accent">${escapeHtml(highlight)}</em>${escapeHtml(value.slice(index + highlight.length))}`;
-      }
-
-      function renderSignupGuideProgress(currentStep) {
-        const totalSteps = getSignupGuideStepCount();
-        const safeStep = Math.min(Math.max(currentStep, 0), totalSteps - 1);
-        const segments = Array.from({ length: totalSteps }, (_, index) => {
-          const stateClass = index < safeStep
-            ? "is-complete"
-            : index === safeStep
-              ? "is-current"
-              : "";
-          return `<span class="signup-guide-progress-segment ${stateClass}"></span>`;
-        }).join("");
-
-        return `
-          <div class="signup-guide-progress" aria-label="안내 진행 ${safeStep + 1}/${totalSteps}">
-            ${segments}
-            <span class="signup-guide-progress-badge">${safeStep + 1}</span>
-          </div>
-        `;
-      }
-
-      function renderSignupGuideStudioPhotoStep() {
-        const selected = signupGuideSelections.studioPhoto;
-        const hasStudioPhoto = selected === "yes";
-        const noStudioPhoto = selected === "no";
-
-        return `
-          <p class="signup-guide-flow-title">더 멋진 사진을 위한 제작 가이드</p>
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 있으신가요?", "있으신가요?")}</h2>
-          <p class="signup-guide-subtitle">사진 상태에 맞춰 더 좋은 시작 방법을 알려드릴게요.</p>
-          <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-choice-list">
-            <button class="signup-guide-choice-card ${hasStudioPhoto ? "is-selected" : ""}" data-signup-guide-choice="studioPhoto" data-choice-value="yes" type="button">
-              <span class="signup-guide-choice-icon" aria-hidden="true">📸</span>
-              <span class="signup-guide-choice-copy">
-                <span class="signup-guide-choice-label">있어요</span>
-              </span>
-              <span class="signup-guide-choice-check" aria-hidden="true"><span class="material-symbols-outlined text-[14px]">check</span></span>
-            </button>
-            <button class="signup-guide-choice-card ${noStudioPhoto ? "is-selected" : ""}" data-signup-guide-choice="studioPhoto" data-choice-value="no" type="button">
-              <span class="signup-guide-choice-icon" aria-hidden="true">✨</span>
-              <span class="signup-guide-choice-copy">
-                <span class="signup-guide-choice-label">없어요</span>
-              </span>
-              <span class="signup-guide-choice-check" aria-hidden="true"><span class="material-symbols-outlined text-[14px]">check</span></span>
-            </button>
-          </div>
-        `;
-      }
-
-      function renderSignupGuideHasStudioPhotoStep() {
-        return `
-          <h2 class="signup-guide-question is-compact-title">좋아요.<br />컨셉과 잘 맞는 사진일수록<br />결과가 <em class="signup-guide-title-accent">더 자연스러워요.</em></h2>
-          <p class="signup-guide-subtitle">포즈와 의상이 선택한 스타일과 어울릴수록<br />사진이 더 자연스럽게 나와요.</p>
-          <p class="signup-guide-subcopy">고화질 원본에 가까운 사진,<br />흰색 배경처럼 깔끔한 사진을 추천해요.</p>
-          <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card">
-            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.whiteBackground}" alt="흰색 배경 스튜디오 사진 예시" decoding="async" />
-          </div>
-        `;
-      }
-
-      function renderSignupGuideNoStudioPhotoStep() {
-        return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("스튜디오 사진이 없어도 괜찮아요.", "괜찮아요.")}</h2>
-          <p class="signup-guide-subtitle">집구석 사진도 원하는 배경으로<br />분위기를 바꿔볼 수 있어요.</p>
-          <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card is-studio-style-asset">
-            <img class="onboarding-studio-guide-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.studioStyle}" alt="Studio Style 안내 이미지" decoding="async" />
-          </div>
-        `;
-      }
-
-      function renderSignupGuideStudioPhotoFollowUpStep() {
-        if (signupGuideSelections.studioPhoto === "no") {
-          return renderSignupGuideNoStudioPhotoStep();
-        }
-        return renderSignupGuideHasStudioPhotoStep();
-      }
-
-      function renderSignupGuideStyleButtonsStep() {
-        return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("원하는 분위기를 골라보세요", "분위기를 골라보세요")}</h2>
-          <p class="signup-guide-subtitle">유럽·한국 스타일 중<br />사진에 어울리는 콘셉트를 선택할 수 있어요.</p>
-          <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card is-style-category">
-            <img class="onboarding-category-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.category}" alt="스타일 카테고리 선택 예시" decoding="async" />
-          </div>
-        `;
-      }
-
-      function renderSignupGuideGalleryStep() {
-        return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("다양한 스타일을 살펴보세요", "살펴보세요")}</h2>
-          <p class="signup-guide-subtitle">스타일 갤러리를 보고<br />사진에 맞는 컨셉을 찾아보세요.</p>
-          <p class="signup-guide-subcopy">포즈나 의상이 어울릴수록<br />사진이 더 찰떡같이 나와요.</p>
-          <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card">
-            <img src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.styleGallery}" alt="스타일 갤러리 화면 예시" decoding="async" />
-          </div>
-        `;
-      }
-
-      function renderSignupGuideMyPhotoBoxStep() {
-        return `
-          <h2 class="signup-guide-question">${renderSignupGuideTitle("완성된 사진은 마이포토박스에", "마이포토박스에")}</h2>
-          <p class="signup-guide-subtitle">내가 만든 사진을 한곳에 모아볼 수 있어요.</p>
-          <div class="signup-guide-divider" aria-hidden="true">♥</div>
-          <div class="signup-guide-image-card is-myphotobox">
-            <div class="onboarding-photobox-preview-frame">
-              <img class="onboarding-photobox-preview-image" src="${SIGNUP_GUIDE_ONBOARDING_IMAGES.myPhotoBox}" alt="마이포토박스 화면 예시" decoding="async" />
-            </div>
-          </div>
-          <div class="signup-guide-info-card is-highlight">
-            <p>신규 가입 고객에게 무료 제작 이용권 3회가 제공돼요.</p>
-          </div>
-          <div class="signup-guide-info-card">
-            <p>완성된 사진은 마이포토박스에서 다시 확인할 수 있어요.</p>
-            <p>저장한 결과를 다시 확인할 수 있어요.</p>
-          </div>
-        `;
-      }
-
-      function renderSignupGuideStepContent(stepIndex) {
-        if (stepIndex === 0) return renderSignupGuideStudioPhotoStep();
-        if (stepIndex === 1) return renderSignupGuideStudioPhotoFollowUpStep();
-        if (stepIndex === 2) return renderSignupGuideStyleButtonsStep();
-        if (stepIndex === 3) return renderSignupGuideGalleryStep();
-        return renderSignupGuideMyPhotoBoxStep();
-      }
-
-      function isSignupGuideContinueDisabled(stepIndex) {
-        if (isCompletingOnboarding) return true;
-        if (stepIndex === 0 && !signupGuideSelections.studioPhoto) return true;
-        return false;
-      }
-
-      function getFirstOnboardingPages() {
-        return Array.from({ length: getSignupGuideStepCount() }, (_, index) => [index]);
       }
 
       function renderGuideCopyText(text = "", highlights = []) {
@@ -19052,55 +18276,6 @@
         `;
       }
 
-      function renderFirstTimeOnboardingGuide() {
-        if (!siteGuideStepsContainer) return;
-        const stepCount = getSignupGuideStepCount();
-        const currentStep = Math.min(Math.max(siteGuidePageIndex, 0), stepCount - 1);
-        const isPreview = isSignupGuidePreviewMode();
-        const isLastStep = currentStep === stepCount - 1;
-        const continueDisabled = isSignupGuideContinueDisabled(currentStep);
-        const buttonLabel = isLastStep
-          ? (isPreview
-            ? "미리보기 닫기"
-            : (isCompletingOnboarding ? "이용안내 완료 처리 중..." : "사진 올리러 가기"))
-          : "계속하기";
-
-        siteGuideStepsContainer.innerHTML = `
-          <div class="onboarding-page is-first-onboarding signup-guide-flow">
-            <div class="signup-guide-header">
-              <button class="signup-guide-header-button" id="siteGuideBackButton" type="button" aria-label="이전 단계">
-                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
-              </button>
-              ${renderSignupGuideProgress(currentStep)}
-              <button class="signup-guide-header-button signup-guide-skip-button" id="siteGuideSkipButton" type="button" ${isCompletingOnboarding ? "disabled" : ""}>건너뛰기</button>
-            </div>
-            <div class="signup-guide-body">
-              ${isPreview ? `
-                <div class="signup-guide-preview-banner" role="status" aria-live="polite">
-                  <span class="signup-guide-preview-badge">미리보기 모드</span>
-                  <p class="signup-guide-preview-note">미리보기에서는 무료 제작권이 지급되지 않습니다.</p>
-                </div>
-              ` : ""}
-              ${renderSignupGuideStepContent(currentStep)}
-            </div>
-            <div class="signup-guide-footer">
-              <button class="signup-guide-continue-button" id="siteGuideNextButton" type="button" ${continueDisabled ? "disabled" : ""}>
-                <span>${buttonLabel}</span>
-                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
-              </button>
-              <p class="signup-guide-footer-note">선택 내용은 더 좋은 안내를 제공하는 데만 사용돼요.</p>
-              ${isPreview ? `<p class="signup-guide-preview-note mt-2 text-center">미리보기에서는 무료 제작권이 지급되지 않습니다.</p>` : ""}
-            </div>
-            ${!isPreview && isCompletingOnboarding ? `
-              <div class="onboarding-processing-overlay" role="status" aria-live="polite">
-                <div class="onboarding-processing-spinner" aria-hidden="true"></div>
-                <strong class="text-primary">이용안내 완료 처리 중입니다. 잠시만 기다려 주세요.</strong>
-              </div>
-            ` : ""}
-          </div>
-        `;
-      }
-
       function renderContactGuideScreen() {
         if (contactGuideFaqList && !contactGuideFaqList.dataset.rendered) {
           contactGuideFaqList.innerHTML = guideFaqItems.map((item, index) => `
@@ -19115,91 +18290,8 @@
       }
 
       function renderSiteGuideScreen() {
-        // First-time onboarding UI must never render.
-        if (isFirstOnboardingGuideMode()) {
-          siteGuideMode = "general";
-          siteGuidePageIndex = 0;
-          isCompletingOnboarding = false;
-        }
-        siteGuideScreen?.classList.toggle("is-first-onboarding", false);
-        siteGuideScreen?.classList.toggle("is-preview-mode", false);
         renderGeneralSiteGuide();
         syncBottomNavUi();
-      }
-
-      async function completeOnboarding() {
-        // Onboarding + signup free-pass grant retired: never call complete API.
-        onboardingCompleted = true;
-        if (currentUser && typeof currentUser === "object") {
-          currentUser.onboardingCompleted = true;
-        }
-        return {
-          payload: { ok: true, onboardingCompleted: true },
-          user: currentUser,
-        };
-      }
-
-      function handleSignupGuideChoiceClick(choiceElement) {
-        const field = choiceElement.dataset.signupGuideChoice;
-        const value = choiceElement.dataset.choiceValue;
-        if (!field || !value || !(field in signupGuideSelections)) return;
-        signupGuideSelections[field] = value;
-        renderSiteGuideScreen();
-      }
-
-      function handleSiteGuideBack() {
-        if (!isFirstOnboardingGuideMode() || isCompletingOnboarding) return;
-        if (siteGuidePageIndex > 0) {
-          siteGuidePageIndex -= 1;
-          renderSiteGuideScreen();
-          return;
-        }
-        if (isSignupGuidePreviewMode()) {
-          exitSignupGuidePreview();
-          return;
-        }
-        navigateToScreen("home");
-      }
-
-      async function handleSiteGuideComplete() {
-        // First-time onboarding retired: never call grant API; leave guide if somehow opened.
-        if (isSignupGuidePreviewMode()) {
-          exitSignupGuidePreview();
-          return;
-        }
-        if (siteGuideMode !== "firstOnboarding") {
-          return;
-        }
-        siteGuideMode = "general";
-        siteGuidePageIndex = 0;
-        isCompletingOnboarding = false;
-        clearPendingAction();
-        navigateToScreen("editor");
-        setStatus("사진 제작을 시작해 주세요.");
-      }
-
-      async function handleSiteGuideSkip() {
-        if (!isFirstOnboardingGuideMode() || isCompletingOnboarding) return;
-        await handleSiteGuideComplete();
-      }
-
-      async function handleSiteGuideNext() {
-        if (!isFirstOnboardingGuideMode()) {
-          return;
-        }
-
-        if (isCompletingOnboarding) {
-          return;
-        }
-
-        const stepCount = getSignupGuideStepCount();
-        if (siteGuidePageIndex < stepCount - 1) {
-          siteGuidePageIndex += 1;
-          renderSiteGuideScreen();
-          return;
-        }
-
-        await handleSiteGuideComplete();
       }
 
       function requestLoginForGeneration() {
@@ -19235,18 +18327,10 @@
         showAccountMenuToast(message);
       }
 
-      function shouldShowOnboarding(user = currentUser) {
-        return false;
-      }
-
       function hasFreeGeneration(user = currentUser) {
         const usage = getCurrentGenerationUsage(user);
         if (usage?.freeGenerationAvailable === true) return true;
         return usage?.freeGenerationUsed === false && user?.freeGenerationUsed === false;
-      }
-
-      function shouldShowOnboardingCards() {
-        return shouldShowOnboarding(currentUser);
       }
 
       function canStartGenerationFromCurrentState() {
@@ -21967,12 +21051,6 @@
           stopUploadTipRotator();
         }
 
-        if (previousScreen === "siteGuide" && screen !== "siteGuide" && siteGuideMode === "firstOnboardingPreview") {
-          siteGuideMode = "general";
-          siteGuidePageIndex = 0;
-          resetSignupGuideSelections();
-          isCompletingOnboarding = false;
-        }
 
         const screens = [
           { name: "home", element: homeScreen, activeClass: "" },
@@ -24027,7 +23105,7 @@
           },
           FREE_GENERATION_ALREADY_USED: {
             title: "무료 제작 사용 완료",
-            body: "무료 제작 이용권은 계정당 3회까지 이용할 수 있습니다.",
+            body: "신규 가입 무료 제작 이용권 3회는 지급일로부터 1개월간 이용할 수 있습니다.",
           },
           GENERATION_FAILED: {
             title: "생성 실패",
@@ -30308,25 +29386,8 @@ ${modeExample}`;
         navigateToScreen("myPhotoBox");
       }
 
-      function handleSignupGuidePreviewClick() {
-        if (!canShowAdminEntry()) {
-          showAccountMenuToast("관리자 권한이 필요합니다.");
-          return;
-        }
-        // First-time onboarding preview retired.
-        closeAccountMenu();
-        siteGuideMode = "general";
-        siteGuidePageIndex = 0;
-        isCompletingOnboarding = false;
-        navigateToScreen("siteGuide");
-        showAccountMenuToast("신규 이용안내 미리보기는 더 이상 제공되지 않습니다.");
-      }
-
       function handleSiteGuideClick() {
         closeAccountMenu();
-        siteGuideMode = "general";
-        isCompletingOnboarding = false;
-        siteGuidePageIndex = 0;
         navigateToScreen("siteGuide");
       }
 
@@ -30634,10 +29695,6 @@ ${modeExample}`;
         }
         if (action === "admin") {
           handleAdminClick();
-          return;
-        }
-        if (action === "signup-guide-preview") {
-          handleSignupGuidePreviewClick();
           return;
         }
         if (action === "contact") {
@@ -31030,38 +30087,6 @@ ${modeExample}`;
 
       contactGuideContactButton?.addEventListener("click", () => {
         openAssistantKakaoModal();
-      });
-
-      siteGuideStepsContainer?.addEventListener("click", (event) => {
-        const choiceTarget = event.target instanceof Element
-          ? event.target.closest("[data-signup-guide-choice]")
-          : null;
-        if (choiceTarget) {
-          handleSignupGuideChoiceClick(choiceTarget);
-          return;
-        }
-
-        const backTarget = event.target instanceof Element
-          ? event.target.closest("#siteGuideBackButton")
-          : null;
-        if (backTarget) {
-          handleSiteGuideBack();
-          return;
-        }
-
-        const skipTarget = event.target instanceof Element
-          ? event.target.closest("#siteGuideSkipButton")
-          : null;
-        if (skipTarget) {
-          void handleSiteGuideSkip();
-          return;
-        }
-
-        const nextTarget = event.target instanceof Element
-          ? event.target.closest("#siteGuideNextButton")
-          : null;
-        if (!nextTarget) return;
-        void handleSiteGuideNext();
       });
 
       document.addEventListener("keydown", (event) => {

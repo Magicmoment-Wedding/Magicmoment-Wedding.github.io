@@ -253,23 +253,6 @@ function openLoginModal() {
   });
 }
 
-function openFirstTimeOnboardingFlow() {
-  updateState({
-    activeModal: null,
-    firstTimeOnboardingOpen: true,
-    firstTimeOnboardingStep: 0,
-    onboardingErrorMessage: "",
-  });
-}
-
-function closeFirstTimeOnboardingFlow() {
-  updateState({
-    firstTimeOnboardingOpen: false,
-    firstTimeOnboardingStep: 0,
-    onboardingCompleting: false,
-  });
-}
-
 function showToast(message, type = "success") {
   updateState({
     activeModal: {
@@ -391,18 +374,6 @@ function handleCreateClick() {
   }
 
   startPaidGenerationFlow();
-}
-
-async function completeFirstTimeOnboarding() {
-  // First-time onboarding retired: skip grant API and go to create flow.
-  closeFirstTimeOnboardingFlow();
-  updateState({
-    onboardingCompleting: false,
-    onboardingErrorMessage: "",
-    pendingAfterLogin: null,
-    pendingGenerate: false,
-  });
-  navigate(ROUTES.CREATE);
 }
 
 function getGalleryStyle(styleId) {
@@ -1001,19 +972,6 @@ async function handleAction(action, target) {
 
   if (action === "close-modal") {
     closeModal();
-    return;
-  }
-
-  if (action === "next-first-onboarding") {
-    updateState({
-      firstTimeOnboardingStep: Math.min((state.firstTimeOnboardingStep ?? 0) + 1, 2),
-      onboardingErrorMessage: "",
-    });
-    return;
-  }
-
-  if (action === "complete-first-onboarding") {
-    await completeFirstTimeOnboarding();
     return;
   }
 
